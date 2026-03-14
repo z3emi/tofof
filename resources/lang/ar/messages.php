@@ -1,0 +1,62 @@
+<?php
+
+return [
+    // Navigation
+    'home' => 'الرئيسية',
+    'shop' => 'المتجر',
+    'categories' => 'التصنيفات',
+    'cart' => 'السلة',
+    'wishlist' => 'المفضلة',
+    'my_account' => 'حسابي',
+    'login_register' => 'دخول / تسجيل',
+    'search_placeholder' => 'ابحث عن المنتجات...',
+    
+    // Homepage
+    'welcome' => 'مرحباً',
+    'tofof' => 'طفوف',
+    'your_first_destination_for_beauty' => 'وجهتك الأولى للجمال',
+    'beauty_touch_starts_here' => 'لمسة جمالك تبدأ هنا',
+    'soft_colors_eternal_elegance' => 'ألوان ناعمة، أناقة خالدة، وتسوق سهل',
+    'shop_now' => 'تسوق الآن',
+    'new_arrivals' => 'جديد الوصولات',
+    'browse_by_category' => 'تصفح حسب الفئة',
+    'new_in_store' => 'جديد في متجرنا',
+    'special_offers' => 'عروض مميزة',
+    'best_selling' => 'الأكثر مبيعاً',
+    'view_all' => 'عرض الكل',
+    'add_to_cart' => 'أضف للسلة',
+    'added_to_cart' => 'تمت الإضافة',
+    'loading' => 'جاري التحميل...',
+    'new' => 'جديد',
+    'sale' => 'خصم',
+    'bestseller' => 'الأكثر مبيعاً',
+    'price' => 'السعر',
+    'currency' => 'د.ع',
+    
+    // Slider content
+    'summer_collection' => 'مجموعة الصيف الجديدة',
+    'discover_summer_colors' => 'استكشف ألوان الصيف الساحرة مع تشكيلتنا الجديدة',
+    'exclusive_offers' => 'عروض حصرية',
+    'discount_up_to_50' => 'خصم يصل إلى 50% على تشكيلات مختارة',
+    'discover_offers' => 'اكتشف العروض',
+    'luxury_collection' => 'مجموعة الفخامة',
+    'luxury_shopping_experience' => 'تجربة تسوق فاخرة مع منتجاتنا المميزة',
+    'shop_collection' => 'تسوق المجموعة',
+    'beauty_tips' => 'نصائح الجمال',
+    'skin_care_secrets' => 'اكتشف أسرار العناية ببشرتك مع خبرائنا',
+    'read_more' => 'اقرأ المزيد',
+    'gift_cards' => 'بطاقات الهدايا',
+    'perfect_gift' => 'الهدية المثالية لمن تحب',
+    'order_now' => 'اطلب الآن',
+    
+    // Footer
+    'quick_links' => 'روابط سريعة',
+    'information' => 'معلومات',
+    'about_us' => 'من نحن',
+    'privacy_policy' => 'سياسة الخصوصية',
+    'how_to_order' => 'طريقة الطلب',
+    'contact_us' => 'اتصل بنا',
+    'footer_description' => 'وجهتكم الأولى لمنتجات التجميل الأصلية والعناية الفاخرة. نؤمن أن جمالكم يستحق الأفضل دائماً.',
+    'all_rights_reserved' => 'جميع الحقوق محفوظة',
+    'welcome_continue' => 'استكشاف التشكيلة',
+];

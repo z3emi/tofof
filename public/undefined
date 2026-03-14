@@ -1,0 +1,8 @@
+<?php
+echo "<pre>";
+
+$artisan = __DIR__ . '/artisan';  // هذا يجيب المسار الكامل لملف artisan
+
+echo shell_exec("php $artisan migrate --force 2>&1");
+
+echo "</pre>";

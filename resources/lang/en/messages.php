@@ -1,0 +1,61 @@
+<?php
+
+return [
+    // Navigation
+    'home' => 'Home',
+    'shop' => 'Shop',
+    'categories' => 'Categories',
+    'cart' => 'Cart',
+    'wishlist' => 'Wishlist',
+    'my_account' => 'My Account',
+    'login_register' => 'Login / Register',
+    'search_placeholder' => 'Search for products...',
+    
+    // Homepage
+    'welcome' => 'Welcome',
+    'tofof' => 'Tofof',
+    'your_first_destination_for_beauty' => 'Your first destination for beauty',
+    'beauty_touch_starts_here' => 'Your beauty touch starts here',
+    'soft_colors_eternal_elegance' => 'Soft colors, eternal elegance, and easy shopping',
+    'shop_now' => 'Shop Now',
+    'new_arrivals' => 'New Arrivals',
+    'browse_by_category' => 'Browse by Category',
+    'new_in_store' => 'New in Store',
+    'special_offers' => 'Special Offers',
+    'best_selling' => 'Best Selling',
+    'view_all' => 'View All',
+    'add_to_cart' => 'Add to Cart',
+    'added_to_cart' => 'Added to Cart',
+    'loading' => 'Loading...',
+    'new' => 'New',
+    'sale' => 'Sale',
+    'bestseller' => 'Bestseller',
+    'price' => 'Price',
+    'currency' => 'IQD',
+    
+    // Slider content
+    'summer_collection' => 'New Summer Collection',
+    'discover_summer_colors' => 'Discover the enchanting summer colors with our new collection',
+    'exclusive_offers' => 'Exclusive Offers',
+    'discount_up_to_50' => 'Discount up to 50% on selected collections',
+    'discover_offers' => 'Discover Offers',
+    'luxury_collection' => 'Luxury Collection',
+    'luxury_shopping_experience' => 'A luxurious shopping experience with our premium products',
+    'shop_collection' => 'Shop Collection',
+    'beauty_tips' => 'Beauty Tips',
+    'skin_care_secrets' => 'Discover the secrets of skin care with our experts',
+    'read_more' => 'Read More',
+    'gift_cards' => 'Gift Cards',
+    'perfect_gift' => 'The perfect gift for someone you love',
+    'order_now' => 'Order Now',
+    
+    // Footer
+    'quick_links' => 'Quick Links',
+    'information' => 'Information',
+    'about_us' => 'About Us',
+    'privacy_policy' => 'Privacy Policy',
+    'how_to_order' => 'How to Order',
+    'contact_us' => 'Contact Us',
+    'footer_description' => 'Your first destination for authentic cosmetic products and luxury care. We believe your beauty deserves the best always.',
+    'all_rights_reserved' => 'All rights reserved',
+];

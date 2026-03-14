@@ -1,0 +1,303 @@
+﻿/*
+  TOFOF Store Stylesheet
+  ---
+  Navy Blue: #0F2A44 (Primary)
+  Gold: #D4AF37 (Luxury Accent)
+  Light Grey: #E6E6E6 (Secondary)
+  Brown Leather: #6B4F3B (Detail)
+*/
+
+/* --- Google Fonts --- */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;700&display=swap');
+
+/* --- CSS Variables --- */
+:root {
+  --bg-color: #F5F5F5;
+  --primary-color: #0B0B0B;
+  --accent-red: #C81D25;
+  --accent-red-hover: #A0151B;
+  --luxury-gold: #D4AF37;
+  --secondary-dark: #1F1F1F;
+  --white-color: #FFFFFF;
+  --text-dark: #111111;
+  --text-grey: #999999;
+  --text-light: #F5F5F5;
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Cairo', sans-serif;
+}
+
+/* --- General Styles --- */
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  direction: rtl; /* For Arabic Layout */
+  text-align: right;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+a {
+  color: var(--accent-gold);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--primary-color);
+}
+
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+/* --- Buttons --- */
+.btn {
+  padding: 12px 32px;
+  border: none;
+  border-radius: 4px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: var(--accent-gold);
+  border: 1px solid var(--accent-gold);
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-gold);
+  color: var(--primary-color);
+  transform: scale(1.05);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+}
+
+.btn-secondary:hover {
+  background-color: var(--primary-color);
+  color: var(--white-color);
+}
+
+
+/* --- Header & Navigation --- */
+.main-header {
+  background-color: var(--white-color);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  padding: 15px 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  letter-spacing: 2px;
+}
+
+.logo span {
+  color: var(--primary-color);
+}
+
+.main-nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  gap: 30px;
+}
+
+.main-nav a {
+  font-size: 18px;
+  font-weight: 500;
+  padding-bottom: 5px;
+  border-bottom: 2px solid transparent;
+}
+
+.main-nav a:hover, .main-nav a.active {
+  color: var(--primary-darker);
+  border-bottom-color: var(--primary-darker);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-actions a {
+  font-size: 22px;
+}
+
+/* --- Hero Section --- */
+.hero-section {
+  background-image: linear-gradient(to left, rgba(15, 42, 68, 0.8), rgba(212, 175, 55, 0.4)), url('https://via.placeholder.com/1600x600.png/0F2A44/D4AF37?text=TOFOF+Luxury');
+  background-size: cover;
+  background-position: center;
+  color: var(--white-color);
+  text-align: center;
+  padding: 120px 20px;
+  border-bottom: 4px solid var(--accent-gold);
+}
+
+.hero-section h1 {
+  font-size: 56px;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+  font-family: var(--font-heading);
+}
+
+.hero-section p {
+  font-size: 20px;
+  margin-bottom: 30px;
+}
+
+/* --- Product Card --- */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.product-card {
+  background-color: var(--white-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: center;
+}
+
+.product-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.product-image img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+
+.product-info {
+  padding: 20px;
+}
+
+.product-category {
+  font-size: 14px;
+  color: var(--leather-color);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.product-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--primary-color);
+  font-family: var(--font-heading);
+}
+
+.product-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+/* --- Footer --- */
+.main-footer {
+  background-color: var(--accent-bg);
+  padding: 40px 0;
+  margin-top: 60px;
+  color: var(--primary-darker);
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 30px;
+}
+
+.footer-col h4 {
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+.footer-col ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-col ul li {
+  margin-bottom: 10px;
+}
+
+.footer-col a {
+  color: var(--primary-darker);
+}
+
+.copyright {
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--accent-light);
+}
+
+/* Reference-style global overrides (visual only) */
+:root {
+  --primary-color: #0b0b0b;
+  --accent-red: #e31c23;
+  --accent-red-hover: #b9161d;
+  --luxury-gold: #d4af37;
+  --secondary-dark: #1f1f1f;
+  --bg-color: #f8f6f6;
+  --white-color: #ffffff;
+  --text-dark: #111827;
+  --font-heading: 'Noto Serif', 'Playfair Display', serif;
+  --font-body: 'Noto Sans Arabic', 'Cairo', sans-serif;
+}
+
+html.dark {
+  --bg-color: #120809;
+  --text-dark: #f3f4f6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+body {
+  font-family: var(--font-body);
+}

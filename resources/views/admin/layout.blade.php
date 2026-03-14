@@ -1,0 +1,1268 @@
+<!doctype html>
+<html lang="ar" dir="rtl" x-data="themeSwitcher()" :data-theme="theme">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {{-- Token for AJAX requests --}}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', 'لوحة تحكم Tofof')</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    {{-- START: Theme switcher script (prevents FOUC) --}}
+    <script>
+        function themeSwitcher() {
+            return {
+                theme: localStorage.getItem('admin_theme') || 'light',
+                init() {
+                    this.$watch('theme', value => {
+                        localStorage.setItem('admin_theme', value);
+                        // The :data-theme binding on <html> handles the rest
+                    });
+                },
+                toggleTheme() {
+                    this.theme = this.theme === 'light' ? 'dark' : 'light';
+                }
+            }
+        }
+    </script>
+    {{-- END: Theme switcher script --}}
+
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --topbar-height: 58px;
+            --bg-light: #f7f7f7;
+            --primary-dark: #c32126;
+            --primary-medium: #a61c20;
+            --primary-light: #ea7a7e;
+            --secondary-light: #e7e7e7;
+            --white: #ffffff;
+            --text-dark: #0a0a0a;
+            --text-light: #5f5f5f;
+            --transition: all 0.25s ease;
+            --border-radius: 8px;
+            --icon-size: 1rem;
+            --nav-link-padding: 0.5rem 0.9rem;
+            --shadow-sm: 0 2px 5px rgba(0,0,0,.06);
+            --shadow-md: 0 5px 15px rgba(0,0,0,.12);
+            --shadow-color-primary: rgba(195, 33, 38, .2);
+        }
+
+        /* START: Dark Mode Variables */
+        [data-theme="dark"] {
+            --bg-light: #0a0a0a;
+            --primary-dark: #c32126;
+            --primary-medium: #a61c20;
+            --primary-light: #ea7a7e;
+            --secondary-light: #2a2a2a;
+            --white: #111111;
+            --text-dark: #ffffff;
+            --text-light: #d6d6d6;
+            --shadow-sm: 0 2px 5px rgba(0,0,0,.16);
+            --shadow-md: 0 5px 15px rgba(0,0,0,.28);
+            --shadow-color-primary: rgba(195, 33, 38, .3);
+        }
+        /* END: Dark Mode Variables */
+
+        body{font-family:'Tajawal',sans-serif;background-color:var(--bg-light);color:var(--text-dark);overflow-x:hidden;scroll-behavior:smooth; transition: background-color 0.25s ease, color 0.25s ease;}
+        .main-wrapper{display:flex;min-height:100vh}
+        .sidebar{width:var(--sidebar-width);background-color:var(--white);position:sticky;top:0;height:100vh;z-index:1000;border-left:1px solid var(--secondary-light);display:flex;flex-direction:column;box-shadow:2px 0 10px rgba(0,0,0,.05);overflow-y:auto; transition: var(--transition);}
+        .sidebar a{scroll-behavior:auto}
+        .sidebar-content{overflow-y:auto;flex:1;padding-bottom:.5rem;scrollbar-width:thin;scrollbar-color:var(--primary-light) var(--secondary-light)}
+        .sidebar-content::-webkit-scrollbar{width:5px}
+        .sidebar-content::-webkit-scrollbar-thumb{background-color:var(--primary-light);border-radius:3px}
+        .sidebar-content::-webkit-scrollbar-track{background-color:var(--secondary-light)}
+        .sidebar-brand{padding:1rem;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:var(--primary-dark);border-bottom:1px solid var(--secondary-light);flex-shrink:0}
+        .sidebar-brand i{font-size:1.4rem;margin-left:.5rem;color:var(--primary-dark)}
+        .nav-link{color:var(--text-dark);padding:var(--nav-link-padding);margin:.15rem .5rem;border-radius:var(--border-radius);display:flex;align-items:center;transition:var(--transition);font-weight:500;font-size:.9rem;position:relative;text-decoration:none}
+        .nav-link:hover{background-color:var(--primary-light);color:#fff;transform:translateX(-5px)}
+        .nav-link.active{background-color:var(--primary-medium);color:#fff;font-weight:600;box-shadow:0 4px 8px var(--shadow-color-primary)}
+        .nav-link.active::before{content:'';position:absolute;right:-1px;top:0;height:100%;width:3px;background-color:var(--primary-dark);border-radius:3px 0 0 3px}
+        .nav-link .bi{transition:var(--transition)}
+        .nav-link:hover .bi,.nav-link.active .bi{transform:scale(1.1)}
+        .badge{font-size:.6rem;padding:.28em .45em;margin-right:auto}
+        .sidebar-footer{padding:.6rem;border-top:1px solid var(--secondary-light);flex-shrink:0;font-size:.72rem;color:var(--text-light);text-align:center}
+        .content-wrapper{flex:1;display:flex;flex-direction:column;min-height:100vh}
+        .main-content{flex:1;padding:1.75rem;overflow-y:auto}
+        .topbar{background:var(--white);padding:0 1.1rem;height:var(--topbar-height);display:flex;align-items:center;border-bottom:1px solid var(--secondary-light);flex-shrink:0;box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:999; transition: var(--transition);}
+        .sidebar-toggle-btn{transition:var(--transition);border:none;background:transparent;font-size:1.35rem;color:var(--primary-dark);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+        .sidebar-toggle-btn:hover{color:var(--primary-medium);background-color:rgba(195, 33, 38, .1)}
+        .user-dropdown .dropdown-toggle{display:flex;align-items:center;color:var(--text-dark);text-decoration:none;transition:var(--transition)}
+        .user-dropdown .dropdown-toggle:hover{color:var(--primary-dark)}
+        .user-dropdown img{width:32px;height:32px;border-radius:50%;object-fit:cover;margin-left:.6rem;border:1px solid var(--primary-light);transition:var(--transition)}
+        .user-dropdown .dropdown-toggle:hover img{border-color:var(--primary-medium)}
+        .dropdown-menu{border:1px solid var(--secondary-light);box-shadow:var(--shadow-md);border-radius:var(--border-radius);padding:.35rem;margin-top:.5rem!important; background-color: var(--white);}
+        .dropdown-item{border-radius:var(--border-radius);padding:.45rem .8rem;font-size:.88rem;transition:var(--transition); color: var(--text-dark);}
+        .dropdown-item:hover{background-color:var(--primary-light);color:#fff}
+        [data-theme="dark"] .dropdown-item.text-danger:hover { color: #fff !important; }
+        [data-theme="dark"] .dropdown-item.text-warning:hover { color: #fff !important; }
+        .card{border:1px solid var(--secondary-light);border-radius:var(--border-radius);box-shadow:var(--shadow-sm);background-color:var(--white);margin-bottom:1.1rem;transition:var(--transition)}
+        .card:hover{box-shadow:var(--shadow-md)}
+        .card-header{background-color:transparent;border-bottom:1px solid var(--secondary-light);padding:.9rem 1rem;font-weight:600;color:var(--primary-dark);display:flex;align-items:center;justify-content:space-between}
+        .card-header .bi{font-size:1.2rem;color:var(--primary-medium)}
+        .btn{border-radius:var(--border-radius);padding:.4rem .95rem;font-weight:500;transition:var(--transition)}
+        .btn-primary{background-color:var(--primary-dark);border-color:var(--primary-dark);color:#fff}
+        .btn-primary:hover{background-color:var(--primary-medium);border-color:var(--primary-medium);box-shadow:0 4px 12px rgba(195, 33, 38, .3)}
+        .btn-sm{padding:.28rem .55rem;font-size:.8rem}
+        .alert{border:none;border-radius:var(--border-radius);box-shadow:0 2px 5px rgba(0,0,0,.05);padding:.6rem .85rem}
+        .reports-submenu{margin-right:1rem;border-right:1px solid var(--secondary-light);padding-right:.6rem;margin-left:.6rem}
+        .reports-submenu .nav-link.sub-link{padding:.4rem .8rem;margin:.12rem 0;font-size:.85rem}
+        .reports-submenu .nav-link.sub-link:hover{background-color:rgba(0,0,0,0.1);color:var(--primary-dark);transform:none}
+        [data-theme="dark"] .reports-submenu .nav-link.sub-link:hover { background-color: rgba(255, 255, 255, 0.05); }
+        .reports-submenu .nav-link.sub-link .bi{font-size:.9rem;color:var(--primary-medium)}
+        .reports-submenu .nav-link.sub-link:hover .bi{color:var(--primary-dark);transform:none}
+        .nav-link.reports-toggle.active,.nav-link.reports-toggle[aria-expanded="true"]{background-color:#a85a56;color:#fff}
+        .table > :not(caption) > * > *{padding:.55rem .5rem}
+        [data-theme="dark"] .table { color: var(--text-dark); border-color: var(--secondary-light); }
+        [data-theme="dark"] .list-group-item { background-color: var(--white); border-color: var(--secondary-light); }
+        [data-theme="dark"] .dropdown-menu-end { background-color: var(--white); }
+        [data-theme="dark"] .notification-item.unread { background-color: rgba(255,255,255,0.05); }
+        hr.mx-3.my-2{ margin: .35rem .75rem !important; background-color: var(--secondary-light) !important; opacity: 0.5;}
+
+        @media (max-width:992px){
+            :root{ --sidebar-width: 250px; }
+            .main-wrapper{flex-direction:column}
+            .sidebar{position:fixed;top:0;right:-100%;width:var(--sidebar-width);height:100vh;transition:var(--transition);z-index:1050}
+            .sidebar.active{right:0}
+            .content-wrapper{width:100%;margin-right:0}
+            .sidebar-overlay{position:fixed;top:0;right:0;width:100%;height:100%;background-color:rgba(0,0,0,.5);z-index:1040;opacity:0;visibility:hidden;transition:var(--transition)}
+            .sidebar-overlay.active{opacity:1;visibility:visible}
+        }
+        /* === أيقونات سوداء دائمًا (رئيسية وفرعية) === */
+        .sidebar .nav-link .bi{color:var(--text-dark)!important;font-size:var(--icon-size);width:20px;text-align:center;margin-left:.5rem;vertical-align:middle}
+        .sidebar .nav-link:hover .bi,.sidebar .nav-link.active .bi{color:#fff!important;transform:scale(1.06)}
+        .sidebar .reports-submenu .nav-link.sub-link .bi{color:var(--text-dark)!important;font-size:.95rem}
+        .sidebar .reports-submenu .nav-link.sub-link:hover .bi{color:var(--primary-dark)!important;transform:none}
+        .sidebar .nav-link.reports-toggle .bi,
+        .sidebar .nav-link.reports-toggle:hover .bi,
+        .sidebar .nav-link.reports-toggle.active .bi{color:inherit!important}
+        [data-theme="dark"] .sidebar .nav-link:hover .bi,
+        [data-theme="dark"] .sidebar .nav-link.active .bi { color: #fff !important; }
+
+        /* START: Cleaned Desktop Sidebar Logic (THE FIX) */
+        @media (min-width: 993px) {
+            /* Sidebar takes fixed space when open */
+            .sidebar {
+                flex-shrink: 0; /* Prevent sidebar from shrinking */
+                flex-basis: var(--sidebar-width);
+                width: var(--sidebar-width);
+                transition: flex-basis 0.25s ease, width 0.25s ease, border-left-width 0.25s ease;
+                border-left-width: 1px;
+            }
+
+            /* When collapsed, show only icons */
+            .sidebar.collapsed {
+                flex-basis: auto;
+                width: 70px;
+                overflow: visible;
+                border-left-width: 1px;
+            }
+
+            .sidebar.collapsed .sidebar-brand span,
+            .sidebar.collapsed .nav-link span,
+            .sidebar.collapsed .sidebar-footer {
+                display: none;
+            }
+
+            .sidebar.collapsed .sidebar-brand {
+                justify-content: center;
+                padding: 1rem 0.5rem;
+            }
+
+            .sidebar.collapsed .sidebar-brand i {
+                margin-left: 0;
+            }
+
+            .sidebar.collapsed .nav-link {
+                justify-content: center;
+                padding: 0.75rem;
+            }
+
+            .sidebar.collapsed .nav-link .bi {
+                margin-left: 0;
+            }
+
+            .sidebar.collapsed .nav-link:hover {
+                transform: none;
+            }
+
+            .sidebar.collapsed .badge {
+                display: none;
+            }
+
+            .sidebar.collapsed .reports-submenu {
+                display: none;
+            }
+
+            /* Content wrapper automatically fills the remaining space */
+            .content-wrapper {
+                flex: 1 1 auto;
+                /* This rule makes it take up the rest of the space */
+                min-width: 0; /* Important fix for flex items that might overflow */
+            }
+        }
+        /* END: Cleaned Desktop Sidebar Logic */
+        /* START: Premium Utility Classes */
+        .text-brand { color: var(--primary-dark) !important; }
+        .bg-brand { background-color: var(--primary-dark) !important; color: #fff !important; }
+        .btn-brand {
+            background-color: var(--primary-dark);
+            color: #fff;
+            border: none;
+            transition: var(--transition);
+        }
+        .btn-brand:hover {
+            background-color: var(--primary-medium);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* START: Custom Confirmation Modal Styles */
+        #custom-confirm-modal .modal-content {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            background-color: var(--white);
+        }
+        #custom-confirm-modal .modal-header {
+            border-bottom: none;
+            padding: 1.5rem 1.5rem 0.5rem;
+        }
+        #custom-confirm-modal .modal-footer {
+            border-top: none;
+            padding: 0.5rem 1.5rem 1.5rem;
+            justify-content: center;
+            gap: 1rem;
+        }
+        #custom-confirm-modal .btn-confirm {
+            background-color: var(--primary-dark);
+            color: #fff;
+            border: none;
+            padding: 0.6rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        #custom-confirm-modal .btn-confirm:hover {
+            background-color: var(--primary-medium);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        #custom-confirm-modal .btn-cancel {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            border: 1px solid var(--secondary-light);
+            padding: 0.6rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        #custom-confirm-modal .btn-cancel:hover {
+            background-color: var(--secondary-light);
+            transform: translateY(-2px);
+        }
+        #custom-confirm-modal .icon-wrapper {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: rgba(195, 33, 38, 0.1);
+            color: var(--primary-dark);
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+        /* END: Custom Confirmation Modal Styles */
+
+        .bg-soft-danger { background-color: rgba(220, 53, 69, 0.05) !important; }
+        .bg-soft-warning { background-color: rgba(255, 193, 7, 0.05) !important; }
+        .bg-soft-success { background-color: rgba(25, 135, 84, 0.05) !important; }
+        .bg-soft-brand { background-color: rgba(195, 33, 38, 0.05) !important; }
+        .shadow-xs { box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .avatar-circle {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: 600;
+        }
+        /* END: Premium Utility Classes */
+
+        /* START: Context Menu Styles */
+        #context-menu {
+            position: fixed;
+            z-index: 10000;
+            width: 220px;
+            background: var(--white);
+            border: 1px solid var(--secondary-light);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            padding: 0.5rem 0;
+            display: none;
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        [data-theme="dark"] #context-menu {
+            background-color: rgba(30, 30, 30, 0.9);
+        }
+        .context-menu-item {
+            padding: 0.6rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-dark);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .context-menu-item:hover {
+            background-color: var(--primary-light);
+            color: #fff !important;
+        }
+        .context-menu-item i {
+            font-size: 1.1rem;
+            color: var(--primary-medium);
+        }
+        .context-menu-item:hover i {
+            color: #fff !important;
+        }
+        .context-menu-divider {
+            height: 1px;
+            background-color: var(--secondary-light);
+            margin: 0.4rem 0;
+            opacity: 0.5;
+        }
+        /* END: Context Menu Styles */
+    </style>
+    @stack('styles')
+</head>
+<body>
+    
+    <div class="main-wrapper" x-data="{ 
+        sidebarOpen: window.innerWidth <= 992 ? true : (JSON.parse(localStorage.getItem('sidebarOpen')) !== false),
+        init() {
+            this.$watch('sidebarOpen', value => {
+                if (window.innerWidth > 992) {
+                    localStorage.setItem('sidebarOpen', value);
+                }
+            });
+        }
+    }" @window:resize.debounce="sidebarOpen = window.innerWidth > 992 ? JSON.parse(localStorage.getItem('sidebarOpen')) !== false : true">
+        <div class="sidebar" :class="{ 'active': sidebarOpen, 'collapsed': !sidebarOpen && window.innerWidth > 992 }">
+            <div class="sidebar-brand">
+                <i class="bi bi-suit-heart-fill"></i>
+                <span>Tofof</span>
+            </div>
+            
+            <div class="sidebar-content">
+                <ul class="nav flex-column mt-2">
+                    @can('view-admin-panel')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>لوحة التحكم</span>
+                        </a>
+                    </li>
+                    @endcan
+                    
+                    <li class="nav-item" x-data="{ open: {{ request()->routeIs('admin.blog.*') ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open"
+                        class="nav-link d-flex justify-content-between reports-toggle"
+                        :class="{ 'active': open }"
+                        aria-expanded="false"
+                        :aria-expanded="open.toString()">
+                            <div>
+                                <i class="bi bi-pencil-square"></i>
+                                <span>المدونة</span>
+                            </div>
+                            <i class="bi transition-transform" :class="open ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+                        </a>
+
+                        <div x-show="open" x-collapse class="reports-submenu">
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.blog.posts.index') }}"
+                                    class="nav-link sub-link {{ request()->routeIs('admin.blog.posts.*') ? 'active' : '' }}">
+                                        <i class="bi bi-file-text"></i>
+                                        <span>المقالات</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.blog.categories.index') }}"
+                                    class="nav-link sub-link {{ request()->routeIs('admin.blog.categories.*') ? 'active' : '' }}">
+                                        <i class="bi bi-tags"></i>
+                                        <span>الأقسام</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    
+                    @can('view-orders')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.orders.index') }}" class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                            <i class="bi bi-cart-check"></i>
+                            <span>الطلبات</span>
+                            @if (isset($pendingOrdersCount) && $pendingOrdersCount > 0)
+                                <span class="badge bg-primary rounded-pill ms-auto">{{ $pendingOrdersCount }}</span>
+                            @endif
+                        </a>
+                    </li>
+                    @endcan
+                    {{-- ===== END: الطلبات + العملاء ===== --}}
+
+                    
+                    @can('view-products')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.products.index') }}" class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
+                            <i class="bi bi-basket"></i>
+                            <span>المنتجات</span>
+                        </a>
+                    </li>
+                    @endcan
+                    
+                    @can('view-categories')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.primary-categories.index') }}" class="nav-link {{ request()->routeIs('admin.primary-categories.*') ? 'active' : '' }}">
+                            <i class="bi bi-tags"></i>
+                            <span>الفئة</span>
+                        </a>
+                    </li>
+                    @endcan
+                    
+                                        @can('view-categories')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.categories.index') }}" class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+                            <i class="bi bi-card-list"></i>
+                            <span>البراند</span>
+                        </a>
+                    </li>
+                    @endcan
+                    
+                    @can('view-discount-codes')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.discount-codes.index') }}" class="nav-link {{ request()->routeIs('admin.discount-codes.*') ? 'active' : '' }}">
+                            <i class="bi bi-percent"></i>
+                            <span>أكواد الخصم</span>
+                        </a>
+                    </li>
+                    @endcan
+                    
+                    @can('view-managers')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.managers.index') }}" class="nav-link {{ request()->routeIs('admin.managers.*') ? 'active' : '' }}">
+                            <i class="bi bi-person-vcard"></i>
+                            <span>المدراء</span>
+                        </a>
+                    </li>
+                    @endcan
+                    
+                    @can('view-roles')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.roles.index') }}" class="nav-link {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                            <i class="bi bi-shield-lock"></i>
+                            <span>الصلاحيات</span>
+                        </a>
+                    </li>
+                    @endcan
+                    
+                    <hr class="mx-3 my-2">
+                    
+                    @can('view-users')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                            <i class="bi bi-person-gear"></i>
+                            <span>المستخدمين</span>
+                        </a>
+                    </li>
+                    @endcan
+                    
+                    <hr class="mx-3 my-2">
+                    
+
+                    
+                    @can('view-reports')
+                    <li class="nav-item" x-data="{ open: {{ request()->routeIs('admin.reports.*') ? 'true' : 'false' }} }">
+                        <a href="#" @click.prevent="open = !open" class="nav-link d-flex justify-content-between reports-toggle" 
+                        :class="{ 'active': open }" aria-expanded="false" :aria-expanded="open.toString()">
+                            <div>
+                                <i class="bi bi-graph-up-arrow"></i>
+                                <span>التقارير</span>
+                            </div>
+                            <i class="bi transition-transform" :class="open ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+                        </a>
+                        <div x-show="open" x-collapse class="reports-submenu">
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.reports.index') }}" class="nav-link sub-link">
+                                        <i class="bi bi-bar-chart"></i>
+                                        <span>التقارير الرئيسية</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.reports.financial') }}" class="nav-link sub-link">
+                                        <i class="bi bi-cart"></i>
+                                        <span>تقارير المبيعات</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.reports.inventory') }}" class="nav-link sub-link">
+                                        <i class="bi bi-box"></i>
+                                        <span>تقارير المخزون</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.reports.customers') }}" class="nav-link sub-link">
+                                        <i class="bi bi-people"></i>
+                                        <span>تقارير العملاء</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    @endcan
+
+                    @can('edit-settings')
+                    <hr class="mx-3 my-2">
+
+                    <li class="nav-item"
+                        x-data="{ open: {{ (request()->routeIs('admin.settings.*')
+                                        || request()->routeIs('admin.homepage-slides.*')
+                                        || request()->routeIs('admin.imports.*')
+                                        || request()->routeIs('admin.backups.*')
+                                        || request()->routeIs('admin.barcodes.*')) ? 'true' : 'false' }} }">
+
+                        <a href="#"
+                        @click.prevent="open = !open"
+                        class="nav-link d-flex justify-content-between reports-toggle"
+                        :class="{ 'active': open }"
+                        aria-expanded="false"
+                        :aria-expanded="open.toString()">
+                            <div>
+                                <i class="bi bi-gear-wide-connected"></i>
+                                <span>الإعدادات</span>
+                            </div>
+                            <i class="bi transition-transform" :class="open ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+                        </a>
+
+                        <div x-show="open" x-collapse class="reports-submenu">
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.settings.index') }}"
+                                    class="nav-link sub-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                                        <i class="bi bi-globe2"></i>
+                                        <span>الموقع</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.homepage-slides.index') }}"
+                                    class="nav-link sub-link {{ request()->routeIs('admin.homepage-slides.*') ? 'active' : '' }}">
+                                        <i class="bi bi-images"></i>
+                                        <span>سلايدرات الصفحة</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.imports.index') }}"
+                                    class="nav-link sub-link {{ request()->routeIs('admin.imports.*') ? 'active' : '' }}">
+                                        <i class="bi bi-cloud-arrow-down"></i>
+                                        <span>استرداد</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.backups.index') }}"
+                                    class="nav-link sub-link {{ request()->routeIs('admin.backups.*') ? 'active' : '' }}">
+                                        <i class="bi bi-hdd-stack"></i>
+                                        <span>النسخ الاحتياطي</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.barcodes.index') }}"
+                                    class="nav-link sub-link {{ request()->routeIs('admin.barcodes.*') ? 'active' : '' }}">
+                                        <i class="bi bi-qr-code"></i>
+                                        <span>أكواد QR / باركود</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.customer-tiers.index') }}"
+                                    class="nav-link sub-link {{ request()->routeIs('admin.customer-tiers.*') ? 'active' : '' }}">
+                                        <i class="bi bi-sliders2"></i>
+                                        <span>إعدادات الفئات (العملاء)</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    @endcan
+                    
+                    @can('view-activity-log')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.activity-log.index') }}" class="nav-link {{ request()->routeIs('admin.activity-log.*') ? 'active' : '' }}">
+                            <i class="bi bi-list-check"></i>
+                            <span>سجل الأنشطة</span>
+                        </a>
+                    </li>
+                    @endcan
+                </ul>
+            </div>
+            
+            
+            <div class="sidebar-footer">
+                الإصدار 1.0.0
+            </div>
+        </div>
+        
+        <div class="sidebar-overlay" :class="{ 'active': sidebarOpen }" @click="sidebarOpen = false"></div>
+
+        <div class="content-wrapper" :class="{ 'expanded': !sidebarOpen }">
+            <nav class="topbar">
+                <button class="sidebar-toggle-btn" @click="sidebarOpen = !sidebarOpen">
+                    <i class="bi bi-list"></i>
+                </button>
+                
+                <div class="ms-auto d-flex align-items-center">
+                    
+                    {{-- START: Theme Switcher Button --}}
+                    <button @click="toggleTheme()" class="sidebar-toggle-btn me-2" title="تبديل المظهر">
+                        <i class="bi" :class="theme === 'light' ? 'bi-moon-stars-fill' : 'bi-sun-fill'"></i>
+                    </button>
+                    {{-- END: Theme Switcher Button --}}
+
+                    <div class="dropdown me-3" 
+                        x-data="notificationsComponent(
+                            '{{ route('admin.notifications.index') }}', 
+                            '{{ route('admin.notifications.markAsRead') }}', 
+                            '{{ route('admin.notifications.markAllRead') }}',
+                            '{{ route('admin.notifications.clearAll') }}'
+                        )" 
+                        x-init="fetchNotifications(); setInterval(() => fetchNotifications(), 30000)">
+
+                        <button class="btn btn-light rounded-circle position-relative d-flex align-items-center justify-content-center"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                                style="width:40px;height:40px;border:1px solid var(--secondary-light);">
+                            <i class="bi bi-bell fs-5" style="color: var(--text-light);"></i>
+                            <span x-show="unreadCount > 0" x-text="unreadCount"
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light"
+                                style="display:none;"></span>
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow mt-2" style="width: 350px;">
+                            <li class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center" style="border-color: var(--secondary-light) !important;">
+                                <h6 class="mb-0 fw-bold">الإشعارات</h6>
+                                <div class="btn-group">
+                                    <button x-show="unreadCount > 0" @click.prevent="markAllAsRead()" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;" title="تعليم الكل كمقروء">
+                                        <i class="bi bi-check-all"></i>
+                                    </button>
+                                    <button x-show="notifications.length > 0" @click.prevent="clearAll()" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 0.75rem;" title="حذف الكل">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                                    <template x-if="loading">
+                                        <div class="d-flex justify-content-center p-4">
+                                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                                        </div>
+                                    </template>
+                                    <template x-if="!loading && notifications.length === 0">
+                                        <div class="list-group-item text-center text-muted py-4">
+                                           <i class="bi bi-bell-slash fs-4 d-block mb-2"></i>
+                                           لا توجد إشعارات
+                                        </div>
+                                    </template>
+                                    <template x-for="notification in notifications" :key="notification.id">
+                                        <a @click.prevent="markAsRead(notification)" :href="getNotificationUrl(notification)" 
+                                           class="list-group-item list-group-item-action notification-item"
+                                           :class="{ 'unread fw-bold': !notification.read_at }">
+                                            <div class="d-flex align-items-start">
+                                                <i class="bi" :class="notification.data.icon || 'bi-info-circle'" style="font-size: 1.5rem; margin-left: 1rem;"></i>
+                                                <div>
+                                                    <p class="mb-1" style="font-size: 0.9rem;" x-text="notification.data.message"></p>
+                                                    <small class="text-muted" x-text="timeAgo(notification.created_at)"></small>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </template>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="user-dropdown dropdown">
+                        <a class="dropdown-toggle d-flex align-items-center text-decoration-none" href="#" role="button" data-bs-toggle="dropdown">
+                            <span class="d-none d-sm-inline mx-2">{{ Auth::user()->name }}</span>
+                            <img
+                              src="{{ Auth::user()->avatar_url }}"
+                              alt="User"
+                              class="user-dropdown img"
+                              onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.jpg') }}';"
+                            />
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li>
+                                <a class="dropdown-item" href="{{ route('homepage') }}" target="_blank">
+                                    <i class="bi bi-box-arrow-up-right me-2"></i> عرض الموقع
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('admin.profile') }}">
+                                    <i class="bi bi-person me-2"></i> الملف الشخصي
+                                </a>
+                            </li>
+                            <div x-data="pushNotifications">
+                                <button @click="toggleSubscription()" 
+                                        :disabled="!isSupported || isEnabling || isDisabling"
+                                        class="dropdown-item" 
+                                        x-text="buttonText">
+                                </button>
+                            </div>
+                            @if(session()->has('impersonator_id'))
+                            <li>
+                                <form action="{{ route('admin.users.stopImpersonate') }}" method="POST">
+                                    @csrf
+                                    <button class="dropdown-item text-warning" type="submit">
+                                        <i class="bi bi-person-x me-2"></i> إيقاف الانتحال
+                                    </button>
+                                </form>
+                            </li>
+                            @endif
+                            <li>
+                                <a class="dropdown-item text-danger" href="{{ route('logout') }}"
+                                   onclick="event.preventDefault(); document.getElementById('logout-form-top').submit();">
+                                    <i class="bi bi-box-arrow-left me-2"></i> تسجيل الخروج
+                                </a>
+                                <form id="logout-form-top" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            
+            <main class="main-content">
+                <div class="container-fluid">
+                    @if (session('success'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    @endif
+                    
+                    @if (session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    @endif
+                    
+                    @yield('content')
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- START: Context Menu HTML -->
+    <div id="context-menu"></div>
+    <!-- END: Context Menu HTML -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // This script is no longer strictly necessary with pure Alpine control, but can be a good fallback.
+        const mainWrapper = document.querySelector('.main-wrapper');
+        const overlay = document.querySelector('.sidebar-overlay');
+        const toggleBtn = document.querySelector('.sidebar-toggle-btn');
+        function toggleSidebar(){ 
+            if(mainWrapper && mainWrapper.__x) {
+                mainWrapper.__x.$data.sidebarOpen = !mainWrapper.__x.$data.sidebarOpen;
+            }
+        }
+        if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
+        if (overlay) overlay.addEventListener('click', toggleSidebar);
+    });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const sidebarContent = document.querySelector('.sidebar-content');
+        const savedScroll = sessionStorage.getItem('sidebarScroll');
+        if (savedScroll !== null && sidebarContent) sidebarContent.scrollTop = parseInt(savedScroll);
+        if (sidebarContent) {
+            sidebarContent.addEventListener('scroll', function () {
+                sessionStorage.setItem('sidebarScroll', sidebarContent.scrollTop);
+            });
+        }
+    });
+    </script>
+    
+    
+    <script>
+    function notificationsComponent(fetchUrl, markUrl, markAllUrl, clearAllUrl) {
+        return {
+            notifications: [],
+            unreadCount: 0,
+            loading: true,
+            fetchNotifications() {
+                if (this.notifications.length === 0) this.loading = true;
+                
+                fetch(fetchUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        this.notifications = data.notifications;
+                        this.unreadCount = data.unread_count;
+                    })
+                    .catch(error => console.error('Error fetching notifications:', error))
+                    .finally(() => this.loading = false);
+            },
+            markAsRead(notification) {
+                const targetUrl = this.getNotificationUrl(notification);
+                if (targetUrl === '#') return;
+
+                window.location.href = targetUrl;
+                
+                if (!notification.read_at) {
+                    fetch(markUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                        body: JSON.stringify({ id: notification.id })
+                    }).catch(err => console.error('Failed to mark notification as read:', err));
+                }
+            },
+            markAllAsRead() {
+                fetch(markAllUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        this.notifications.forEach(n => n.read_at = new Date().toISOString());
+                        this.unreadCount = 0;
+                    }
+                }).catch(err => console.error('Failed to mark all as read:', err));
+            },
+            clearAll() {
+                if (!confirm('هل أنت متأكد من رغبتك في حذف جميع الإشعارات؟ لا يمكن التراجع عن هذا الإجراء.')) {
+                    return;
+                }
+                
+                fetch(clearAllUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        this.notifications = [];
+                        this.unreadCount = 0;
+                    }
+                }).catch(err => console.error('Failed to clear all notifications:', err));
+            },
+            getNotificationUrl(notification) {
+                if (notification.data.order_id) {
+                    return `{{ url('/') }}/admin/orders/${notification.data.order_id}`;
+                }
+
+                return '#';
+            },
+            timeAgo(dateString) {
+                const date = new Date(dateString);
+                const seconds = Math.floor((new Date() - date) / 1000);
+                let interval = seconds / 31536000;
+                if (interval > 1) return `منذ ${Math.floor(interval)} سنة`;
+                interval = seconds / 2592000;
+                if (interval > 1) return `منذ ${Math.floor(interval)} شهر`;
+                interval = seconds / 86400;
+                if (interval > 1) return `منذ ${Math.floor(interval)} يوم`;
+                interval = seconds / 3600;
+                if (interval > 1) return `منذ ${Math.floor(interval)} ساعة`;
+                interval = seconds / 60;
+                if (interval > 1) return `منذ ${Math.floor(interval)} دقيقة`;
+                return `الآن`;
+            }
+        }
+    }
+    </script>
+    <script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('pushNotifications', () => ({
+            isSupported: 'serviceWorker' in navigator && 'PushManager' in window,
+            isSubscribed: false,
+            isEnabling: false,
+            isDisabling: false,
+            buttonText: 'تفعيل إشعارات المتصفح',
+
+            init() {
+                if (!this.isSupported) {
+                    this.buttonText = 'الإشعارات غير مدعومة';
+                    return;
+                }
+                navigator.serviceWorker.register('/sw.js').then(sw => {
+                    sw.pushManager.getSubscription().then(sub => {
+                        if (sub) {
+                            this.isSubscribed = true;
+                            this.buttonText = 'إلغاء تفعيل الإشعارات';
+                        }
+                    });
+                });
+            },
+
+            toggleSubscription() {
+                if (this.isSubscribed) {
+                    this.unsubscribe();
+                } else {
+                    this.subscribe();
+                }
+            },
+
+            subscribe() {
+                this.isEnabling = true;
+                this.buttonText = 'جاري التفعيل...';
+                navigator.serviceWorker.ready.then(sw => {
+                    const vapidPublicKey = '{{ config('webpush.vapid.public_key') }}';
+                    sw.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey)
+                    }).then(sub => {
+                        this.saveSubscription(sub);
+                        this.isSubscribed = true;
+                        this.buttonText = 'إلغاء تفعيل الإشعارات';
+                    }).catch(e => {
+                        console.error('Subscription failed:', e);
+                        this.buttonText = 'فشل التفعيل';
+                    }).finally(() => {
+                        this.isEnabling = false;
+                    });
+                });
+            },
+
+            unsubscribe() {
+                this.isDisabling = true;
+                this.buttonText = 'جاري الإلغاء...';
+                navigator.serviceWorker.ready.then(sw => {
+                    sw.pushManager.getSubscription().then(sub => {
+                        if(sub) {
+                            sub.unsubscribe().then(() => {
+                                this.deleteSubscription(sub);
+                                this.isSubscribed = false;
+                                this.buttonText = 'تفعيل إشعارات المتصفح';
+                            });
+                        }
+                    }).catch(e => {
+                         console.error('Unsubscription failed:', e);
+                         this.buttonText = 'فشل الإلغاء';
+                    }).finally(() => {
+                        this.isDisabling = false;
+                    });
+                });
+            },
+
+            saveSubscription(sub) {
+                const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                fetch('{{ route("admin.push_subscriptions.update") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+                    body: JSON.stringify(sub.toJSON())
+                });
+            },
+
+            deleteSubscription(sub) {
+                const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                fetch('{{ route("admin.push_subscriptions.destroy") }}', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+                    body: JSON.stringify({ endpoint: sub.endpoint })
+                });
+            },
+
+            urlBase64ToUint8Array(base64String) {
+                const padding = '='.repeat((4 - base64String.length % 4) % 4);
+                const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+                const rawData = window.atob(base64);
+                const outputArray = new Uint8Array(rawData.length);
+                for (let i = 0; i < rawData.length; ++i) {
+                    outputArray[i] = rawData.charCodeAt(i);
+                }
+                return outputArray;
+            }
+        }));
+    });
+</script>
+    <!-- START: Custom Confirmation Modal HTML -->
+    <div class="modal fade" id="custom-confirm-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+            <div class="modal-content">
+                <div class="modal-body text-center p-4">
+                    <div class="icon-wrapper">
+                        <i class="bi bi-question-circle"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3" id="confirm-title">تأكيد الإجراء</h5>
+                    <p class="text-muted mb-0" id="confirm-message">هل أنت متأكد من رغبتك في الاستمرار؟</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn-confirm" id="confirm-proceed-btn">تأكيد</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END: Custom Confirmation Modal HTML -->
+
+    <!-- START: Context Menu Logic -->
+    <script>
+    // Global Confirmation Helper
+    window.confirmAction = function(message, callback) {
+        const modalEl = document.getElementById('custom-confirm-modal');
+        if (!modalEl) {
+            if (confirm(message)) callback();
+            return;
+        }
+        
+        const messageEl = document.getElementById('confirm-message');
+        const proceedBtn = document.getElementById('confirm-proceed-btn');
+        
+        messageEl.textContent = message;
+        
+        const modal = new bootstrap.Modal(modalEl);
+        
+        const handleConfirm = () => {
+            modal.hide();
+            callback();
+            proceedBtn.removeEventListener('click', handleConfirm);
+        };
+        
+        proceedBtn.addEventListener('click', handleConfirm);
+        
+        modalEl.addEventListener('hidden.bs.modal', () => {
+            proceedBtn.removeEventListener('click', handleConfirm);
+        }, { once: true });
+        
+        modal.show();
+    };
+
+    // Global Interceptor for onclick="confirm(...)"
+    document.addEventListener('click', function(e) {
+        let target = e.target.closest('[onclick*="confirm("]');
+        if (!target) return;
+        
+        const onclick = target.getAttribute('onclick');
+        if (onclick && onclick.includes('return confirm(')) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            
+            const match = onclick.match(/confirm\(['"](.+?)['"]\)/);
+            const msg = match ? match[1] : 'هل أنت متأكد؟';
+            
+            window.confirmAction(msg, () => {
+                // Remove the onclick temporarily to prevent recursion
+                const originalOnclick = target.onclick;
+                target.onclick = null;
+                
+                if (target.type === 'submit' && target.form) {
+                    target.form.submit();
+                } else {
+                    target.click();
+                }
+                
+                // Restore after a delay
+                setTimeout(() => { target.onclick = originalOnclick; }, 100);
+            });
+        }
+    }, true);
+
+    // Global Interceptor for <form onsubmit="return confirm(...)">
+    document.addEventListener('submit', function(e) {
+        let form = e.target;
+        const onsubmit = form.getAttribute('onsubmit');
+        
+        if (onsubmit && onsubmit.includes('confirm(')) {
+            // Check if we are already proceeding after custom confirm
+            if (form.dataset.customConfirmed === 'true') {
+                delete form.dataset.customConfirmed;
+                return;
+            }
+            
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            
+            const match = onsubmit.match(/confirm\(['"](.+?)['"]\)/);
+            const msg = match ? match[1] : 'هل أنت متأكد؟';
+            
+            window.confirmAction(msg, () => {
+                form.dataset.customConfirmed = 'true';
+                form.submit();
+            });
+        }
+    }, true);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const menu = document.getElementById('context-menu');
+        if (!menu) return;
+        
+        document.addEventListener('contextmenu', function(e) {
+            const row = e.target.closest('table tbody tr');
+            if (row) {
+                // Look for action buttons/links in this row
+                const actions = row.querySelectorAll('a, button, .context-menu-action');
+                
+                let itemsFound = 0;
+                menu.innerHTML = '';
+                
+                actions.forEach((action) => {
+                    if (action.classList.contains('form-check-input')) return;
+                    if (action.tagName === 'A' && !action.classList.contains('btn') && !action.classList.contains('context-menu-action')) {
+                        if (!action.querySelector('i')) return;
+                    }
+
+                    const text = action.innerText.trim() || action.getAttribute('title') || action.getAttribute('aria-label');
+                    const icon = action.querySelector('i');
+                    
+                    if (!text && !icon) return;
+                    
+                    itemsFound++;
+                    const item = document.createElement('div');
+                    item.className = 'context-menu-item';
+                    
+                    if (icon) item.appendChild(icon.cloneNode(true));
+                    if (text) {
+                        const span = document.createElement('span');
+                        span.textContent = text;
+                        item.appendChild(span);
+                    }
+                    
+                    if (action.classList.contains('text-danger') || action.classList.contains('btn-outline-danger') || action.classList.contains('btn-danger')) {
+                        item.classList.add('text-danger');
+                    }
+                    
+                    item.onclick = () => {
+                        menu.style.display = 'none';
+                        
+                        // Check for confirm link or onclick confirm
+                        const onclick = action.getAttribute('onclick');
+                        if (onclick && onclick.includes('confirm(')) {
+                            // Extract the message from confirm('...')
+                            const match = onclick.match(/confirm\(['"](.+?)['"]\)/);
+                            const msg = match ? match[1] : 'هل أنت متأكد؟';
+                            
+                            window.confirmAction(msg, () => {
+                                // If it's a form button, submit the form
+                                if (action.type === 'submit' && action.form) {
+                                    action.form.submit();
+                                } else {
+                                    action.click();
+                                }
+                            });
+                        } else {
+                            action.click();
+                        }
+                    };
+                    
+                    menu.appendChild(item);
+                });
+                
+                if (itemsFound > 0) {
+                    e.preventDefault();
+                    menu.style.display = 'block';
+                    
+                    let posX = e.clientX;
+                    let posY = e.clientY;
+                    
+                    if (posX + menu.offsetWidth > window.innerWidth) posX -= menu.offsetWidth;
+                    if (posY + menu.offsetHeight > window.innerHeight) posY -= menu.offsetHeight;
+                    
+                    menu.style.left = posX + 'px';
+                    menu.style.top = posY + 'px';
+                }
+            } else {
+                menu.style.display = 'none';
+            }
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!menu.contains(e.target)) menu.style.display = 'none';
+        });
+        
+        window.addEventListener('resize', () => menu.style.display = 'none');
+        window.addEventListener('scroll', () => menu.style.display = 'none', true);
+    });
+    </script>
+    <!-- END: Context Menu Logic -->
+
+    <!-- START: Global Table Actions Hider & Double Click Logic -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tables = document.querySelectorAll('table');
+        tables.forEach(table => {
+            // Find the index of the "العمليات" or "الإجراءات" column
+            const headers = table.querySelectorAll('thead th');
+            let actionColIndex = -1;
+            headers.forEach((th, index) => {
+                const text = (th.textContent || '').trim();
+                if (text.includes('العمليات') || text.includes('الإجراءات') || text.toLowerCase().includes('actions') || th.classList.contains('col-actions')) {
+                    actionColIndex = index;
+                    th.style.display = 'none';
+                }
+            });
+
+            if (actionColIndex > -1) {
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    const cells = row.children;
+                    if (cells.length > actionColIndex) {
+                        // Hide the action cell itself
+                        cells[actionColIndex].style.display = 'none';
+                    }
+
+                    // Handle Double Click safely
+                    row.addEventListener('dblclick', function(e) {
+                        // Ignore if we clicked on an input, link, button, select directly
+                        if (e.target.closest('a') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select') || e.target.closest('textarea') || e.target.closest('.form-check')) {
+                            return;
+                        }
+
+                        // We already have the elements hidden in DOM, meaning we can still query them
+                        if (cells.length > actionColIndex) {
+                            const actionCell = cells[actionColIndex];
+                            
+                            // Let's find an edit or view action
+                            let primaryAction = actionCell.querySelector('a i.bi-eye, a i.bi-pencil, a[title="عرض التفاصيل"], a[title="تعديل"], a[title="View"], a[title="Edit"]');
+                            
+                            // If found inside the action cell (which is standard)
+                            if (primaryAction) {
+                                const link = primaryAction.closest('a');
+                                if (link && link.href) {
+                                    window.location.href = link.href;
+                                    return;
+                                }
+                            }
+                            
+                            // Fallback: If no edit/view icon found, just click the first regular anchor tag
+                            const firstLink = actionCell.querySelector('a:not(.btn-danger):not(.text-danger):not([onclick*="confirm"])');
+                            if (firstLink && firstLink.href) {
+                                window.location.href = firstLink.href;
+                                return;
+                            }
+                        }
+                    });
+                });
+            }
+        });
+    });
+    </script>
+    <!-- END: Global Table Actions Hider & Double Click Logic -->
+
+    @stack('scripts')
+</body>
+</html>

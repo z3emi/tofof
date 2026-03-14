@@ -1,0 +1,304 @@
+@extends('layouts.app')
+
+@section('title', 'إتمام عملية الشراء')
+
+@push('styles')
+    <style>
+        .step-badge {
+            width: 2.5rem; height: 2.5rem; border-radius: 9999px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: bold; color: white;
+        }
+        .address-card.selected {
+            border-color: #D4AF37; /* Gold */
+            box-shadow: 0 0 0 2px #D4AF37;
+        }
+
+        /* ====== Dark Mode Identity Fixes (Azure) ====== */
+        /* صناديق بيضاء تصبح أسطح داكنة */
+        .dark .bg-white { background-color: #0f172a !important; }
+        .dark .bg-gray-50,
+        .dark .bg-gray-50\/50 { background-color: #0b0f14 !important; }
+
+        /* حدود أخف بالداكن */
+        .dark .border,
+        .dark .border-gray-200,
+        .dark .border-gray-300 { border-color: #1f2937 !important; }
+
+        /* نصوص */
+        .dark .text-brand-text,
+        .dark .text-gray-800 { color: #e5e7eb !important; }
+        .dark .text-gray-700 { color: #d1d5db !important; }
+        .dark .text-gray-600 { color: #9ca3af !important; }
+        .dark .text-gray-500 { color: #94a3b8 !important; }
+
+        /* بطاقات العناوين عند التحديد تحافظ على لون الهوية */
+        .dark .address-card.selected {
+            border-color: #D4AF37 !important;
+            box-shadow: 0 0 0 2px #D4AF37 !important;
+        }
+
+        /* بطاقات الأقسام */
+        .dark .shadow-sm { box-shadow: 0 6px 24px rgba(0,0,0,.45) !important; }
+
+        /* شريط تنبيه الأخطاء */
+        .dark .bg-red-100 { background-color: rgba(239, 68, 68, .12) !important; }
+        .dark .border-red-400 { border-color: rgba(239, 68, 68, .5) !important; }
+        .dark .text-red-700 { color: #fca5a5 !important; }
+
+        /* صناديق مساعدة */
+        .dark .bg-yellow-50 { background-color: rgba(234, 179, 8, .10) !important; }
+        .dark .text-yellow-800 { color: #fde68a !important; }
+        .dark .border-yellow-400 { border-color: rgba(234, 179, 8, .45) !important; }
+
+        /* عناصر الملخص */
+        .dark .text-green-600 { color: #86efac !important; }
+        .dark .bg-gray-50 { background-color: #0f172a !important; }
+
+        /* زر التأكيد يحافظ على ألوان الهوية */
+        .dark .bg-brand-dark { background-color: #111827 !important; }
+        .dark .hover\:bg-brand-primary:hover { background-color: #0F2A44 !important; }
+
+        /* حقول الإدخال (لو ظهرت) */
+        .dark input, .dark select, .dark textarea {
+            background: transparent;
+            color: #e5e7eb;
+            border-color: #1f2937;
+        }
+        .dark input::placeholder, .dark textarea::placeholder { color: #94a3b8; }
+    </style>
+@endpush
+
+@section('content')
+<div class="min-h-screen bg-gray-50/50 dark:bg-[#0b0f14]">
+    <div class="container mx-auto px-4 py-12">
+        <div class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-brand-text dark:text-gray-100">إتمام الشراء</h1>
+            <p class="text-gray-500 mt-2 dark:text-gray-400">أكمل معلوماتك لتأكيد الطلب.</p>
+        </div>
+
+        {{-- عرض الأخطاء --}}
+        @if ($errors->any())
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-8 max-w-4xl mx-auto dark:bg-opacity-10 dark:text-red-300" role="alert">
+                <strong class="font-bold">يرجى تصحيح الأخطاء التالية:</strong>
+                <ul class="mt-2 list-disc list-inside">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-8 max-w-4xl mx-auto dark:bg-opacity-10 dark:text-red-300">
+                {{ session('error') }}
+            </div>
+        @endif
+
+<form action="{{ route('checkout.store') }}" method="POST" id="checkout-form">
+    @csrf
+    <input type="hidden" name="address_option" value="saved">
+
+    <div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
+        {{-- العمود الأيسر: الشحن + الدفع --}}
+        <div class="lg:w-7/12 xl:w-2/3 space-y-8">
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
+                <div class="flex items-center gap-4 mb-5">
+                    <span class="step-badge bg-brand-primary">1</span>
+                    <h2 class="text-xl font-bold text-brand-text dark:text-gray-100">معلومات الشحن</h2>
+                </div>
+                
+                <div class="space-y-4" x-data="{ selectedAddressId: {{ $addresses->first()->id ?? 'null' }} }">
+                    @if($addresses->isNotEmpty())
+                    <div class="mb-4">
+                        <h3 class="text-md font-semibold text-gray-800 mb-2 dark:text-gray-100">اختر من عناوينك المحفوظة:</h3>
+                        <div class="space-y-3" id="saved_addresses_list">
+                            @foreach($addresses as $address)
+                            <label class="address-card block border rounded-lg p-4 cursor-pointer transition hover:border-brand-primary dark:border-gray-800 dark:hover:border-brand-primary" :class="selectedAddressId == {{ $address->id }} ? 'selected' : ''">
+                                <div class="flex items-center">
+                                    <input type="radio" name="saved_address_id" value="{{ $address->id }}"
+                                        class="saved-address-radio h-4 w-4 text-brand-primary focus:ring-brand-primary"
+                                        @click="selectedAddressId = {{ $address->id }}"
+                                        {{ $loop->first ? 'checked' : '' }}>
+                                    <div class="ml-3">
+                                        <p class="font-semibold text-gray-800 dark:text-gray-100">{{ $address->governorate }}, {{ $address->city }}</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ $address->address_details }}</p>
+                                    </div>
+                                </div>
+                            </label>
+                            @endforeach
+                        </div>
+                    </div>
+                    @else
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 dark:bg-opacity-10">
+                        <p class="text-yellow-800 dark:text-yellow-200">لم تقم بإضافة أي عنوان بعد. يرجى إضافة عنوان للمتابعة.</p>
+                    </div>
+                    @endif
+
+                    <a href="{{ route('profile.addresses.create') }}" class="w-full text-left border rounded-lg p-4 flex items-center gap-3 text-brand-primary font-semibold hover:bg-gray-50 transition dark:border-gray-800 dark:hover:bg-gray-800/50">
+                        <i class="bi bi-plus-circle-fill"></i>
+                        <span>إضافة عنوان شحن جديد</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
+                <div class="flex items-center gap-4 mb-5">
+                    <span class="step-badge bg-brand-primary">2</span>
+                    <h2 class="text-xl font-bold text-brand-text dark:text-gray-100">طريقة الدفع</h2>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-md border hover:border-brand-primary transition dark:bg-gray-800 dark:border-gray-800">
+                    <label for="cash" class="flex items-center cursor-pointer">
+                        <input id="cash" name="payment_method" type="radio"
+                               class="h-4 w-4 text-brand-primary focus:ring-brand-primary"
+                               value="cash_on_delivery" checked required>
+                        <span class="ml-3 font-medium text-gray-800 dark:text-gray-100">الدفع عند الاستلام</span>
+                        <i class="bi bi-cash-coin text-xl text-green-600 ml-auto"></i>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        {{-- العمود الأيمن: ملخص الطلب + استخدام المحفظة --}}
+        <div class="lg:w-5/12 xl:w-1/3">
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-24 dark:bg-gray-900 dark:border-gray-800">
+                <h2 class="text-xl font-bold text-brand-text mb-4 border-b pb-4 dark:text-gray-100 dark:border-gray-800">ملخص الطلب</h2>
+                
+                <div class="space-y-3 mb-4 max-h-64 overflow-y-auto pr-2">
+                    @foreach($cartItems as $item)
+                        <div class="flex justify-between items-center text-sm">
+                            <div class="flex items-center gap-3">
+                                <img src="{{ $item['product']->firstImage ? asset('storage/' . $item['product']->firstImage->image_path) : 'https://placehold.co/60x60' }}" alt="{{ $item['product']->name_ar }}" class="w-12 h-12 rounded-md object-cover">
+                                <div>
+                                    <p class="text-gray-800 font-semibold dark:text-gray-100">{{ $item['product']->name_ar }}</p>
+                                    <p class="text-gray-500 dark:text-gray-400">الكمية: {{ $item['quantity'] }}</p>
+                                </div>
+                            </div>
+                            <span class="font-medium text-gray-800 dark:text-gray-100">{{ number_format($item['price'] * $item['quantity']) }} د.ع</span>
+                        </div>
+                    @endforeach
+                </div>
+                
+                <div class="space-y-2 border-t pt-4 dark:border-gray-800">
+                    <div class="flex justify-between font-semibold text-gray-800 dark:text-gray-100"><span>المجموع الفرعي</span><span>{{ number_format($subtotal) }} د.ع</span></div>
+                    <div class="flex justify-between text-green-600"><span>الخصم</span><span>- {{ number_format($discountValue) }} د.ع</span></div>
+                    <div class="flex justify-between text-gray-500 dark:text-gray-400"><span>الشحن</span><span>{{ $shippingCost > 0 ? number_format($shippingCost) . ' د.ع' : 'مجاني' }}</span></div>
+
+                    {{-- استخدام المحفظة --}}
+                    <div class="mt-3 p-3 rounded-md border bg-gray-50 dark:bg-gray-800 dark:border-gray-800">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="use_wallet" id="use_wallet" value="1" class="h-4 w-4 text-brand-primary focus:ring-brand-primary">
+                            <div>
+                                <div class="font-semibold text-gray-800 dark:text-gray-100">استخدام رصيد المحفظة</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">رصيدك الحالي: <span id="wallet_balance_text">{{ number_format($walletBalance ?? 0) }}</span> د.ع</div>
+                            </div>
+                        </label>
+
+                        <div id="wallet_calc" class="mt-2 text-sm hidden">
+                            <div class="flex justify-between text-gray-800 dark:text-gray-100"><span>سيُخصم من المحفظة</span><span id="wallet_used_text">0</span></div>
+                            <div class="flex justify-between text-gray-800 dark:text-gray-100"><span>المتبقي عند الاستلام</span><span id="cod_due_text">0</span></div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between font-bold text-xl text-brand-dark border-t pt-2 mt-2 dark:text-gray-100 dark:border-gray-800">
+                        <span>الإجمالي</span>
+                        <span id="final_total_text">{{ number_format($finalTotal) }} د.ع</span>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <button class="w-full bg-brand-dark text-white font-bold py-3 px-4 rounded-md hover:bg-brand-primary transition duration-300 text-lg" type="submit" @if($addresses->isEmpty()) disabled @endif>
+                        <i class="bi bi-shield-check"></i>
+                        تأكيد الطلب الآن
+                    </button>
+                    @if($addresses->isEmpty())
+                        <p class="text-red-500 text-xs text-center mt-2">يجب إضافة عنوان أولاً لتتمكن من تأكيد الطلب.</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+    @php
+        // تجهيز بيانات المنتجات الموجودة في السلة لاستخدامها مع Meta Pixel
+        $checkoutContentIds = [];
+        $checkoutContents = [];
+
+        foreach ($cartItems as $item) {
+            $checkoutContentIds[] = $item['product']->id;
+            $checkoutContents[] = [
+                'id'       => (string) $item['product']->id,
+                'quantity' => (int) $item['quantity'],
+            ];
+        }
+
+        $finalTotalNumber = (float) $finalTotal;
+    @endphp
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const savedAddressesRadios = document.querySelectorAll('.saved-address-radio');
+
+            function selectAddress(radio) {
+                document.querySelectorAll('.address-card').forEach(card => card.classList.remove('selected'));
+                radio.closest('.address-card').classList.add('selected');
+            }
+
+            savedAddressesRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.checked) selectAddress(this);
+                });
+            });
+
+            const checkedRadio = document.querySelector('input[name="saved_address_id"]:checked');
+            if (checkedRadio) selectAddress(checkedRadio);
+
+            // ---- حساب المحفظة في الواجهة (عرض فقط)
+            const useWallet       = document.getElementById('use_wallet');
+            const walletBalance   = parseFloat('{{ (float)($walletBalance ?? 0) }}') || 0;
+            const finalTotal      = parseFloat('{{ (float)$finalTotal }}') || 0;
+
+            const walletCalcBox   = document.getElementById('wallet_calc');
+            const walletUsedText  = document.getElementById('wallet_used_text');
+            const codDueText      = document.getElementById('cod_due_text');
+
+            function format(num){ return new Intl.NumberFormat('ar-IQ').format(Math.max(0, Math.round(num))); }
+
+            function refreshWalletDisplay() {
+                if (useWallet.checked) {
+                    const willUse = Math.min(walletBalance, finalTotal);
+                    const codDue  = Math.max(0, finalTotal - willUse);
+                    walletUsedText.textContent = format(willUse) + ' د.ع';
+                    codDueText.textContent     = format(codDue) + ' د.ع';
+                    walletCalcBox.classList.remove('hidden');
+                } else {
+                    walletCalcBox.classList.add('hidden');
+                }
+            }
+
+            if (useWallet) {
+                useWallet.addEventListener('change', refreshWalletDisplay);
+                refreshWalletDisplay();
+            }
+
+            // ===== Meta Pixel: InitiateCheckout =====
+            if (typeof fbq === 'function') {
+                fbq('track', 'InitiateCheckout', {
+                    value: {{ $finalTotalNumber }},
+                    currency: 'IQD',
+                    contents: @json($checkoutContents),
+                    content_ids: @json($checkoutContentIds),
+                    content_type: 'product',
+                    num_items: {{ count($checkoutContentIds) }}
+                });
+            }
+        });
+    </script>
+@endpush
+endpush

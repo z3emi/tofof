@@ -1,0 +1,1842 @@
+@php
+    use App\Models\Setting;
+    use App\Models\Category;
+    use Illuminate\Support\Facades\App;
+
+    // Apply locale from session/cookie directly in blade context
+    // This is needed because in some XAMPP setups, middleware locale doesn't persist to blade
+    $sessionLocale = session('locale') ?? request()->cookie('app_locale') ?? config('app.locale', 'ar');
+    $availableLocales = ['ar', 'en'];
+    if (!in_array($sessionLocale, $availableLocales)) { $sessionLocale = 'ar'; }
+    App::setLocale($sessionLocale);
+
+    $locale = app()->getLocale();
+    $dir = in_array($locale, ['ar']) ? 'rtl' : 'ltr';
+    // TEMP DEBUG: remove after testing
+    \Illuminate\Support\Facades\Log::info('BLADE LOCALE: ' . $locale . ' | Session: ' . session('locale'));
+
+    $seo = Setting::whereIn('key', [
+        'site_title','meta_description',
+        'site_title_ar','site_title_en',
+        'meta_description_ar','meta_description_en',
+        'site_url'
+    ])->pluck('value','key');
+
+    $siteTitle = $locale === 'ar'
+        ? ($seo['site_title_ar'] ?? $seo['site_title'] ?? 'طفوف | اكسسوارات فاخرة أصلية')
+        : ($seo['site_title_en'] ?? $seo['site_title'] ?? 'Tofof | Premium Authentic Accessories');
+
+    $metaDescription = $locale === 'ar'
+        ? ($seo['meta_description_ar'] ?? $seo['meta_description'] ?? 'اكتشف أرقى الاكسسوارات الأصلية مع طفوف. ساعات، محافظ، ونظارات شمسية بضمان كامل.')
+        : ($seo['meta_description_en'] ?? $seo['meta_description'] ?? 'Discover premium authentic accessories at Tofof. Watches, wallets, sunglasses and more.');
+
+    $canonical = $seo['site_url'] ?? null;
+
+    $categories = Cache::remember('global_categories', now()->addHours(6), function () {
+        return Category::whereNull('parent_id')
+            ->with(['children.children.products', 'children.products', 'products'])
+            ->withCount(['children', 'products'])
+            ->get()
+            ->each(function ($category) {
+                $category->total_products_count = $category->products_count;
+                if ($category->children) {
+                    foreach ($category->children as $child) {
+                        $category->total_products_count += $child->products->count();
+                        if ($child->children) {
+                            foreach ($child->children as $grandChild) {
+                                $child->total_products_count += $grandChild->products->count();
+                            }
+                        }
+                    }
+                }
+            });
+    });
+
+    $showDashboardLink = false;
+    if (auth()->check()) {
+        $u = auth()->user();
+        $hasSuper = method_exists($u, 'hasRole') && $u->hasRole('super-admin');
+        $hasNonUserRole = $u->roles->where('name', '!=', 'user')->isNotEmpty();
+        $hasAnyPerms = method_exists($u, 'getAllPermissions') && $u->getAllPermissions()->isNotEmpty();
+        $showDashboardLink = $hasSuper || $hasNonUserRole || $hasAnyPerms;
+    }
+@endphp
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', $locale) }}" dir="{{ $dir }}" :class="{ 'dark': isDark }">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#6d0e16">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>@yield('title', $siteTitle)</title>
+    <meta name="description" content="@yield('meta_description', $metaDescription)">
+    <link rel="canonical" href="{{ $canonical ? rtrim($canonical,'/') : url()->current() }}" />
+
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+
+    <meta property="og:site_name" content="Tofof">
+    <meta property="og:title" content="@yield('title', $siteTitle)">
+    <meta property="og:description" content="@yield('meta_description', $metaDescription)">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://tofofstore.com/#organization",
+          "name": "Tofof",
+          "alternateName": "طفوف",
+          "url": "https://tofofstore.com/",
+          "logo": "{{ asset('logo.png') }}",
+          "image": "{{ asset('logo.png') }}",
+          "telephone": "+9647757778099",
+          "sameAs": [
+            "https://www.instagram.com/tofof.iq/",
+            "https://www.facebook.com/share/1CydHSznRt/?mibextid=wwXIfr",
+            "https://www.tiktok.com/@tofof.iq"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://tofofstore.com/#website",
+          "url": "https://tofofstore.com/",
+          "name": "Tofof",
+          "alternateName": "طفوف",
+          "publisher": {
+            "@id": "https://tofofstore.com/#organization"
+          },
+          "inLanguage": "ar-IQ"
+        }
+      ]
+    }
+    </script>
+
+    <script>
+      (function () {
+        const saved = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (saved === 'dark' || (!saved && prefersDark)) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        "brand-bg": "#FFFFFF",
+                        "brand-primary": "#D1A3A4",
+                        "brand-secondary": "#F3E5E3",
+                        "brand-dark": "#34282C",
+                        "brand-text": "#34282C",
+                        "brand-accent": "#c32126",
+                        "brand-gray": "#6B7280",
+                    },
+                    animation: {
+                        'heartbeat': 'heartbeat 1.5s ease-in-out infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'ping-once': 'ping 1s cubic-bezier(0, 0, 0.2, 1)',
+                        'pulse-glow': 'pulse-glow 2s infinite ease-in-out',
+                    },
+                    keyframes: {
+                        heartbeat: {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.2)' },
+                        },
+                        'pulse-glow': {
+                          '0%, 100%': { opacity: 1, boxShadow: '0 0 0 0 rgba(190, 102, 97, 0.7)' },
+                          '50%': { opacity: 0.8, boxShadow: '0 0 0 10px rgba(190, 102, 97, 0)' }
+                        }
+                    }
+                },
+            },
+        };
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<style>
+/* ===== الفوتر حامل شفاف ===== */
+footer.footer-mobile {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  height: auto !important;
+  padding: 0 !important;
+}
+
+/* ترك مساحة أسفل الصفحة للـnav */
+@media (max-width: 767px){
+  body{ padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important; }
+}
+
+/* wrap داخل الفوتر */
+footer.footer-mobile .glass-nav-wrap{
+  padding: 12px 16px;
+}
+
+/* ===== Glass Nav ===== */
+.glass-nav{
+  width: 100%; height: 64px; border-radius: 24px; overflow:hidden; position:relative;
+  background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.35));
+  border: 1px solid rgba(255,255,255,.35);
+  box-shadow: 0 8px 26px rgba(0,0,0,.12);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+}
+html.dark .glass-nav{
+  background: linear-gradient(180deg, rgba(15,23,42,.55), rgba(15,23,42,.35));
+  border-color: rgba(148,163,184,.18);
+  box-shadow: 0 10px 28px rgba(0,0,0,.45);
+}
+
+/* Blobs */
+.glass-nav::before, .glass-nav::after{
+  content:""; position:absolute; width:220px; height:220px; border-radius:50%;
+  filter: blur(30px); opacity:.35; pointer-events:none; animation: floatBlob 10s ease-in-out infinite;
+}
+.glass-nav::before{ right:-80px; bottom:-120px;
+  background: radial-gradient(closest-side, rgba(205,137,133,.55), transparent 70%); animation-delay:-3s;
+}
+.glass-nav::after{ left:-90px; top:-130px;
+  background: radial-gradient(closest-side, rgba(190,102,97,.45), transparent 70%);
+}
+@keyframes floatBlob{
+  0%{transform:translate(0,0) scale(1)}
+  50%{transform:translate(20px,-14px) scale(1.05)}
+  100%{transform:translate(0,0) scale(1)}
+}
+
+/* Items */
+.glass-items{ display:grid; grid-template-columns: repeat(5, 1fr); height:100%; position:relative; z-index:2; }
+.glass-item{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+  font-weight:600; font-size:11px; color:#6b7280; transition: transform .18s ease, color .18s ease;
+}
+.glass-item .icon{ font-size:20px; line-height:1; }
+.glass-item:active{ transform: translateY(1px) scale(.98); }
+.glass-item.active{ color:#c32126; }
+html.dark .glass-item{ color:#cbd5e1; } 
+html.dark .glass-item.active{ color:#f0b0ad; }
+</style>
+
+    <style>
+        html, body { margin: 0 !important; padding: 0 !important; }
+        body { font-family: "Tajawal", "Cairo", sans-serif; background-color: #f7f7f7; color: #1a1a1a; scroll-behavior: smooth; }
+        .dark body { background-color: #0a0a0a !important; color: #ffffff !important; }
+
+        body > .sticky.top-0.z-40 {
+          top: 0 !important;
+          margin-top: 0 !important;
+        }
+
+        #mobileHeader,
+        #desktopNav {
+          margin-top: 0 !important;
+        }
+
+        header { margin-bottom: 0 !important; }
+        main, section { margin-top: 0 !important; padding-top: 0 !important; }
+
+        .footer-mobile { background-color: #FFFFFF; border-top: 1px solid #E5E7EB; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
+        .dark .footer-mobile { background-color: #0f172a; border-top-color: #1f2937; box-shadow: 0 -2px 10px rgba(0,0,0,0.4); }
+        .footer-mobile a { transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .dark .footer-mobile a { color: #e5e7eb; }
+        .footer-mobile a.active { color: #c32126; font-weight: bold; }
+        .dark .footer-mobile a.active { color: #f0b0ad; }
+        .footer-mobile a::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background-color: #c32126; transform: scaleX(0); transition: transform 0.3s ease; }
+        .dark .footer-mobile a::after { background-color: #f0b0ad; }
+        .footer-mobile a.active::after { transform: scaleX(1); }
+        .footer-mobile .icon { font-size: 1.5rem; margin-bottom: 0.25rem; transition: transform 0.3s ease; }
+        .footer-mobile a:hover .icon { transform: translateY(-3px); }
+
+        .badge { position: absolute; top: -5px; right: -5px; background-color: rgba(245,158,11,0.85); color: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10; }
+        .dark .badge, .dark .badge-cart { background-color: rgba(251,191,36,0.95) !important; color: #111827 !important; }
+
+        .mobile-nav-item.active { background: linear-gradient(to top, rgba(190, 102, 97, 0.1), transparent); }
+        
+        .nav-consultation {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+        header.mobile-rounded {
+          border-bottom-left-radius: 30px;
+          border-bottom-right-radius: 30px;
+        }
+    </style>
+<style>
+  [x-cloak] { display: none !important; }
+</style>
+    {{-- STYLES FOR CATEGORIES COMPONENT --}}
+    <style>
+      :root {
+        --brand: #c32126;
+        --brand-dark: #a61c20;
+        --line: #e5e5e5;
+        --soft: #ffffff;
+        --text: #1a1a1a;
+        --text-light: #5f5f5f;
+        --bg-light: #f7f7f7;
+        --border: #e5e5e5;
+        --shadow: rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s ease;
+      }
+      
+      html.dark {
+        --brand: #c32126;
+        --brand-dark: #a61c20;
+        --line: #2a2a2a;
+        --soft: #111111;
+        --text: #ffffff;
+        --text-light: #d6d6d6;
+        --bg-light: #0a0a0a;
+        --border: #2a2a2a;
+        --shadow: rgba(0, 0, 0, 0.3);
+      }
+
+      .category-tree-container * {
+        font-family: "Cairo", sans-serif !important;
+        letter-spacing: 0 !important;
+      }
+      
+      .category-tree { position: relative; }
+      .category-node { margin-bottom: 1rem; position: relative; }
+      
+      .category-card { background: var(--bg-light); border-radius: 14px; box-shadow: 0 8px 18px var(--shadow); overflow: hidden; transition: var(--transition); border: 1px solid var(--border); display: flex; align-items: center; position: relative; }
+      .category-card:hover { transform: translateY(-3px); box-shadow: 0 12px 22px rgba(0, 0, 0, 0.12); }
+      .dark .category-card:hover { box-shadow: 0 12px 22px rgba(0, 0, 0, 0.3); }
+      .category-card::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 6px; background: linear-gradient(180deg, var(--brand) 0%, #e8b8b6 100%); border-top-right-radius: 14px; border-bottom-right-radius: 14px; }
+      .dark .category-card::before { background: linear-gradient(180deg, var(--brand) 0%, var(--brand-dark) 100%); }
+      
+      .category-link { display: flex; align-items: center; padding: 1.25rem; flex: 1; text-decoration: none; color: inherit; }
+      .category-icon { width: 60px; height: 60px; border-radius: 12px; overflow: hidden; flex-shrink: 0; margin-left: 1rem; background: var(--soft); display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); }
+      .icon-image { width: 100%; height: 100%; object-fit: cover; }
+      .icon-placeholder { font-size: 1.5rem; color: var(--brand); }
+      .category-name { margin: 0 0 0.5rem 0; font-size: 1.1rem; font-weight: 700; color: var(--text); }
+      .category-meta { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+      .meta-item { display: inline-flex; align-items: center; gap: 0.35rem; height: 28px; padding: 0 0.65rem; background: var(--soft); border-radius: 999px; font-size: 0.8rem; color: var(--brand-dark); font-weight: 600; border: 1px solid var(--line); }
+      
+      .expand-btn { width: 38px; height: 38px; border-radius: 999px; background: var(--bg-light); border: 1px solid var(--line); color: var(--brand); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); margin: 0 1rem; }
+      .expand-btn:hover { background: #fff3f3; border-color: #f3c6c3; color: var(--brand-dark); }
+      .dark .expand-btn:hover { background: rgba(205, 137, 133, 0.1); border-color: var(--brand); color: var(--brand-dark); }
+      .expand-btn i { transition: transform 0.3s ease; }
+      .rotate-180 { transform: rotate(180deg); }
+
+      .subcategories { margin-top: 1rem; margin-right: 1.5rem; position: relative; }
+      .subcategory-list { list-style: none; padding: 0; margin: 0; }
+      .subcategory-node { margin-bottom: 1rem; position: relative; }
+      .subcategory-card { background: var(--bg-light); border-radius: 12px; box-shadow: 0 6px 14px var(--shadow); transition: var(--transition); border: 1px solid var(--border); display: flex; align-items: center; position: relative; }
+      .subcategory-card::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 5px; background: linear-gradient(180deg, #e8b8b6 0%, #f3c6c3 100%); border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+      .dark .subcategory-card::before { background: linear-gradient(180deg, var(--brand) 0%, #a61c20 100%); opacity:0.7; }
+      .subcategory-link { display: flex; align-items: center; padding: 1rem; flex: 1; text-decoration: none; color: inherit; }
+      .subcategory-icon { width: 50px; height: 50px; border-radius: 10px; flex-shrink: 0; margin-left: 0.75rem; background: var(--soft); display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); }
+      .subcategory-name { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+      .sub-subcategories { margin-top: 0.75rem; margin-right: 2.5rem; position: relative; }
+      .sub-subcategory-list { list-style: none; padding: 0; margin: 0; }
+      .sub-subcategory-node { margin-bottom: 0.75rem; }
+      .sub-subcategory-card { background: var(--bg-light); border-radius: 10px; box-shadow: 0 4px 10px var(--shadow); border: 1px solid var(--border); display: flex; align-items: center; position: relative; }
+      .sub-subcategory-card::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #f3c6c3 0%, #f9e6e3 100%); border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
+      .dark .sub-subcategory-card::before { background: linear-gradient(180deg, #a61c20 0%, #c32126 100%); opacity:0.6; }
+      .sub-subcategory-link { display: flex; align-items: center; padding: 0.75rem; flex: 1; text-decoration: none; color: inherit; }
+      .sub-subcategory-icon { width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; margin-left: 0.5rem; background: var(--soft); display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); }
+      .sub-subcategory-name { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+    </style>
+
+{{-- Live Search styles --}}
+<style>
+  .search-result-item {
+    display:flex; align-items:center; gap:1rem;
+    padding:.75rem 1rem; text-decoration:none;
+    border-bottom:1px solid #f3e5e3; transition:background-color .2s ease;
+  }
+  .search-result-item:last-child{ border-bottom:none; }
+  .search-result-img{ width:50px; height:50px; object-fit:cover; border-radius:.5rem; flex-shrink:0; background:#f3f4f6; }
+
+  /* موبايل فقط */
+  @media (max-width: 767px){
+    #mobileHeader{
+      border-radius: 0;
+      transition: border-radius .25s ease, box-shadow .25s ease;
+    }
+    #mobileHeader.rounded{
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+      border-bottom-left-radius: 28px;
+      border-bottom-right-radius: 28px;
+    }
+  }
+  #mobileHeader {
+    transition: border-bottom-left-radius .25s ease, border-bottom-right-radius .25s ease, box-shadow .25s ease;
+  }
+  #mobileHeader.fast-off {
+    transition: none !important;
+  }
+</style>
+
+@if (request()->routeIs(['faq',
+'about.us',
+'order.method',
+'payment.delivery',
+'order.method',
+'privacy.policy',
+'return.policy',
+'verify.otp',
+'passwords.*','profile.*', 'wallet.*', 'profile.wishlist.*', 'categories.*', 'wishlist', 'login', 'password', 'register', 'password.reset.with.otp', 'password.reset.with.otp.form', 'password.reset.phone.form']))
+<style>
+  @media (max-width: 768px){
+    header .container.mx-auto.md\:hidden form { display: none !important; }
+    header .container.mx-auto.md\:hidden {
+      padding-top: .0rem !important;
+      padding-bottom: .0rem !important;
+      gap: .20rem !important;
+      min-height: 48px !important;
+    }
+  }
+</style>
+@endif
+
+@php
+    $hideDesktopFooterOnRoutes = ['passwords.*','verify.otp','profile.*', 'password.reset.phone.form', 'password.reset.with.otp.form', 'password.reset.with.otp', 'wallet.*', 'passwords.*', 'login', 'register', 'checkout.*', 'cart.*', 'orders.*', 'profile.addresses.*', 'profile.orders*', 'categories.index', 'wishlist'];
+    $hideDesktopFooter = request()->routeIs($hideDesktopFooterOnRoutes);
+@endphp
+
+@if($hideDesktopFooter)
+<style>
+  footer:not(.footer-mobile){ display: none !important; }
+</style>
+@endif
+
+    <style>
+      @media (min-width: 768px){
+        #desktopNav {
+          transition: opacity .3s ease, transform .3s ease;
+          will-change: opacity, transform;
+          background: transparent;
+        }
+        #desktopNav.fade-out {
+          opacity: 0;
+          transform: translateY(-10px);
+          pointer-events: none;
+        }
+
+        .desktop-liquid-shell {
+          border-radius: 0;
+          background: #c5a059; /* لون المينيو الجديد */
+          border: none;
+          -webkit-backdrop-filter: blur(32px);
+          backdrop-filter: blur(32px);
+          box-shadow: 0 10px 30px rgba(0,0,0,.14);
+        }
+
+        .desktop-liquid-nav > a,
+        .desktop-liquid-nav > div > button {
+          color: #1a1a1a !important;
+          font-weight: 700;
+        }
+
+        .desktop-liquid-nav > a:hover,
+        .desktop-liquid-nav > div > button:hover {
+          color: #111111;
+        }
+
+        .desktop-liquid-nav > a span {
+          background-color: currentColor !important;
+        }
+
+        html.dark .desktop-liquid-shell {
+          border-radius: 0;
+          background: #5a6473;
+          border: 1px solid rgba(148,163,184,0.24);
+          box-shadow: 0 12px 32px rgba(0,0,0,.5);
+        }
+
+        html.dark .desktop-liquid-nav > a,
+        html.dark .desktop-liquid-nav > div > button {
+          color: #f8fafc;
+        }
+
+        html.dark .desktop-liquid-nav > a:hover,
+        html.dark .desktop-liquid-nav > div > button:hover {
+          color: #fca5a5;
+        }
+      }
+    </style>
+
+    {{-- ==================================================================== --}}
+    {{-- ====== START: STYLES FOR POPUPS, GLASS EFFECT, & SIDEBAR ====== --}}
+    {{-- ==================================================================== --}}
+    <style>
+        .search-popup, .notification-popup {
+          position: fixed;
+          z-index: 9990 !important;
+          background: rgba(255, 255, 255, 0.65);
+          -webkit-backdrop-filter: blur(16px);
+          backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          border-radius: 1rem;
+          box-shadow: 0 8px 26px rgba(0,0,0,.12);
+          background-color: transparent !important;
+          max-height: 70vh;
+          overflow-y: auto;
+        }
+
+        .dark .search-popup, .dark .notification-popup {
+          background: rgba(15, 23, 42, 0.65);
+          -webkit-backdrop-filter: blur(16px);
+          backdrop-filter: blur(16px);
+          border-color: rgba(148, 163, 184, 0.2);
+          box-shadow: 0 10px 28px rgba(0,0,0,.45);
+        }
+
+        .search-popup .search-result-item { border-bottom-color: rgba(190, 102, 97, 0.2) !important; }
+        .dark .search-popup .search-result-item { border-bottom-color: rgba(240, 176, 173, 0.2) !important; }
+        .search-popup .search-result-item:hover,
+        .search-popup .search-result-item.highlighted { background-color: rgba(190, 102, 97, 0.1) !important; }
+        .dark .search-popup .search-result-item:hover,
+        .dark .search-popup .search-result-item.highlighted { background-color: rgba(240, 176, 173, 0.15) !important; }
+        .search-popup .search-result-item:first-child { border-top-left-radius: 1rem; border-top-right-radius: 1rem; }
+        .search-popup .search-result-item:last-child { border-bottom: 0 !important; border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem; }
+
+        .notification-popup div, .notification-popup a { background: transparent !important; }
+        .notification-popup a:hover { background-color: rgba(190, 102, 97, 0.1) !important; }
+        .dark .notification-popup a:hover { background-color: rgba(240, 176, 173, 0.15) !important; }
+        .notification-popup .border-b { border-color: rgba(190, 102, 97, 0.2) !important; }
+        .dark .notification-popup .border-b { border-color: rgba(240, 176, 173, 0.2) !important; }
+        .notification-popup [class*="bg-gray-50"] { background: rgba(190, 102, 97, 0.05) !important; }
+        .dark .notification-popup [class*="bg-gray-900"] { background: rgba(240, 176, 173, 0.08) !important; }
+
+        /* ===== Sidebar Glass Effect ===== */
+        .sidebar-glass {
+          background: rgba(249, 245, 241, 0.75); /* Light mode bg #0a0a0a */
+          -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: blur(20px);
+          border-left: 1px solid rgba(234, 220, 205, 0.4);
+        }
+        .dark .sidebar-glass {
+          background: rgba(11, 15, 20, 0.75); /* Dark mode bg #0B0F14 */
+          border-left-color: rgba(55, 65, 81, 0.3);
+        }
+        .sidebar-glass .sidebar-header {
+          background-color: transparent !important;
+          border-bottom-color: rgba(234, 220, 205, 0.25);
+        }
+        .dark .sidebar-glass .sidebar-header {
+          border-bottom-color: rgba(55, 65, 81, 0.35);
+        }
+        .sidebar-glass .category-card,
+        .sidebar-glass .subcategory-card,
+        .sidebar-glass .sub-subcategory-card {
+          background: rgba(254, 254, 254, 0.65) !important; /* var(--bg-light) */
+          border-color: rgba(240, 240, 240, 0.5) !important;
+        }
+        .dark .sidebar-glass .category-card,
+        .dark .sidebar-glass .subcategory-card,
+        .dark .sidebar-glass .sub-subcategory-card {
+          background: rgba(31, 41, 55, 0.65) !important; /* dark var(--bg-light) */
+          border-color: rgba(55, 65, 81, 0.5) !important;
+        }
+    </style>
+    {{-- ====== END: NEW STYLES ====== --}}
+
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1188484969888183');
+    fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1188484969888183&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+
+    @stack("styles")
+</head>
+
+<body
+    class="relative flex flex-col min-h-screen pb-20 md:pb-0 bg-[#f7f7f7] text-gray-900 dark:bg-[#0A0A0A] dark:text-white transition-colors duration-300"
+    x-data="{
+        wishlistCount: {{ auth()->check() ? auth()->user()->favorites()->count() : 0 }},
+        cartCount: {{ count(session('cart', [])) }},
+        isWishlistUpdated: false,
+        isCartUpdated: false,
+        showWelcome: @json(($show_welcome_screen ?? 'off') === 'on') && !sessionStorage.getItem('welcomeScreenShown'),
+        isDark: document.documentElement.classList.contains('dark'),
+        sidebarOpen: false,
+
+        toggleTheme() {
+            this.isDark = !this.isDark;
+            document.documentElement.classList.toggle('dark', this.isDark);
+            localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
+        },
+
+        closeWelcomeModal() {
+            this.showWelcome = false;
+            sessionStorage.setItem('welcomeScreenShown', 'true');
+        }
+    }"
+    @wishlist-updated.window="wishlistCount = $event.detail.count; isWishlistUpdated = true; setTimeout(() => isWishlistUpdated = false, 500)"
+    @cart-updated.window="cartCount = $event.detail.cartCount; isCartUpdated = true; setTimeout(() => isCartUpdated = false, 500)"
+    x-init="
+        fetch('{{ route('cart.count') }}').then(res => res.json()).then(data => { cartCount = data.count; }).catch(() => {});
+        @auth
+        fetch('{{ route('wishlist.count') }}').then(res => res.json()).then(data => { wishlistCount = data.count; }).catch(() => {});
+        @endauth
+    "
+>
+    @php
+        $sessionErrorMessage = session('error') ?? ($errors->has('session') ? $errors->first('session') : null);
+    @endphp
+
+    <div class="sticky top-0 z-40">@if($sessionErrorMessage)<div x-data="{ show: true }" x-show="show" x-transition.opacity.duration.300ms class="bg-red-600 text-white"><div class="container mx-auto px-4 py-2 flex items-center justify-between gap-4 text-sm md:text-base"><span class="font-medium">{{ $sessionErrorMessage }}</span><button type="button" class="text-white/80 hover:text-white text-lg" @click="show = false">&times;</button></div></div>@endif 
+        @if(isset($show_dashboard_notification) && $show_dashboard_notification == 'on' && !empty($dashboard_notification_content))
+            <style>
+                @keyframes scrollLeft {
+                    0% { transform: translateX(100%); }
+                    100% { transform: translateX(-100%); }
+                }
+                @keyframes scrollRight {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(100%); }
+                }
+                .animate-scroll-left {
+                    display: inline-block;
+                    white-space: nowrap;
+                    animation: scrollLeft 15s linear infinite;
+                }
+                .animate-scroll-right {
+                    display: inline-block;
+                    white-space: nowrap;
+                    animation: scrollRight 15s linear infinite;
+                }
+                .notification-container {
+                    overflow: hidden;
+                    width: 100%;
+                }
+            </style>
+            <div x-data="{ show: true }" x-show="show" x-transition class="bg-black text-white text-center p-2 text-sm relative">
+                <div class="container mx-auto notification-container">
+                    <div class="{{ ($dashboard_notification_animation ?? 'none') !== 'none' ? 'animate-' . $dashboard_notification_animation : '' }}">
+                        {!! $dashboard_notification_content !!}
+                    </div>
+                </div>
+                <button @click="show = false" class="absolute top-1/2 left-4 -translate-y-1/2 text-xl z-20">&times;</button>
+            </div>
+        @endif
+        <header id="mobileHeader" class="bg-[#6d0e16] py-3 shadow-md border-b border-white/20 dark:border-white/15 dark:shadow-black/40">
+            <div class="container mx-auto hidden md:flex items-center justify-between px-4 md:px-8 text-white font-semibold">
+                <a href="{{ route('homepage') }}" class="text-xl sm:text-2xl flex items-center gap-2 hover:opacity-90 transition">
+                    <img src="{{ asset('logo.png') }}" alt="logo" class="w-10 h-10">
+                    <span class="text-white font-bold">{{ __('layout.tofof') }}</span>
+                </a>
+                <div 
+                    x-data="liveSearch('{{ route('products.liveSearch') }}')" 
+                    @click.away="showResults = false"
+                    class="flex flex-1 mx-6 max-w-2xl relative"
+                    x-ref="searchContainerDesktop"
+                >
+                    <form action="{{ route('products.search') }}" method="GET" class="w-full md:w-[480px] lg:w-[640px]" @submit.prevent="if (highlightedIndex !== -1) selectHighlighted(); else $el.submit()">
+                        <div class="flex w-full bg-white rounded-full overflow-hidden dark:bg-gray-800 dark:border dark:border-gray-700">
+                            <input type="text" name="query" placeholder="ابحث عن منتجات أو علامات تجارية" class="flex-1 px-4 py-2 text-sm text-gray-700 placeholder-gray-500 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400 dark:bg-transparent"
+                                x-model="query" @input.debounce.300ms="search" @keydown.down.prevent="moveHighlight('down')" @keydown.up.prevent="moveHighlight('up')"
+                                @keydown.enter.prevent="if (highlightedIndex > -1) { selectHighlighted() } else { $el.closest('form').submit() }" @focus="onFocus" autocomplete="off">
+                    <button type="submit" class="px-4 bg-white text-[#6d0e16] hover:text-[#6d0e16] dark:bg-transparent"><i class="bi bi-search text-lg"></i></button>
+                        </div>
+                    </form>
+                    <template x-teleport="body">
+                        <div x-show="showResults" x-transition class="search-popup" x-cloak
+                            x-init="$watch('showResults', (value) => { if (value) { $nextTick(() => { let rect = $refs.searchContainerDesktop.getBoundingClientRect(); $el.style.top = `${rect.bottom + 4}px`; $el.style.left = `${rect.left}px`; $el.style.width = `${rect.width}px`; }); } })">
+                            <div x-show="loading" class="p-4 text-center text-gray-500 dark:text-gray-300">جاري البحث...</div>
+                            <template x-if="!loading && results.length === 0 && query.length >= minChars"><div class="p-4 text-center text-gray-500 dark:text-gray-300">لا توجد منتجات مطابقة.</div></template>
+                            <template x-for="(result, index) in results" :key="index">
+                                <div>
+                                    <template x-if="result.type === 'header'">
+                                        <div class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-500 bg-gray-50/50 dark:bg-gray-900/50 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+                                            <span x-text="result.label"></span>
+                                        </div>
+                                    </template>
+                                    <template x-if="result.type !== 'header'">
+                                        <a :href="result.url" class="search-result-item" :class="{ 'highlighted': index === highlightedIndex }" @mouseenter="highlightedIndex = index">
+                                            <template x-if="result.type === 'product'">
+                                                <img :src="result.image" alt="" class="search-result-img">
+                                            </template>
+                                            <template x-if="result.type === 'brand'">
+                                                <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 mr-2">
+                                                    <i class="bi bi-tag text-lg text-[#6d0e16]"></i>
+                                                </div>
+                                            </template>
+                                            <template x-if="result.type === 'category'">
+                                                <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 mr-2">
+                                                    <i class="bi bi-grid text-lg text-[#6d0e16]"></i>
+                                                </div>
+                                            </template>
+                                            <div class="flex flex-col">
+                                                <span class="text-gray-800 dark:text-gray-200 font-semibold" x-text="result.name"></span>
+                                                <template x-if="result.type === 'product'">
+                                                    <small class="text-gray-500 dark:text-gray-400" x-text="result.category || ''"></small>
+                                                </template>
+                                            </div>
+                                        </a>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+                <div class="hidden md:flex items-center gap-4">
+                    @if($showDashboardLink)
+                        <a href="{{ url('/admin/dashboard') }}" class="inline-flex items-center gap-2 rounded-full px-3 py-2 bg-white/10 hover:bg:white/20 transition" title="لوحة التحكم">
+                            <i class="bi bi-speedometer2 text-xl"></i><span class="hidden lg:inline">لوحة التحكم</span>
+                        </a>
+                    @endif
+                    {{-- Language Switcher Desktop --}}
+                    <div x-data="{ langOpen: false }" class="relative" @click.away="langOpen = false">
+                        <button @click="langOpen = !langOpen"
+                            class="flex items-center gap-1.5 rounded-full px-3 py-1.5 bg-white/15 hover:bg-white/25 transition text-sm font-semibold"
+                            title="تغيير اللغة">
+                            @if($locale === 'ar')
+                                <img src="https://flagcdn.com/iq.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="Arabic"><span>ع</span>
+                            @elseif($locale === 'en')
+                                <img src="https://flagcdn.com/us.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="English"><span>En</span>
+                            @endif
+                            <i class="bi bi-chevron-down text-xs" :class="{ 'rotate-180': langOpen }" style="transition: transform 0.2s"></i>
+                        </button>
+                          <div x-show="langOpen" x-cloak x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                              class="absolute top-full mt-2 {{ $dir === 'rtl' ? 'left-0' : 'right-0' }} w-36 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-[99999] text-gray-800 dark:text-gray-100">
+                            @php $currentUrl = url()->current(); @endphp
+                            <a href="{{ route('language.switch', ['locale' => 'ar', 'from' => $currentUrl]) }}" class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[#6d0e16]/10 transition {{ $locale === 'ar' ? 'font-bold text-[#6d0e16]' : '' }}">
+                                <img src="https://flagcdn.com/iq.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="Arabic"> عربي
+                                @if($locale === 'ar') <i class="bi bi-check2 mr-auto text-[#6d0e16]"></i> @endif
+                            </a>
+                            <a href="{{ route('language.switch', ['locale' => 'en', 'from' => $currentUrl]) }}" class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[#6d0e16]/10 transition {{ $locale === 'en' ? 'font-bold text-[#6d0e16]' : '' }}">
+                                <img src="https://flagcdn.com/us.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="English"> English
+                                @if($locale === 'en') <i class="bi bi-check2 mr-auto text-[#6d0e16]"></i> @endif
+                            </a>
+                          </div>
+                    </div>
+                    <button @click="toggleTheme" class="rounded-full p-2 bg-white/10 hover:bg.white/20 transition" title="تبديل الوضع">
+                        <i x-show="!isDark" class="bi bi-moon text-xl"></i><i x-show="isDark" class="bi bi-sun text-xl"></i>
+                    </button>
+                    @auth
+                    <a href="{{ route('profile.show') }}" class="hover:opacity-80 transition relative group" title="حسابي"><i class="bi bi-person text-xl"></i></a>
+                    @else
+                    <a href="{{ route('login') }}" class="hover:underline transition text-sm">{{ __('layout.login_register') }}</a>
+                    @endauth
+                    <a href="{{ route('cart.index') }}" class="hover:opacity-80 transition relative" title="{{ __('layout.cart') }}">
+                        <i class="bi bi-cart2 text-xl"></i>
+                        <span x-show="cartCount > 0" x-text="cartCount" class="badge" :class="{'animate-ping-once': isCartUpdated}" style="display: none;"></span>
+                    </a>
+                    <a href="{{ route('wishlist') }}" class="hover:opacity-80 transition relative" x-ref="wishlistCounter" title="{{ __('layout.wishlist') }}">
+                        <i class="bi bi-heart text-xl"></i>
+                        <span x-show="wishlistCount > 0" x-text="wishlistCount" class="badge" :class="{'animate-ping-once': isWishlistUpdated}" style="display: none;"></span>
+                    </a>
+                    @auth
+                    <div x-data="userNotificationsComponent('{{ route('user.notifications.index') }}', '{{ route('user.notifications.markAsRead') }}')" x-init="fetchNotifications(); setInterval(() => fetchNotifications(), 60000)" class="relative" x-ref="notificationContainerDesktop">
+                        <button @click="dropdownOpen = !dropdownOpen" class="relative" title="الإشعارات">
+                            <i class="bi bi-bell text-2xl"></i>
+                            <span x-show="unreadCount > 0" x-text="unreadCount" class="badge" style="display: none;"></span>
+                        </button>
+                        <template x-teleport="body">
+                           <div x-show="dropdownOpen" @click.away="dropdownOpen = false" class="text-right notification-popup w-80" style="display: none;"
+                                x-init="$watch('dropdownOpen', (value) => { if (value) { $nextTick(() => { let rect = $refs.notificationContainerDesktop.getBoundingClientRect(); $el.style.top = `${rect.bottom + 8}px`; $el.style.left = `${rect.left}px`; }); } })">
+                                <div class="px-4 py-2 border-b font-bold">الإشعارات</div>
+                                <div class="py-1 max-h-96 overflow-y-auto">
+                                    <template x-if="notifications.length === 0"><p class="text-center text-gray-500 py-4">لا توجد إشعارات.</p></template>
+                                    <template x-for="notification in notifications" :key="notification.id">
+                                        <a @click.prevent="markAsRead(notification)" :href="notification.data?.url || '#'" class="flex items-start px-4 py-3" :class="{ 'bg-gray-50 dark:bg-gray-900/40': !notification.read_at }">
+                                            <i class="bi ml-3 mt-1" :class="notification.data?.icon || 'bi-info-circle'"></i>
+                                            <div><p class="text-sm" x-text="notification.data?.message"></p><small class="text-xs text-gray-500" x-text="timeAgo(notification.created_at)"></small></div>
+                                        </a>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    @endauth
+                </div>
+            </div>
+
+            {{-- Mobile Header --}}
+            <div class="container mx-auto md:hidden flex flex-col gap-3 px-4 text-white">
+              <div class="flex w-full items-center justify-between">
+                <a href="{{ route('homepage') }}" class="flex items-center gap-2 text-lg font-bold">
+                  <img src="{{ asset('logo.png') }}" alt="logo" class="w-8 h-8"> Tofof
+                </a>
+                <div class="flex items-center gap-2">
+
+                  <a href="{{ route('wishlist') }}" class="relative p-2 hover:bg-white/10 rounded-full" title="{{ __('layout.wishlist') }}">
+                    <i class="bi bi-heart text-lg"></i>
+                    <span x-show="wishlistCount > 0" x-text="wishlistCount" class="badge" style="display:none;"></span>
+                  </a>
+                  {{-- Language Switcher Mobile --}}
+                  <div x-data="{ langOpen: false }" class="relative" @click.away="langOpen = false">
+                      <button @click="langOpen = !langOpen"
+                          class="flex items-center gap-1 p-2 hover:bg-white/10 rounded-full text-sm font-bold"
+                          title="تغيير اللغة">
+                          @if($locale === 'ar')
+                              <img src="https://flagcdn.com/iq.svg" class="w-6 h-4 object-cover rounded-sm shadow-sm" alt="Arabic">
+                          @elseif($locale === 'en')
+                              <img src="https://flagcdn.com/us.svg" class="w-6 h-4 object-cover rounded-sm shadow-sm" alt="English">
+                          @endif
+                      </button>
+                        <div x-show="langOpen" x-cloak x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                            class="absolute top-full mt-2 {{ $dir === 'rtl' ? 'left-0' : 'right-0' }} w-36 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-[99999] text-gray-800 dark:text-gray-100">
+                          @php $currentUrl = url()->current(); @endphp
+                          <a href="{{ route('language.switch', ['locale' => 'ar', 'from' => $currentUrl]) }}" class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[#6d0e16]/10 transition {{ $locale === 'ar' ? 'font-bold text-[#6d0e16]' : '' }}">
+                              <img src="https://flagcdn.com/iq.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="Arabic"> عربي
+                              @if($locale === 'ar') <i class="bi bi-check2 mr-auto text-[#6d0e16]"></i> @endif
+                          </a>
+                          <a href="{{ route('language.switch', ['locale' => 'en', 'from' => $currentUrl]) }}" class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[#6d0e16]/10 transition {{ $locale === 'en' ? 'font-bold text-[#6d0e16]' : '' }}">
+                              <img src="https://flagcdn.com/us.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="English"> English
+                              @if($locale === 'en') <i class="bi bi-check2 mr-auto text-[#6d0e16]"></i> @endif
+                          </a>
+                        </div>
+                  </div>
+                  @auth
+                  <div class="relative" x-data="userNotificationsComponent('{{ route('user.notifications.index') }}', '{{ route('user.notifications.markAsRead') }}')" x-init="fetchNotifications(); setInterval(() => fetchNotifications(), 60000)" x-ref="notificationContainerMobile">
+                    <button @click="dropdownOpen = !dropdownOpen" class="relative p-2 hover:bg-white/10 rounded-full" title="الإشعارات">
+                      <i class="bi bi-bell text-lg"></i>
+                      <span x-show="unreadCount > 0" x-text="unreadCount" class="badge" style="display:none;"></span>
+                    </button>
+                    <template x-teleport="body">
+                        <div x-show="dropdownOpen" @click.away="dropdownOpen = false" class="text-right notification-popup w-72 sm:w-80" style="display:none;"
+                             x-init="$watch('dropdownOpen', (value) => { if (value) { $nextTick(() => { let rect = $refs.notificationContainerMobile.getBoundingClientRect(); $el.style.top = `${rect.bottom + 8}px`; $el.style.left = `${rect.left}px`; }); } })">
+                          <div class="px-4 py-2 border-b font-bold">الإشعارات</div>
+                          <div class="py-1 max-h-96 overflow-y-auto">
+                            <template x-if="notifications.length === 0"><p class="text-center text-gray-500 py-4">لا توجد إشعارات.</p></template>
+                            <template x-for="notification in notifications" :key="notification.id">
+                              <a @click.prevent="markAsRead(notification)" :href="notification.data?.url || '#'" class="flex items-start px-4 py-3" :class="{ 'bg-gray-50 dark:bg-gray-900/40': !notification.read_at }">
+                                <i class="bi ml-3 mt-1" :class="notification.data?.icon || 'bi-info-circle'"></i>
+                                <div><p class="text-sm" x-text="notification.data?.message"></p><small class="text-xs text-gray-500" x-text="timeAgo(notification.created_at)"></small></div>
+                              </a>
+                            </template>
+                          </div>
+                        </div>
+                    </template>
+                  </div>
+                  @endauth
+                  <button @click="toggleTheme" class="p-2 hover:bg-white/10 rounded-full" title="تبديل الوضع">
+                    <i class="bi text-lg" :class="isDark ? 'bi-sun-fill' : 'bi-moon-fill'"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div x-data="liveSearch('{{ route('products.liveSearch') }}')" @click.away="showResults = false" class="w-full relative" x-ref="searchContainerMobile">
+                <form action="{{ route('products.search') }}" method="GET" @submit.prevent="if (highlightedIndex !== -1) selectHighlighted(); else $el.submit()">
+                  <div class="flex w-full bg-white rounded-full overflow-hidden dark:bg-gray-800 dark:border dark:border-gray-700">
+                    <input type="text" name="query" placeholder="ابحث عن منتجات أو علامات تجارية" class="flex-1 px-4 py-2 text-sm text-gray-700 placeholder-gray-500 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400 dark:bg-transparent"
+                      x-model="query" @input.debounce.300ms="search" @keydown.down.prevent="moveHighlight('down')" @keydown.up.prevent="moveHighlight('up')"
+                      @keydown.enter.prevent="if (highlightedIndex > -1) { selectHighlighted() } else { $el.closest('form').submit() }" @focus="onFocus" autocomplete="off">
+                    <button type="submit" class="px-4 bg-white text-[#6d0e16] hover:text-[#6d0e16] dark:bg-transparent"><i class="bi bi-search"></i></button>
+                  </div>
+                </form>
+                <template x-teleport="body">
+                    <div x-show="showResults" x-transition class="search-popup" x-cloak
+                         x-init="$watch('showResults', (value) => { if (value) { $nextTick(() => { let rect = $refs.searchContainerMobile.getBoundingClientRect(); $el.style.top = `${rect.bottom + 4}px`; $el.style.left = `${rect.left}px`; $el.style.width = `${rect.width}px`; }); } })">
+                        <div x-show="loading" class="p-4 text-center text-gray-500 dark:text-gray-300">جاري البحث...</div>
+                        <template x-if="!loading && results.length === 0 && query.length >= minChars"><div class="p-4 text-center text-gray-500 dark:text-gray-300">لا توجد منتجات مطابقة.</div></template>
+                        <template x-for="(result, index) in results" :key="index">
+                            <div>
+                                <template x-if="result.type === 'header'">
+                                    <div class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-500 bg-gray-50/50 dark:bg-gray-900/50 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+                                        <span x-text="result.label"></span>
+                                    </div>
+                                </template>
+                                <template x-if="result.type !== 'header'">
+                                    <a :href="result.url" class="search-result-item" :class="{ 'highlighted': index === highlightedIndex }" @mouseenter="highlightedIndex = index">
+                                        <template x-if="result.type === 'product'">
+                                            <img :src="result.image" alt="" class="search-result-img">
+                                        </template>
+                                        <template x-if="result.type === 'brand'">
+                                            <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 mr-3">
+                                                <i class="bi bi-tag text-lg text-[#6d0e16]"></i>
+                                            </div>
+                                        </template>
+                                        <template x-if="result.type === 'category'">
+                                            <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 mr-3">
+                                                <i class="bi bi-grid text-lg text-[#6d0e16]"></i>
+                                            </div>
+                                        </template>
+                                        <div class="flex flex-col">
+                                            <span class="text-gray-800 dark:text-gray-200 font-semibold" x-text="result.name"></span>
+                                            <template x-if="result.type === 'product'">
+                                                <small class="text-gray-500 dark:text-gray-400" x-text="result.category || ''"></small>
+                                            </template>
+                                        </div>
+                                    </a>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+              </div>
+            </div>
+        </header>
+
+        <header id="desktopNav" class="hidden md:block relative z-30">
+          <div class="container mx-auto px-6 py-3 flex justify-center items-center desktop-liquid-shell">
+            <nav class="desktop-liquid-nav flex items-center space-x-10 space-x-reverse">
+{{-- ==================== الفئات (يمين) ← البراندات (يسار) | تصميم V4 (معكوس) ==================== --}}
+@php
+    use Illuminate\Support\Str;
+
+    // خريطة: brand => [name, image, categories[]]
+    $brandCategoriesMap = [];
+
+    if (isset($categories) && $categories->isNotEmpty()) {
+        foreach ($categories as $cat) {
+            // IDs للفئة + الأبناء
+            $catIds = collect([$cat->id]);
+            if ($cat->children->isNotEmpty()) {
+                foreach ($cat->children as $child) {
+                    $catIds->push($child->id);
+                    if ($child->children->isNotEmpty()) {
+                        foreach ($child->children as $grand) { $catIds->push($grand->id); }
+                    }
+                }
+            }
+            $catIds = $catIds->unique()->values();
+
+            // البراندات التي تملك منتجات داخل هذه الفئة/الأبناء
+            $brands = \App\Models\PrimaryCategory::query()
+                ->active()->ordered()->select('id','name_ar','slug','icon','image')
+                ->whereHas('products', fn($q)=>$q->where('is_active',true)->whereIn('category_id',$catIds))
+                ->get();
+
+            foreach ($brands as $b) {
+                $bImg = $b->image ?: $b->icon;
+                if ($bImg && !Str::startsWith($bImg, ['http','//'])) {
+                    $bImg = asset('storage/'.ltrim($bImg,'/'));
+                }
+
+                if (!isset($brandCategoriesMap[$b->slug])) {
+                    $brandCategoriesMap[$b->slug] = [
+                        'slug' => $b->slug,
+                        'name' => $b->name_ar,
+                        'image'=> $bImg,
+                        'categories' => [],
+                    ];
+                }
+
+                $cImg = !empty($cat->image)
+                    ? (Str::startsWith($cat->image, ['http','//']) ? $cat->image : asset('storage/'.ltrim($cat->image,'/')))
+                    : null;
+
+                $brandCategoriesMap[$b->slug]['categories'][$cat->slug] = [
+                    'slug'  => $cat->slug,
+                    'name'  => $cat->name_ar ?? $cat->name ?? '',
+                    'image' => $cImg,
+                ];
+            }
+        }
+
+        // ترتيب أبجدي
+        foreach ($brandCategoriesMap as &$entry) {
+            $entry['categories'] = array_values($entry['categories']);
+            usort($entry['categories'], fn($a,$b)=> strnatcasecmp($a['name'], $b['name']));
+        }
+        unset($entry);
+        uasort($brandCategoriesMap, fn($a,$b)=> strnatcasecmp($a['name'], $b['name']));
+    }
+@endphp
+
+<div class="relative" x-data="brandMenuV4()" x-init="init()"
+     @mouseenter="open = true" @mouseleave="open = false">
+
+  <style>
+    .mmv4-wrap{
+      position:fixed; z-index:9990!important; overflow:hidden; border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.66), rgba(255,255,255,.28));
+      border:1px solid rgba(255,255,255,.45);
+      -webkit-backdrop-filter:blur(26px); backdrop-filter:blur(26px);
+      box-shadow:0 20px 48px rgba(0,0,0,.18);
+    }
+    html.dark .mmv4-wrap{
+      background:linear-gradient(180deg, rgba(15,23,42,.55), rgba(15,23,42,.28));
+      border-color:rgba(148,163,184,.28);
+      box-shadow:0 24px 54px rgba(0,0,0,.55);
+    }
+
+    .mmv4-head{
+      padding:16px 18px; display:flex; align-items:center; justify-content:space-between;
+      background:linear-gradient(90deg, rgba(205,137,133,.12), transparent);
+      border-bottom:1px dashed rgba(205,137,133,.35);
+    }
+    html.dark .mmv4-head{ border-bottom-color:rgba(240,176,173,.25); }
+
+    /* يسار: البراندات */
+    .mmv4-search{
+      width:100%; background:rgba(255,255,255,.95);
+      border:1px solid rgba(234,219,205,.95); border-radius:16px;
+      padding:.7rem .9rem; padding-left:2.4rem; font-weight:700;
+    }
+    .mmv4-search::placeholder{ color:#9ca3af; font-weight:500; }
+    html.dark .mmv4-search{ background:rgba(31,41,55,.75); border-color:#374151; color:#e5e7eb; }
+    .mmv4-search-icon{ position:absolute; left:.7rem; top:50%; transform:translateY(-50%); color:#9ca3af; }
+
+    .mmv4-brand{
+      display:flex; align-items:center; gap:.9rem; text-align:right;
+      padding:.65rem .8rem; border-radius:14px; cursor:pointer;
+      border:1px solid rgba(234,219,205,.85);
+      background:linear-gradient(180deg, rgba(255,255,255,.90), rgba(255,255,255,.70));
+      transition:transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
+    }
+    .mmv4-brand:hover{ transform:translateY(-2px); background:rgba(190,102,97,.10); }
+    .mmv4-brand.active{
+      background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.86));
+      border-color:#a61c20; box-shadow:0 10px 22px rgba(205,137,133,.18);
+    }
+    html.dark .mmv4-brand{ background:rgba(31,41,55,.62); border-color:#374151; }
+    html.dark .mmv4-brand.active{ border-color:#f0b0ad; }
+
+    .mmv4-logo{
+      width:44px; height:44px; border-radius:12px; overflow:hidden;
+      display:grid; place-items:center; background:#ffffff; border:1px solid #e5e5e5; flex-shrink:0;
+    }
+    .mmv4-logo img{ width:100%; height:100%; object-fit:cover; }
+    html.dark .mmv4-logo{ background:rgba(255,255,255,.08); border-color:#475569; }
+
+    .mmv4-brands-scroll{ max-height:440px; overflow-y:auto; padding-left:.25rem; }
+    .mmv4-brands-scroll::-webkit-scrollbar{ width:8px; }
+    .mmv4-brands-scroll::-webkit-scrollbar-track{ background:rgba(0,0,0,.05); border-radius:10px; }
+    .mmv4-brands-scroll::-webkit-scrollbar-thumb{ background:#6d0e16; border-radius:10px; border:2px solid transparent; background-clip:content-box; }
+    .mmv4-brands-scroll::-webkit-scrollbar-thumb:hover{ background:#8d121c; }
+    html.dark .mmv4-brands-scroll::-webkit-scrollbar-track{ background:rgba(255,255,255,.07); }
+
+    /* يمين: الفئات */
+    .mmv4-cat{
+      position:relative; border-radius:16px; overflow:hidden;
+      border:1px solid #1a1a1a; background:linear-gradient(180deg, #fff, #fff8f7);
+      transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .mmv4-cat:hover{ transform:translateY(-4px); box-shadow:0 16px 36px rgba(0,0,0,.12); border-color:#e6c2bf; }
+    html.dark .mmv4-cat{ border-color:#374151; background:linear-gradient(180deg, rgba(31,41,55,.85), rgba(31,41,55,.70)); }
+    html.dark .mmv4-cat:hover{ border-color:#475569; }
+
+    .mmv4-cat-top{ display:flex; align-items:center; gap:12px; padding:12px 12px 8px 12px; }
+    .mmv4-thumb{
+      width:56px; height:56px; border-radius:12px; overflow:hidden; flex-shrink:0;
+      display:grid; place-items:center; background:#0a0a0a; border:1px solid #1a1a1a;
+    }
+    .mmv4-thumb img{ width:100%; height:100%; object-fit:cover; }
+    html.dark .mmv4-thumb{ background:rgba(255,255,255,.08); border-color:#475569; }
+
+    .mmv4-cat-name{ font-weight:800; font-size:1rem; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mmv4-cat-badge{ font-size:.72rem; font-weight:700; padding:.2rem .5rem; border-radius:999px; background:#fff0f0; color:#6d0e16; border:1px solid #f3c6c3; }
+    html.dark .mmv4-cat-badge{ background:rgba(240,176,173,.15); color:#f0b0ad; border-color:#6b7280; }
+
+    .mmv4-cat-foot{ display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border-top:1px dashed #1a1a1a; }
+    html.dark .mmv4-cat-foot{ border-top-color:#475569; }
+    .mmv4-link{ font-size:.85rem; font-weight:800; color:#6d0e16; }
+    .mmv4-link:hover{ text-decoration:underline; }
+  </style>
+
+@php
+    // جلب البراندات مع أبنائها لعرضها بشكل هرمي
+    use App\Models\PrimaryCategory;
+    use Illuminate\Support\Facades\Cache;
+
+    $brandsTree = Cache::remember('global_brands_tree_for_liquid_menu', now()->addHours(6), function () {
+        return PrimaryCategory::whereNull('parent_id')
+            ->orderBy('name_ar', 'asc')
+            ->withCount('products')
+            ->with(['children' => function ($query) {
+                $query->orderBy('name_ar', 'asc')->withCount('products');
+            }])
+            ->get();
+    });
+@endphp
+
+{{-- ==================================================================== --}}
+{{-- ✅ [تصحيح] تعديل لون اللوجو واستبدال كلمة "براند" بـ "فئة" --}}
+{{-- ==================================================================== --}}
+<div class="relative" 
+    x-data="{
+        open: false,
+        timer: null,
+        show() {
+            clearTimeout(this.timer);
+            this.open = true;
+        },
+        hide() {
+            this.timer = setTimeout(() => {
+                this.open = false;
+            }, 200);
+        }
+    }"
+    @mouseenter="show()" 
+    @mouseleave="hide()">
+
+    <style>
+        .liquid-glass-panel {
+            position: fixed; 
+            z-index: 50;
+            width: 400px;
+            height: 70vh;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            overflow: hidden; 
+        }
+        .liquid-scroll-container {
+            position: relative; z-index: 2; width: 100%; height: 100%;
+            overflow-y: auto; padding: 0.5rem;
+        }
+        .liquid-glass-panel::before,
+        .liquid-glass-panel::after {
+            content: ""; position: absolute; border-radius: 50%;
+            filter: blur(80px); pointer-events: none; z-index: 1;
+        }
+        .liquid-glass-panel::before {
+            width: 250px; height: 250px; background: rgba(205, 137, 133, 0.3);
+            top: -50px; right: -80px; animation: move-blob-1 15s infinite alternate;
+        }
+        .liquid-glass-panel::after {
+            width: 200px; height: 200px; background: rgba(240, 192, 183, 0.3);
+            bottom: -50px; left: -50px; animation: move-blob-2 18s infinite alternate;
+        }
+
+        @keyframes move-blob-1 { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(40px, -30px) rotate(90deg); } }
+        @keyframes move-blob-2 { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(-30px, 30px) rotate(-90deg); } }
+        
+        .liquid-item {
+            display: flex; align-items: center; padding: 0.9rem 1rem;
+            text-decoration: none; border-radius: 12px;
+            transition: all 0.25s cubic-bezier(.4,0,.2,1);
+        }
+        .liquid-item:hover { background: rgba(255, 255, 255, 0.15); transform: scale(1.02); }
+
+        /* ✅ [تعديل] تغيير لون خلفية اللوجو */
+        .liquid-logo {
+            width: 40px; height: 40px; border-radius: 10px; margin-left: 1rem; flex-shrink: 0;
+            background-color: #ffffff;
+            border: 1px solid rgba(205, 137, 133, 0.3);
+            padding: 4px; display: flex; align-items: center; justify-content: center;
+        }
+        .liquid-logo img { width: 100%; height: 100%; object-fit: contain; }
+        
+        .liquid-name {
+            font-weight: 700; color: var(--text, #34282C);
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        .liquid-toggle { margin-right: auto; padding: 0.5rem; color: rgba(52, 40, 44, 0.6); }
+        
+        .liquid-sub-list { padding-right: 2.5rem; padding-bottom: 0.5rem; }
+        .liquid-sub-item { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .liquid-sub-item .liquid-logo { width: 32px; height: 32px; }
+        .liquid-sub-item .liquid-name { font-size: 0.9rem; }
+
+        /* Dark Mode */
+        html.dark .liquid-glass-panel { background: rgba(31, 41, 55, 0.25); border-color: rgba(55, 65, 81, 0.5); }
+        html.dark .liquid-item:hover { background: rgba(55, 65, 81, 0.4); }
+        html.dark .liquid-name { color: #e5e7eb; text-shadow: none; }
+        html.dark .liquid-toggle { color: rgba(229, 231, 235, 0.6); }
+        html.dark .liquid-logo { background-color: #0a0a0a; border-color: rgba(205, 137, 133, 0.4); }
+        
+        .liquid-scroll-container::-webkit-scrollbar { width: 6px; }
+        .liquid-scroll-container::-webkit-scrollbar-track { background: transparent; }
+        .liquid-scroll-container::-webkit-scrollbar-thumb { background: rgba(205, 137, 133, 0.5); border-radius: 10px; }
+        .liquid-scroll-container::-webkit-scrollbar-thumb:hover { background: rgba(190, 102, 97, 0.8); }
+    </style>
+
+    {{-- زر فتح القائمة --}}
+    <button type="button"
+            x-ref="brandsTrigger"
+            class="relative group font-medium hover:text-[#f3e5e3] transition-colors duration-300 py-1 px-4 flex items-center gap-1"
+            aria-haspopup="true" :aria-expanded="open.toString()">
+        {{-- ✅ [تعديل] تغيير كلمة البراندات إلى الفئات --}}
+        <i class="bi bi-tags-fill"></i> الفئات
+    </button>
+
+    {{-- القائمة المنسدلة --}}
+    <template x-teleport="body">
+        <div x-show="open" x-cloak
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            class="liquid-glass-panel"
+            x-init="$watch('open', (value) => {
+                if (value) {
+                    $nextTick(() => {
+                        let rect = $refs.brandsTrigger.getBoundingClientRect();
+                        $el.style.top = `${rect.bottom + 8}px`;
+                        $el.style.left = `${rect.left}px`;
+                    });
+                }
+            })"
+            @mouseenter="show()" 
+            @mouseleave="hide()">
+            
+            <div class="liquid-scroll-container">
+                @forelse ($brandsTree as $brand)
+                    <div x-data="{ open: false }">
+                        <div class="liquid-item">
+                            <a href="{{ route('shop', ['brand' => $brand->slug]) }}" class="flex items-center flex-grow text-decoration-none">
+                                <div class="liquid-logo">
+                                    @php
+                                        $img = $brand->image ?: $brand->icon;
+                                        // ✅ [تعديل] الشعار الافتراضي للمتجر الرئيسي
+                                        // !!! هام: غيّر هذا الرابط إلى رابط شعار متجرك !!!
+                                        $defaultLogo = asset('logo.png'); 
+                                    @endphp
+                                    @if($img) 
+                                        <img src="{{ asset('storage/' . $img) }}" alt="{{ $brand->name_ar }}">
+                                    @else 
+                                        <img src="{{ $defaultLogo }}" alt="Default Logo">
+                                    @endif
+                                </div>
+                                <span class="liquid-name">{{ $brand->name_ar }}</span>
+                            </a>
+                            @if($brand->children->isNotEmpty())
+                                <button type="button" @click="open = !open" class="liquid-toggle">
+                                    <i class="bi transition-transform duration-300" :class="open ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                                </button>
+                            @endif
+                        </div>
+
+                        @if($brand->children->isNotEmpty())
+                            <div x-show="open" x-collapse.duration.300ms class="liquid-sub-list">
+                                @foreach($brand->children as $child)
+                                    <a href="{{ route('shop', ['brand' => $child->slug]) }}" class="liquid-item liquid-sub-item">
+                                        <div class="liquid-logo">
+                                            @php $childImg = $child->image ?: $child->icon; @endphp
+                                            @if($childImg) 
+                                                <img src="{{ asset('storage/' . $childImg) }}" alt="{{ $child->name_ar }}">
+                                            @else 
+                                                <img src="{{ $defaultLogo }}" alt="Default Logo">
+                                            @endif
+                                        </div>
+                                        <span class="liquid-name">{{ $child->name_ar }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                @empty
+                    <div class="text-center p-8 text-sm text-gray-500">
+                        {{-- ✅ [تعديل] تغيير كلمة البراندات إلى الفئات --}}
+                        لا توجد فئات لعرضها حالياً.
+                    </div>
+                @endforelse
+            </div>
+        </div>
+    </template>
+</div>
+
+  <script type="application/json" id="__brandCatMapV4">@json(array_values($brandCategoriesMap))</script>
+</div>
+
+<script>
+function brandMenuV4(){
+  return {
+    open:false,
+    list:[],
+    brandQuery:'',
+    activeBrand:null,
+    activeCategories:[],
+
+    init(){
+      const el = document.getElementById('__brandCatMapV4');
+      if(el){
+        try{ this.list = JSON.parse(el.textContent||'[]'); }catch(e){ this.list = []; }
+      }
+    },
+
+    filteredBrands(){
+      const q = (this.brandQuery||'').trim().toLowerCase();
+      if(!q) return this.list;
+      return this.list.filter(b => (b.name||'').toLowerCase().includes(q));
+    },
+
+    selectBrand(br){
+      this.activeBrand = { slug: br.slug, name: br.name, image: br.image };
+      this.activeCategories = Array.isArray(br.categories) ? br.categories : [];
+    },
+
+    shopUrlForBrand(brandSlug){
+      const u = new URL(@json(route('shop')), window.location.origin);
+      if(brandSlug) u.searchParams.set('brand', brandSlug);
+      return u.toString();
+    },
+
+    shopUrlForCatBrand(categorySlug, brandSlug){
+      const u = new URL(@json(route('shop')), window.location.origin);
+      if(categorySlug) u.searchParams.set('category', categorySlug);
+      if(brandSlug)    u.searchParams.set('brand', brandSlug);
+      return u.toString();
+    }
+  }
+}
+</script>
+
+
+
+                    <a href="{{ route('homepage') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4">{{ __('layout.home') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
+                    <a href="{{ route('shop') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4">{{ __('layout.shop') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
+
+                    <a href="{{ route('blog.index') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4">{{ __('layout.blog') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
+                    <a href="{{ route('about.us') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4">{{ __('layout.about_us') }}<span class="absolute bottom-0 left-0 w-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
+                    <a href="{{ route('page.contact-us') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4">
+    {{ __('layout.contact_us') }}
+    <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
+</a>
+                </nav>
+            </div>
+        </header>
+    </div>
+
+    {{-- Categories Sidebar --}}
+    <div x-show="sidebarOpen" style="display: none;" class="fixed inset-0 z-50" aria-labelledby="sidebar-title" role="dialog" aria-modal="true">
+      <div x-show="sidebarOpen" x-transition:enter="ease-in-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in-out duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-black/80 transition-opacity" @click="sidebarOpen = false"></div>
+      <div class="fixed inset-y-0 right-0 flex max-w-full">
+        <div x-show="sidebarOpen" @click.away="sidebarOpen = false"
+             x-transition:enter="transform transition ease-in-out duration-300" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
+             x-transition:leave="transform transition ease-in-out duration-300" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
+             class="relative w-screen max-w-md">
+          <div class="flex h-full flex-col overflow-y-auto shadow-xl sidebar-glass">
+            <div class="px-4 sm:px-6 py-4 border-b sidebar-header">
+              <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-[#c32126] dark:text-[#f0b0ad]" id="sidebar-title"><i class="bi bi-grid-3x3-gap"></i> تصفح الأقسام</h2>
+                <button type="button" class="rounded-md text-gray-400 hover:text-red-500" @click="sidebarOpen = false"><i class="bi bi-x-lg text-xl"></i></button>
+              </div>
+            </div>
+            <div class="relative flex-1 px-4 sm:px-6 py-6 category-tree-container">
+              <div class="category-tree">
+                @forelse ($categories as $category)
+                  <div class="category-node" x-data="{ open: false }">
+                    <div class="category-card">
+                      <a href="{{ route('shop', ['category' => $category->slug]) }}" class="category-link">
+                        <div class="category-icon">
+                          @php $img = $category->image ? asset('storage/' . $category->image) : null; @endphp
+                          @if($img) <img src="{{ $img }}" alt="{{ $category->name_ar }}" class="icon-image"> @else <div class="icon-placeholder">🧴</div> @endif
+                        </div>
+                        <div class="category-details">
+                          <h3 class="category-name">{{ $category->name_ar }}</h3>
+                          <div class="category-meta"><span class="meta-item"><i class="bi bi-diagram-3"></i> رئيسي</span><span class="meta-item"><i class="bi bi-box-seam"></i> {{ $category->total_products_count ?? 0 }} منتج</span></div>
+                        </div>
+                      </a>
+                      @if($category->children->isNotEmpty())<button class="expand-btn" @click="open = !open"><i class="bi bi-chevron-down" :class="{'rotate-180': open}"></i></button>@endif
+                    </div>
+                    @if($category->children->isNotEmpty())
+                      <div class="subcategories" x-show="open" x-transition style="display: none;">
+                        <ul class="subcategory-list">
+                          @foreach($category->children as $child)
+                            <li class="subcategory-node" x-data="{ open: false }">
+                              <div class="subcategory-card">
+                                <a href="{{ route('shop', ['category' => $child->slug]) }}" class="subcategory-link">
+                                  <div class="subcategory-icon">
+                                    @php $img2 = $child->image ? asset('storage/' . $child->image) : null; @endphp
+                                    @if($img2) <img src="{{ $img2 }}" alt="{{ $child->name_ar }}" class="icon-image"> @else <div class="icon-placeholder">🧴</div> @endif
+                                  </div>
+                                  <div class="subcategory-details">
+                                    <h4 class="subcategory-name">{{ $child->name_ar }}</h4>
+                                    <div class="category-meta"><span class="meta-item"><i class="bi bi-box-seam"></i> {{ $child->total_products_count ?? 0 }} منتج</span></div>
+                                  </div>
+                                </a>
+                                @if($child->children->isNotEmpty())<button class="expand-btn" @click="open = !open"><i class="bi bi-chevron-down" :class="{'rotate-180': open}"></i></button>@endif
+                              </div>
+                              @if($child->children->isNotEmpty())
+                                <div class="sub-subcategories" x-show="open" x-transition style="display: none;">
+                                  <ul class="sub-subcategory-list">
+                                    @foreach($child->children as $grand)
+                                      <li class="sub-subcategory-node">
+                                        <div class="sub-subcategory-card">
+                                          <a href="{{ route('shop', ['category' => $grand->slug]) }}" class="sub-subcategory-link">
+                                            <div class="sub-subcategory-icon">
+                                              @php $img3 = $grand->image ? asset('storage/' . $grand->image) : null; @endphp
+                                              @if($img3) <img src="{{ $img3 }}" alt="{{ $grand->name_ar }}" class="icon-image"> @else <div class="icon-placeholder">🧴</div> @endif
+                                            </div>
+                                            <div class="subcategory-details">
+                                              <h5 class="sub-subcategory-name">{{ $grand->name_ar }}</h5>
+                                              <div class="category-meta"><span class="meta-item"><i class="bi bi-box-seam"></i> {{ $grand->total_products_count ?? 0 }} منتج</span></div>
+                                            </div>
+                                          </a>
+                                        </div>
+                                      </li>
+                                    @endforeach
+                                  </ul>
+                                </div>
+                              @endif
+                            </li>
+                          @endforeach
+                        </ul>
+                      </div>
+                    @endif
+                  </div>
+                @empty
+                  <div class="text-center py-6 text-gray-500">لا يوجد أقسام لعرضها حالياً.</div>
+                @endforelse
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <main class="flex-grow">
+        @yield('content')
+    </main>
+
+<footer class="bg-[#f7f7f7] text-gray-900 py-12 border-t border-[#e5e5e5] dark:bg-gray-950 dark:text-gray-200 dark:border-gray-800 transition-colors duration-300">
+  <div class="container mx-auto px-4 grid grid-cols-1 gap-10 md:grid-cols-4 text-center md:text-right">
+    <div class="md:col-start-1">
+      <a href="{{ route('homepage') }}" class="flex items-center gap-2 mb-4 justify-center md:justify-start">
+        <img src="{{ asset('logo.png') }}" alt="Tofof Logo" class="w-12 h-12 dark:invert">
+        <span class="text-xl font-bold text-[#c32126]">{{ __('layout.tofof') }}</span>
+      </a>
+      <p class="leading-relaxed text-sm text-[#6B7280] dark:text-gray-300">
+        علامة متخصصة في الساعات والإكسسوارات الرجالية والنسائية، نقدم تصاميم أنيقة وجودة مميزة تضيف لمسة فخامة إلى إطلالتك اليومية.
+      </p>
+      <div class="flex gap-4 text-[#c32126] text-2xl mt-4 justify-center md:justify-start">
+        <a href="#" class="hover:text-[#a61c20] transition"><i class="bi bi-facebook"></i></a>
+        <a href="https://instagram.com/tofof.iq" class="hover:text-[#a61c20] transition"><i class="bi bi-instagram"></i></a>
+        <a href="https://www.tiktok.com/@tofof.iq" class="hover:text-[#a61c20] transition"><i class="bi bi-tiktok"></i></a>
+        <a href="https://wa.me/9647757778099" class="hover:text-[#a61c20] transition"><i class="bi bi-whatsapp"></i></a>
+      </div>
+    </div>
+    <div>
+      <h3 class="text-lg font-semibold text-[#c32126] mb-4">حول طفوف</h3>
+      <ul class="space-y-2">
+        <li><a href="{{ route('about.us') }}" class="hover:text-[#a61c20]">من نحن</a></li>
+        <li><a href="{{ route('privacy.policy') }}" class="hover:text-[#a61c20]">سياسة الخصوصية</a></li>
+        @if (Route::has('terms')) <li><a href="{{ route('terms') }}" class="hover:text-[#a61c20]">الشروط والأحكام</a></li> @endif
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-lg font-semibold text-[#c32126] mb-4">خدماتنا</h3>
+      <ul class="space-y-2">
+        <li><a href="{{ Route::has('payment.delivery') ? route('payment.delivery') : url('/payment-delivery') }}" class="hover:text-[#a61c20]">التوصيل والدفع</a></li>
+        <li><a href="{{ route('faq') }}" class="hover:text-[#a61c20]">الأسئلة الشائعة</a></li>
+        @if (Route::has('contact.us')) <li><a href="{{ route('contact.us') }}" class="hover:text-[#a61c20]">التواصل معنا</a></li> @endif
+        <li><a href="{{ route('blog.index') }}" class="hover:text-[#a61c20]">المدونة</a></li>
+        <li><a href="{{ route('return.policy') }}" class="hover:text-[#a61c20]">سياسة الاستبدال والإرجاع</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="text-lg font-semibold text-[#c32126] mb-4">الدعم</h3>
+<ul class="space-y-2">
+    <li><a href="{{ route('profile.show') }}" class="hover:text-[#a61c20]">{{ __('layout.my_account') }}</a></li>
+
+    @if (Route::has('orders.index'))
+        <li><a href="{{ route('orders.index') }}" class="hover:text-[#a61c20]">طلباتي</a></li>
+    @endif
+
+    <li><a href="{{ route('wishlist') }}" class="hover:text-[#a61c20]">{{ __('layout.wishlist') }}</a></li>
+
+    @if (Route::has('track.order'))
+        <li><a href="{{ route('track.order') }}" class="hover:text-[#a61c20]">تتبع الطلب</a></li>
+    @endif
+
+    @if (Route::has('page.contact-us'))
+        <li><a href="{{ route('page.contact-us') }}" class="hover:text-[#a61c20]">اتصل بنا</a></li>
+    @endif
+
+    <li>
+        <a href="#"
+           x-data
+           @click.prevent="window.dispatchEvent(new CustomEvent('open-request-modal'))"
+           class="hover:text-[#a61c20]">
+            طلب منتج غير متوفر
+        </a>
+    </li>
+</ul>
+  <div class="mt-12 text-center text-xs text-[#6B7280] border-t border-[#e5e5e5] pt-6 dark:text-gray-400 dark:border-gray-700">
+    &copy; {{ date('Y') }} جميع الحقوق محفوظة لـ <a href="{{ route('homepage') }}" class="font-bold text-[#c32126] hover:text-[#a61c20]">Tofof</a>
+  </div>
+</footer>
+
+<footer class="fixed bottom-0 left-0 right-0 footer-mobile z-40 md:hidden">
+  <div class="glass-nav-wrap">
+    <nav class="glass-nav" role="navigation" aria-label="التنقل السفلي">
+      <div class="glass-items">
+        <a href="{{ route('homepage') }}" class="glass-item {{ request()->routeIs('homepage') ? 'active' : '' }}">
+          <i class="bi bi-house-door-fill icon"></i><span class="mt-0.5">{{ __('layout.home') }}</span>
+        </a>
+        <a href="{{ route('shop') }}" class="glass-item {{ request()->routeIs('shop') ? 'active' : '' }}">
+          <i class="bi bi-grid-fill icon"></i><span class="mt-0.5">{{ __('layout.shop') }}</span>
+        </a>
+
+        <a href="{{ route('cart.index') }}" class="glass-item {{ request()->routeIs('cart.index') ? 'active' : '' }} relative">
+          <i class="bi bi-cart2 icon"></i><span class="mt-0.5">{{ __('layout.cart') }}</span>
+          <span x-show="cartCount > 0" x-text="cartCount" class="badge badge-cart" :class="{'animate-ping-once': isCartUpdated}" style="display:none; top: 2px; right: 15px;"></span>
+        </a>
+
+        <a href="{{ route('categories.index') }}" class="glass-item {{ request()->routeIs('categories.index') ? 'active' : '' }}">
+          <i class="bi bi-grid-3x3-gap-fill icon"></i><span class="mt-0.5">{{ __('layout.categories') }}</span>
+        </a>
+        <a href="{{ route('profile.show') }}" class="glass-item {{ request()->routeIs('profile.show') ? 'active' : '' }}">
+          <i class="bi bi-person-fill icon"></i><span class="mt-0.5">{{ __('layout.my_account') }}</span>
+        </a>
+      </div>
+    </nav>
+  </div>
+</footer>
+
+    @auth
+    <script>
+    function userNotificationsComponent(fetchUrl, markUrl) {
+        return {
+            notifications: [], unreadCount: 0, dropdownOpen: false,
+            fetchNotifications() {
+                fetch(fetchUrl).then(response => response.json()).then(data => {
+                    this.notifications = data.notifications || []; this.unreadCount = data.unread_count || 0;
+                }).catch(err => console.error('Failed to fetch user notifications:', err));
+            },
+            markAsRead(notification) {
+                if (notification?.data?.url) window.location.href = notification.data.url;
+                if (!notification.read_at) {
+                    fetch(markUrl, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')},
+                        body: JSON.stringify({ id: notification.id })
+                    }).then(() => {
+                        notification.read_at = new Date().toISOString(); this.unreadCount = Math.max(0, this.unreadCount - 1);
+                    }).catch(err => console.error('Failed to mark notification as read:', err));
+                }
+            },
+            timeAgo(dateString) {
+                const date = new Date(dateString); const seconds = Math.floor((new Date() - date) / 1000);
+                const intervals = { 'سنة': 31536000, 'شهر': 2592000, 'يوم': 86400, 'ساعة': 3600, 'دقيقة': 60 };
+                for (let unit in intervals) { const interval = Math.floor(seconds / intervals[unit]); if (interval >= 1) return `منذ ${interval} ${unit}`; }
+                return 'الآن';
+            }
+        }
+    }
+    </script>
+    @endauth
+
+    <script>
+      (function(){
+        const nav = document.getElementById('desktopNav'); if (!nav) return;
+        let lastY = window.pageYOffset || 0, ticking = false, threshold = 10;
+        function onScroll(){
+          const y = window.pageYOffset || 0, delta = y - lastY;
+          if (Math.abs(delta) > threshold) {
+            nav.classList.toggle('fade-out', delta > 0); lastY = y;
+          }
+          ticking = false;
+        }
+        window.addEventListener('scroll', function(){
+          if (window.innerWidth < 768) return;
+          if (!ticking) { window.requestAnimationFrame(onScroll); ticking = true; }
+        }, { passive: true });
+        window.addEventListener('load', () => { if ((window.pageYOffset || 0) <= 0) nav.classList.remove('fade-out'); });
+      })();
+    </script>
+
+<script>
+document.addEventListener('alpine:init', () => {
+  Alpine.data('liveSearch', (searchUrl) => ({
+    query: '', results: [], loading: false, showResults: false, highlightedIndex: -1, minChars: 2,
+    onFocus() { if (this.query.length >= this.minChars) this.showResults = true; },
+    search() {
+      this.showResults = true;
+      if (this.query.trim().length < this.minChars) { this.results = []; this.loading = false; return; }
+      clearTimeout(this._debounce);
+      this._debounce = setTimeout(() => this.fetchResults(searchUrl), 250);
+    },
+    fetchResults(searchUrl) {
+      if (this._ac) { try { this._ac.abort(); } catch (e) {} }
+      this._ac = new AbortController();
+      this.loading = true; this.showResults = true;
+      fetch(`${searchUrl}?query=${encodeURIComponent(this.query.trim())}`, { signal: this._ac.signal })
+        .then(r => r.json()).then(data => {
+          let flattened = [];
+          
+          // Brands
+          if (data.brands && data.brands.length) {
+            flattened.push({ type: 'header', label: 'البراندات' });
+            data.brands.forEach(b => {
+              flattened.push({
+                type: 'brand', id: b.id, name: b.name_ar || b.name_en || '',
+                url: `{{ url('/shop') }}?brand=${b.slug || b.id}`
+              });
+            });
+          }
+
+          // Categories
+          if (data.categories && data.categories.length) {
+            flattened.push({ type: 'header', label: 'الفئات' });
+            data.categories.forEach(c => {
+              flattened.push({
+                type: 'category', id: c.id, name: c.name_ar || c.name_en || '',
+                url: `{{ url('/shop') }}?category=${c.slug || c.id}`
+              });
+            });
+          }
+
+          // Products
+          if (data.products && data.products.length) {
+            flattened.push({ type: 'header', label: 'المنتجات' });
+            data.products.forEach(p => {
+              flattened.push({
+                type: 'product', id: p.id, name: p.name_ar || p.name_en || '',
+                category: p.category_name, url: `{{ url('/product') }}/${p.slug || p.id}`,
+                image: p.image_url || 'https://via.placeholder.com/150'
+              });
+            });
+          }
+
+          this.results = flattened;
+          // Find first non-header index for highlight
+          this.highlightedIndex = this.results.findIndex(r => r.type !== 'header');
+        })
+        .catch(err => { if (err.name !== 'AbortError') { this.results = []; this.showResults = true; }})
+        .finally(() => { this.loading = false; });
+    },
+    moveHighlight(direction) {
+      if (!this.showResults || this.loading || !this.results.length) return;
+      let index = this.highlightedIndex;
+      const total = this.results.length;
+      
+      for (let i = 0; i < total; i++) {
+        index = (direction === 'down') ? (index + 1) % total : (index - 1 + total) % total;
+        if (this.results[index].type !== 'header') {
+          this.highlightedIndex = index;
+          return;
+        }
+      }
+    },
+    selectHighlighted() {
+      if (this.highlightedIndex > -1 && this.results[this.highlightedIndex]) {
+        window.location.href = this.results[this.highlightedIndex].url;
+      }
+    }
+  }));
+});
+</script>
+
+<script>
+(function(){
+  const header = document.getElementById('mobileHeader'); if (!header) return;
+  const DOWN_THRESHOLD = 100, UP_THRESHOLD = 60, SPEED_TRIGGER = 1.2;
+  const isMobile = () => window.innerWidth < 768;
+  let isRounded = false, lastY = window.scrollY, lastT = performance.now();
+  function snapRemoveRounded() {
+    header.classList.add('fast-off'); header.classList.remove('rounded'); isRounded = false;
+    requestAnimationFrame(() => header.classList.remove('fast-off'));
+  }
+  function apply() {
+    if (!isMobile()) {
+      header.classList.remove('rounded', 'fast-off'); isRounded = false;
+      lastY = window.scrollY; lastT = performance.now(); return;
+    }
+    const y = window.scrollY, t = performance.now(), dy = y - lastY, dt = Math.max(1, t - lastT), vy = dy / dt;
+    if (!isRounded && y > DOWN_THRESHOLD) { header.classList.add('rounded'); isRounded = true; }
+    if (dy < 0 && (Math.abs(vy) > SPEED_TRIGGER || (isRounded && y < UP_THRESHOLD))) snapRemoveRounded();
+    lastY = y; lastT = t;
+  }
+  apply();
+  window.addEventListener('scroll', apply, { passive: true });
+  window.addEventListener('resize', apply);
+})();
+</script>
+{{-- ==== Global "Request Unavailable Product" Modal ==== --}}
+<template x-teleport="body">
+  <div
+    x-data="{open:false,loading:false,successMsg:'',errorMsg:''}"
+    x-on:open-request-modal.window="
+      open = true;
+      loading = false;
+      successMsg = '';
+      errorMsg = '';
+    "
+    x-show="open"
+    style="display:none"
+    class="fixed inset-0 z-[200]"
+  >
+    <div class="absolute inset-0 bg-black/50" @click="open=false"></div>
+
+    <div
+      class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[95vw] max-w-xl bg-white rounded-2xl shadow-2xl border p-5 dark:bg-gray-800 dark:border-gray-700"
+    >
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-extrabold text-gray-900 dark:text-gray-100">
+          طلب منتج غير متوفر
+        </h3>
+        <button class="text-2xl leading-none text-gray-500" @click="open=false">&times;</button>
+      </div>
+
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+        يرجى تعبئة التفاصيل أدناه لنقوم بتوفير المنتج لك في أقرب وقت ممكن.
+      </p>
+
+      <form class="mt-4 grid gap-3" @submit.prevent="
+        loading=true; successMsg=''; errorMsg='';
+        fetch('{{ route('product-requests.store') }}', {
+          method:'POST',
+          headers:{
+            'X-CSRF-TOKEN':'{{ csrf_token() }}',
+            'Accept':'application/json',
+            'Content-Type':'application/json'
+          },
+          body: JSON.stringify({
+            product_name: $refs.product_name.value,
+            brand: $refs.brand.value,
+            link: $refs.link.value,
+            notes: $refs.notes.value,
+            phone: $refs.phone.value
+          })
+        }).then(r=>r.json()).then(d=>{
+          if(d.success){
+            successMsg = 'تم استلام طلبك، سنتواصل معك في أقرب وقت.';
+            $refs.product_name.value='';
+            $refs.brand.value='';
+            $refs.link.value='';
+            $refs.notes.value='';
+            $refs.phone.value='';
+          }else{
+            errorMsg = d.message || 'تعذر إرسال الطلب. يرجى المحاولة مرة أخرى.';
+          }
+        }).catch(()=>{ errorMsg='تعذر إرسال الطلب. يرجى المحاولة مرة أخرى.' })
+        .finally(()=>loading=false)
+      ">
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">
+            اسم المنتج <span class="text-red-500">*</span>
+          </label>
+          <input x-ref="product_name" type="text" required
+                 class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
+                 placeholder="مثال: ساعة رولكس، إكسسوارات، الخ.">
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">الماركة</label>
+            <input x-ref="brand" type="text"
+                   class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
+                   placeholder="مثال: رولكس، كاسيو، الخ.">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">رابط للمنتج ان وجد (اختياري)</label>
+            <input x-ref="link" type="url"
+                   class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
+                   placeholder="https://example.com/product">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">ملاحظات إضافية</label>
+          <textarea x-ref="notes" rows="3"
+                     class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 resize-y dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
+                     placeholder="مثال: يرجى توفير اللون الأسود، ويفضل التوصيل في أسرع وقت."></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">
+            رقم الهاتف / واتساب <span class="text-red-500">*</span>
+          </label>
+          <input x-ref="phone" type="tel" required
+                 class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
+                 placeholder="+9647xxxxxxxxx">
+          <p class="text-xs text-gray-500 mt-1">
+            نستخدم هذا الرقم للتواصل معك عبر الواتساب لتوفير المنتج لك في أسرع وقت.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3 mt-2">
+  <button type="submit" :disabled="loading"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-white disabled:opacity-70"
+          style="background:#c32126;">
+    <span x-show="!loading"><i class="bi bi-send"></i> إرسال الطلب</span>
+    <span x-show="loading"><i class="bi bi-arrow-repeat animate-spin"></i> جاري الإرسال...</span>
+  </button>
+
+  <button type="button"
+          class="px-4 py-2 rounded-xl border"
+          @click="open=false">
+    إلغاء
+  </button>
+</div>
+
+        <p x-show="successMsg" class="text-sm text-green-600 mt-2" x-text="successMsg"></p>
+        <p x-show="errorMsg" class="text-sm text-red-600 mt-2" x-text="errorMsg"></p>
+      </form>
+    </div>
+  </div>
+</template>
+
+{{-- 🌟 Premium Welcome Screen Modal --}}
+@if(($show_welcome_screen ?? 'off') === 'on')
+<div
+    x-show="showWelcome"
+    x-transition:enter="transition ease-out duration-500"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-300"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="fixed inset-0 z-[300] flex items-center justify-center p-0"
+    x-cloak
+>
+    {{-- Overlay --}}
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="closeWelcomeModal()"></div>
+
+    {{-- Simplified Modal Card --}}
+    <div
+        class="relative w-full max-w-4xl bg-white shadow-2xl overflow-hidden transition-all mx-4 rounded-2xl"
+        x-show="showWelcome"
+        x-transition:enter="transition ease-out duration-500 transform"
+        x-transition:enter-start="scale-95 opacity-0"
+        x-transition:enter-end="scale-100 opacity-100"
+        x-transition:leave="transition ease-in duration-300 transform"
+        x-transition:leave-start="scale-100 opacity-100"
+        x-transition:leave-end="scale-95 opacity-0"
+    >
+        <div class="relative z-10 flex flex-col items-center text-center">
+            {{-- Content only --}}
+            <div class="w-full welcome-text-container" dir="rtl">
+                {!! $welcome_screen_content ?? '' !!}
+            </div>
+        </div>
+
+        {{-- Hidden Close Area (clicking the modal itself won't close it, but children can) --}}
+    </div>
+</div>
+
+<style>
+    .welcome-text-container img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+    }
+    .welcome-text-container p, .welcome-text-container h1, .welcome-text-container h2 {
+        margin: 0;
+    }
+</style>
+@endif
+
+    @stack("scripts")
+</body>
+</html>
