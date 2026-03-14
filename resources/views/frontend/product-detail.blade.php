@@ -207,6 +207,17 @@
             grid-template-columns: repeat(5, minmax(0, 1fr));
         }
     }
+    /* =============================================================
+        تنسيق الزووم (Hover Zoom) للصورة الرئيسية
+    ================================================================ */
+    .image-zoom-container {
+        cursor: crosshair;
+        transition: transform 0.1s ease-out;
+    }
+    .image-zoom-container img {
+        transition: transform 0.3s ease-out, transform-origin 0.1s ease-out;
+        will-change: transform, transform-origin;
+    }
 </style>
 @endpush
 
@@ -225,17 +236,35 @@
                  loadingAdd: false,
                  isFavorite: {{ $isFavorited ? 'true' : 'false' }},
                  loadingFav: false,
-                 imageZoomOpen: false
+                 imageZoomOpen: false,
+                 isZoomed: false,
+                 zoomOrigin: 'center',
+                 handleZoom(e) {
+                     const rect = e.currentTarget.getBoundingClientRect();
+                     const x = ((e.clientX - rect.left) / rect.width) * 100;
+                     const y = ((e.clientY - rect.top) / rect.height) * 100;
+                     this.zoomOrigin = `${x}% ${y}%`;
+                     this.isZoomed = true;
+                 }
              }">
 
             {{-- معرض الصور --}}
             <div class="md:col-span-2 flex flex-col gap-4">
                 <div class="bg-white p-2 rounded-lg shadow-md border border-gray-200">
-                    <button @click="imageZoomOpen = true" class="block w-full cursor-zoom-in">
-                        <div class="relative w-full aspect-square rounded-lg overflow-hidden" style="background: var(--surface);">
-                            <img :src="mainImage" alt="{{ $product->name_translated }}" class="absolute inset-0 w-full h-full object-contain" loading="eager">
-                        </div>
-                    </button>
+                    <div class="relative w-full aspect-square rounded-lg overflow-hidden image-zoom-container" 
+                         style="background: var(--surface);"
+                         @mousemove="handleZoom($event)"
+                         @mouseleave="isZoomed = false"
+                         @click="imageZoomOpen = true">
+                        <img :src="mainImage" 
+                             alt="{{ $product->name_translated }}" 
+                             class="absolute inset-0 w-full h-full object-contain" 
+                             :style="{ 
+                                 transform: isZoomed ? 'scale(2.5)' : 'scale(1)', 
+                                 transformOrigin: zoomOrigin 
+                             }"
+                             loading="eager">
+                    </div>
                 </div>
                 @if($product->images->count() > 1)
                 <div class="flex gap-2 overflow-x-auto pb-2">
@@ -405,10 +434,12 @@
                     <div class="mt-3">{{ $reviews->withQueryString()->links() }}</div>
                 </div>
             </div>
-            <div x-show="imageZoomOpen" x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4 zoom-modal-overlay" style="display: none;">
-                <div class="relative max-w-4xl max-height-full" @click.away="imageZoomOpen = false">
-                    <img :src="mainImage" alt="Zoomed Image" class="w-full h-auto object-contain rounded-lg shadow-2xl">
-                    <button @click="imageZoomOpen = false" class="absolute -top-3 -right-3 rounded-full h-8 w-8 flex items-center justify-center text-xl">&times;</button>
+            <div x-show="imageZoomOpen" x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4 zoom-modal-overlay" style="display: none;" @keydown.escape.window="imageZoomOpen = false">
+                <div class="relative max-w-full max-h-full flex items-center justify-center" @click.away="imageZoomOpen = false">
+                    <img :src="mainImage" alt="Zoomed Image" class="max-w-[95vw] max-h-[95vh] w-auto h-auto object-contain rounded-lg shadow-2xl border-2 border-white/10">
+                    <button @click="imageZoomOpen = false" class="absolute top-2 right-2 md:-top-4 md:-right-4 bg-white text-black rounded-full h-10 w-10 flex items-center justify-center shadow-lg hover:bg-gray-200 transition-colors z-[60]">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 </div>
             </div>
         </div>

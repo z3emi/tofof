@@ -185,11 +185,31 @@
     .home-scope .slide-overlay{ position:absolute; inset:0; z-index:1; }
     .home-scope .slide-content{
       position:relative; z-index:2; color:#fff; height:100%; width:100%;
-      display:flex; flex-direction:column; justify-content:center; align-items:flex-start;
+    display:flex; flex-direction:column; justify-content:center; align-items:center !important; text-align:center !important;
       padding: 1.25rem 1.25rem 1.25rem 2.5rem;
       user-select: none;
     }
     html[dir="rtl"] .home-scope .slide-content{ align-items:flex-end; padding: 1.25rem 2.5rem 1.25rem 1.25rem; text-align:right; }
+        /* اجبار محاذاة النص والزر في السلايدر للوسط دائماً */
+        /* تعميم محاذاة المنتصف على جميع السلايدرات */
+        .slide-content, .slider-content, .slider-section .slide-content, .slider-wrapper .slide-content, .home-scope .slide-content {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            text-align: center !important;
+        }
+        .slide-content > *, .slider-content > *, .slider-section .slide-content > *, .slider-wrapper .slide-content > *, .home-scope .slide-content > * {
+            text-align: center !important;
+            align-self: center !important;
+        }
+        .btn-hero-primary, .btn-primary {
+            display: inline-flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
     @media (max-width: 768px) {
         .home-scope .slide { height: clamp(160px, 40vw, 220px); }
         .home-scope .slide-content { padding: 1rem; align-items: center !important; text-align: center !important; }
@@ -369,21 +389,41 @@
      3) موبايل – أصغر/أخف وما تتداخل مع النص
      ========================= */
   @media (max-width: 640px){
-    .slider-dots{
-      bottom: 10px !important;            /* نزلناها شوي */
-      padding: 4px 8px !important;
-      gap: 6px !important;
-      transform: translateX(-50%) scale(.85);
-      opacity: .92;
-    }
-    .slider-dots .dot{
-      width: 7px !important;
-      height: 7px !important;
-      opacity: .8;
-    }
-    .slider-dots .dot.active{
-      width: 14px !important;            /* كبسولة صغيرة */
-    }
+        .slider-dots{
+            bottom: 6px !important; /* أقرب للأسفل */
+            left: 50%;
+            right: auto;
+            padding: 2px 0 !important;
+            gap: 2px !important;
+            background: rgba(0,0,0,0.10) !important;
+            box-shadow: none !important;
+            border-radius: 6px !important;
+            min-width: 48px;
+            max-width: 90vw;
+            width: auto;
+            height: 8px;
+            transform: translateX(-50%) scale(.85);
+            opacity: .93;
+            justify-content: center;
+            align-items: center;
+        }
+        .slider-dots .dot{
+            width: 18px !important;
+            height: 4px !important;
+            border-radius: 3px !important;
+            background: #fff !important;
+            opacity: 0.45;
+            margin: 0 1px !important;
+            border: none !important;
+            box-shadow: none !important;
+            transition: background 0.2s, opacity 0.2s, width 0.2s;
+        }
+        .slider-dots .dot.active{
+            width: 28px !important;
+            height: 4px !important;
+            background: var(--primary-color, #0B0B0B) !important;
+            opacity: 0.85;
+        }
   }
 
   /* اختياري: لو بعده يتقاطع مع الأزرار بالموبايل، زيد المسافة للأسفل */

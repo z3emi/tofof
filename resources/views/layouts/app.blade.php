@@ -1,26 +1,38 @@
 @php
     use App\Models\Setting;
     use App\Models\Category;
+    use App\Models\PrimaryCategory;
     use Illuminate\Support\Facades\App;
+    use Illuminate\Support\Facades\Cache;
+    use Illuminate\Support\Str;
 
     // Apply locale from session/cookie directly in blade context
-    // This is needed because in some XAMPP setups, middleware locale doesn't persist to blade
-    $sessionLocale = session('locale') ?? request()->cookie('app_locale') ?? config('app.locale', 'ar');
+    try {
+        $sessionLocale = (string)(session('locale') ?? request()->cookie('app_locale') ?? config('app.locale', 'ar'));
+    } catch (\Exception $e) {
+        $sessionLocale = 'ar';
+    }
     $availableLocales = ['ar', 'en'];
     if (!in_array($sessionLocale, $availableLocales)) { $sessionLocale = 'ar'; }
     App::setLocale($sessionLocale);
 
     $locale = app()->getLocale();
     $dir = in_array($locale, ['ar']) ? 'rtl' : 'ltr';
-    // TEMP DEBUG: remove after testing
-    \Illuminate\Support\Facades\Log::info('BLADE LOCALE: ' . $locale . ' | Session: ' . session('locale'));
 
-    $seo = Setting::whereIn('key', [
-        'site_title','meta_description',
-        'site_title_ar','site_title_en',
-        'meta_description_ar','meta_description_en',
-        'site_url'
-    ])->pluck('value','key');
+    try {
+        \Illuminate\Support\Facades\Log::info('BLADE LOCALE: ' . $locale . ' | Session: ' . (session()->has('locale') ? session('locale') : 'NONE'));
+    } catch (\Exception $e) {}
+
+    try {
+        $seo = Setting::whereIn('key', [
+            'site_title','meta_description',
+            'site_title_ar','site_title_en',
+            'meta_description_ar','meta_description_en',
+            'site_url'
+        ])->pluck('value','key');
+    } catch (\Exception $e) {
+        $seo = collect();
+    }
 
     $siteTitle = $locale === 'ar'
         ? ($seo['site_title_ar'] ?? $seo['site_title'] ?? 'طفوف | اكسسوارات فاخرة أصلية')
@@ -32,33 +44,41 @@
 
     $canonical = $seo['site_url'] ?? null;
 
-    $categories = Cache::remember('global_categories', now()->addHours(6), function () {
-        return Category::whereNull('parent_id')
-            ->with(['children.children.products', 'children.products', 'products'])
-            ->withCount(['children', 'products'])
-            ->get()
-            ->each(function ($category) {
-                $category->total_products_count = $category->products_count;
-                if ($category->children) {
-                    foreach ($category->children as $child) {
-                        $category->total_products_count += $child->products->count();
-                        if ($child->children) {
-                            foreach ($child->children as $grandChild) {
-                                $child->total_products_count += $grandChild->products->count();
+    try {
+        $categories = Cache::remember('global_categories', now()->addHours(6), function () {
+            return Category::whereNull('parent_id')
+                ->with(['children.children.products', 'children.products', 'products'])
+                ->withCount(['children', 'products'])
+                ->get()
+                ->each(function ($category) {
+                    $category->total_products_count = $category->products_count;
+                    if ($category->children) {
+                        foreach ($category->children as $child) {
+                            $category->total_products_count += $child->products->count();
+                            if ($child->children) {
+                                foreach ($child->children as $grandChild) {
+                                    $child->total_products_count += $grandChild->products->count();
+                                }
                             }
                         }
                     }
-                }
-            });
-    });
+                });
+        });
+    } catch (\Exception $e) {
+        $categories = collect();
+    }
 
     $showDashboardLink = false;
-    if (auth()->check()) {
-        $u = auth()->user();
-        $hasSuper = method_exists($u, 'hasRole') && $u->hasRole('super-admin');
-        $hasNonUserRole = $u->roles->where('name', '!=', 'user')->isNotEmpty();
-        $hasAnyPerms = method_exists($u, 'getAllPermissions') && $u->getAllPermissions()->isNotEmpty();
-        $showDashboardLink = $hasSuper || $hasNonUserRole || $hasAnyPerms;
+    try {
+        if (auth()->check()) {
+            $u = auth()->user();
+            $hasSuper = method_exists($u, 'hasRole') && $u->hasRole('super-admin');
+            $hasNonUserRole = $u->roles->where('name', '!=', 'user')->isNotEmpty();
+            $hasAnyPerms = method_exists($u, 'getAllPermissions') && $u->getAllPermissions()->isNotEmpty();
+            $showDashboardLink = $hasSuper || $hasNonUserRole || $hasAnyPerms;
+        }
+    } catch (\Exception $e) {
+        $showDashboardLink = false;
     }
 @endphp
 <!DOCTYPE html>
@@ -97,9 +117,8 @@
           "image": "{{ asset('logo.png') }}",
           "telephone": "+9647757778099",
           "sameAs": [
-            "https://www.instagram.com/tofof.iq/",
-            "https://www.facebook.com/share/1CydHSznRt/?mibextid=wwXIfr",
-            "https://www.tiktok.com/@tofof.iq"
+            "https://www.instagram.com/tofof_watches",
+            "https://www.facebook.com/p/%D8%B7%D9%81%D9%88%D9%81-%D9%84%D9%84%D8%B3%D8%A7%D8%B9%D8%A7%D8%AA-100091444293851/"
           ]
         },
         {
@@ -428,7 +447,6 @@ html.dark .glass-item.active{ color:#f0b0ad; }
         #desktopNav {
           transition: opacity .3s ease, transform .3s ease;
           will-change: opacity, transform;
-          background: transparent;
         }
         #desktopNav.fade-out {
           opacity: 0;
@@ -438,22 +456,30 @@ html.dark .glass-item.active{ color:#f0b0ad; }
 
         .desktop-liquid-shell {
           border-radius: 0;
-          background: #c5a059; /* لون المينيو الجديد */
+          background: #0f172a; /* لون المينيو الجديد */
           border: none;
           -webkit-backdrop-filter: blur(32px);
           backdrop-filter: blur(32px);
           box-shadow: 0 10px 30px rgba(0,0,0,.14);
         }
 
-        .desktop-liquid-nav > a,
-        .desktop-liquid-nav > div > button {
-          color: #1a1a1a !important;
+        .desktop-liquid-nav a,
+        .desktop-liquid-nav button {
+          color: #ffffff !important;
           font-weight: 700;
         }
 
-        .desktop-liquid-nav > a:hover,
-        .desktop-liquid-nav > div > button:hover {
-          color: #111111;
+        .desktop-liquid-nav a.active-link,
+        .desktop-liquid-nav button.active-link {
+          color: #ffffff !important;
+        }
+        .desktop-liquid-nav a.active-link span {
+          width: 100% !important;
+        }
+
+        .desktop-liquid-nav a:hover,
+        .desktop-liquid-nav button:hover {
+          color: #f3f4f6 !important;
         }
 
         .desktop-liquid-nav > a span {
@@ -462,7 +488,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
 
         html.dark .desktop-liquid-shell {
           border-radius: 0;
-          background: #5a6473;
+          background: #0f172a;
           border: 1px solid rgba(148,163,184,0.24);
           box-shadow: 0 12px 32px rgba(0,0,0,.5);
         }
@@ -577,7 +603,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
 </head>
 
 <body
-    class="relative flex flex-col min-h-screen pb-20 md:pb-0 bg-[#f7f7f7] text-gray-900 dark:bg-[#0A0A0A] dark:text-white transition-colors duration-300"
+    class="relative flex flex-col min-h-screen pb-40 md:pb-0 bg-[#f7f7f7] text-gray-900 dark:bg-[#0A0A0A] dark:text-white transition-colors duration-300"
     x-data="{
         wishlistCount: {{ auth()->check() ? auth()->user()->favorites()->count() : 0 }},
         cartCount: {{ count(session('cart', [])) }},
@@ -586,6 +612,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
         showWelcome: @json(($show_welcome_screen ?? 'off') === 'on') && !sessionStorage.getItem('welcomeScreenShown'),
         isDark: document.documentElement.classList.contains('dark'),
         sidebarOpen: false,
+        searchFocused: false,
 
         toggleTheme() {
             this.isDark = !this.isDark;
@@ -615,38 +642,46 @@ html.dark .glass-item.active{ color:#f0b0ad; }
         @if(isset($show_dashboard_notification) && $show_dashboard_notification == 'on' && !empty($dashboard_notification_content))
             <style>
                 @keyframes scrollLeft {
-                    0% { transform: translateX(100%); }
+                    0% { transform: translateX(0); }
                     100% { transform: translateX(-100%); }
                 }
                 @keyframes scrollRight {
-                    0% { transform: translateX(-100%); }
+                    0% { transform: translateX(0); }
                     100% { transform: translateX(100%); }
                 }
                 .animate-scroll-left {
                     display: inline-block;
                     white-space: nowrap;
-                    animation: scrollLeft 15s linear infinite;
+                    padding-left: 100%;
+                    animation: scrollLeft 20s linear infinite;
                 }
                 .animate-scroll-right {
                     display: inline-block;
                     white-space: nowrap;
-                    animation: scrollRight 15s linear infinite;
+                    padding-right: 100%;
+                    animation: scrollRight 20s linear infinite;
                 }
                 .notification-container {
                     overflow: hidden;
                     width: 100%;
+                    position: relative;
+                }
+                .notification-container:hover .animate-scroll-left,
+                .notification-container:hover .animate-scroll-right {
+                    animation-play-state: paused;
                 }
             </style>
-            <div x-data="{ show: true }" x-show="show" x-transition class="bg-black text-white text-center p-2 text-sm relative">
-                <div class="container mx-auto notification-container">
+            <div x-data="{ show: true }" x-show="show" x-transition 
+                 class="bg-black text-white p-2 text-sm relative overflow-hidden {{ ($dashboard_notification_animation ?? 'none') === 'none' ? 'text-center' : '' }}">
+                <div class="notification-container">
                     <div class="{{ ($dashboard_notification_animation ?? 'none') !== 'none' ? 'animate-' . $dashboard_notification_animation : '' }}">
                         {!! $dashboard_notification_content !!}
                     </div>
                 </div>
-                <button @click="show = false" class="absolute top-1/2 left-4 -translate-y-1/2 text-xl z-20">&times;</button>
+                <button @click="show = false" class="absolute top-1/2 left-4 -translate-y-1/2 text-xl z-20 hover:opacity-75 transition-opacity">&times;</button>
             </div>
         @endif
-        <header id="mobileHeader" class="bg-[#6d0e16] py-3 shadow-md border-b border-white/20 dark:border-white/15 dark:shadow-black/40">
+        <header id="mobileHeader" class="bg-[#6d0e16] py-3 border-b border-white/20 dark:border-white/15 shadow-md dark:shadow-black/40">
             <div class="container mx-auto hidden md:flex items-center justify-between px-4 md:px-8 text-white font-semibold">
                 <a href="{{ route('homepage') }}" class="text-xl sm:text-2xl flex items-center gap-2 hover:opacity-90 transition">
                     <img src="{{ asset('logo.png') }}" alt="logo" class="w-10 h-10">
@@ -662,7 +697,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                         <div class="flex w-full bg-white rounded-full overflow-hidden dark:bg-gray-800 dark:border dark:border-gray-700">
                             <input type="text" name="query" placeholder="ابحث عن منتجات أو علامات تجارية" class="flex-1 px-4 py-2 text-sm text-gray-700 placeholder-gray-500 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400 dark:bg-transparent"
                                 x-model="query" @input.debounce.300ms="search" @keydown.down.prevent="moveHighlight('down')" @keydown.up.prevent="moveHighlight('up')"
-                                @keydown.enter.prevent="if (highlightedIndex > -1) { selectHighlighted() } else { $el.closest('form').submit() }" @focus="onFocus" autocomplete="off">
+                                @keydown.enter.prevent="if (highlightedIndex > -1) { selectHighlighted() } else { $el.closest('form').submit() }" @focus="onFocus(); searchFocused = true" @blur="searchFocused = false" autocomplete="off">
                     <button type="submit" class="px-4 bg-white text-[#6d0e16] hover:text-[#6d0e16] dark:bg-transparent"><i class="bi bi-search text-lg"></i></button>
                         </div>
                     </form>
@@ -848,8 +883,9 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                 <form action="{{ route('products.search') }}" method="GET" @submit.prevent="if (highlightedIndex !== -1) selectHighlighted(); else $el.submit()">
                   <div class="flex w-full bg-white rounded-full overflow-hidden dark:bg-gray-800 dark:border dark:border-gray-700">
                     <input type="text" name="query" placeholder="ابحث عن منتجات أو علامات تجارية" class="flex-1 px-4 py-2 text-sm text-gray-700 placeholder-gray-500 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400 dark:bg-transparent"
-                      x-model="query" @input.debounce.300ms="search" @keydown.down.prevent="moveHighlight('down')" @keydown.up.prevent="moveHighlight('up')"
-                      @keydown.enter.prevent="if (highlightedIndex > -1) { selectHighlighted() } else { $el.closest('form').submit() }" @focus="onFocus" autocomplete="off">
+                        x-model="query" @input.debounce.300ms="search" @keydown.down.prevent="moveHighlight('down')" @keydown.up.prevent="moveHighlight('up')"
+                        @keydown.enter.prevent="if (highlightedIndex > -1) { selectHighlighted() } else { $el.closest('form').submit() }" 
+                        @focus="onFocus(); searchFocused = true" @blur="searchFocused = false" autocomplete="off">
                     <button type="submit" class="px-4 bg-white text-[#6d0e16] hover:text-[#6d0e16] dark:bg-transparent"><i class="bi bi-search"></i></button>
                   </div>
                 </form>
@@ -896,13 +932,11 @@ html.dark .glass-item.active{ color:#f0b0ad; }
             </div>
         </header>
 
-        <header id="desktopNav" class="hidden md:block relative z-30">
-          <div class="container mx-auto px-6 py-3 flex justify-center items-center desktop-liquid-shell">
+        <header id="desktopNav" class="hidden md:block relative z-30 desktop-liquid-shell shadow-md">
+          <div class="container mx-auto px-6 py-3 flex justify-center items-center">
             <nav class="desktop-liquid-nav flex items-center space-x-10 space-x-reverse">
 {{-- ==================== الفئات (يمين) ← البراندات (يسار) | تصميم V4 (معكوس) ==================== --}}
 @php
-    use Illuminate\Support\Str;
-
     // خريطة: brand => [name, image, categories[]]
     $brandCategoriesMap = [];
 
@@ -1056,8 +1090,6 @@ html.dark .glass-item.active{ color:#f0b0ad; }
 
 @php
     // جلب البراندات مع أبنائها لعرضها بشكل هرمي
-    use App\Models\PrimaryCategory;
-    use Illuminate\Support\Facades\Cache;
 
     $brandsTree = Cache::remember('global_brands_tree_for_liquid_menu', now()->addHours(6), function () {
         return PrimaryCategory::whereNull('parent_id')
@@ -1169,7 +1201,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
     {{-- زر فتح القائمة --}}
     <button type="button"
             x-ref="brandsTrigger"
-            class="relative group font-medium hover:text-[#f3e5e3] transition-colors duration-300 py-1 px-4 flex items-center gap-1"
+            class="relative group font-medium hover:text-[#f3e5e3] transition-colors duration-300 py-1 px-4 flex items-center gap-1 {{ request()->routeIs('categories.*') ? 'active-link' : '' }}"
             aria-haspopup="true" :aria-expanded="open.toString()">
         {{-- ✅ [تعديل] تغيير كلمة البراندات إلى الفئات --}}
         <i class="bi bi-tags-fill"></i> الفئات
@@ -1301,12 +1333,12 @@ function brandMenuV4(){
 
 
 
-                    <a href="{{ route('homepage') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4">{{ __('layout.home') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
-                    <a href="{{ route('shop') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4">{{ __('layout.shop') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
+                    <a href="{{ route('homepage') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('homepage') ? 'active-link' : '' }}">{{ __('layout.home') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
+                    <a href="{{ route('shop') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('shop*') ? 'active-link' : '' }}">{{ __('layout.shop') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
 
-                    <a href="{{ route('blog.index') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4">{{ __('layout.blog') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
-                    <a href="{{ route('about.us') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4">{{ __('layout.about_us') }}<span class="absolute bottom-0 left-0 w-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
-                    <a href="{{ route('page.contact-us') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4">
+                    <a href="{{ route('blog.index') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('blog*') ? 'active-link' : '' }}">{{ __('layout.blog') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
+                    <a href="{{ route('about.us') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('about.us') ? 'active-link' : '' }}">{{ __('layout.about_us') }}<span class="absolute bottom-0 left-0 w-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
+                    <a href="{{ route('page.contact-us') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('page.contact-us') ? 'active-link' : '' }}">
     {{ __('layout.contact_us') }}
     <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
 </a>
@@ -1418,10 +1450,15 @@ function brandMenuV4(){
         علامة متخصصة في الساعات والإكسسوارات الرجالية والنسائية، نقدم تصاميم أنيقة وجودة مميزة تضيف لمسة فخامة إلى إطلالتك اليومية.
       </p>
       <div class="flex gap-4 text-[#c32126] text-2xl mt-4 justify-center md:justify-start">
-        <a href="#" class="hover:text-[#a61c20] transition"><i class="bi bi-facebook"></i></a>
-        <a href="https://instagram.com/tofof.iq" class="hover:text-[#a61c20] transition"><i class="bi bi-instagram"></i></a>
-        <a href="https://www.tiktok.com/@tofof.iq" class="hover:text-[#a61c20] transition"><i class="bi bi-tiktok"></i></a>
+        <a href="https://www.facebook.com/p/%D8%B7%D9%81%D9%88%D9%81-%D9%84%D9%84%D8%B3%D8%A7%D8%B9%D8%A7%D8%AA-100091444293851/" class="hover:text-[#a61c20] transition"><i class="bi bi-facebook"></i></a>
+        <a href="https://www.instagram.com/tofof_watches" class="hover:text-[#a61c20] transition"><i class="bi bi-instagram"></i></a>
         <a href="https://wa.me/9647757778099" class="hover:text-[#a61c20] transition"><i class="bi bi-whatsapp"></i></a>
+      </div>
+      {{-- Payment Icons --}}
+      <div class="flex flex-wrap gap-4 mt-6 justify-center md:justify-start items-center opacity-80 grayscale hover:grayscale-0 transition-all duration-300">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="Mastercard" class="h-5 md:h-6 w-auto drop-shadow-sm">
+          <img src="https://zaincash.com/static/media/ZainCashLogo.fea8cf3bb90421f45dd384d6afc6fe3b.svg" alt="Zain Cash" class="h-6 md:h-7 w-auto drop-shadow-sm">
+          <img src="https://qi.iq/images/logo.svg?1=1" alt="Qi Card" class="h-5 md:h-6 w-auto drop-shadow-sm">
       </div>
     </div>
     <div>
@@ -1470,12 +1507,25 @@ function brandMenuV4(){
         </a>
     </li>
 </ul>
-  <div class="mt-12 text-center text-xs text-[#6B7280] border-t border-[#e5e5e5] pt-6 dark:text-gray-400 dark:border-gray-700">
-    &copy; {{ date('Y') }} جميع الحقوق محفوظة لـ <a href="{{ route('homepage') }}" class="font-bold text-[#c32126] hover:text-[#a61c20]">Tofof</a>
+  </div>
+  </div>
+  <div class="mt-12 border-t border-[#e5e5e5] pt-8 pb-32 md:pb-12 dark:border-gray-800">
+    <div class="container mx-auto px-4">
+      <div class="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 text-center text-[10px] md:text-sm text-[#6B7280] dark:text-gray-400">
+        <div>
+          &copy; {{ date('Y') }} جميع الحقوق محفوظة لـ <a href="{{ route('homepage') }}" class="font-bold text-[#c32126] hover:text-[#a61c20]">Tofof</a>
+        </div>
+        <span class="hidden md:block text-gray-300 dark:text-gray-700">|</span>
+        <a href="https://wosooll.com" target="_blank" class="flex items-center gap-1 hover:opacity-80 transition font-medium">
+          <span dir="ltr">Powered By Wosool</span>
+          <i class="bi bi-heart-fill text-red-600 animate-pulse"></i>
+        </a>
+      </div>
+    </div>
   </div>
 </footer>
 
-<footer class="fixed bottom-0 left-0 right-0 footer-mobile z-40 md:hidden">
+<footer class="fixed bottom-0 left-0 right-0 footer-mobile z-40 md:hidden" x-show="!searchFocused" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="translate-y-0" x-transition:leave-end="translate-y-full">
   <div class="glass-nav-wrap">
     <nav class="glass-nav" role="navigation" aria-label="التنقل السفلي">
       <div class="glass-items">

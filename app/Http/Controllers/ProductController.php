@@ -109,6 +109,7 @@ class ProductController extends Controller
         $productTable = (new Product)->getTable();
         $hasNameAr = Schema::hasColumn($productTable, 'name_ar');
         $hasNameEn = Schema::hasColumn($productTable, 'name_en');
+        $hasSlug = Schema::hasColumn($productTable, 'slug');
 
         $query = Product::query();
         if (Schema::hasColumn($productTable, 'is_active')) {
@@ -146,9 +147,10 @@ class ProductController extends Controller
             ->take(10)
             ->get(array_values(array_filter([
                 'id',
+                'category_id',
                 $hasNameAr ? 'name_ar' : null,
                 $hasNameEn ? 'name_en' : null,
-                'slug'
+                $hasSlug ? 'slug' : null
             ])));
 
         $formattedProducts = $products->map(function ($p) use ($imgPathCol, $candidates) {
@@ -183,7 +185,7 @@ class ProductController extends Controller
                 'id'            => $p->id,
                 'name_ar'       => $p->name_ar ?? ($p->name_en ?? ''),
                 'name_en'       => $p->name_en ?? null,
-                'slug'          => $p->slug,
+                'slug'          => $p->slug ?? $p->id,
                 'image_url'     => $imageUrl,
                 'category_name' => optional($p->category)->name_ar ?? '',
             ];
