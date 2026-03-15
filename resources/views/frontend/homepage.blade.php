@@ -180,16 +180,25 @@
     .home-scope .slider-wrapper{ position:relative; width:100%; height:100%; }
     .home-scope .slider-container{ display:flex; transition:transform .5s ease; height:100%; }
     .home-scope .slide{ position:relative; min-width:100%; height: clamp(200px, 35vw, 400px); display:flex; align-items:center; overflow:hidden; }
+    /* تصغير ارتفاع السلايدر الثاني والثالث فقط */
+    .promo-slider.shrinked .slide {
+        height: clamp(120px, 18vw, 210px) !important;
+    }
+    @media (max-width: 768px) {
+        .promo-slider.shrinked .slide {
+            height: clamp(90px, 28vw, 140px) !important;
+        }
+    }
     .home-scope .slide-bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
     html.dark .home-scope .slide-bg{ opacity: 0.8; }
     .home-scope .slide-overlay{ position:absolute; inset:0; z-index:1; }
-    .home-scope .slide-content{
-      position:relative; z-index:2; color:#fff; height:100%; width:100%;
-    display:flex; flex-direction:column; justify-content:center; align-items:center !important; text-align:center !important;
-      padding: 1.25rem 1.25rem 1.25rem 2.5rem;
-      user-select: none;
-    }
-    html[dir="rtl"] .home-scope .slide-content{ align-items:flex-end; padding: 1.25rem 2.5rem 1.25rem 1.25rem; text-align:right; }
+        .home-scope .slide-content{
+            position:relative; z-index:2; color:#fff; height:100%; width:100%;
+            display:flex; flex-direction:column; justify-content:center; align-items:center !important; text-align:center !important;
+            padding: 1.25rem 0 1.25rem 0; /* إزالة البادينغ الجانبي */
+            user-select: none;
+        }
+        html[dir="rtl"] .home-scope .slide-content{ align-items:center !important; padding: 1.25rem 0 1.25rem 0 !important; text-align:center !important; }
         /* اجبار محاذاة النص والزر في السلايدر للوسط دائماً */
         /* تعميم محاذاة المنتصف على جميع السلايدرات */
         .slide-content, .slider-content, .slider-section .slide-content, .slider-wrapper .slide-content, .home-scope .slide-content {
@@ -202,6 +211,7 @@
         .slide-content > *, .slider-content > *, .slider-section .slide-content > *, .slider-wrapper .slide-content > *, .home-scope .slide-content > * {
             text-align: center !important;
             align-self: center !important;
+            max-width: 100% !important;
         }
         .btn-hero-primary, .btn-primary {
             display: inline-flex !important;
@@ -305,11 +315,11 @@
     .home-scope .product-content-link { display:flex; flex-direction:column; flex-grow:1; text-decoration:none; color:inherit; }
     .home-scope .product-info { padding:12px; display:flex; flex-direction:column; gap:8px; text-align:center; flex-grow:1; }
     .home-scope .product-title { font-weight:700; color:#2d2a2a; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.6em; }
-    .home-scope .price { color:var(--primary-color); font-weight:800; font-size:1.1rem; }
+    .home-scope .price { color:var(--primary-color); font-weight:800; font-size:1rem; }
     .home-scope .old { text-decoration:line-through; color:#9ca3af; font-size:.85rem; }
     .home-scope .product-actions { display:flex; gap:8px; margin-top:auto; padding-top:4px; position:relative; z-index:2; }
-    .home-scope .btn-primary { background:var(--primary-color); color:#fff; border-radius:10px; font-weight:700; transition:.2s; }
-    .home-scope .btn-primary:hover{ background:var(--primary-hover); }
+    .home-scope .btn-primary { background:#6d0e16 !important; color:#fff; border-radius:10px; font-weight:700; transition:.2s; }
+    .home-scope .btn-primary:hover{ background:#500a10 !important; }
     .home-scope .product-actions .btn-primary { flex-grow:1; flex-shrink:1; min-width:0; overflow:hidden; height:44px; display:inline-flex; align-items:center; justify-content:center; padding:0 .75rem; white-space:nowrap; font-size:.9rem; }
     @media (max-width:390px) { .home-scope .product-actions .btn-primary { font-size:.75rem; padding:0 .4rem; } }
     .home-scope .product-actions .btn-primary:only-child { flex-grow:unset; width:100%; }
@@ -636,16 +646,16 @@
                             <div class="slide-overlay" style="background: linear-gradient(90deg, rgba({{ $sRgb }}, {{ $sStrength }}), rgba({{ $sRgb }}, {{ $sStrength * 0.45 }}));"></div>
                         @endif
                         <div class="slide-content">
-                            <h2 class="text-2xl md:text-5xl font-extrabold mb-2">{{ $slide->title }}</h2>
+                            <h2 class="text-2xl md:text-5xl font-extrabold mb-2 w-full text-center">{{ $slide->title }}</h2>
                             @if($slide->subtitle)
-                                <p class="mb-6 text-sm md:text-lg opacity-90 max-w-xl">
+                                <p class="mb-6 text-sm md:text-lg opacity-90 max-w-xl w-full mx-auto text-center">
                                     {{ $slide->subtitle }}
                                 </p>
                             @endif
                             @if($slide->button_text)
-                                <div class="-mt-2">
+                                <div class="-mt-2 w-full flex justify-center">
                                     <a href="{{ $slide->button_url ?: '#' }}" 
-                                       class="inline-block bg-white text-[#c32126] px-6 py-2 rounded-full font-bold text-base hover:bg-gray-100 transition shadow-lg">
+                                       class="inline-block bg-white text-[#c32126] px-6 py-2 rounded-full font-bold text-base hover:bg-gray-100 transition shadow-lg mx-auto">
                                         {{ $slide->button_text }}
                                     </a>
                                 </div>
@@ -794,7 +804,7 @@
 @if(($promoPrimarySlides ?? collect())->isNotEmpty())
 <section class="container mx-auto px-4">
 
-  <div class="promo-slider"
+    <div class="promo-slider shrinked"
        x-data="{
         currentSlide: 0,
         slides: 3, /* default; will auto-detect */
@@ -1258,7 +1268,7 @@
 
                             <div class="flex items-baseline justify-center gap-2">
                                 @if($product->isOnSale())
-                                    <div class="price">{{ number_format($product->sale_price,0) }} د.ع</div>
+                                    <div class="price" style="color:#6d0e16">{{ number_format($product->sale_price,0) }} د.ع</div>
                                     <div class="old">{{ number_format($product->price,0) }} د.ع</div>
                                 @else
                                     <div class="price">{{ number_format($product->price,0) }} د.ع</div>
@@ -1335,7 +1345,7 @@
 {{-- Promo Slider 2 --}}
 @if(($promoSecondarySlides ?? collect())->isNotEmpty())
 <section class="container mx-auto px-4">
-    <div class="promo-slider"
+    <div class="promo-slider shrinked"
          x-data="{
          currentSlide: 0,
          slides: 2, /* default; will auto-detect */

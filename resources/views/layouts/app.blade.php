@@ -1444,7 +1444,7 @@ function brandMenuV4(){
     <div class="md:col-start-1">
       <a href="{{ route('homepage') }}" class="flex items-center gap-2 mb-4 justify-center md:justify-start">
         <img src="{{ asset('logo.png') }}" alt="Tofof Logo" class="w-12 h-12 dark:invert">
-        <span class="text-xl font-bold text-[#c32126]">{{ __('layout.tofof') }}</span>
+        <span class="text-xl font-bold text-[#6d0e16]">{{ __('layout.tofof') }}</span>
       </a>
       <p class="leading-relaxed text-sm text-[#6B7280] dark:text-gray-300">
         علامة متخصصة في الساعات والإكسسوارات الرجالية والنسائية، نقدم تصاميم أنيقة وجودة مميزة تضيف لمسة فخامة إلى إطلالتك اليومية.
@@ -1462,47 +1462,47 @@ function brandMenuV4(){
       </div>
     </div>
     <div>
-      <h3 class="text-lg font-semibold text-[#c32126] mb-4">حول طفوف</h3>
+      <h3 class="text-lg font-semibold text-[#6d0e16] mb-4">حول طفوف</h3>
       <ul class="space-y-2">
-        <li><a href="{{ route('about.us') }}" class="hover:text-[#a61c20]">من نحن</a></li>
-        <li><a href="{{ route('privacy.policy') }}" class="hover:text-[#a61c20]">سياسة الخصوصية</a></li>
-        @if (Route::has('terms')) <li><a href="{{ route('terms') }}" class="hover:text-[#a61c20]">الشروط والأحكام</a></li> @endif
+        <li><a href="{{ route('about.us') }}" class="hover:text-[#6d0e16]">من نحن</a></li>
+        <li><a href="{{ route('privacy.policy') }}" class="hover:text-[#6d0e16]">سياسة الخصوصية</a></li>
+        @if (Route::has('terms')) <li><a href="{{ route('terms') }}" class="hover:text-[#6d0e16]">الشروط والأحكام</a></li> @endif
       </ul>
     </div>
     <div>
-      <h3 class="text-lg font-semibold text-[#c32126] mb-4">خدماتنا</h3>
+      <h3 class="text-lg font-semibold text-[#6d0e16] mb-4">خدماتنا</h3>
       <ul class="space-y-2">
-        <li><a href="{{ Route::has('payment.delivery') ? route('payment.delivery') : url('/payment-delivery') }}" class="hover:text-[#a61c20]">التوصيل والدفع</a></li>
-        <li><a href="{{ route('faq') }}" class="hover:text-[#a61c20]">الأسئلة الشائعة</a></li>
-        @if (Route::has('contact.us')) <li><a href="{{ route('contact.us') }}" class="hover:text-[#a61c20]">التواصل معنا</a></li> @endif
-        <li><a href="{{ route('blog.index') }}" class="hover:text-[#a61c20]">المدونة</a></li>
-        <li><a href="{{ route('return.policy') }}" class="hover:text-[#a61c20]">سياسة الاستبدال والإرجاع</a></li>
+        <li><a href="{{ Route::has('payment.delivery') ? route('payment.delivery') : url('/payment-delivery') }}" class="hover:text-[#6d0e16]">التوصيل والدفع</a></li>
+        <li><a href="{{ route('faq') }}" class="hover:text-[#6d0e16]">الأسئلة الشائعة</a></li>
+        @if (Route::has('contact.us')) <li><a href="{{ route('contact.us') }}" class="hover:text-[#6d0e16]">التواصل معنا</a></li> @endif
+        <li><a href="{{ route('blog.index') }}" class="hover:text-[#6d0e16]">المدونة</a></li>
+        <li><a href="{{ route('return.policy') }}" class="hover:text-[#6d0e16]">سياسة الاستبدال والإرجاع</a></li>
       </ul>
     </div>
     <div>
-      <h3 class="text-lg font-semibold text-[#c32126] mb-4">الدعم</h3>
+      <h3 class="text-lg font-semibold text-[#6d0e16] mb-4">الدعم</h3>
 <ul class="space-y-2">
-    <li><a href="{{ route('profile.show') }}" class="hover:text-[#a61c20]">{{ __('layout.my_account') }}</a></li>
+    <li><a href="{{ route('profile.show') }}" class="hover:text-[#6d0e16]">{{ __('layout.my_account') }}</a></li>
 
     @if (Route::has('orders.index'))
-        <li><a href="{{ route('orders.index') }}" class="hover:text-[#a61c20]">طلباتي</a></li>
+        <li><a href="{{ route('orders.index') }}" class="hover:text-[#6d0e16]">طلباتي</a></li>
     @endif
 
-    <li><a href="{{ route('wishlist') }}" class="hover:text-[#a61c20]">{{ __('layout.wishlist') }}</a></li>
+    <li><a href="{{ route('wishlist') }}" class="hover:text-[#6d0e16]">{{ __('layout.wishlist') }}</a></li>
 
     @if (Route::has('track.order'))
-        <li><a href="{{ route('track.order') }}" class="hover:text-[#a61c20]">تتبع الطلب</a></li>
+        <li><a href="{{ route('track.order') }}" class="hover:text-[#6d0e16]">تتبع الطلب</a></li>
     @endif
 
     @if (Route::has('page.contact-us'))
-        <li><a href="{{ route('page.contact-us') }}" class="hover:text-[#a61c20]">اتصل بنا</a></li>
+        <li><a href="{{ route('page.contact-us') }}" class="hover:text-[#6d0e16]">اتصل بنا</a></li>
     @endif
 
     <li>
         <a href="#"
            x-data
            @click.prevent="window.dispatchEvent(new CustomEvent('open-request-modal'))"
-           class="hover:text-[#a61c20]">
+           class="hover:text-[#6d0e16]">
             طلب منتج غير متوفر
         </a>
     </li>
@@ -1513,7 +1513,7 @@ function brandMenuV4(){
     <div class="container mx-auto px-4">
       <div class="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 text-center text-[10px] md:text-sm text-[#6B7280] dark:text-gray-400">
         <div>
-          &copy; {{ date('Y') }} جميع الحقوق محفوظة لـ <a href="{{ route('homepage') }}" class="font-bold text-[#c32126] hover:text-[#a61c20]">Tofof</a>
+          &copy; {{ date('Y') }} جميع الحقوق محفوظة لـ <a href="{{ route('homepage') }}" class="font-bold text-[#6d0e16] hover:text-[#6d0e16]">Tofof</a>
         </div>
         <span class="hidden md:block text-gray-300 dark:text-gray-700">|</span>
         <a href="https://wosooll.com" target="_blank" class="flex items-center gap-1 hover:opacity-80 transition font-medium">

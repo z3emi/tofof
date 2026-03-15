@@ -87,7 +87,7 @@
     .product-info{ padding: 10px; display: flex; flex-direction: column; gap: 5px; text-align: center; flex-grow: 1; }
     
     .product-title{ font-weight:700; color:#2d2a2a; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.6em; }
-    .price{ color:var(--primary-color); font-weight:800; font-size:1.1rem; }
+    .price{ color:var(--primary-color); font-weight:800; font-size:1rem; }
     .old{ text-decoration:line-through; color:#9ca3af; font-size:.85rem; }
     .product-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 4px; position: relative; z-index: 2; }
     .btn-primary{ background:var(--primary-color); color:#fff; border-radius:10px; font-weight:700; transition: .2s; }
@@ -645,7 +645,7 @@
                                 </div>
                                 <div class="flex items-baseline justify-center gap-2">
                                     @if($product->isOnSale())
-                                        <div class="price">{{ number_format($product->sale_price,0) }} د.ع</div>
+                                        <div class="price" style="color:#6d0e16">{{ number_format($product->sale_price,0) }} د.ع</div>
                                         <div class="old">{{ number_format($product->price,0) }} د.ع</div>
                                     @else
                                         <div class="price">{{ number_format($product->price,0) }} د.ع</div>
