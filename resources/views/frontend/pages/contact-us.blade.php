@@ -164,7 +164,7 @@
                 
                 <li class="flex items-center">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" class="w-6 h-6 ml-3">
-                    <a href="https://wa.me/9647757778099" target="_blank" class="link-brand">
+                    <a href="https://wa.me/9647744969024" target="_blank" class="link-brand">
                         راسـلـنـا واتـسـاب
                     </a>
                 </li>

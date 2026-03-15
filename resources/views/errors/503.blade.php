@@ -14,8 +14,8 @@
         </p>
         <div class="mt-8">
             <div class="flex items-center justify-center gap-4 text-[#6d0e16] text-2xl">
-                <a href="https://www.instagram.com/tofof_watches" class="hover:opacity-80 transition"><i class="bi bi-instagram"></i></a>
-                <a href="https://wa.me/9647757778099" class="hover:opacity-80 transition"><i class="bi bi-whatsapp"></i></a>
+                <a href="https://www.instagram.com/tofof_watches" target="_blank" rel="noopener noreferrer" class="hover:opacity-80 transition"><i class="bi bi-instagram"></i></a>
+                <a href="https://wa.me/9647744969024" target="_blank" rel="noopener noreferrer" class="hover:opacity-80 transition"><i class="bi bi-whatsapp"></i></a>
             </div>
         </div>
     </div>

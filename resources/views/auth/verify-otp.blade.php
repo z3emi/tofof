@@ -231,7 +231,7 @@
         {{-- زر واتساب --}}
         <div class="mt-6 text-center">
           <p class="otp-muted text-sm text-gray-600 mb-2">بحاجة لمساعدة؟ تواصل معنا على الواتساب:</p>
-          <a href="https://wa.me/9647701234567" target="_blank"
+          <a href="https://wa.me/9647744969024" target="_blank"
              class="otp-wa inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-extrabold rounded-md shadow">
             <i class="bi bi-whatsapp text-lg ml-2"></i>
             تواصل عبر واتساب

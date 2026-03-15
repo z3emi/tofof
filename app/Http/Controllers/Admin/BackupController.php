@@ -11,6 +11,8 @@ use App\Models\Setting;
 use ZipArchive;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
+use Illuminate\Support\Facades\Artisan;
+
 
 class BackupController extends Controller
 {
@@ -539,12 +541,29 @@ class BackupController extends Controller
             'backup_daily_enabled',
             'backup_daily_time',
             'backup_google_drive_enabled',
-            'backup_auto_delete_after_days'
+            'backup_auto_delete_after_days',
+            'cron_token'
         ];
         foreach ($settingsKeys as $key) {
+            if ($key === 'cron_token' && !$request->has($key)) continue;
             $value = $request->has($key) ? ($request->input($key) === 'on' ? 'on' : $request->input($key)) : 'off';
             Setting::updateOrCreate(['key' => $key], ['value' => $value]);
         }
         return redirect()->back()->with('success', 'تم حفظ إعدادات النسخ الاحتياطي بنجاح.');
+    }
+
+    public function runScheduler(Request $request)
+    {
+        $token = Setting::getValue('cron_token');
+        if (!$token || $request->query('token') !== $token) {
+            return response('Unauthorized. Please check your cron token in settings.', 403);
+        }
+
+        try {
+            Artisan::call('schedule:run');
+            return response('Scheduler executed successfully.' . "\n\n" . Artisan::output());
+        } catch (\Exception $e) {
+            return response('Error running scheduler: ' . $e->getMessage(), 500);
+        }
     }
 }

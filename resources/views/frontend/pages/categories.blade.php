@@ -5,26 +5,26 @@
 @push('styles')
 <style>
   :root {
-    --brand: #cd8985;
-    --brand-dark: #be6661;
-    --line: #eadbcd;
-    --soft: #f9f5f1;
-    --text: #34282C;
-    --text-light: #7a6e6e;
-    --bg-light: #fefefe;
-    --border: #f0f0f0;
-    --shadow: rgba(0, 0, 0, 0.08);
-    --transition: all 0.3s ease;
+    --brand: #6d0e16;
+    --brand-dark: #500a10;
+    --line: #f3f4f6;
+    --soft: #fdf2f2;
+    --text: #1a1a1a;
+    --text-light: #4b5563;
+    --bg-light: #ffffff;
+    --border: #eef0f2;
+    --shadow: rgba(109, 14, 22, 0.05);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
-  html.dark {
-    --line: #374151;
-    --soft: #1f2937;
-    --text: #e5e7eb;
+  html.dark .category-tree-page {
+    --line: #1f2937;
+    --soft: #111827;
+    --text: #f9fafb;
     --text-light: #9ca3af;
-    --bg-light: #111827;
-    --border: #374151;
-    --shadow: rgba(0, 0, 0, 0.2);
+    --bg-light: #0f172a;
+    --border: #1f2937;
+    --shadow: rgba(0, 0, 0, 0.3);
   }
   
   .category-tree-page * {
@@ -36,21 +36,21 @@
   
   /* كرت الفئة الرئيسية */
   .category-card {
-    background: var(--bg-light); border-radius: 14px;
-    box-shadow: 0 8px 18px var(--shadow); transition: var(--transition);
+    background: var(--bg-light); border-radius: 20px;
+    box-shadow: 0 4px 15px var(--shadow); transition: var(--transition);
     border: 1px solid var(--border); display: flex;
-    align-items: center; position: relative;
+    align-items: center; position: relative; overflow: hidden;
   }
   .category-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 22px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 25px rgba(109, 14, 22, 0.12);
+    border-color: rgba(109, 14, 22, 0.2);
   }
-  html.dark .category-card { background: #1f2937; }
+  html.dark .category-card { background: #111827; border-color: #1e293b; }
   
   .category-card::before {
-    content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 6px;
-    background: linear-gradient(180deg, var(--brand) 0%, #e8b8b6 100%);
-    border-top-right-radius: 14px; border-bottom-right-radius: 14px;
+    content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 5px;
+    background: linear-gradient(180deg, var(--brand) 0%, #8b131a 100%);
   }
   html.dark .category-card::before { background: var(--brand); }
   
@@ -60,11 +60,17 @@
   }
   
   .category-icon {
-    width: 60px; height: 60px; border-radius: 12px; overflow: hidden;
-    flex-shrink: 0; margin-left: 1rem; background: var(--soft);
+    width: 64px; height: 64px; border-radius: 16px; overflow: hidden;
+    flex-shrink: 0; margin-left: 1.25rem; background: #ffffff;
     display: flex; align-items: center; justify-content: center;
-    border: 1px solid var(--line);
+    border: 2px solid #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transition: var(--transition);
   }
+  .category-link:hover .category-icon {
+    transform: scale(1.08) rotate(-2deg);
+    box-shadow: 0 8px 15px rgba(109, 14, 22, 0.15);
+  }
+  html.dark .category-icon { background: #1e293b; border-color: #334155; }
   .icon-image { width: 100%; height: 100%; object-fit: cover; }
   .icon-placeholder { font-size: 1.5rem; color: var(--brand); }
   
@@ -79,24 +85,25 @@
   
   .meta-item {
     display: inline-flex; align-items: center; gap: 0.35rem;
-    height: 28px; padding: 0 0.65rem; background: var(--soft);
-    border-radius: 999px; font-size: 0.85rem;
-    color: var(--brand-dark); font-weight: 600; border: 1px solid var(--line);
+    height: 26px; padding: 0 0.75rem; background: var(--soft);
+    border-radius: 999px; font-size: 0.8rem;
+    color: var(--brand); font-weight: 700; border: 1px solid rgba(109, 14, 22, 0.1);
+    transition: var(--transition);
   }
+  .meta-item:hover { background: var(--brand); color: #ffffff; }
   
   .category-actions { padding: 0 1rem; }
   
   .expand-btn {
-    width: 38px; height: 38px; border-radius: 999px; background: var(--bg-light);
-    border: 1px solid var(--line); color: var(--brand);
+    width: 36px; height: 36px; border-radius: 50%; background: var(--soft);
+    border: 1px solid var(--border); color: var(--brand);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; transition: var(--transition);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
-  html.dark .expand-btn { background: #374151; }
-  .expand-btn:hover { background: #fff3f3; border-color: #f3c6c3; color: var(--brand-dark); }
-  html.dark .expand-btn:hover { background: rgba(205, 137, 133, 0.1); }
-  .expand-btn i { transition: transform 0.3s ease; }
+  html.dark .expand-btn { background: #1f2937; border-color: #374151; }
+  .expand-btn:hover { background: var(--brand); border-color: var(--brand); color: #ffffff; transform: scale(1.1); }
+  .expand-btn i { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
   .rotate-180 { transform: rotate(180deg); }
   
   /* الفئات الفرعية (المستوى الثاني) */
@@ -105,38 +112,55 @@
   .subcategory-node { margin-bottom: 1rem; position: relative; }
   
   .subcategory-card {
-    background: var(--bg-light); border-radius: 12px;
-    box-shadow: 0 6px 14px var(--shadow); transition: var(--transition);
+    background: var(--bg-light); border-radius: 16px;
+    box-shadow: 0 4px 12px var(--shadow); transition: var(--transition);
     border: 1px solid var(--border); display: flex; align-items: center;
     position: relative;
   }
-  html.dark .subcategory-card { background: #2d3748; }
+  html.dark .subcategory-card { background: #1e293b; border-color: #334155; }
   
   .subcategory-indicator {
-    position: absolute; right: -1.5rem; top: 0;
-    width: 2px; height: 50%; background-color: var(--line);
+    position: absolute; right: -1.25rem; top: -1.75rem;
+    width: 2px; height: calc(100% + 1rem); background-color: var(--line);
   }
   .subcategory-indicator::after {
-    content: ''; position: absolute; right: 0; top: 100%;
-    width: 0.75rem; height: 2px; background-color: var(--line);
+    content: ''; position: absolute; right: 0; top: 50%;
+    width: 1.25rem; height: 2px; background-color: var(--line);
   }
   .subcategory-link { padding: 1rem; display: flex; align-items: center; flex: 1; text-decoration: none; color: inherit; }
-  .subcategory-icon { width: 50px; height: 50px; border-radius: 10px; flex-shrink: 0; margin-left: 0.75rem; background: var(--soft); display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); }
-  .subcategory-name { font-size: 1.1rem; margin: 0 0 0.25rem 0; font-weight: 700; color: var(--text); line-height: 1.4; }
-  .subcategory-actions { padding: 0 0.75rem; }
+  .subcategory-icon { 
+    width: 54px; height: 54px; border-radius: 14px; flex-shrink: 0; 
+    margin-left: 1rem; background: #ffffff; display: flex; 
+    align-items: center; justify-content: center; border: 2px solid #ffffff; 
+    box-shadow: 0 3px 8px rgba(0,0,0,0.06); transition: var(--transition);
+  }
+  .subcategory-link:hover .subcategory-icon { transform: scale(1.05); }
+  html.dark .subcategory-icon { background: #1e293b; border-color: #334155; }
+  .subcategory-name { font-size: 1.15rem; margin: 0 0 0.25rem 0; font-weight: 800; color: var(--text); line-height: 1.4; }
+  .subcategory-actions { padding: 0 1rem; }
   
   /* البراندات (المستوى الثالث) */
   .sub-subcategories { margin-top: 0.75rem; margin-right: 2.5rem; }
   .sub-subcategory-list { list-style: none; padding: 0; margin: 0; }
   .sub-subcategory-node { margin-bottom: 0.75rem; }
   .sub-subcategory-card {
-    background: var(--bg-light); border-radius: 10px; box-shadow: 0 4px 10px var(--shadow);
+    background: var(--bg-light); border-radius: 12px; box-shadow: 0 3px 8px var(--shadow);
     border: 1px solid var(--border); display: flex; align-items: center; position: relative;
+    transition: var(--transition);
   }
-  html.dark .sub-subcategory-card { background: #374151; }
+  .sub-subcategory-card:hover { border-color: var(--brand); transform: translateX(-5px); }
+  html.dark .sub-subcategory-card { background: #334155; border-color: #475569; }
   .sub-subcategory-link { padding: 0.75rem; display: flex; align-items: center; flex: 1; text-decoration: none; color: inherit; }
   .sub-subcategory-icon { width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; margin-left: 0.5rem; background: var(--soft); display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); }
-  .sub-subcategory-name { font-size: 1rem; margin: 0; font-weight: 700; color: var(--text); line-height: 1.4; }
+  .sub-subcategory-name { font-size: 0.95rem; margin: 0; font-weight: 700; color: var(--text); line-height: 1.4; }
+  
+  .category-tree-page {
+    background: linear-gradient(180deg, #ffffff 0%, #f7f7f7 100%);
+    min-height: 100vh;
+  }
+  html.dark .category-tree-page {
+    background: linear-gradient(180deg, #0a0a0a 0%, #0f172a 100%);
+  }
 </style>
 @endpush
 
@@ -195,15 +219,15 @@
     <div class="container mx-auto px-4">
         {{-- رأس الصفحة --}}
         <div class="mb-12 text-center max-w-3xl mx-auto">
-             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-bold"
-                  style="background:#f9f5f1;color:#be6661;border:1px solid #eadbcd">
-                <i class="bi bi-stars"></i> اكتشفي عالمنا
+             <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider"
+                  style="background:rgba(109, 14, 22, 0.08);color:#6d0e16;border:1px solid rgba(109, 14, 22, 0.15)">
+                <i class="bi bi-stars"></i> اكتشف عالمنا
             </div>
-            <h1 class="text-3xl md:text-4xl font-extrabold mt-3" style="color:#4a3f3f">
-                تصفح حسب الفئات والبراندات
+            <h1 class="text-3xl md:text-5xl font-extrabold mt-4" style="color:#1a1a1a">
+                <span class="dark:text-white">تصفح حسب</span> <span style="color:#6d0e16">الفئات والبراندات</span>
             </h1>
-            <p class="mt-2" style="color:#7a6e6e">
-                كل ما تبحثين عنه من منتجات الجمال، مُنظم حسب الفئة ليسهل عليكِ رحلة التسوق.
+            <p class="mt-4 text-lg opacity-80" style="color:#4b5563">
+                <span class="dark:text-gray-400">كل ما تبحث عنه من منتجات، مُنظم حسب الفئة ليسهل عليك رحلة التسوق.</span>
             </p>
         </div>
         

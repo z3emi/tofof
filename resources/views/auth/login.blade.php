@@ -213,7 +213,7 @@ $countries = [
                      class="phone-input dark:text-gray-100 dark:placeholder-gray-400"
                      name="local_phone_number" x-model="localNumber"
                      required autocomplete="tel" autofocus
-                     placeholder="مثال: 7701234567">
+                     placeholder="مثال: 7744969024">
             </div>
 
             <input type="hidden" name="phone_number" :value="selectedCountry.code.replace('+','') + localNumber">
@@ -316,7 +316,7 @@ $countries = [
           {{-- WhatsApp Contact --}}
           <div class="mt-8 text-center pt-6 border-t border-gray-100 dark:border-gray-700">
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">بحاجة لمساعدة؟ تواصل معنا على الواتساب:</p>
-            <a href="https://wa.me/9647757778099" target="_blank"
+            <a href="https://wa.me/9647744969024" target="_blank"
                class="inline-flex items-center px-5 py-3 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-full shadow transition duration-300 transform hover:-translate-y-0.5">
               <i class="bi bi-whatsapp text-xl ml-2"></i>
               تواصل معنا عبر واتساب

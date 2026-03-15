@@ -38,6 +38,8 @@
         ? ($seo['site_title_ar'] ?? $seo['site_title'] ?? 'طفوف | اكسسوارات فاخرة أصلية')
         : ($seo['site_title_en'] ?? $seo['site_title'] ?? 'Tofof | Premium Authentic Accessories');
 
+    $siteName = trim(explode('|', $siteTitle)[0]);
+
     $metaDescription = $locale === 'ar'
         ? ($seo['meta_description_ar'] ?? $seo['meta_description'] ?? 'اكتشف أرقى الاكسسوارات الأصلية مع طفوف. ساعات، محافظ، ونظارات شمسية بضمان كامل.')
         : ($seo['meta_description_en'] ?? $seo['meta_description'] ?? 'Discover premium authentic accessories at Tofof. Watches, wallets, sunglasses and more.');
@@ -115,7 +117,7 @@
           "url": "https://tofofstore.com/",
           "logo": "{{ asset('logo.png') }}",
           "image": "{{ asset('logo.png') }}",
-          "telephone": "+9647757778099",
+          "telephone": "+9647744969024",
           "sameAs": [
             "https://www.instagram.com/tofof_watches",
             "https://www.facebook.com/p/%D8%B7%D9%81%D9%88%D9%81-%D9%84%D9%84%D8%B3%D8%A7%D8%B9%D8%A7%D8%AA-100091444293851/"
@@ -685,7 +687,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
             <div class="container mx-auto hidden md:flex items-center justify-between px-4 md:px-8 text-white font-semibold">
                 <a href="{{ route('homepage') }}" class="text-xl sm:text-2xl flex items-center gap-2 hover:opacity-90 transition">
                     <img src="{{ asset('logo.png') }}" alt="logo" class="w-10 h-10">
-                    <span class="text-white font-bold">{{ __('layout.tofof') }}</span>
+                    <span class="text-white font-bold">{{ $siteName ?? __('layout.tofof') }}</span>
                 </a>
                 <div 
                     x-data="liveSearch('{{ route('products.liveSearch') }}')" 
@@ -1443,16 +1445,16 @@ function brandMenuV4(){
   <div class="container mx-auto px-4 grid grid-cols-1 gap-10 md:grid-cols-4 text-center md:text-right">
     <div class="md:col-start-1">
       <a href="{{ route('homepage') }}" class="flex items-center gap-2 mb-4 justify-center md:justify-start">
-        <img src="{{ asset('logo.png') }}" alt="Tofof Logo" class="w-12 h-12 dark:invert">
-        <span class="text-xl font-bold text-[#6d0e16]">{{ __('layout.tofof') }}</span>
+        <img src="{{ asset('logo.png') }}" alt="Tofof Logo" class="w-12 h-12">
+        <span class="text-xl font-bold text-[#6d0e16]">{{ $siteName ?? __('layout.tofof') }}</span>
       </a>
       <p class="leading-relaxed text-sm text-[#6B7280] dark:text-gray-300">
         علامة متخصصة في الساعات والإكسسوارات الرجالية والنسائية، نقدم تصاميم أنيقة وجودة مميزة تضيف لمسة فخامة إلى إطلالتك اليومية.
       </p>
       <div class="flex gap-4 text-[#c32126] text-2xl mt-4 justify-center md:justify-start">
-        <a href="https://www.facebook.com/p/%D8%B7%D9%81%D9%88%D9%81-%D9%84%D9%84%D8%B3%D8%A7%D8%B9%D8%A7%D8%AA-100091444293851/" class="hover:text-[#a61c20] transition"><i class="bi bi-facebook"></i></a>
-        <a href="https://www.instagram.com/tofof_watches" class="hover:text-[#a61c20] transition"><i class="bi bi-instagram"></i></a>
-        <a href="https://wa.me/9647757778099" class="hover:text-[#a61c20] transition"><i class="bi bi-whatsapp"></i></a>
+        <a href="https://www.facebook.com/p/%D8%B7%D9%81%D9%88%D9%81-%D9%84%D9%84%D8%B3%D8%A7%D8%B9%D8%A7%D8%AA-100091444293851/" target="_blank" rel="noopener noreferrer" class="hover:text-[#a61c20] transition"><i class="bi bi-facebook"></i></a>
+        <a href="https://www.instagram.com/tofof_watches" target="_blank" rel="noopener noreferrer" class="hover:text-[#a61c20] transition"><i class="bi bi-instagram"></i></a>
+        <a href="https://wa.me/9647744969024" target="_blank" rel="noopener noreferrer" class="hover:text-[#a61c20] transition"><i class="bi bi-whatsapp"></i></a>
       </div>
       {{-- Payment Icons --}}
       <div class="flex flex-wrap gap-4 mt-6 justify-center md:justify-start items-center opacity-80 grayscale hover:grayscale-0 transition-all duration-300">
@@ -1511,12 +1513,12 @@ function brandMenuV4(){
   </div>
   <div class="mt-12 border-t border-[#e5e5e5] pt-8 pb-32 md:pb-12 dark:border-gray-800">
     <div class="container mx-auto px-4">
-      <div class="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 text-center text-[10px] md:text-sm text-[#6B7280] dark:text-gray-400">
+      <div class="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 text-center text-base md:text-lg font-bold text-[#6B7280] dark:text-gray-400">
         <div>
           &copy; {{ date('Y') }} جميع الحقوق محفوظة لـ <a href="{{ route('homepage') }}" class="font-bold text-[#6d0e16] hover:text-[#6d0e16]">Tofof</a>
         </div>
         <span class="hidden md:block text-gray-300 dark:text-gray-700">|</span>
-        <a href="https://wosooll.com" target="_blank" class="flex items-center gap-1 hover:opacity-80 transition font-medium">
+        <a href="https://wosooll.com" target="_blank" class="flex items-center gap-1 hover:opacity-80 transition font-bold">
           <span dir="ltr">Powered By Wosool</span>
           <i class="bi bi-heart-fill text-red-600 animate-pulse"></i>
         </a>
@@ -1854,7 +1856,7 @@ document.addEventListener('alpine:init', () => {
 
     {{-- Simplified Modal Card --}}
     <div
-        class="relative w-full max-w-4xl bg-white shadow-2xl overflow-hidden transition-all mx-4 rounded-2xl"
+        class="relative w-full max-w-[480px] bg-white dark:bg-gray-900 shadow-2xl overflow-hidden transition-all mx-4 rounded-3xl flex flex-col items-center justify-center p-8 min-h-[480px]"
         x-show="showWelcome"
         x-transition:enter="transition ease-out duration-500 transform"
         x-transition:enter-start="scale-95 opacity-0"
@@ -1863,12 +1865,18 @@ document.addEventListener('alpine:init', () => {
         x-transition:leave-start="scale-100 opacity-100"
         x-transition:leave-end="scale-95 opacity-0"
     >
-        <div class="relative z-10 flex flex-col items-center text-center">
+        <div class="relative z-10 flex flex-col items-center text-center w-full">
             {{-- Content only --}}
-            <div class="w-full welcome-text-container" dir="rtl">
+            <div class="w-full welcome-text-container dark:text-gray-100" dir="rtl">
                 {!! $welcome_screen_content ?? '' !!}
             </div>
         </div>
+        
+        {{-- Close button as a backup --}}
+        <button @click="closeWelcomeModal()" class="mt-6 text-sm font-semibold text-[#c32126] hover:underline dark:text-red-400">
+            {{ __('إغلاق') }}
+        </button>
+    </div>
 
         {{-- Hidden Close Area (clicking the modal itself won't close it, but children can) --}}
     </div>

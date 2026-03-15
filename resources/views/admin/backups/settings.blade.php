@@ -44,9 +44,33 @@
                         <select name="backup_auto_delete_after_days" id="backup_auto_delete_after_days" class="form-select">
                             @php $days = [7 => 'أسبوع واحد', 30 => 'شهر واحد', 90 => '3 أشهر', 365 => 'سنة واحدة']; @endphp
                             @foreach($days as $dayCount => $label)
-                                <option value="{{ $dayCount }}" @selected(old('backup_auto_delete_after_days', $settings['backup_auto_delete_after_days'] ?? 30) == $dayCount)>{{ $label }}</option>
+                                  <option value="{{ $dayCount }}" @selected(old('backup_auto_delete_after_days', $settings['backup_auto_delete_after_days'] ?? 30) == $dayCount)>{{ $label }}</option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <hr class="my-4">
+
+                    {{-- Automated Backup (Web Cron) --}}
+                    <div class="mb-4">
+                        <h5 class="fw-bold"><i class="bi bi-clock-history me-2"></i>أتمتة النسخ الاحتياطي (خيار بديل لـ Cron Job)</h5>
+                        <p class="text-muted small">إذا كنت لا تستطيع الوصول إلى جدولة المهام (Crontab) في سيرفرك، يمكنك استخدام هذا الرابط لتشغيل النسخ الاحتياطي تلقائياً عبر خدمة خارجية (مثل <a href="https://cron-job.org" target="_blank">cron-job.org</a>).</p>
+                        
+                        <label for="cron_token" class="form-label">رمز الأمان للمزامنة (Cron Token)</label>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" id="cron_token" name="cron_token" value="{{ old('cron_token', $settings['cron_token'] ?? Str::random(32)) }}">
+                            <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('cron_token').value = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);">توليد جديد</button>
+                        </div>
+
+                        @if(isset($settings['cron_token']) && $settings['cron_token'] != 'off')
+                            <div class="alert alert-info">
+                                <strong>رابط التشغيل:</strong><br>
+                                <code id="cron_url">{{ url('/cron/run?token=' . $settings['cron_token']) }}</code>
+                                <button type="button" class="btn btn-sm btn-link p-0 ms-2" onclick="copyToClipboard('cron_url')">نسخ الرابط</button>
+                            </div>
+                        @else
+                            <div class="alert alert-warning">يرجى حفظ الرمز أولاً ليظهر الرابط.</div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -57,3 +81,14 @@
     </div>
 </form>
 @endsection
+
+@push('scripts')
+<script>
+function copyToClipboard(elementId) {
+    const text = document.getElementById(elementId).innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('تم نسخ الرابط بنجاح');
+    });
+}
+</script>
+@endpush

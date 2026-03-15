@@ -173,7 +173,7 @@
         <li>من خلال صفحات التواصل الاجتماعي.</li>
         <li>
           عبر الرقم المباشر:
-          <a href="https://wa.me/9647757778099" class="link-brand">واتساب مباشر</a>
+          <a href="https://wa.me/9647744969024" class="link-brand">واتساب مباشر</a>
         </li>
       </ul>
     </div>

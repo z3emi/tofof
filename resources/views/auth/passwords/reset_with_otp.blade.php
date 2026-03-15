@@ -252,7 +252,7 @@
                 <!-- زر التواصل عبر واتساب -->
                 <div class="mt-8 text-center pt-6 border-top border-gray-100 dark:border-gray-700">
                     <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">بحاجة لمساعدة؟ تواصل معنا على الواتساب:</p>
-                    <a href="https://wa.me/9647701234567" target="_blank"
+                    <a href="https://wa.me/9647744969024" target="_blank"
                        class="inline-flex items-center px-5 py-3 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-full shadow transition duration-300 transform hover:-translate-y-0.5">
                         <i class="bi bi-whatsapp text-xl ml-2"></i>
                         تواصل عبر واتساب

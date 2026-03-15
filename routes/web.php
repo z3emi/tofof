@@ -8,6 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\App;
 
+// Web Cron Link
+Route::get('/cron/run', [\App\Http\Controllers\Admin\BackupController::class, 'runScheduler'])->name('cron.run');
+
+
 // ===== Frontend Controllers =====
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PageController;
