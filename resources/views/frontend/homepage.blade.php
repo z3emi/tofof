@@ -44,8 +44,6 @@
 
 @extends('layouts.app')
 
-@section('title', 'طفوف | اكسسوارات فاخرة أصلية')
-
 @push('styles')
 <style>
     /* =========================
@@ -680,125 +678,171 @@
 </section>
 @endif
 
-{{-- Categories Section (Actually iterates Brands logic) ----}}
+{{-- Categories Section (Using PrimaryCategory model) --}}
+@php
+    // تحميل الفئات لو ما ممرّرتها من الكنترولر
+    $primaryCategories2 = $primaryCategories2
+        ?? \App\Models\PrimaryCategory::query()
+            ->active()
+            ->withCount('products')
+            ->ordered()
+            ->get();
+
+    // ترتيب تنازلي حسب عدد المنتجات (نفس منطقك فوق)
+    try {
+        if ($primaryCategories2 instanceof \Illuminate\Support\Collection) {
+            $primaryCategories2 = $primaryCategories2
+                ->sortByDesc(function ($pc) {
+                    if (isset($pc->products_count)) return (int) $pc->products_count;
+                    return method_exists($pc, 'products') ? (int) $pc->products()->count() : 0;
+                })
+                ->values();
+        }
+    } catch (\Throwable $e) {}
+@endphp
+
+@if($primaryCategories2->count())
 <section class="pt-2 pb-6 md:pt-4 md:pb-12 section-cats relative overflow-hidden"
          x-data="{
-             el:null, showLeftButton:true, showRightButton:true, isMobile: false,
-             
-             init(){
-                 this.isMobile = window.innerWidth < 768;
-                 this.el = this.$refs.catScroll; if(!this.el) return;
-                 
-                 this.$nextTick(() => this.updateButtons());
-                 window.addEventListener('load', () => this.updateButtons());
-                 
-                 this.el.addEventListener('scroll', () => this.updateButtons(), {passive:true});
-                 window.addEventListener('resize', () => {
-                     this.isMobile = window.innerWidth < 768;
-                     this.updateButtons();
-                 });
-             },
-             
-
-             isRTL() { return getComputedStyle(this.el).direction === 'rtl'; },
-             getNorm() {
-                 const el = this.el, max = el.scrollWidth - el.clientWidth;
-                 return !this.isRTL() ? el.scrollLeft : (el.scrollLeft < 0 ? -el.scrollLeft : max - el.scrollLeft);
-             },
-             updateButtons() {
-                 if (!this.el) return;
-                 const max = this.el.scrollWidth - this.el.clientWidth;
-                 const pos = this.getNorm();
-                 const isRtl = this.isRTL();
-                 if (isRtl) {
-                     this.showLeftButton = pos < max - 5;
-                     this.showRightButton = pos > 5;
-                 } else {
-                     this.showLeftButton = pos > 5;
-                     this.showRightButton = pos < max - 5;
-                 }
-             },
-
-             go(dir) {
-                 const el = this.el;
-                 const max = el.scrollWidth - el.clientWidth;
-                 const cur = this.getNorm();
-                 const target = Math.max(0, Math.min(max, cur + (dir === 'prev' ? -320 : 320)));
-                 const sl = el.scrollLeft;
-                 const final = !this.isRTL() ? target : (sl < 0 ? -target : max - target);
-                 el.scrollTo({ left: final, behavior: 'smooth' });
-                 setTimeout(() => this.updateButtons(), 250);
-             },
+              el:null, canGoLeft:false, canGoRight:true, step:320,
+              isRTL() { return getComputedStyle(this.el).direction === 'rtl'; },
+              getNorm() {
+                  const el = this.el, max = el.scrollWidth - el.clientWidth;
+                  const sl = el.scrollLeft;
+                  return !this.isRTL() ? sl : (sl < 0 ? -sl : max - sl);
+              },
+              init(){
+                  this.el = this.$refs.catScroll; if(!this.el) return;
+                  this.$nextTick(()=>{
+                      const card=this.el.querySelector('.flex > a');
+                      this.step = card ? Math.max(240, Math.floor(card.getBoundingClientRect().width+10)) : 300;
+                      this.updateButtons();
+                  });
+                  this.el.addEventListener('scroll', ()=>this.updateButtons(), {passive:true});
+                  window.addEventListener('resize', ()=>this.updateButtons());
+              },
+              updateButtons(){
+                  if(!this.el) return;
+                  const max = this.el.scrollWidth - this.el.clientWidth;
+                  const pos = this.getNorm();
+                  const isRtl = this.isRTL();
+                  if (isRtl) {
+                      this.canGoLeft = pos < max - 5;
+                      this.canGoRight = pos > 5;
+                  } else {
+                      this.canGoLeft = pos > 5;
+                      this.canGoRight = pos < max - 5;
+                  }
+              },
+              go(dir){
+                  const max = this.el.scrollWidth - this.el.clientWidth;
+                  const cur = this.getNorm();
+                  const target = Math.max(0, Math.min(max, cur + (dir === 'prev' ? -this.step : this.step)));
+                  const sl = this.el.scrollLeft;
+                  const final = !this.isRTL() ? target : (sl < 0 ? -target : max - target);
+                  this.el.scrollTo({ left: final, behavior: 'smooth' });
+                  setTimeout(() => this.updateButtons(), 250);
+              },
          }"
          x-init="init()">
 
-    {{-- Header --}}
-    <div class="container mx-auto px-4 text-center relative z-10">
-        <div class="section-header mb-4 md:mb-6">
-            {{-- <h2 class="text-xl md:text-2xl font-bold" style="color: var(--primary-hover);">تصفح حسب البراند</h2> --}}
-        </div>
+    {{-- خلفيات خفيفة (نفس الستايل) --}}
+    <div class="absolute inset-0 z-0 pointer-events-none">
+        <div class="absolute top-10 left-10 w-32 h-32 rounded-full bg-[#a61c20] opacity-5 blur-3xl"></div>
+        <div class="absolute bottom-20 right-20 w-40 h-40 rounded-full bg-[#c32126] opacity-5 blur-3xl"></div>
+        <div class="absolute top-1/2 left-1/3 w-24 h-24 rounded-full bg-[#1a1a1a] opacity-10 blur-2xl"></div>
     </div>
-    
-    <div class="overflow-x-auto no-scrollbar" x-ref="catScroll" style="height: 180px;">
-        {{-- تم استخدام !important هنا للتغلب على أي كود آخر --}}
-        <div class="flex flex-row gap-[2px] md:gap-8 items-start w-max py-2">
-            {{-- الأسهم النابضة: تتبع نفس منطق الأزرار (showLeft لليسار و showRight لليمين) --}}
-            <div class="pulse-arrow pulse-arrow-left" x-show="showLeftButton" x-cloak><i class="bi bi-chevron-left"></i></div>
-            <div class="pulse-arrow pulse-arrow-right" x-show="showRightButton" x-cloak><i class="bi bi-chevron-right"></i></div>
 
-            
-            @php
-                $rootCategories = collect($sortedCategories ?? $categories ?? [])
-                    ->filter(fn($c) => empty($c->parent_id))
-                    ->values();
-            @endphp
+    <div class="w-full text-center relative z-10">
 
-            @foreach($rootCategories as $category)
-                @php
-                    $thumb = $category->image ? asset('storage/'.$category->image) : (!empty($category->icon) ? asset('storage/'.$category->icon) : null);
-                @endphp
-                <a href="{{ route('shop', ['category' => $category->slug]) }}" class="flex flex-col items-center min-w-[68px] md:min-w-[110px] group text-center transition-all duration-300">
-                    <div class="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white relative">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        @if($thumb)
-                            <img src="{{ $thumb }}" class="w-full h-full object-cover object-center" alt="{{ $category->name_ar }}" width="112" height="112">
-                        @else
-                            <div class="w-full h-full grid place-items-center text-[#c32126] bg-gradient-to-br from-[#a61c20]/10 to-[#c32126]/10">
-                                <i class="bi bi-tags" style="font-size:1.6rem;"></i>
-                            </div>
-                        @endif
+
+        <div class="relative">
+            {{-- أزرار التنقل (نفس الأزرار) --}}
+            <button
+                class="brand-nav hidden md:flex absolute left-4 pos-mid z-[10001]"
+                :class="{'opacity-100': canNext, 'opacity-40 pointer-events-none': !canNext}"
+                type="button" aria-label="التالي"
+                @click="go('next')">
+                <i class="bi bi-chevron-left text-2xl"></i>
+            </button>
+
+            <button
+                class="brand-nav hidden md:flex absolute right-4 pos-mid z-[10001]"
+                :class="{'opacity-100': canPrev, 'opacity-40 pointer-events-none': !canPrev}"
+                type="button" aria-label="السابق"
+                @click="go('prev')">
+                <i class="bi bi-chevron-right text-2xl"></i>
+            </button>
+
+            {{-- تلاشي ديكوري --}}
+            <div class="pointer-events-none hidden md:block absolute inset-y-0 left-0 w-24 z-[9998]"
+                 style="background:linear-gradient(90deg, var(--bg), transparent)"></div>
+            <div class="pointer-events-none hidden md:block absolute inset-y-0 right-0 w-24 z-[9998]"
+                 style="background:linear-gradient(270deg, var(--bg), transparent)"></div>
+
+
+            {{-- الشريط القابل للتمرير --}}
+{{-- تم حذف "px-16" من هنا --}}
+<div class="overflow-x-auto no-scrollbar" x-ref="catScroll" style="height: 180px;">
+    {{-- تم إضافة "pr-16" هنا لإضافة فراغ في نهاية القائمة فقط --}}
+    <div class="flex flex-row gap-[5px] md:gap-8 items-start w-max py-2 mx-auto">
+        {{-- العربي: canPrev يرجع لليمين، canNext يتقدم لليسار --}}
+        <div class="pulse-arrow pulse-arrow-left" x-show="canGoLeft" x-cloak><i class="bi bi-chevron-left"></i></div>
+        <div class="pulse-arrow pulse-arrow-right" x-show="canGoRight" x-cloak><i class="bi bi-chevron-right"></i></div>
+
+@foreach($primaryCategories2 as $pc)
+    @php
+        // اعتبره رئيسي إذا ما عنده parent_id أو علاقة parent
+        $isTopLevel = true;
+        if (isset($pc->parent_id) && $pc->parent_id)  { $isTopLevel = false; }
+        if (isset($pc->parent)    && $pc->parent)     { $isTopLevel = false; }
+    @endphp
+
+    @if($isTopLevel)
+        @php
+            $thumb = $pc->image
+                ? asset('storage/'.$pc->image)
+                : ($pc->icon ? asset('storage/'.$pc->icon) : null);
+        @endphp
+
+{{-- هذا هو السطر الصحيح --}}
+<a href="{{ route('shop', ['brand' => $pc->slug]) }}"
+   class="flex flex-col items-center min-w-[68px] md:min-w-[110px] group text-center transition-all duration-300">
+            <div class="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white relative">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                @if($thumb)
+                    <img src="{{ $thumb }}" class="w-full h-full object-cover object-center"
+                         alt="{{ $pc->name_ar }}" width="112" height="112">
+                @else
+                    <div class="w-full h-full grid place-items-center text-[#c32126] bg-gradient-to-br from-[#a61c20]/10 to-[#c32126]/10">
+                        <i class="bi bi-tags" style="font-size:1.6rem;"></i>
                     </div>
-                    <h3 class="category-name mt-2 md:mt-4 text-base font-semibold group-hover:text-[#c32126]">{{ $category->name_ar }}</h3>
-                </a>
-            @endforeach
-
+                @endif
+            </div>
+            <h3 class="category-name mt-2 md:mt-4 text-base font-semibold group-hover:text-[#c32126]">
+                {{ $pc->name_ar }}
+            </h3>
+        </a>
+    @endif
+@endforeach
+            </div>
+        </div>
         </div>
     </div>
 
-    {{-- Buttons --}}
-    <button type="button" x-cloak x-show="!isMobile && showLeftButton" x-transition class="cat-side-nav-glass inline-flex absolute top-1/2 left-4 -translate-y-1/2 z-[5]" aria-label="السابق" @click="go('prev')">
-        <i class="bi bi-chevron-left text-base md:text-lg"></i>
-    </button>
-    <button type="button" x-cloak x-show="!isMobile && showRightButton" x-transition class="cat-side-nav-glass inline-flex absolute top-1/2 right-4 -translate-y-1/2 z-[5]" aria-label="التالي" @click="go('next')">
-        <i class="bi bi-chevron-right text-base md:text-lg"></i>
-    </button>
-    
-    {{-- Styles --}}
+    {{-- نفس تنسيقات الأزرار / المواضع المستعملة في سكشن الأقسام --}}
     <style>
+        .section-cats { --icon-size: 112px; --row-py: 16px; --btn-dy: 0px; }
+        .pos-mid { top: calc(var(--row-py) + (var(--icon-size) / 2) + var(--btn-dy)); transform: translateY(-50%); }
+        .edge-hit { --edge-w: clamp(48px, 10vw, 120px); width: var(--edge-w); background: transparent; border: 0; padding: 0; cursor: pointer; }
         .section-cats .overflow-x-auto { scroll-snap-type: x mandatory; overflow-y: visible !important; }
         .section-cats .overflow-x-auto .flex>a { scroll-snap-align: start; }
+        .section-cats .category-name { text-align:center; white-space:normal; word-break:break-word; line-height:1.35; min-height:2.7em; max-width:110px; margin-inline:auto; }
         .section-cats .w-28.h-28 { width:7rem!important; height:7rem!important; border-radius:50%; }
         @media (max-width: 640px) { .section-cats .w-28.h-28 { width:4.2rem!important; height:4.2rem!important; } }
-        .section-cats .category-name { text-align:center; white-space:normal; word-break:break-word; line-height:1.35; min-height:2.7em; max-width:110px; margin-inline:auto; }
-        @media (max-width: 640px) { .section-cats .category-name { font-size: 0.75rem!important; max-width: 75px!important; min-height: 2.2em; } }
-        .cat-side-nav-glass{ position: absolute; height: 46px; width: 46px; border-radius: 9999px; align-items: center; justify-content: center; color: #c32126; background: rgba(255,255,255,.38); border: 1px solid rgba(234,219,205,.85); box-shadow: 0 10px 20px rgba(0,0,0,.08); backdrop-filter: blur(10px) saturate(140%); -webkit-backdrop-filter: blur(10px) saturate(140%); transition: all .2s ease; }
-        .cat-side-nav-glass::after{ content:""; position:absolute; inset:-8px; border-radius:inherit; background: rgba(255,255,255,.28); backdrop-filter: blur(10px) saturate(140%); -webkit-backdrop-filter: blur(10px) saturate(140%); z-index:-1; pointer-events:none; }
-        .cat-side-nav-glass:hover{ background: rgba(255,255,255,.46); box-shadow: 0 14px 28px rgba(0,0,0,.12); }
-        html.dark .cat-side-nav-glass{ color:#f0b0ad; background: rgba(15,23,42,.38); border-color:#1f2937; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
-        html.dark .cat-side-nav-glass::after{ background: rgba(15,23,42,.22); }
-        html.dark .cat-side-nav-glass:hover{ background: rgba(15,23,42,.48); box-shadow: 0 12px 30px rgba(0,0,0,.32); }
     </style>
 </section>
+
 
 {{-- Promo Slider 1 --}}
 @if(($promoPrimarySlides ?? collect())->isNotEmpty())
@@ -935,170 +979,119 @@
 </section>
 @endif
 
-{{-- Primary Categories Section (Actually iterates Brands logic) ----}}
-@php
-    // تحميل الفئات لو ما ممرّرتها من الكنترولر
-    $primaryCategories2 = $primaryCategories2
-        ?? \App\Models\PrimaryCategory::query()
-            ->active()
-            ->withCount('products')
-            ->ordered()
-            ->get();
-
-    // ترتيب تنازلي حسب عدد المنتجات (نفس منطقك فوق)
-    try {
-        if ($primaryCategories2 instanceof \Illuminate\Support\Collection) {
-            $primaryCategories2 = $primaryCategories2
-                ->sortByDesc(function ($pc) {
-                    if (isset($pc->products_count)) return (int) $pc->products_count;
-                    return method_exists($pc, 'products') ? (int) $pc->products()->count() : 0;
-                })
-                ->values();
-        }
-    } catch (\Throwable $e) {}
-@endphp
-
-@if($primaryCategories2->count())
+{{-- Brands Section (Using Category model) --}}
 <section class="pt-2 pb-6 md:pt-4 md:pb-12 section-cats relative overflow-hidden"
          x-data="{
-              el:null, canGoLeft:false, canGoRight:true, step:320,
-              isRTL() { return getComputedStyle(this.el).direction === 'rtl'; },
-              getNorm() {
-                  const el = this.el, max = el.scrollWidth - el.clientWidth;
-                  const sl = el.scrollLeft;
-                  return !this.isRTL() ? sl : (sl < 0 ? -sl : max - sl);
-              },
-              init(){
-                  this.el = this.$refs.catScroll; if(!this.el) return;
-                  this.$nextTick(()=>{
-                      const card=this.el.querySelector('.flex > a');
-                      this.step = card ? Math.max(240, Math.floor(card.getBoundingClientRect().width+10)) : 300;
-                      this.updateButtons();
-                  });
-                  this.el.addEventListener('scroll', ()=>this.updateButtons(), {passive:true});
-                  window.addEventListener('resize', ()=>this.updateButtons());
-              },
-              updateButtons(){
-                  if(!this.el) return;
-                  const max = this.el.scrollWidth - this.el.clientWidth;
-                  const pos = this.getNorm();
-                  const isRtl = this.isRTL();
-                  if (isRtl) {
-                      this.canGoLeft = pos < max - 5;
-                      this.canGoRight = pos > 5;
-                  } else {
-                      this.canGoLeft = pos > 5;
-                      this.canGoRight = pos < max - 5;
-                  }
-              },
-              go(dir){
-                  const max = this.el.scrollWidth - this.el.clientWidth;
-                  const cur = this.getNorm();
-                  const target = Math.max(0, Math.min(max, cur + (dir === 'prev' ? -this.step : this.step)));
-                  const sl = this.el.scrollLeft;
-                  const final = !this.isRTL() ? target : (sl < 0 ? -target : max - target);
-                  this.el.scrollTo({ left: final, behavior: 'smooth' });
-                  setTimeout(() => this.updateButtons(), 250);
-              },
+             el:null, showLeftButton:true, showRightButton:true, isMobile: false,
+             
+             init(){
+                 this.isMobile = window.innerWidth < 768;
+                 this.el = this.$refs.catScroll; if(!this.el) return;
+                 
+                 this.$nextTick(() => this.updateButtons());
+                 window.addEventListener('load', () => this.updateButtons());
+                 
+                 this.el.addEventListener('scroll', () => this.updateButtons(), {passive:true});
+                 window.addEventListener('resize', () => {
+                     this.isMobile = window.innerWidth < 768;
+                     this.updateButtons();
+                 });
+             },
+             
+
+             isRTL() { return getComputedStyle(this.el).direction === 'rtl'; },
+             getNorm() {
+                 const el = this.el, max = el.scrollWidth - el.clientWidth;
+                 return !this.isRTL() ? el.scrollLeft : (el.scrollLeft < 0 ? -el.scrollLeft : max - el.scrollLeft);
+             },
+             updateButtons() {
+                 if (!this.el) return;
+                 const max = this.el.scrollWidth - this.el.clientWidth;
+                 const pos = this.getNorm();
+                 const isRtl = this.isRTL();
+                 if (isRtl) {
+                     this.showLeftButton = pos < max - 5;
+                     this.showRightButton = pos > 5;
+                 } else {
+                     this.showLeftButton = pos > 5;
+                     this.showRightButton = pos < max - 5;
+                 }
+             },
+
+             go(dir) {
+                 const el = this.el;
+                 const max = el.scrollWidth - el.clientWidth;
+                 const cur = this.getNorm();
+                 const target = Math.max(0, Math.min(max, cur + (dir === 'prev' ? -320 : 320)));
+                 const sl = el.scrollLeft;
+                 const final = !this.isRTL() ? target : (sl < 0 ? -target : max - target);
+                 el.scrollTo({ left: final, behavior: 'smooth' });
+                 setTimeout(() => this.updateButtons(), 250);
+             },
          }"
          x-init="init()">
 
-    {{-- خلفيات خفيفة (نفس الستايل) --}}
-    <div class="absolute inset-0 z-0 pointer-events-none">
-        <div class="absolute top-10 left-10 w-32 h-32 rounded-full bg-[#a61c20] opacity-5 blur-3xl"></div>
-        <div class="absolute bottom-20 right-20 w-40 h-40 rounded-full bg-[#c32126] opacity-5 blur-3xl"></div>
-        <div class="absolute top-1/2 left-1/3 w-24 h-24 rounded-full bg-[#1a1a1a] opacity-10 blur-2xl"></div>
-    </div>
+    {{-- Header --}}
 
-    <div class="w-full text-center relative z-10">
-        <div class="section-header mb-4 md:mb-6">
-            {{-- <h2 class="text-xl md:text-2xl font-bold" style="color: var(--primary-hover);">تصفح حسب الفئة</h2> --}}
-        </div>
+    
+    <div class="overflow-x-auto no-scrollbar" x-ref="catScroll" style="height: 180px;">
+        {{-- تم استخدام !important هنا للتغلب على أي كود آخر --}}
+        <div class="flex flex-row gap-[2px] md:gap-8 items-start w-max py-2">
+            {{-- الأسهم النابضة: تتبع نفس منطق الأزرار (showLeft لليسار و showRight لليمين) --}}
+            <div class="pulse-arrow pulse-arrow-left" x-show="showLeftButton" x-cloak><i class="bi bi-chevron-left"></i></div>
+            <div class="pulse-arrow pulse-arrow-right" x-show="showRightButton" x-cloak><i class="bi bi-chevron-right"></i></div>
 
-        <div class="relative">
-            {{-- أزرار التنقل (نفس الأزرار) --}}
-            <button
-                class="brand-nav hidden md:flex absolute left-4 pos-mid z-[10001]"
-                :class="{'opacity-100': canNext, 'opacity-40 pointer-events-none': !canNext}"
-                type="button" aria-label="التالي"
-                @click="go('next')">
-                <i class="bi bi-chevron-left text-2xl"></i>
-            </button>
+            
+            @php
+                $rootCategories = collect($sortedCategories ?? $categories ?? [])
+                    ->filter(fn($c) => empty($c->parent_id))
+                    ->values();
+            @endphp
 
-            <button
-                class="brand-nav hidden md:flex absolute right-4 pos-mid z-[10001]"
-                :class="{'opacity-100': canPrev, 'opacity-40 pointer-events-none': !canPrev}"
-                type="button" aria-label="السابق"
-                @click="go('prev')">
-                <i class="bi bi-chevron-right text-2xl"></i>
-            </button>
-
-            {{-- تلاشي ديكوري --}}
-            <div class="pointer-events-none hidden md:block absolute inset-y-0 left-0 w-24 z-[9998]"
-                 style="background:linear-gradient(90deg, var(--bg), transparent)"></div>
-            <div class="pointer-events-none hidden md:block absolute inset-y-0 right-0 w-24 z-[9998]"
-                 style="background:linear-gradient(270deg, var(--bg), transparent)"></div>
-
-
-            {{-- الشريط القابل للتمرير --}}
-{{-- تم حذف "px-16" من هنا --}}
-<div class="overflow-x-auto no-scrollbar" x-ref="catScroll" style="height: 180px;">
-    {{-- تم إضافة "pr-16" هنا لإضافة فراغ في نهاية القائمة فقط --}}
-    <div class="flex flex-row gap-[5px] md:gap-8 items-start w-max py-2 mx-auto">
-        {{-- العربي: canPrev يرجع لليمين، canNext يتقدم لليسار --}}
-        <div class="pulse-arrow pulse-arrow-left" x-show="canGoLeft" x-cloak><i class="bi bi-chevron-left"></i></div>
-        <div class="pulse-arrow pulse-arrow-right" x-show="canGoRight" x-cloak><i class="bi bi-chevron-right"></i></div>
-
-@foreach($primaryCategories2 as $pc)
-    @php
-        // اعتبره رئيسي إذا ما عنده parent_id أو علاقة parent
-        $isTopLevel = true;
-        if (isset($pc->parent_id) && $pc->parent_id)  { $isTopLevel = false; }
-        if (isset($pc->parent)    && $pc->parent)     { $isTopLevel = false; }
-    @endphp
-
-    @if($isTopLevel)
-        @php
-            $thumb = $pc->image
-                ? asset('storage/'.$pc->image)
-                : ($pc->icon ? asset('storage/'.$pc->icon) : null);
-        @endphp
-
-{{-- هذا هو السطر الصحيح --}}
-<a href="{{ route('shop', ['brand' => $pc->slug]) }}"
-   class="flex flex-col items-center min-w-[68px] md:min-w-[110px] group text-center transition-all duration-300">
-            <div class="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white relative">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                @if($thumb)
-                    <img src="{{ $thumb }}" class="w-full h-full object-cover object-center"
-                         alt="{{ $pc->name_ar }}" width="112" height="112">
-                @else
-                    <div class="w-full h-full grid place-items-center text-[#c32126] bg-gradient-to-br from-[#a61c20]/10 to-[#c32126]/10">
-                        <i class="bi bi-tags" style="font-size:1.6rem;"></i>
+            @foreach($rootCategories as $category)
+                @php
+                    $thumb = $category->image ? asset('storage/'.$category->image) : (!empty($category->icon) ? asset('storage/'.$category->icon) : null);
+                @endphp
+                <a href="{{ route('shop', ['category' => $category->slug]) }}" class="flex flex-col items-center min-w-[68px] md:min-w-[110px] group text-center transition-all duration-300">
+                    <div class="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white relative">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        @if($thumb)
+                            <img src="{{ $thumb }}" class="w-full h-full object-cover object-center" alt="{{ $category->name_ar }}" width="112" height="112">
+                        @else
+                            <div class="w-full h-full grid place-items-center text-[#c32126] bg-gradient-to-br from-[#a61c20]/10 to-[#c32126]/10">
+                                <i class="bi bi-tags" style="font-size:1.6rem;"></i>
+                            </div>
+                        @endif
                     </div>
-                @endif
-            </div>
-            <h3 class="category-name mt-2 md:mt-4 text-base font-semibold group-hover:text-[#c32126]">
-                {{ $pc->name_ar }}
-            </h3>
-        </a>
-    @endif
-@endforeach
-            </div>
-        </div>
+                    <h3 class="category-name mt-2 md:mt-4 text-base font-semibold group-hover:text-[#c32126]">{{ $category->name_ar }}</h3>
+                </a>
+            @endforeach
+
         </div>
     </div>
 
-    {{-- نفس تنسيقات الأزرار / المواضع المستعملة في سكشن الأقسام --}}
+    {{-- Buttons --}}
+    <button type="button" x-cloak x-show="!isMobile && showLeftButton" x-transition class="cat-side-nav-glass inline-flex absolute top-1/2 left-4 -translate-y-1/2 z-[5]" aria-label="السابق" @click="go('prev')">
+        <i class="bi bi-chevron-left text-base md:text-lg"></i>
+    </button>
+    <button type="button" x-cloak x-show="!isMobile && showRightButton" x-transition class="cat-side-nav-glass inline-flex absolute top-1/2 right-4 -translate-y-1/2 z-[5]" aria-label="التالي" @click="go('next')">
+        <i class="bi bi-chevron-right text-base md:text-lg"></i>
+    </button>
+    
+    {{-- Styles --}}
     <style>
-        .section-cats { --icon-size: 112px; --row-py: 16px; --btn-dy: 0px; }
-        .pos-mid { top: calc(var(--row-py) + (var(--icon-size) / 2) + var(--btn-dy)); transform: translateY(-50%); }
-        .edge-hit { --edge-w: clamp(48px, 10vw, 120px); width: var(--edge-w); background: transparent; border: 0; padding: 0; cursor: pointer; }
         .section-cats .overflow-x-auto { scroll-snap-type: x mandatory; overflow-y: visible !important; }
         .section-cats .overflow-x-auto .flex>a { scroll-snap-align: start; }
-        .section-cats .category-name { text-align:center; white-space:normal; word-break:break-word; line-height:1.35; min-height:2.7em; max-width:110px; margin-inline:auto; }
         .section-cats .w-28.h-28 { width:7rem!important; height:7rem!important; border-radius:50%; }
         @media (max-width: 640px) { .section-cats .w-28.h-28 { width:4.2rem!important; height:4.2rem!important; } }
+        .section-cats .category-name { text-align:center; white-space:normal; word-break:break-word; line-height:1.35; min-height:2.7em; max-width:110px; margin-inline:auto; }
+        @media (max-width: 640px) { .section-cats .category-name { font-size: 0.75rem!important; max-width: 75px!important; min-height: 2.2em; } }
+        .cat-side-nav-glass{ position: absolute; height: 46px; width: 46px; border-radius: 9999px; align-items: center; justify-content: center; color: #c32126; background: rgba(255,255,255,.38); border: 1px solid rgba(234,219,205,.85); box-shadow: 0 10px 20px rgba(0,0,0,.08); backdrop-filter: blur(10px) saturate(140%); -webkit-backdrop-filter: blur(10px) saturate(140%); transition: all .2s ease; }
+        .cat-side-nav-glass::after{ content:""; position:absolute; inset:-8px; border-radius:inherit; background: rgba(255,255,255,.28); backdrop-filter: blur(10px) saturate(140%); -webkit-backdrop-filter: blur(10px) saturate(140%); z-index:-1; pointer-events:none; }
+        .cat-side-nav-glass:hover{ background: rgba(255,255,255,.46); box-shadow: 0 14px 28px rgba(0,0,0,.12); }
+        html.dark .cat-side-nav-glass{ color:#f0b0ad; background: rgba(15,23,42,.38); border-color:#1f2937; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+        html.dark .cat-side-nav-glass::after{ background: rgba(15,23,42,.22); }
+        html.dark .cat-side-nav-glass:hover{ background: rgba(15,23,42,.48); box-shadow: 0 12px 30px rgba(0,0,0,.32); }
     </style>
 </section>
 @endif

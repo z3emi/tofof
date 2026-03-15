@@ -98,7 +98,7 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
 
-    <meta property="og:site_name" content="Tofof">
+    <meta property="og:site_name" content="{{ $locale === 'ar' ? ($seo['site_title_ar'] ?? $seo['site_title'] ?? 'طفوف') : ($seo['site_title_en'] ?? $seo['site_title'] ?? 'Tofof') }}">
     <meta property="og:title" content="@yield('title', $siteTitle)">
     <meta property="og:description" content="@yield('meta_description', $metaDescription)">
     <meta property="og:url" content="{{ url()->current() }}">
@@ -111,10 +111,10 @@
       "@graph": [
         {
           "@type": "Organization",
-          "@id": "https://tofofstore.com/#organization",
-          "name": "Tofof",
-          "alternateName": "طفوف",
-          "url": "https://tofofstore.com/",
+          "@id": "{{ $canonical ?? url('/') }}/#organization",
+          "name": "{{ $locale === 'ar' ? ($seo['site_title_ar'] ?? $seo['site_title'] ?? 'طفوف') : ($seo['site_title_en'] ?? $seo['site_title'] ?? 'Tofof') }}",
+          "alternateName": "{{ $siteTitle }}",
+          "url": "{{ $canonical ?? url('/') }}/",
           "logo": "{{ asset('logo.png') }}",
           "image": "{{ asset('logo.png') }}",
           "telephone": "+9647744969024",
@@ -125,14 +125,14 @@
         },
         {
           "@type": "WebSite",
-          "@id": "https://tofofstore.com/#website",
-          "url": "https://tofofstore.com/",
-          "name": "Tofof",
-          "alternateName": "طفوف",
+          "@id": "{{ $canonical ?? url('/') }}/#website",
+          "url": "{{ $canonical ?? url('/') }}/",
+          "name": "{{ $locale === 'ar' ? ($seo['site_title_ar'] ?? $seo['site_title'] ?? 'طفوف') : ($seo['site_title_en'] ?? $seo['site_title'] ?? 'Tofof') }}",
+          "alternateName": "{{ $siteTitle }}",
           "publisher": {
-            "@id": "https://tofofstore.com/#organization"
+            "@id": "{{ $canonical ?? url('/') }}/#organization"
           },
-          "inLanguage": "ar-IQ"
+          "inLanguage": "{{ $locale === 'ar' ? 'ar-IQ' : 'en-US' }}"
         }
       ]
     }
@@ -687,7 +687,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
             <div class="container mx-auto hidden md:flex items-center justify-between px-4 md:px-8 text-white font-semibold">
                 <a href="{{ route('homepage') }}" class="text-xl sm:text-2xl flex items-center gap-2 hover:opacity-90 transition">
                     <img src="{{ asset('logo.png') }}" alt="logo" class="w-10 h-10">
-                    <span class="text-white font-bold">{{ $siteName ?? __('layout.tofof') }}</span>
+                    <span class="text-white font-bold">{{ __('layout.tofof') }}</span>
                 </a>
                 <div 
                     x-data="liveSearch('{{ route('products.liveSearch') }}')" 
@@ -1446,7 +1446,7 @@ function brandMenuV4(){
     <div class="md:col-start-1">
       <a href="{{ route('homepage') }}" class="flex items-center gap-2 mb-4 justify-center md:justify-start">
         <img src="{{ asset('logo.png') }}" alt="Tofof Logo" class="w-12 h-12">
-        <span class="text-xl font-bold text-[#6d0e16]">{{ $siteName ?? __('layout.tofof') }}</span>
+        <span class="text-xl font-bold text-[#6d0e16]">{{ __('layout.tofof') }}</span>
       </a>
       <p class="leading-relaxed text-sm text-[#6B7280] dark:text-gray-300">
         علامة متخصصة في الساعات والإكسسوارات الرجالية والنسائية، نقدم تصاميم أنيقة وجودة مميزة تضيف لمسة فخامة إلى إطلالتك اليومية.
@@ -1457,10 +1457,16 @@ function brandMenuV4(){
         <a href="https://wa.me/9647744969024" target="_blank" rel="noopener noreferrer" class="hover:text-[#a61c20] transition"><i class="bi bi-whatsapp"></i></a>
       </div>
       {{-- Payment Icons --}}
-      <div class="flex flex-wrap gap-4 mt-6 justify-center md:justify-start items-center opacity-80 grayscale hover:grayscale-0 transition-all duration-300">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="Mastercard" class="h-5 md:h-6 w-auto drop-shadow-sm">
-          <img src="https://zaincash.com/static/media/ZainCashLogo.fea8cf3bb90421f45dd384d6afc6fe3b.svg" alt="Zain Cash" class="h-6 md:h-7 w-auto drop-shadow-sm">
-          <img src="https://qi.iq/images/logo.svg?1=1" alt="Qi Card" class="h-5 md:h-6 w-auto drop-shadow-sm">
+      <div class="flex flex-wrap gap-3 mt-6 justify-center md:justify-start items-center">
+          <div class="bg-white p-1 rounded-lg flex items-center justify-center shadow-sm border border-gray-100 hover:scale-105 transition-transform duration-200">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="Mastercard" class="h-5 md:h-6 w-auto">
+          </div>
+          <div class="bg-white p-1 rounded-lg flex items-center justify-center shadow-sm border border-gray-100 hover:scale-105 transition-transform duration-200">
+              <img src="https://zaincash.com/static/media/ZainCashLogo.fea8cf3bb90421f45dd384d6afc6fe3b.svg" alt="Zain Cash" class="h-6 md:h-7 w-auto">
+          </div>
+          <div class="bg-white p-1 rounded-lg flex items-center justify-center shadow-sm border border-gray-100 hover:scale-105 transition-transform duration-200">
+              <img src="https://qi.iq/images/logo.svg?1=1" alt="Qi Card" class="h-5 md:h-6 w-auto">
+          </div>
       </div>
     </div>
     <div>
