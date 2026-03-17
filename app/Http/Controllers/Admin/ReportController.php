@@ -11,7 +11,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\CustomersReportExport;
 use App\Exports\FinancialReportExport;
+use App\Exports\StockReportExport;
 
 class ReportController extends Controller
 {
@@ -98,6 +100,22 @@ class ReportController extends Controller
         $year  = $request->input('year',  date('Y'));
 
         return Excel::download(new FinancialReportExport($month, $year), 'financial_report_'.$month.'_'.$year.'.xlsx');
+    }
+
+    public function exportStockExcel(Request $request)
+    {
+        $month = (int) $request->input('month', date('m'));
+        $year  = (int) $request->input('year', date('Y'));
+
+        return Excel::download(new StockReportExport($month, $year), 'stock_report_'.$month.'_'.$year.'.xlsx');
+    }
+
+    public function exportCustomersExcel(Request $request)
+    {
+        $month = (int) $request->input('month', date('m'));
+        $year  = (int) $request->input('year', date('Y'));
+
+        return Excel::download(new CustomersReportExport($month, $year), 'customers_report_'.$month.'_'.$year.'.xlsx');
     }
 
     public function stockReport(Request $request)

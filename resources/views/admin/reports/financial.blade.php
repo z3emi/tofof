@@ -38,7 +38,9 @@
                 @endfor
             </select>
             <button type="submit" class="btn btn-sm btn-primary">تطبيق</button>
-            <a href="{{ route('admin.reports.financial.export', ['month' => $month, 'year' => $year]) }}" class="btn btn-sm btn-success">📥 تصدير Excel</a>
+            <a href="{{ route('admin.reports.financial.export', ['month' => $month, 'year' => $year]) }}" class="btn btn-sm btn-success" title="تصدير Excel" aria-label="تصدير Excel">
+                <i class="bi bi-file-earmark-excel"></i>
+            </a>
         </form>
     </div>
 

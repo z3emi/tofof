@@ -631,12 +631,12 @@
             <div class="slider-container h-full" x-ref="sliderContainer">
                 @foreach($heroSlides as $slide)
                     <div class="slide">
-                        <img src="{{ $slide->background_image_url }}"
+                        <img src="{{ $slide->image_path ?? $slide->background_image_url }}"
                              class="slide-bg"
-                             alt="{{ $slide->alt_text ?: $slide->title }}"
+                             alt="{{ $slide->alt_text ?? ($slide->title ?? '') }}"
                              width="1974"
                              height="1316">
-                        @if($slide->show_overlay)
+                        @if(!empty($slide->show_overlay))
                             @php
                                 $sRgb = hexToRgb($slide->overlay_color ?? '#000000');
                                 $sStrength = $slide->overlay_strength ?? 0.5;
@@ -645,14 +645,14 @@
                         @endif
                         <div class="slide-content">
                             <h2 class="text-2xl md:text-5xl font-extrabold mb-2 w-full text-center">{{ $slide->title }}</h2>
-                            @if($slide->subtitle)
+                            @if(!empty($slide->subtitle))
                                 <p class="mb-6 text-sm md:text-lg opacity-90 max-w-xl w-full mx-auto text-center">
                                     {{ $slide->subtitle }}
                                 </p>
                             @endif
-                            @if($slide->button_text)
+                            @if(!empty($slide->button_text))
                                 <div class="-mt-2 w-full flex justify-center">
-                                    <a href="{{ $slide->button_url ?: '#' }}" 
+                                    <a href="{{ $slide->button_url ?? '#' }}" 
                                        class="inline-block bg-white text-[#c32126] px-6 py-2 rounded-full font-bold text-base hover:bg-gray-100 transition shadow-lg mx-auto">
                                         {{ $slide->button_text }}
                                     </a>
@@ -842,6 +842,7 @@
         @media (max-width: 640px) { .section-cats .w-28.h-28 { width:4.2rem!important; height:4.2rem!important; } }
     </style>
 </section>
+@endif
 
 
 {{-- Promo Slider 1 --}}
@@ -1094,7 +1095,6 @@
         html.dark .cat-side-nav-glass:hover{ background: rgba(15,23,42,.48); box-shadow: 0 12px 30px rgba(0,0,0,.32); }
     </style>
 </section>
-@endif
 
 
 

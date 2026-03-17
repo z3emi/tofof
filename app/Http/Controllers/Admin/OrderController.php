@@ -23,6 +23,8 @@ use Illuminate\Support\Str;
 use App\Services\WalletService;
 use App\Models\WalletTransaction;
 use Illuminate\Support\Facades\Notification;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\OrdersExport;
 
 class OrderController extends Controller
 {
@@ -141,6 +143,11 @@ class OrderController extends Controller
             'nearest_landmark' => 'required|string|max:255',
             'address_details' => 'required|string|max:500',
             'notes' => 'nullable|string',
+            'is_gift' => 'nullable|boolean',
+            'gift_recipient_name' => 'required_if:is_gift,1|nullable|string|max:255',
+            'gift_recipient_phone' => 'required_if:is_gift,1|nullable|string|max:50',
+            'gift_recipient_address_details' => 'required_if:is_gift,1|nullable|string|max:1000',
+            'gift_message' => 'nullable|string|max:1000',
             'products' => 'required|array|min:1',
             'products.*.id' => 'required|exists:products,id',
             'products.*.quantity' => 'required|integer|min:1',
@@ -209,6 +216,7 @@ class OrderController extends Controller
             }
             
             $finalTotal = ($subtotal - $discountAmount) + $shippingCost;
+            $isGift = $request->boolean('is_gift');
 
             $order = Order::create([
                 'user_id' => auth()->id(),
@@ -218,6 +226,11 @@ class OrderController extends Controller
                 'address_details' => $addressPayload['address_details'],
                 'nearest_landmark' => $addressPayload['nearest_landmark'],
                 'notes' => $request->notes,
+                'is_gift' => $isGift,
+                'gift_recipient_name' => $isGift ? $request->gift_recipient_name : null,
+                'gift_recipient_phone' => $isGift ? $request->gift_recipient_phone : null,
+                'gift_recipient_address_details' => $isGift ? $request->gift_recipient_address_details : null,
+                'gift_message' => $isGift ? $request->gift_message : null,
                 'total_amount' => $finalTotal,
                 'shipping_cost' => $shippingCost,
                 'discount_amount' => $discountAmount,
@@ -298,6 +311,11 @@ class OrderController extends Controller
             'nearest_landmark' => 'required|string|max:255',
             'address_details' => 'required|string|max:500',
             'notes' => 'nullable|string',
+            'is_gift' => 'nullable|boolean',
+            'gift_recipient_name' => 'required_if:is_gift,1|nullable|string|max:255',
+            'gift_recipient_phone' => 'required_if:is_gift,1|nullable|string|max:50',
+            'gift_recipient_address_details' => 'required_if:is_gift,1|nullable|string|max:1000',
+            'gift_message' => 'nullable|string|max:1000',
             'products' => 'required|array|min:1',
             'products.*.id' => 'required|exists:products,id',
             'products.*.quantity' => 'required|integer|min:1',
@@ -330,6 +348,7 @@ class OrderController extends Controller
             }
             
             $finalTotal = ($subtotal - $discountAmount) + $shippingCost;
+            $isGift = $request->boolean('is_gift');
 
             $newOrderItemsData = [];
             foreach ($request->products as $productId => $productData) {
@@ -347,6 +366,11 @@ class OrderController extends Controller
                 'address_details' => $request->address_details,
                 'nearest_landmark' => $request->nearest_landmark,
                 'notes' => $request->notes,
+                'is_gift' => $isGift,
+                'gift_recipient_name' => $isGift ? $request->gift_recipient_name : null,
+                'gift_recipient_phone' => $isGift ? $request->gift_recipient_phone : null,
+                'gift_recipient_address_details' => $isGift ? $request->gift_recipient_address_details : null,
+                'gift_message' => $isGift ? $request->gift_message : null,
                 'total_amount' => $finalTotal,
                 'shipping_cost' => $shippingCost,
                 'discount_amount' => $discountAmount,
@@ -574,5 +598,23 @@ public function updateStatus(Request $request, Order $order, InventoryService $i
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         }
+    }
+
+    public function exportExcel()
+    {
+        $orders = Order::with('customer')->latest()->get();
+        $data = $orders->map(function ($order) {
+            return [
+                $order->id,
+                $order->customer?->name ?? '-',
+                $order->customer?->phone_number ?? '-',
+                $order->governorate ?? '-',
+                $order->total_amount,
+                $order->status,
+                $order->created_at->format('Y-m-d'),
+            ];
+        })->toArray();
+
+        return Excel::download(new OrdersExport($data), 'orders.xlsx');
     }
 }

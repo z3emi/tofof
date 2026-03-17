@@ -25,4 +25,5 @@ return [
     'contact_us' => 'Contact Us',
     'follow_us' => 'Follow Us',
     'copyright' => 'All rights reserved',
+    'blog' => 'Blog',
 ];

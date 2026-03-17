@@ -16,7 +16,8 @@
                 <label class="form-label">اختر القسم</label>
                 <select name="section" class="form-select" required>
                     <option value="products">منتجات</option>
-                    <option value="categories">الأقسام</option>
+                    <option value="categories">البراندات</option>
+                    <option value="brands">الفئات</option>
                     <option value="users">مستخدمين</option>
                     <option value="clients">عملاء</option>
                     <option value="discounts">أكواد خصم</option>

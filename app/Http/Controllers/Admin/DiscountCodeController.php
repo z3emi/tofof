@@ -7,6 +7,8 @@ use App\Models\DiscountCode;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\DiscountCodesExport;
 
 class DiscountCodeController extends Controller
 {
@@ -155,5 +157,23 @@ class DiscountCodeController extends Controller
         $discount_code->is_active = !$discount_code->is_active;
         $discount_code->save();
         return redirect()->route('admin.discount-codes.index')->with('success', 'تم تحديث حالة الكود.');
+    }
+
+    public function exportExcel()
+    {
+        $codes = DiscountCode::withCount(['usages', 'orders'])->get();
+        $data = $codes->map(function ($c) {
+            return [
+                $c->code,
+                $c->type,
+                $c->value ?? '-',
+                $c->usages_count,
+                $c->max_uses ?? 'غير محدود',
+                $c->is_active ? 'مفعّل' : 'معطّل',
+                $c->expires_at ? $c->expires_at->format('Y-m-d') : 'لا يوجد',
+            ];
+        })->toArray();
+
+        return Excel::download(new DiscountCodesExport($data), 'discount-codes.xlsx');
     }
 }

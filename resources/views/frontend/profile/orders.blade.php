@@ -260,6 +260,9 @@
           <div class="order-header">
             <div>
               <div class="order-title text-sm md:text-base">طلب رقم #{{ $order->id }}</div>
+              @if($order->is_gift)
+                <div class="mt-1"><span class="status-badge status-returned"><i class="bi bi-gift-fill"></i> هدية</span></div>
+              @endif
               <div class="order-meta">تاريخ الطلب: {{ $order->created_at->format('Y-m-d') }}</div>
             </div>
             <div>

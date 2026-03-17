@@ -70,6 +70,11 @@ $governorates = [
     <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h4 class="mb-0">جميع الطلبات</h4>
         <div>
+            @can('view-orders')
+            <a href="{{ route('admin.orders.export') }}" class="btn btn-sm btn-success" title="تصدير Excel" aria-label="تصدير Excel">
+                <i class="bi bi-file-earmark-excel"></i>
+            </a>
+            @endcan
             <a href="{{ route('admin.orders.trash') }}" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i> سلة المحذوفات</a>
             @can('create-orders')
                 <a href="{{ route('admin.orders.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle me-1"></i> إضافة طلب يدوي</a>
@@ -158,7 +163,12 @@ $governorates = [
                             'table-secondary'=> $order->status == 'cancelled',
                             'table-danger'   => $order->status == 'returned',
                         ])>
-                            <td>#{{ $order->id }}</td>
+                            <td>
+                                #{{ $order->id }}
+                                @if($order->is_gift)
+                                    <span class="badge bg-danger ms-1">هدية</span>
+                                @endif
+                            </td>
                             <td>{{ $order->customer->name ?? '-' }}</td>
                             <td>{{ $order->customer->phone_number ?? '-' }}</td>
                             <td><div class="fw-bold">{{ number_format($grossTotal, 0) }} د.ع</div></td>
@@ -172,6 +182,9 @@ $governorates = [
                             <td>{{ $order->governorate }}</td>
                             <td>
                                 {{ $order->notes ?? '-' }}
+                                @if($order->is_gift && $order->gift_recipient_name)
+                                    <div class="small text-muted mt-1">المستلم: {{ $order->gift_recipient_name }}</div>
+                                @endif
                                 {{-- HIDDEN ACTIONS FOR CONTEXT MENU --}}
                                 <div class="d-none">
                                     @can('view-orders')

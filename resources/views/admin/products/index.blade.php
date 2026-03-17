@@ -164,6 +164,11 @@
 
         <div class="d-flex gap-2">
             @can('view-products')
+            <a href="{{ route('admin.products.export') }}" class="btn btn-sm btn-success" title="تصدير Excel" aria-label="تصدير Excel">
+                <i class="bi bi-file-earmark-excel"></i>
+            </a>
+            @endcan
+            @can('view-products')
             <a href="{{ route('admin.products.trash') }}" class="btn btn-outline-danger btn-sm">
                 <i class="bi bi-trash me-1"></i> سلة المحذوفات
             </a>

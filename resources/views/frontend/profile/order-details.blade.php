@@ -194,6 +194,21 @@
         @endif
       </div>
     </div>
+
+    @if($order->is_gift)
+    <div class="summary-panel md:col-span-2">
+      <h3 class="text-lg md:text-xl font-extrabold text-[var(--text)] mb-2 md:mb-3">بيانات الهدية</h3>
+      <div class="space-y-2 text-sm">
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">نوع الطلب:</span><span class="row-strong">هدية</span></div>
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">اسم المستلم:</span><span class="row-strong">{{ $order->gift_recipient_name }}</span></div>
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">هاتف المستلم:</span><span class="row-strong">{{ $order->gift_recipient_phone }}</span></div>
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">عنوان المستلم:</span><span class="row-strong">{{ $order->gift_recipient_address_details }}</span></div>
+        @if($order->gift_message)
+          <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">الرسالة:</span><span class="row-strong">{{ $order->gift_message }}</span></div>
+        @endif
+      </div>
+    </div>
+    @endif
   </div>
 </div>
 @endsection

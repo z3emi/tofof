@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Product;
-use App\Models\PurchaseInvoiceItem;
 use Exception;
 
 class InventoryService

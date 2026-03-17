@@ -33,26 +33,26 @@ $countries = [
 <style>
   /* هوية عامة بسيطة (ما تأثر على الهيدر) */
   .max-w-md{width:100%}
-  .bg-brand-dark{background:#4a2c2a}
-  .bg-brand-primary{background:#cd8985}
-  .text-brand-primary{color:#cd8985}
-  .text-brand-text{color:#4a2c2a}
-  .focus\:ring-brand-primary:focus{--tw-ring-color:#cd8985}
-  .border-brand-primary{border-color:#cd8985}
+  .bg-brand-dark{background:#6d0e16}
+  .bg-brand-primary{background:#a61c20}
+  .text-brand-primary{color:#6d0e16}
+  .text-brand-text{color:#2f1113}
+  .focus\:ring-brand-primary:focus{--tw-ring-color:#6d0e16}
+  .border-brand-primary{border-color:#6d0e16}
 
   /* ============ سكوپ الصفحة فقط ============ */
   .auth-scope{
     /* خلفية الصفحة (لايت) */
-    background:#f9f5f1;
+    background:#fff8f8;
     background-image:
-      radial-gradient(circle at 10% 20%, rgba(205,137,133,.05) 0%, transparent 20%),
-      radial-gradient(circle at 90% 80%, rgba(205,137,133,.05) 0%, transparent 20%);
+      radial-gradient(circle at 10% 20%, rgba(109,14,22,.07) 0%, transparent 23%),
+      radial-gradient(circle at 90% 80%, rgba(166,28,32,.06) 0%, transparent 24%);
   }
 
   /* كارت النموذج داخل السكوپ فقط */
   .auth-card{
     background:#fff;
-    border:1px solid #f3e5e3;
+    border:1px solid #f2d6d7;
     box-shadow:0 10px 30px rgba(0,0,0,.05);
   }
 
@@ -62,14 +62,14 @@ $countries = [
     border:2px solid #e5e7eb; border-radius:12px;
     transition:.25s; direction:ltr; overflow:hidden; background:#fff;
   }
-  .auth-scope .phone-input-group:focus-within{border-color:#cd8985; box-shadow:0 0 0 3px rgba(205,137,133,.18)}
+  .auth-scope .phone-input-group:focus-within{border-color:#6d0e16; box-shadow:0 0 0 3px rgba(109,14,22,.16)}
 
   .auth-scope .country-code-btn{
-    padding:.75rem 1rem; background:#f9f5f1; border-right:1px solid #e5e7eb;
+    padding:.75rem 1rem; background:#fff1f2; border-right:1px solid #e5e7eb;
     display:flex; align-items:center; gap:.5rem; font-size:.92rem; min-width:112px;
     justify-content:center; cursor:pointer; transition:.2s; height:48px; border-radius:0;
   }
-  .auth-scope .country-code-btn:hover{background:#f3e5e3}
+  .auth-scope .country-code-btn:hover{background:#fde8ea}
 
   .auth-scope .phone-input{
     border:0; outline:0; flex:1; padding:.75rem 1rem; font-size:1rem;
@@ -83,10 +83,10 @@ $countries = [
   }
   .auth-scope .country-list a{
     display:flex; align-items:center; gap:.75rem; padding:.7rem 1rem; font-size:.92rem; cursor:pointer;
-    color:#4a2c2a; transition:.15s; border-bottom:1px solid #f3e5e3;
+    color:#2f1113; transition:.15s; border-bottom:1px solid #f2d6d7;
   }
   .auth-scope .country-list a:last-child{border-bottom:0}
-  .auth-scope .country-list a:hover{background:#f9f5f1}
+  .auth-scope .country-list a:hover{background:#fff1f2}
   .auth-scope .country-list::-webkit-scrollbar{width:8px}
   .auth-scope .country-list::-webkit-scrollbar-thumb{background:#eadbcd; border-radius:999px}
 
@@ -96,7 +96,7 @@ $countries = [
     position:absolute; left:1rem; top:50%; transform:translateY(-50%);
     cursor:pointer; color:#6b7280; transition:.2s;
   }
-  .auth-scope .password-toggle:hover{color:#cd8985}
+  .auth-scope .password-toggle:hover{color:#6d0e16}
 
   /* Responsive */
   @media (max-width:640px){
@@ -109,8 +109,8 @@ $countries = [
   html.dark .auth-scope{
     background:#0b0f14;
     background-image:
-      radial-gradient(circle at 10% 20%, rgba(205,137,133,.05) 0%, transparent 22%),
-      radial-gradient(circle at 90% 80%, rgba(205,137,133,.05) 0%, transparent 22%);
+      radial-gradient(circle at 10% 20%, rgba(109,14,22,.15) 0%, transparent 25%),
+      radial-gradient(circle at 90% 80%, rgba(166,28,32,.14) 0%, transparent 25%);
   }
   html.dark .auth-card{background:#0f172a; border-color:#1f2937; box-shadow:0 10px 30px rgba(0,0,0,.22)}
   html.dark .auth-scope .text-brand-text{color:#e5e7eb}
@@ -119,7 +119,7 @@ $countries = [
   html.dark .auth-scope .text-gray-400{color:#9ca3af !important}
 
   html.dark .auth-scope .phone-input-group{background:#0f172a; border-color:#1f2937}
-  html.dark .auth-scope .phone-input-group:focus-within{box-shadow:0 0 0 3px rgba(205,137,133,.22)}
+  html.dark .auth-scope .phone-input-group:focus-within{box-shadow:0 0 0 3px rgba(109,14,22,.30)}
   html.dark .auth-scope .country-code-btn{background:#111827; border-right-color:#1f2937; color:#e5e7eb}
   html.dark .auth-scope .country-code-btn:hover{background:#0f172a}
   html.dark .auth-scope .phone-input{color:#e5e7eb}
@@ -146,16 +146,16 @@ $countries = [
   html.dark .auth-card input[type="text"]:focus,
   html.dark .auth-card input[type="password"]:focus,
   html.dark .auth-card input[type="tel"]:focus{
-    border-color:#cd8985 !important;
-    box-shadow:0 0 0 3px rgba(205,137,133,.22) !important;
+    border-color:#a61c20 !important;
+    box-shadow:0 0 0 3px rgba(109,14,22,.30) !important;
     background:#0b1220 !important;
   }
 
   html.dark .auth-scope .password-toggle{ color:#9ca3af; }
-  html.dark .auth-scope .password-toggle:hover{ color:#cd8985; }
+  html.dark .auth-scope .password-toggle:hover{ color:#a61c20; }
 
   html.dark .auth-scope input[type="checkbox"]{ background:#111827; border-color:#334155; }
-  html.dark .auth-scope input[type="checkbox"]:checked{ background:#cd8985; border-color:#cd8985; }
+  html.dark .auth-scope input[type="checkbox"]:checked{ background:#6d0e16; border-color:#6d0e16; }
 
   html.dark .auth-card label{ color:#e5e7eb !important; }
   html.dark .auth-card .text-gray-600{ color:#d1d5db !important; }
@@ -165,7 +165,7 @@ $countries = [
   .auth-scope .divider-chip{ background:#fff; }
   html.dark .auth-scope .divider-chip{ background:#0f172a !important; color:#94a3b8 !important; }
 
-  html.dark .auth-scope .bg-brand-dark:hover{ background:#be6661; }
+  html.dark .auth-scope .bg-brand-dark:hover{ background:#a61c20; }
 </style>
 @endpush
 

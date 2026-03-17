@@ -15,12 +15,20 @@
 
 <style>
 
-:root{
---primary:#0F2A44;
---gold:#D4AF37;
---light:#F4F4F4;
---border:#E6E6E6;
---text:#333;
+
+:root {
+	--primary-color: #6d0e16;
+	--primary-hover: #a61c20;
+	--secondary-color: #ffffff;
+	--accent-color: #ea7a7e;
+	--bg: #f7f7f7;
+	--bg-soft: #ffffff;
+	--surface: #ffffff;
+	--card-bg: #ffffff;
+	--text: #111111;
+	--text-soft: #333333;
+	--muted: #666666;
+	--border: #e5e5e5;
 }
 
 body{
@@ -30,10 +38,7 @@ margin:0;
 display:flex;
 align-items:center;
 justify-content:center;
-background:
-radial-gradient(circle at 18% 22%,rgba(212,175,55,.22) 0%,transparent 34%),
-radial-gradient(circle at 83% 78%,rgba(255,255,255,.08) 0%,transparent 30%),
-linear-gradient(140deg,#101820 0%,#1A2F4A 48%,#0C1A2A 100%);
+background:#0f172a;
 overflow:hidden;
 position:relative;
 }
@@ -43,7 +48,7 @@ content:"";
 position:absolute;
 width:500px;
 height:500px;
-background:radial-gradient(circle,rgba(212,175,55,.30),transparent 66%);
+background:radial-gradient(circle,rgba(234,122,126,0.18),transparent 66%);
 top:-150px;
 right:-150px;
 filter:blur(4px);
@@ -54,7 +59,7 @@ content:"";
 position:absolute;
 width:450px;
 height:450px;
-background:radial-gradient(circle,rgba(15,42,68,.55),transparent 68%);
+background:radial-gradient(circle,rgba(195,33,38,0.12),transparent 68%);
 bottom:-150px;
 left:-150px;
 filter:blur(2px);
@@ -63,17 +68,17 @@ filter:blur(2px);
 .login-card{
 width:420px;
 max-width:100%;
-background:rgba(255,255,255,0.96);
+background:var(--card-bg);
 backdrop-filter:blur(10px);
 border-radius:18px;
-box-shadow:0 25px 70px rgba(0,0,0,.45);
-border:1px solid rgba(255,255,255,.2);
+box-shadow:0 25px 70px rgba(0,0,0,.10);
+border:1px solid var(--border);
 overflow:hidden;
 }
 
 .login-header{
-background:linear-gradient(135deg,#0F2A44,#091a2b);
-color:#fff;
+background:#6d0e16;
+color:var(--secondary-color);
 padding:35px 30px;
 text-align:center;
 }
@@ -81,7 +86,7 @@ text-align:center;
 .brand{
 font-size:12px;
 letter-spacing:2px;
-color:var(--gold);
+color:var(--accent-color);
 margin-bottom:10px;
 display:inline-block;
 font-weight:700;
@@ -105,7 +110,7 @@ padding:35px 32px;
 
 .form-label{
 font-weight:600;
-color:var(--primary);
+color:#111;
 margin-bottom:6px;
 }
 
@@ -118,8 +123,8 @@ transition:.2s;
 }
 
 .form-control:focus{
-border-color:var(--gold);
-box-shadow:0 0 0 3px rgba(212,175,55,.15);
+border-color:var(--primary-color);
+box-shadow:0 0 0 3px rgba(195,33,38,0.15);
 }
 
 .form-check{
@@ -131,8 +136,8 @@ cursor:pointer;
 }
 
 .form-check-input:checked{
-background-color:var(--gold);
-border-color:var(--gold);
+background-color:var(--primary-color);
+border-color:var(--primary-color);
 }
 
 .btn-login{
@@ -140,17 +145,17 @@ width:100%;
 padding:12px;
 border-radius:10px;
 font-weight:700;
-background:linear-gradient(135deg,#0F2A44,#0a1e32);
+background:#6d0e16;
 border:none;
-color:#fff;
+color:var(--secondary-color);
 transition:.25s;
 }
 
 .btn-login:hover{
-background:var(--gold);
-color:#000;
+background:#6d0e16;
+color:#fff;
 transform:translateY(-2px);
-box-shadow:0 10px 25px rgba(0,0,0,.3);
+box-shadow:0 10px 25px rgba(195,33,38,0.10);
 }
 
 .invalid-feedback{
@@ -179,9 +184,7 @@ padding:25px;
 <div class="login-card">
 
 <div class="login-header">
-<span class="brand">TOFOF ADMIN</span>
 <h1>لوحة الإدارة</h1>
-<p>يرجى تسجيل الدخول للوصول إلى لوحة التحكم</p>
 </div>
 
 <div class="login-body">

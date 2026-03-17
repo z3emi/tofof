@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use App\Traits\HandlesImageUploads;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ProductsExport;
 
 class ProductController extends Controller
 {
@@ -311,5 +313,22 @@ class ProductController extends Controller
         }
 
         return redirect()->back()->with('success', 'تم تحديث الكمية بنجاح.');
+    }
+
+    public function exportExcel()
+    {
+        $products = Product::with('category')->get();
+        $data = $products->map(function ($p) {
+            return [
+                $p->name_ar,
+                $p->sku ?? '-',
+                (int) $p->stock_quantity,
+                $p->price,
+                $p->category?->name_ar ?? '-',
+                $p->is_active ? 'مفعّل' : 'معطّل',
+            ];
+        })->toArray();
+
+        return Excel::download(new ProductsExport($data), 'products.xlsx');
     }
 }

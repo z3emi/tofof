@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="container py-4">
-    <h3 class="mb-4">📥 معاينة ملف الاستيراد (قسم: {{ $section }})</h3>
+    <h3 class="mb-4">📥 معاينة ملف الاستيراد (القسم: {{ $sectionLabel ?? $section }})</h3>
 
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
@@ -53,10 +53,18 @@
                                         <option value="description_en">الوصف (إنجليزي)</option>
                                         <option value="description_ku">الوصف (كردي)</option>
                                         <option value="stock_quantity">الكمية</option>
-                                        <option value="category_name">اسم القسم</option>
+                                        <option value="category_name">اسم البراند</option>
+                                        <option value="brand_name">اسم الفئة</option>
+                                        <option value="brand_names">أسماء الفئات (متعددة)</option>
                                     @elseif($section === 'categories')
-                                        <option value="name_ar">اسم القسم</option>
-                                        <option value="parent_name">اسم القسم الأب</option>
+                                        <option value="name_ar">اسم البراند</option>
+                                        <option value="name_en">اسم البراند (إنجليزي)</option>
+                                        <option value="parent_name">اسم البراند الأب</option>
+                                    @elseif($section === 'brands')
+                                        <option value="name_ar">اسم الفئة (عربي)</option>
+                                        <option value="name_en">اسم الفئة (إنجليزي)</option>
+                                        <option value="slug">Slug</option>
+                                        <option value="parent_name">اسم الفئة الأم</option>
                                     @elseif($section === 'users')
                                         <option value="name">الاسم</option>
                                         <option value="email">البريد الإلكتروني</option>

@@ -78,6 +78,9 @@
     <h4 class="mb-0">شجرة الفئات</h4>
 
     <div class="d-flex gap-2">
+      <a href="{{ route('admin.primary-categories.export') }}" class="btn btn-sm btn-success" title="تصدير Excel" aria-label="تصدير Excel">
+        <i class="bi bi-file-earmark-excel"></i>
+      </a>
       <a href="{{ route('admin.primary-categories.trash') }}" class="btn btn-outline-danger btn-sm">
         <i class="bi bi-trash me-1"></i> سلة المحذوفات
       </a>

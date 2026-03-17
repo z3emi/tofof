@@ -139,6 +139,35 @@
                         <i class="bi bi-plus-circle-fill"></i>
                         <span>إضافة عنوان شحن جديد</span>
                     </a>
+
+                    <div class="mt-6 border rounded-lg p-4 bg-gray-50/70 dark:bg-gray-800/40 dark:border-gray-800">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="is_gift" id="is_gift" value="1" class="h-4 w-4 text-brand-primary focus:ring-brand-primary" {{ old('is_gift') ? 'checked' : '' }}>
+                            <div>
+                                <div class="font-semibold text-gray-800 dark:text-gray-100">هذا الطلب هدية</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">عند التفعيل يجب إدخال بيانات مستلم الهدية.</div>
+                            </div>
+                        </label>
+
+                        <div id="gift_fields" class="mt-4 space-y-3 {{ old('is_gift') ? '' : 'hidden' }}">
+                            <div>
+                                <label for="gift_recipient_name" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">اسم مستلم الهدية</label>
+                                <input type="text" id="gift_recipient_name" name="gift_recipient_name" value="{{ old('gift_recipient_name') }}" class="w-full rounded-md border-gray-300 focus:border-brand-primary focus:ring-brand-primary dark:border-gray-700" placeholder="ادخل اسم المستلم">
+                            </div>
+                            <div>
+                                <label for="gift_recipient_phone" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">رقم هاتف مستلم الهدية</label>
+                                <input type="text" id="gift_recipient_phone" name="gift_recipient_phone" value="{{ old('gift_recipient_phone') }}" class="w-full rounded-md border-gray-300 focus:border-brand-primary focus:ring-brand-primary dark:border-gray-700" placeholder="مثال: 0770xxxxxxx">
+                            </div>
+                            <div>
+                                <label for="gift_recipient_address_details" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">عنوان مستلم الهدية</label>
+                                <textarea id="gift_recipient_address_details" name="gift_recipient_address_details" rows="3" class="w-full rounded-md border-gray-300 focus:border-brand-primary focus:ring-brand-primary dark:border-gray-700" placeholder="اكتب الموقع/العنوان الذي سيتم التوصيل إليه">{{ old('gift_recipient_address_details') }}</textarea>
+                            </div>
+                            <div>
+                                <label for="gift_message" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">رسالة الهدية (اختياري)</label>
+                                <textarea id="gift_message" name="gift_message" rows="2" class="w-full rounded-md border-gray-300 focus:border-brand-primary focus:ring-brand-primary dark:border-gray-700" placeholder="اكتب رسالة لطيفة إن رغبت">{{ old('gift_message') }}</textarea>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -244,6 +273,11 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const savedAddressesRadios = document.querySelectorAll('.saved-address-radio');
+            const isGiftCheckbox = document.getElementById('is_gift');
+            const giftFields = document.getElementById('gift_fields');
+            const giftRecipientName = document.getElementById('gift_recipient_name');
+            const giftRecipientPhone = document.getElementById('gift_recipient_phone');
+            const giftRecipientAddress = document.getElementById('gift_recipient_address_details');
 
             function selectAddress(radio) {
                 document.querySelectorAll('.address-card').forEach(card => card.classList.remove('selected'));
@@ -258,6 +292,22 @@
 
             const checkedRadio = document.querySelector('input[name="saved_address_id"]:checked');
             if (checkedRadio) selectAddress(checkedRadio);
+
+            function toggleGiftFields() {
+                if (!isGiftCheckbox || !giftFields) return;
+
+                const enabled = isGiftCheckbox.checked;
+                giftFields.classList.toggle('hidden', !enabled);
+
+                if (giftRecipientName) giftRecipientName.required = enabled;
+                if (giftRecipientPhone) giftRecipientPhone.required = enabled;
+                if (giftRecipientAddress) giftRecipientAddress.required = enabled;
+            }
+
+            if (isGiftCheckbox) {
+                isGiftCheckbox.addEventListener('change', toggleGiftFields);
+                toggleGiftFields();
+            }
 
             // ---- حساب المحفظة في الواجهة (عرض فقط)
             const useWallet       = document.getElementById('use_wallet');

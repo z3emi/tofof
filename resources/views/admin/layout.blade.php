@@ -39,7 +39,7 @@
             --sidebar-width: 260px;
             --topbar-height: 58px;
             --bg-light: #f7f7f7;
-            --primary-dark: #c32126;
+            --primary-dark: #6d0e16;
             --primary-medium: #a61c20;
             --primary-light: #ea7a7e;
             --secondary-light: #e7e7e7;
@@ -58,7 +58,7 @@
         /* START: Dark Mode Variables */
         [data-theme="dark"] {
             --bg-light: #0a0a0a;
-            --primary-dark: #c32126;
+            --primary-dark: #6d0e16;
             --primary-medium: #a61c20;
             --primary-light: #ea7a7e;
             --secondary-light: #2a2a2a;
@@ -422,6 +422,16 @@
                     @endcan
                     {{-- ===== END: الطلبات + العملاء ===== --}}
 
+                    @can('view-admin-panel')
+                    @if (Route::has('admin.gifts.index'))
+                    <li class="nav-item">
+                        <a href="{{ route('admin.gifts.index') }}" class="nav-link {{ request()->routeIs('admin.gifts.*') ? 'active' : '' }}">
+                            <i class="bi bi-gift"></i>
+                            <span>الهدايا</span>
+                        </a>
+                    </li>
+                    @endif
+                    @endcan
                     
                     @can('view-products')
                     <li class="nav-item">
@@ -533,7 +543,6 @@
                     </li>
                     @endcan
 
-                    @can('edit-settings')
                     <hr class="mx-3 my-2">
 
                     <li class="nav-item"
@@ -563,6 +572,13 @@
                                     class="nav-link sub-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                                         <i class="bi bi-globe2"></i>
                                         <span>الموقع</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.products.import_quantity') }}"
+                                    class="nav-link sub-link {{ request()->routeIs('admin.products.import_quantity') ? 'active' : '' }}">
+                                        <i class="bi bi-upload"></i>
+                                        <span>تحديث كميات المنتجات (Excel)</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
@@ -603,7 +619,6 @@
                             </ul>
                         </div>
                     </li>
-                    @endcan
                     
                     @can('view-activity-log')
                     <li class="nav-item">

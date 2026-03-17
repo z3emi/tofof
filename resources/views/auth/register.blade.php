@@ -10,7 +10,7 @@ $countries = [
     ['name' => 'لبنان', 'code' => '+961', 'flag' => '🇱🇧'],
     ['name' => 'فلسطين', 'code' => '+970', 'flag' => '🇵🇸'],
     ['name' => 'قطر', 'code' => '+974', 'flag' => '🇶🇦'],
-    ['name' => 'البحرين', 'code' => '+973', 'flag' => '🇧ahrain'],
+    ['name' => 'البحرين', 'code' => '+973', 'flag' => '🇧🇭'],
     ['name' => 'الكويت', 'code' => '+965', 'flag' => '🇰🇼'],
     ['name' => 'عُمان', 'code' => '+968', 'flag' => '🇴🇲'],
     ['name' => 'اليمن', 'code' => '+967', 'flag' => '🇾🇪'],
@@ -32,24 +32,24 @@ $countries = [
 @push('styles')
 <style>
   /* الهوية (آمنة) */
-  .bg-brand-dark{ background:#4a2c2a; }
-  .bg-brand-primary{ background:#cd8985; }
-  .text-brand-primary{ color:#cd8985; }
-  .text-brand-text{ color:#4a2c2a; }
-  .focus\:ring-brand-primary:focus{ --tw-ring-color:#cd8985; }
-  .border-brand-primary{ border-color:#cd8985; }
+  .bg-brand-dark{ background:#6d0e16; }
+  .bg-brand-primary{ background:#a61c20; }
+  .text-brand-primary{ color:#6d0e16; }
+  .text-brand-text{ color:#2f1113; }
+  .focus\:ring-brand-primary:focus{ --tw-ring-color:#6d0e16; }
+  .border-brand-primary{ border-color:#6d0e16; }
 
   /* ====== سكوﭬ للصفحة حتى ما يأثر على الهيدر ====== */
   .register-scope{
-    background:#f9f5f1;
+    background:#fff8f8;
     background-image:
-      radial-gradient(circle at 10% 20%, rgba(205,137,133,.05) 0%, transparent 20%),
-      radial-gradient(circle at 90% 80%, rgba(205,137,133,.05) 0%, transparent 20%);
+      radial-gradient(circle at 10% 20%, rgba(109,14,22,.07) 0%, transparent 23%),
+      radial-gradient(circle at 90% 80%, rgba(166,28,32,.06) 0%, transparent 24%);
   }
 
   .register-card{
     background:#fff;
-    border:1px solid #f3e5e3;
+    border:1px solid #f2d6d7;
     box-shadow:0 10px 30px rgba(0,0,0,.05);
   }
 
@@ -60,16 +60,16 @@ $countries = [
     background:#fff; transition:.25s; overflow:hidden; direction:ltr;
   }
   .register-scope .phone-input-group:focus-within{
-    border-color:#cd8985; box-shadow:0 0 0 3px rgba(205,137,133,.18);
+    border-color:#6d0e16; box-shadow:0 0 0 3px rgba(109,14,22,.16);
   }
 
   .register-scope .country-code-btn{
     height:48px; min-width:112px;
-    padding:.75rem 1rem; background:#f9f5f1; border-right:1px solid #e5e7eb;
+    padding:.75rem 1rem; background:#fff1f2; border-right:1px solid #e5e7eb;
     display:flex; align-items:center; justify-content:center; gap:.5rem;
     font-size:.92rem; cursor:pointer; transition:.2s;
   }
-  .register-scope .country-code-btn:hover{ background:#f3e5e3; }
+  .register-scope .country-code-btn:hover{ background:#fde8ea; }
 
   .register-scope .phone-input{
     height:48px; flex:1; padding:.75rem 1rem; font-size:1rem;
@@ -83,10 +83,10 @@ $countries = [
   }
   .register-scope .country-list a{
     display:flex; align-items:center; gap:.75rem; padding:.7rem 1rem; font-size:.92rem;
-    color:#4a2c2a; cursor:pointer; transition:.15s; border-bottom:1px solid #f3e5e3;
+    color:#2f1113; cursor:pointer; transition:.15s; border-bottom:1px solid #f2d6d7;
   }
   .register-scope .country-list a:last-child{ border-bottom:0; }
-  .register-scope .country-list a:hover{ background:#f9f5f1; }
+  .register-scope .country-list a:hover{ background:#fff1f2; }
   .register-scope .country-list::-webkit-scrollbar{ width:8px; }
   .register-scope .country-list::-webkit-scrollbar-thumb{ background:#eadbcd; border-radius:999px; }
 
@@ -102,22 +102,22 @@ $countries = [
     position:absolute; inset-inline-end:1rem; top:50%; transform:translateY(-50%);
     color:#6b7280; cursor:pointer; transition:.2s;
   }
-  .register-scope .password-toggle:hover{ color:#cd8985; }
+  .register-scope .password-toggle:hover{ color:#6d0e16; }
   .register-scope .pad-for-toggle{ padding-inline-end:2.5rem; }
 
   /* رمز الدعوة (ستايل مميز) */
   .register-scope .referral-chip{
     display:inline-flex; align-items:center; gap:.35rem;
-    background:linear-gradient(135deg,#cd8985,#be6661);
+    background:linear-gradient(135deg,#6d0e16,#a61c20);
     color:#fff; font-size:.72rem; font-weight:700;
     padding:.2rem .6rem; border-radius:999px; letter-spacing:.2px;
-    box-shadow:0 6px 14px rgba(205,137,133,.35);
+    box-shadow:0 6px 14px rgba(109,14,22,.35);
   }
   .register-scope .referral-input{
-    background:#fff; border:2px solid #f0deda; transition:.2s;
+    background:#fff; border:2px solid #f2d6d7; transition:.2s;
   }
   .register-scope .referral-input:focus{
-    border-color:#cd8985; box-shadow:0 0 0 3px rgba(205,137,133,.18);
+    border-color:#6d0e16; box-shadow:0 0 0 3px rgba(109,14,22,.16);
   }
   .register-scope .referral-icon{
     position:absolute; inset-block:0; inset-inline-start:.75rem;
@@ -138,8 +138,8 @@ $countries = [
   html.dark .register-scope{
     background:#0b0f14;
     background-image:
-      radial-gradient(circle at 10% 20%, rgba(205,137,133,.05) 0%, transparent 22%),
-      radial-gradient(circle at 90% 80%, rgba(205,137,133,.05) 0%, transparent 22%);
+      radial-gradient(circle at 10% 20%, rgba(109,14,22,.15) 0%, transparent 25%),
+      radial-gradient(circle at 90% 80%, rgba(166,28,32,.14) 0%, transparent 25%);
   }
   html.dark .register-card{
     background:#0f172a; border-color:#1f2937;
@@ -153,11 +153,11 @@ $countries = [
     background:#0f172a; border-color:#334155; color:#e5e7eb;
   }
   html.dark .register-scope .form-field input:focus{
-    border-color:#cd8985; box-shadow:0 0 0 3px rgba(205,137,133,.25); background:#0b1220;
+    border-color:#a61c20; box-shadow:0 0 0 3px rgba(109,14,22,.30); background:#0b1220;
   }
 
   html.dark .register-scope .phone-input-group{ background:#0f172a; border-color:#1f2937; }
-  html.dark .register-scope .phone-input-group:focus-within{ box-shadow:0 0 0 3px rgba(205,137,133,.22); }
+  html.dark .register-scope .phone-input-group:focus-within{ box-shadow:0 0 0 3px rgba(109,14,22,.30); }
   html.dark .register-scope .country-code-btn{ background:#111827; border-right-color:#1f2937; color:#e5e7eb; }
   html.dark .register-scope .country-code-btn:hover{ background:#0f172a; }
   html.dark .register-scope .phone-input::placeholder{ color:#94a3b8; }
@@ -173,7 +173,7 @@ $countries = [
   html.dark .register-scope .text-gray-500{ color:#94a3b8 !important; }
   html.dark .register-scope .text-gray-400{ color:#9ca3af !important; }
 
-  html.dark .register-scope .referral-input{ background:#0f172a; border-color:#be6661aa; }
+  html.dark .register-scope .referral-input{ background:#0f172a; border-color:#a61c20aa; }
   html.dark .register-scope .referral-icon{ color:#e5c7c3; }
 </style>
 @endpush

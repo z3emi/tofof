@@ -115,6 +115,42 @@ public function homepage(Request $request)
         ? Auth::user()->favorites()->pluck('product_id')->toArray()
         : [];
 
+    // 8) جلب منتجات الساعات وتحويلها إلى شرائح
+    $watchProducts = Product::query()
+        ->where('is_active', true)
+        ->with('firstImage')
+        ->whereHas('primaryCategories', function($q) {
+            $q->where('slug', 'watches')->orWhere('name_ar', 'ساعات');
+        })
+        ->inRandomOrder()
+        ->take(3)
+        ->get();
+
+    // تحويل منتجات الساعات إلى شرائح (format) بنفس هيكل HomepageSlide
+    $heroSlides = $watchProducts->map(function($product) {
+        $imageUrl = $product->firstImage?->image_path 
+            ? asset('storage/' . ltrim($product->firstImage->image_path, '/'))
+            : ($product->image_url ?? 'https://via.placeholder.com/1974x1316');
+        
+        return (object)[
+            'title' => $product->name_ar ?? $product->name_en,
+            'subtitle' => null,
+            'button_text' => 'عرض المنتج',
+            'button_url' => route('product.detail', $product),
+            'background_image_url' => $imageUrl,
+            'alt_text' => $product->name_ar ?? $product->name_en,
+            'show_overlay' => false,
+            'overlay_color' => '#000000',
+            'overlay_strength' => 0.5,
+        ];
+    })->values();
+
+    // إذا لم نجد منتجات ساعات، استخدم السلايدات الافتراضية
+    if ($heroSlides->isEmpty()) {
+        $heroSlides = HomepageSlide::defaultSlidesForSection(HomepageSlide::SECTION_HERO);
+    }
+
+    // جلب سلايدات promos من قاعدة البيانات أو من الديفولت
     if (Schema::hasTable('homepage_slides')) {
         $slides = HomepageSlide::query()
             ->active()
@@ -122,11 +158,9 @@ public function homepage(Request $request)
             ->get()
             ->groupBy('section');
 
-        $heroSlides = $slides->get(HomepageSlide::SECTION_HERO, collect());
         $promoPrimarySlides = $slides->get(HomepageSlide::SECTION_PROMO_PRIMARY, collect());
         $promoSecondarySlides = $slides->get(HomepageSlide::SECTION_PROMO_SECONDARY, collect());
     } else {
-        $heroSlides = HomepageSlide::defaultSlidesForSection(HomepageSlide::SECTION_HERO);
         $promoPrimarySlides = HomepageSlide::defaultSlidesForSection(HomepageSlide::SECTION_PROMO_PRIMARY);
         $promoSecondarySlides = HomepageSlide::defaultSlidesForSection(HomepageSlide::SECTION_PROMO_SECONDARY);
     }

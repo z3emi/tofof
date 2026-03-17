@@ -20,11 +20,20 @@ class Order extends Model
         'address_details',
         'nearest_landmark',
         'notes',
+        'is_gift',
+        'gift_recipient_name',
+        'gift_recipient_phone',
+        'gift_recipient_address_details',
+        'gift_message',
         'total_amount',
         'shipping_cost',
         'status',
         'discount_amount',     
         'discount_code_id',
+    ];
+
+    protected $casts = [
+        'is_gift' => 'boolean',
     ];
 
     /**

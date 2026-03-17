@@ -17,13 +17,9 @@ use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Models\Permission as SpatiePermission;
 use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 use App\Models\Concerns\InteractsWithSanctumApiTokens;
-use App\Models\AdvanceRequest;
 use App\Models\Customer;
 use App\Models\Favorite;
-use App\Models\LeaveRequest;
 use App\Models\Order;
-use App\Models\PayrollItem;
-use App\Models\SalesCommission;
 use App\Models\Task;
 use App\Traits\LogsActivity;
 use App\Traits\OptionalSoftDeletes;
@@ -284,31 +280,6 @@ class Manager extends Authenticatable
     public function salesOrders(): HasMany
     {
         return $this->hasMany(Order::class, 'salesperson_id');
-    }
-
-    public function leaveRequests(): HasMany
-    {
-        return $this->hasMany(LeaveRequest::class, 'employee_id');
-    }
-
-    public function advanceRequests(): HasMany
-    {
-        return $this->hasMany(AdvanceRequest::class, 'employee_id');
-    }
-
-    public function attendanceRecords(): HasMany
-    {
-        return $this->hasMany(AttendanceRecord::class, 'employee_id');
-    }
-
-    public function payrollItems(): HasMany
-    {
-        return $this->hasMany(PayrollItem::class, 'employee_id');
-    }
-
-    public function salesCommissions(): HasMany
-    {
-        return $this->hasMany(SalesCommission::class, 'employee_id');
     }
 
     public function createdTasks(): HasMany

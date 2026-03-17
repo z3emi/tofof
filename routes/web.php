@@ -291,7 +291,9 @@ Route::middleware(['auth:admin', 'can:view-admin-panel'])->prefix('admin')->name
         Route::get('/financial/export', [ReportController::class, 'exportExcel'])->name('financial.export');
         Route::get('/inventory', [ReportController::class, 'inventory'])->name('inventory');
         Route::get('/customers', [ReportController::class, 'customers'])->name('customers');
+        Route::get('/customers/export', [ReportController::class, 'exportCustomersExcel'])->name('customers.export');
         Route::get('/stock', [ReportController::class, 'stockReport'])->name('stock');
+        Route::get('/stock/export', [ReportController::class, 'exportStockExcel'])->name('stock.export');
     });
 
     // Resource Routes
@@ -299,6 +301,11 @@ Route::middleware(['auth:admin', 'can:view-admin-panel'])->prefix('admin')->name
         Route::get('/trash', [AdminProductController::class, 'trash'])->name('trash')->middleware('can:view-products');
         Route::post('/{id}/restore', [AdminProductController::class, 'restore'])->name('restore')->middleware('can:edit-products');
         Route::delete('/{id}/force-delete', [AdminProductController::class, 'forceDelete'])->name('forceDelete')->middleware('can:edit-products');
+        Route::get('/export', [AdminProductController::class, 'exportExcel'])->name('export')->middleware('can:view-products');
+        
+        // Add the missing route
+        Route::get('/import-quantity', [ImportController::class, 'importQuantityForm'])->name('import_quantity')->middleware('can:manage-imports');
+        Route::post('/import-quantity', [ImportController::class, 'importQuantity'])->name('import_quantity.store')->middleware('can:manage-imports');
     });
     Route::resource('products', AdminProductController::class)->middleware('can:view-products');
 
@@ -306,9 +313,11 @@ Route::middleware(['auth:admin', 'can:view-admin-panel'])->prefix('admin')->name
         Route::get('/trash', [CategoryController::class, 'trash'])->name('trash')->middleware('can:view-categories');
         Route::post('/{id}/restore', [CategoryController::class, 'restore'])->name('restore')->middleware('can:edit-categories');
         Route::delete('/{id}/force-delete', [CategoryController::class, 'forceDelete'])->name('forceDelete')->middleware('can:edit-categories');
+        Route::get('/export', [CategoryController::class, 'exportExcel'])->name('export')->middleware('can:view-categories');
     });
     Route::resource('categories', CategoryController::class)->except(['show'])->middleware('can:view-categories');
 
+    Route::get('/orders/export', [OrderController::class, 'exportExcel'])->name('orders.export')->middleware('can:view-orders');
     Route::resource('orders', OrderController::class)->middleware('can:view-orders');
     
     // Managers
@@ -330,6 +339,7 @@ Route::middleware(['auth:admin', 'can:view-admin-panel'])->prefix('admin')->name
         Route::get('/trash', [DiscountCodeController::class, 'trash'])->name('trash')->middleware('can:view-discount-codes');
         Route::post('/{id}/restore', [DiscountCodeController::class, 'restore'])->name('restore')->middleware('can:edit-discount-codes');
         Route::delete('/{id}/force-delete', [DiscountCodeController::class, 'forceDelete'])->name('forceDelete')->middleware('can:edit-discount-codes');
+        Route::get('/export', [DiscountCodeController::class, 'exportExcel'])->name('export')->middleware('can:view-discount-codes');
     });
     Route::resource('discount-codes', DiscountCodeController::class)->middleware('can:view-discount-codes');
 
@@ -478,6 +488,7 @@ Route::middleware(['auth:admin']) // أضف صلاحياتك مثل can:manage-c
             Route::get('/trash', [PrimaryCategoryController::class, 'trash'])->name('trash');
             Route::post('/{id}/restore', [PrimaryCategoryController::class, 'restore'])->name('restore');
             Route::delete('/{id}/force-delete', [PrimaryCategoryController::class, 'forceDelete'])->name('forceDelete');
+            Route::get('/export', [PrimaryCategoryController::class, 'exportExcel'])->name('export');
         });
         Route::resource('primary-categories', PrimaryCategoryController::class);
         Route::patch('primary-categories/{primary_category}/toggle', [PrimaryCategoryController::class, 'toggle'])

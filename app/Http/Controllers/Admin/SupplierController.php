@@ -89,13 +89,8 @@ class SupplierController extends Controller
      */
     public function destroy(Supplier $supplier)
     {
-        // You might want to add a check here to prevent deleting a supplier
-        // if they have associated purchase invoices.
-        if ($supplier->purchaseInvoices()->exists()) {
-            return redirect()->route('admin.suppliers.index')->with('error', 'لا يمكن حذف المورد لأنه مرتبط بفواتير شراء.');
-        }
-
         $supplier->delete();
+
         return redirect()->route('admin.suppliers.index')->with('success', 'تم حذف المورد بنجاح.');
     }
 }

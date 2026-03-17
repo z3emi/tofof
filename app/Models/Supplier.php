@@ -17,12 +17,4 @@ class Supplier extends Model
         'notes',
     ];
 
-    /**
-     * العلاقة مع فواتير المشتريات
-     * كل مورد يمكن أن يكون له العديد من فواتير الشراء
-     */
-    public function purchaseInvoices()
-    {
-        return $this->hasMany(PurchaseInvoice::class);
-    }
 }

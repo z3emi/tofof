@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\CategoriesExport;
 
 class CategoryController extends Controller
 {
@@ -243,5 +245,20 @@ class CategoryController extends Controller
             $current = Category::find($current->parent_id);
         }
         return false;
+    }
+
+    public function exportExcel()
+    {
+        $categories = Category::withCount('products')->with('parent')->get();
+        $data = $categories->map(function ($c) {
+            return [
+                $c->name_ar,
+                $c->slug ?? '-',
+                $c->parent?->name_ar ?? '-',
+                $c->products_count,
+            ];
+        })->toArray();
+
+        return Excel::download(new CategoriesExport($data), 'categories.xlsx');
     }
 }

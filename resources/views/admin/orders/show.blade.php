@@ -114,6 +114,24 @@
                 @endif
             </div>
 
+            @if($order->is_gift)
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="header-text">
+                        <i class="bi bi-gift-fill"></i>
+                        <span>بيانات الهدية</span>
+                    </div>
+                </div>
+                <p class="mb-1"><strong>حالة الطلب:</strong> <span class="badge bg-danger">هدية</span></p>
+                <p class="mb-1"><strong>اسم المستلم:</strong> {{ $order->gift_recipient_name }}</p>
+                <p class="mb-1"><strong>هاتف المستلم:</strong> <a href="tel:{{ $order->gift_recipient_phone }}">{{ $order->gift_recipient_phone }}</a></p>
+                <p class="mb-1"><strong>عنوان المستلم:</strong> {{ $order->gift_recipient_address_details }}</p>
+                @if($order->gift_message)
+                    <p class="mb-0"><strong>رسالة الهدية:</strong> {{ $order->gift_message }}</p>
+                @endif
+            </div>
+            @endif
+
             {{-- 3) ملخص الطلب --}}
             <div class="panel">
                 <div class="panel-header">

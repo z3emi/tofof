@@ -65,6 +65,36 @@
                 <label for="notes" class="form-label">ملاحظات الطلب (اختياري)</label>
                 <textarea name="notes" id="notes" class="form-control" rows="4">{{ old('notes') }}</textarea>
             </div>
+
+            <div class="card border-0 bg-light mb-3">
+                <div class="card-body">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="is_gift" name="is_gift" value="1" @checked(old('is_gift'))>
+                        <label class="form-check-label fw-bold" for="is_gift">هذا الطلب هدية</label>
+                    </div>
+
+                    <div id="gift_fields" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="gift_recipient_name" class="form-label">اسم مستلم الهدية</label>
+                                <input type="text" class="form-control" id="gift_recipient_name" name="gift_recipient_name" value="{{ old('gift_recipient_name') }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="gift_recipient_phone" class="form-label">رقم هاتف مستلم الهدية</label>
+                                <input type="text" class="form-control" id="gift_recipient_phone" name="gift_recipient_phone" value="{{ old('gift_recipient_phone') }}">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="gift_recipient_address_details" class="form-label">عنوان مستلم الهدية</label>
+                            <textarea class="form-control" id="gift_recipient_address_details" name="gift_recipient_address_details" rows="2">{{ old('gift_recipient_address_details') }}</textarea>
+                        </div>
+                        <div class="mb-0">
+                            <label for="gift_message" class="form-label">رسالة الهدية (اختياري)</label>
+                            <textarea class="form-control" id="gift_message" name="gift_message" rows="2">{{ old('gift_message') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
             {{-- ===== END: تم تعديل هذا القسم ===== --}}
 
             <hr>
@@ -148,6 +178,11 @@ $(document).ready(function() {
     const savedAddressesList = $('#saved_addresses_list');
     const savedAddressInput = $('#saved_address_id');
     const bannedCustomerWarning = $('#banned-customer-warning');
+    const isGiftInput = $('#is_gift');
+    const giftFields = $('#gift_fields');
+    const giftRecipientNameInput = $('#gift_recipient_name');
+    const giftRecipientPhoneInput = $('#gift_recipient_phone');
+    const giftRecipientAddressInput = $('#gift_recipient_address_details');
     const addressEndpointTemplate = @json(route('admin.users.getAddress', ['id' => '__ID__']));
     const hasAddressDetailsOld = @json(!empty(old('address_details')));
 
@@ -213,6 +248,14 @@ $(document).ready(function() {
         const price = parseFloat($(row).find('.item-price').val()) || 0;
         $(row).find('.item-subtotal').text(formatNumber(quantity * price) + ' د.ع');
         updateTotals();
+    }
+
+    function toggleGiftFields() {
+        const isGift = isGiftInput.is(':checked');
+        giftFields.toggle(isGift);
+        giftRecipientNameInput.prop('required', isGift);
+        giftRecipientPhoneInput.prop('required', isGift);
+        giftRecipientAddressInput.prop('required', isGift);
     }
 
     $('#product_selector').on('select2:select', function (e) {
@@ -414,6 +457,9 @@ $(document).ready(function() {
             bannedCustomerWarning.toggle(!!initialOption.data('banned'));
         }
     }
+
+    isGiftInput.on('change', toggleGiftFields);
+    toggleGiftFields();
 });
 </script>
 @endpush

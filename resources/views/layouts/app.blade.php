@@ -75,8 +75,8 @@
         if (auth()->check()) {
             $u = auth()->user();
             $hasSuper = method_exists($u, 'hasRole') && $u->hasRole('super-admin');
-            $hasNonUserRole = $u->roles->where('name', '!=', 'user')->isNotEmpty();
-            $hasAnyPerms = method_exists($u, 'getAllPermissions') && $u->getAllPermissions()->isNotEmpty();
+            $hasNonUserRole = $u->roles && $u->roles->where('name', '!=', 'user')->isNotEmpty();
+            $hasAnyPerms = method_exists($u, 'getAllPermissions') && $u->getAllPermissions() && $u->getAllPermissions()->isNotEmpty();
             $showDashboardLink = $hasSuper || $hasNonUserRole || $hasAnyPerms;
         }
     } catch (\Exception $e) {
@@ -89,6 +89,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#6d0e16">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="{{ $siteName }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@yield('title', $siteTitle)</title>
@@ -97,6 +100,8 @@
 
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <link rel="apple-touch-icon" href="{{ asset('logo.png') }}">
 
     <meta property="og:site_name" content="{{ $locale === 'ar' ? ($seo['site_title_ar'] ?? $seo['site_title'] ?? 'طفوف') : ($seo['site_title_en'] ?? $seo['site_title'] ?? 'Tofof') }}">
     <meta property="og:title" content="@yield('title', $siteTitle)">
@@ -163,7 +168,7 @@
                         "brand-secondary": "#F3E5E3",
                         "brand-dark": "#34282C",
                         "brand-text": "#34282C",
-                        "brand-accent": "#c32126",
+                        "brand-accent": "#6d0e16",
                         "brand-gray": "#6B7280",
                     },
                     animation: {
@@ -251,7 +256,7 @@ html.dark .glass-nav{
 }
 .glass-item .icon{ font-size:20px; line-height:1; }
 .glass-item:active{ transform: translateY(1px) scale(.98); }
-.glass-item.active{ color:#c32126; }
+.glass-item.active{ color:#6d0e16; }
 html.dark .glass-item{ color:#cbd5e1; } 
 html.dark .glass-item.active{ color:#f0b0ad; }
 </style>
@@ -278,9 +283,9 @@ html.dark .glass-item.active{ color:#f0b0ad; }
         .dark .footer-mobile { background-color: #0f172a; border-top-color: #1f2937; box-shadow: 0 -2px 10px rgba(0,0,0,0.4); }
         .footer-mobile a { transition: all 0.3s ease; position: relative; overflow: hidden; }
         .dark .footer-mobile a { color: #e5e7eb; }
-        .footer-mobile a.active { color: #c32126; font-weight: bold; }
+        .footer-mobile a.active { color: #6d0e16; font-weight: bold; }
         .dark .footer-mobile a.active { color: #f0b0ad; }
-        .footer-mobile a::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background-color: #c32126; transform: scaleX(0); transition: transform 0.3s ease; }
+        .footer-mobile a::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background-color: #6d0e16; transform: scaleX(0); transition: transform 0.3s ease; }
         .dark .footer-mobile a::after { background-color: #f0b0ad; }
         .footer-mobile a.active::after { transform: scaleX(1); }
         .footer-mobile .icon { font-size: 1.5rem; margin-bottom: 0.25rem; transition: transform 0.3s ease; }
@@ -303,12 +308,174 @@ html.dark .glass-item.active{ color:#f0b0ad; }
     </style>
 <style>
   [x-cloak] { display: none !important; }
+
+  .store-badge-row {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.7rem;
+    justify-content: center;
+    align-items: center;
+  }
+  .store-badge-btn {
+    min-width: 148px;
+    height: 40px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: linear-gradient(180deg, #0a0d12 0%, #06080d 100%);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.48rem;
+    padding: 0.32rem 0.55rem;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease;
+  }
+  .store-badge-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
+    opacity: 0.98;
+  }
+  .store-badge-btn i {
+    font-size: 0.82rem;
+    line-height: 1;
+  }
+  .store-badge-btn .text-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.1;
+  }
+  .store-badge-btn .mini {
+    font-size: 0.52rem;
+    opacity: 0.8;
+    letter-spacing: 0.02em;
+    font-weight: 600;
+  }
+  .store-badge-btn .label {
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+  .footer-bottom-bar {
+    border-top: 1px solid #e5e5e5;
+    padding-top: 1rem;
+    padding-bottom: 0.75rem;
+  }
+  .dark .footer-bottom-bar {
+    border-top-color: #1f2937;
+  }
+  .footer-bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+    align-items: center;
+  }
+  .footer-bottom-center {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: 1.02rem;
+    font-weight: 700;
+  }
+  .footer-divider {
+    color: #c5c7cc;
+  }
+  .footer-payment-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.62rem;
+    flex-wrap: nowrap;
+  }
+  .payment-pill {
+    background: transparent;
+    border-radius: 14px;
+    border: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: auto;
+    transition: transform 0.2s ease;
+  }
+  .payment-pill:hover {
+    transform: translateY(-1px);
+  }
+  .payment-pill img {
+    height: 21px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+    filter: grayscale(100%) contrast(125%);
+  }
+  .dark .payment-pill img {
+    filter: grayscale(100%) contrast(120%) brightness(115%);
+  }
+  .dark .payment-pill img[alt="Zain Cash"] {
+    filter: grayscale(100%) brightness(0) invert(1) contrast(140%);
+  }
+  @media (min-width: 1024px) {
+    .footer-bottom-grid {
+      grid-template-columns: 1fr auto 1fr;
+      gap: 1.25rem;
+    }
+    .footer-bottom-bar {
+      padding-bottom: 0.45rem;
+    }
+    .footer-left-col {
+      justify-self: start;
+    }
+    .footer-center-col {
+      justify-self: center;
+    }
+    .footer-right-col {
+      justify-self: end;
+    }
+    .footer-bottom-center {
+      font-size: 1.02rem;
+    }
+  }
+  @media (max-width: 767px) {
+    .store-badge-row {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .store-badge-btn {
+      min-width: 178px;
+      height: 52px;
+      padding: 0.5rem 0.68rem;
+    }
+    .footer-bottom-bar {
+      padding-bottom: 5.9rem;
+    }
+    .footer-payment-row {
+      flex-wrap: wrap;
+    }
+  }
+  .ios-install-modal {
+    background: rgba(0, 0, 0, 0.65);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+  }
+  .ios-install-card {
+    border-radius: 20px;
+    background: #ffffff;
+    border: 1px solid #ececec;
+    box-shadow: 0 24px 52px rgba(0, 0, 0, 0.26);
+  }
+  html.dark .ios-install-card {
+    background: #111827;
+    border-color: #374151;
+  }
 </style>
     {{-- STYLES FOR CATEGORIES COMPONENT --}}
     <style>
       :root {
-        --brand: #c32126;
-        --brand-dark: #a61c20;
+        --brand: #6d0e16;
+        --brand-dark: #6d0e16;
         --line: #e5e5e5;
         --soft: #ffffff;
         --text: #1a1a1a;
@@ -320,8 +487,8 @@ html.dark .glass-item.active{ color:#f0b0ad; }
       }
       
       html.dark {
-        --brand: #c32126;
-        --brand-dark: #a61c20;
+        --brand: #6d0e16;
+        --brand-dark: #6d0e16;
         --line: #2a2a2a;
         --soft: #111111;
         --text: #ffffff;
@@ -364,7 +531,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
       .subcategory-node { margin-bottom: 1rem; position: relative; }
       .subcategory-card { background: var(--bg-light); border-radius: 12px; box-shadow: 0 6px 14px var(--shadow); transition: var(--transition); border: 1px solid var(--border); display: flex; align-items: center; position: relative; }
       .subcategory-card::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 5px; background: linear-gradient(180deg, #e8b8b6 0%, #f3c6c3 100%); border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
-      .dark .subcategory-card::before { background: linear-gradient(180deg, var(--brand) 0%, #a61c20 100%); opacity:0.7; }
+      .dark .subcategory-card::before { background: linear-gradient(180deg, var(--brand) 0%, #6d0e16 100%); opacity:0.7; }
       .subcategory-link { display: flex; align-items: center; padding: 1rem; flex: 1; text-decoration: none; color: inherit; }
       .subcategory-icon { width: 50px; height: 50px; border-radius: 10px; flex-shrink: 0; margin-left: 0.75rem; background: var(--soft); display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); }
       .subcategory-name { font-size: 1rem; font-weight: 700; color: var(--text); }
@@ -374,7 +541,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
       .sub-subcategory-node { margin-bottom: 0.75rem; }
       .sub-subcategory-card { background: var(--bg-light); border-radius: 10px; box-shadow: 0 4px 10px var(--shadow); border: 1px solid var(--border); display: flex; align-items: center; position: relative; }
       .sub-subcategory-card::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #f3c6c3 0%, #f9e6e3 100%); border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
-      .dark .sub-subcategory-card::before { background: linear-gradient(180deg, #a61c20 0%, #c32126 100%); opacity:0.6; }
+      .dark .sub-subcategory-card::before { background: linear-gradient(180deg, #6d0e16 0%, #6d0e16 100%); opacity:0.6; }
       .sub-subcategory-link { display: flex; align-items: center; padding: 0.75rem; flex: 1; text-decoration: none; color: inherit; }
       .sub-subcategory-icon { width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; margin-left: 0.5rem; background: var(--soft); display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); }
       .sub-subcategory-name { font-size: 0.9rem; font-weight: 700; color: var(--text); }
@@ -1043,7 +1210,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
     .mmv4-brand:hover{ transform:translateY(-2px); background:rgba(190,102,97,.10); }
     .mmv4-brand.active{
       background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.86));
-      border-color:#a61c20; box-shadow:0 10px 22px rgba(205,137,133,.18);
+      border-color:#6d0e16; box-shadow:0 10px 22px rgba(205,137,133,.18);
     }
     html.dark .mmv4-brand{ background:rgba(31,41,55,.62); border-color:#374151; }
     html.dark .mmv4-brand.active{ border-color:#f0b0ad; }
@@ -1092,16 +1259,19 @@ html.dark .glass-item.active{ color:#f0b0ad; }
 
 @php
     // جلب البراندات مع أبنائها لعرضها بشكل هرمي
-
+  try {
     $brandsTree = Cache::remember('global_brands_tree_for_liquid_menu', now()->addHours(6), function () {
-        return PrimaryCategory::whereNull('parent_id')
-            ->orderBy('name_ar', 'asc')
-            ->withCount('products')
-            ->with(['children' => function ($query) {
-                $query->orderBy('name_ar', 'asc')->withCount('products');
-            }])
-            ->get();
+      return PrimaryCategory::whereNull('parent_id')
+        ->orderBy('name_ar', 'asc')
+        ->withCount('products')
+        ->with(['children' => function ($query) {
+          $query->orderBy('name_ar', 'asc')->withCount('products');
+        }])
+        ->get();
     });
+  } catch (\Throwable $e) {
+    $brandsTree = collect();
+  }
 @endphp
 
 {{-- ==================================================================== --}}
@@ -1360,7 +1530,7 @@ function brandMenuV4(){
           <div class="flex h-full flex-col overflow-y-auto shadow-xl sidebar-glass">
             <div class="px-4 sm:px-6 py-4 border-b sidebar-header">
               <div class="flex items-center justify-between">
-                <h2 class="text-xl font-bold text-[#c32126] dark:text-[#f0b0ad]" id="sidebar-title"><i class="bi bi-grid-3x3-gap"></i> تصفح الأقسام</h2>
+                <h2 class="text-xl font-bold text-[#6d0e16] dark:text-[#f0b0ad]" id="sidebar-title"><i class="bi bi-grid-3x3-gap"></i> تصفح الأقسام</h2>
                 <button type="button" class="rounded-md text-gray-400 hover:text-red-500" @click="sidebarOpen = false"><i class="bi bi-x-lg text-xl"></i></button>
               </div>
             </div>
@@ -1451,22 +1621,10 @@ function brandMenuV4(){
       <p class="leading-relaxed text-sm text-[#6B7280] dark:text-gray-300">
         علامة متخصصة في الساعات والإكسسوارات الرجالية والنسائية، نقدم تصاميم أنيقة وجودة مميزة تضيف لمسة فخامة إلى إطلالتك اليومية.
       </p>
-      <div class="flex gap-4 text-[#c32126] text-2xl mt-4 justify-center md:justify-start">
-        <a href="https://www.facebook.com/p/%D8%B7%D9%81%D9%88%D9%81-%D9%84%D9%84%D8%B3%D8%A7%D8%B9%D8%A7%D8%AA-100091444293851/" target="_blank" rel="noopener noreferrer" class="hover:text-[#a61c20] transition"><i class="bi bi-facebook"></i></a>
-        <a href="https://www.instagram.com/tofof_watches" target="_blank" rel="noopener noreferrer" class="hover:text-[#a61c20] transition"><i class="bi bi-instagram"></i></a>
-        <a href="https://wa.me/9647744969024" target="_blank" rel="noopener noreferrer" class="hover:text-[#a61c20] transition"><i class="bi bi-whatsapp"></i></a>
-      </div>
-      {{-- Payment Icons --}}
-      <div class="flex flex-wrap gap-3 mt-6 justify-center md:justify-start items-center">
-          <div class="bg-white p-1 rounded-lg flex items-center justify-center shadow-sm border border-gray-100 hover:scale-105 transition-transform duration-200">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="Mastercard" class="h-5 md:h-6 w-auto">
-          </div>
-          <div class="bg-white p-1 rounded-lg flex items-center justify-center shadow-sm border border-gray-100 hover:scale-105 transition-transform duration-200">
-              <img src="https://zaincash.com/static/media/ZainCashLogo.fea8cf3bb90421f45dd384d6afc6fe3b.svg" alt="Zain Cash" class="h-6 md:h-7 w-auto">
-          </div>
-          <div class="bg-white p-1 rounded-lg flex items-center justify-center shadow-sm border border-gray-100 hover:scale-105 transition-transform duration-200">
-              <img src="https://qi.iq/images/logo.svg?1=1" alt="Qi Card" class="h-5 md:h-6 w-auto">
-          </div>
+      <div class="flex gap-4 text-[#6d0e16] text-2xl mt-4 justify-center md:justify-start">
+        <a href="https://www.facebook.com/p/%D8%B7%D9%81%D9%88%D9%81-%D9%84%D9%84%D8%B3%D8%A7%D8%B9%D8%A7%D8%AA-100091444293851/" target="_blank" rel="noopener noreferrer" class="hover:text-[#6d0e16] transition"><i class="bi bi-facebook"></i></a>
+        <a href="https://www.instagram.com/tofof_watches" target="_blank" rel="noopener noreferrer" class="hover:text-[#6d0e16] transition"><i class="bi bi-instagram"></i></a>
+        <a href="https://wa.me/9647744969024" target="_blank" rel="noopener noreferrer" class="hover:text-[#6d0e16] transition"><i class="bi bi-whatsapp"></i></a>
       </div>
     </div>
     <div>
@@ -1517,17 +1675,41 @@ function brandMenuV4(){
 </ul>
   </div>
   </div>
-  <div class="mt-12 border-t border-[#e5e5e5] pt-8 pb-32 md:pb-12 dark:border-gray-800">
-    <div class="container mx-auto px-4">
-      <div class="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 text-center text-base md:text-lg font-bold text-[#6B7280] dark:text-gray-400">
+  <div class="mt-10 footer-bottom-bar">
+    <div class="container mx-auto px-4 footer-bottom-grid">
+      <div class="footer-payment-row footer-left-col">
+        <div class="payment-pill"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="Mastercard"></div>
+        <div class="payment-pill"><img src="https://zaincash.com/static/media/ZainCashLogo.fea8cf3bb90421f45dd384d6afc6fe3b.svg" alt="Zain Cash"></div>
+        <div class="payment-pill"><img src="https://qi.iq/images/logo.svg?1=1" alt="Qi Card"></div>
+      </div>
+
+      <div class="footer-bottom-center footer-center-col dark:text-gray-400">
+        <a href="https://wosooll.com" target="_blank" class="flex items-center gap-1 hover:opacity-80 transition font-bold">
+          <i class="bi bi-heart-fill text-red-400"></i>
+          <span dir="ltr">Powered By Wosool</span>
+        </a>
+        <span class="footer-divider">|</span>
         <div>
           &copy; {{ date('Y') }} جميع الحقوق محفوظة لـ <a href="{{ route('homepage') }}" class="font-bold text-[#6d0e16] hover:text-[#6d0e16]">Tofof</a>
         </div>
-        <span class="hidden md:block text-gray-300 dark:text-gray-700">|</span>
-        <a href="https://wosooll.com" target="_blank" class="flex items-center gap-1 hover:opacity-80 transition font-bold">
-          <span dir="ltr">Powered By Wosool</span>
-          <i class="bi bi-heart-fill text-red-600 animate-pulse"></i>
-        </a>
+      </div>
+
+      <div class="store-badge-row footer-right-col">
+        <button type="button" id="androidInstallBtn" class="store-badge-btn" aria-label="تثبيت التطبيق على اندرويد">
+          <i class="bi bi-google-play"></i>
+          <span class="text-wrap">
+            <span class="mini">GET IT ON</span>
+            <span class="label">Google Play</span>
+          </span>
+        </button>
+
+        <button type="button" id="iosInstallBtn" class="store-badge-btn" aria-label="شرح التثبيت لاجهزة ابل">
+          <i class="bi bi-apple"></i>
+          <span class="text-wrap">
+            <span class="mini">Download on the</span>
+            <span class="label">App Store</span>
+          </span>
+        </button>
       </div>
     </div>
   </div>
@@ -1825,7 +2007,7 @@ document.addEventListener('alpine:init', () => {
         <div class="flex items-center gap-3 mt-2">
   <button type="submit" :disabled="loading"
           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-white disabled:opacity-70"
-          style="background:#c32126;">
+          style="background:#6d0e16;">
     <span x-show="!loading"><i class="bi bi-send"></i> إرسال الطلب</span>
     <span x-show="loading"><i class="bi bi-arrow-repeat animate-spin"></i> جاري الإرسال...</span>
   </button>
@@ -1879,7 +2061,7 @@ document.addEventListener('alpine:init', () => {
         </div>
         
         {{-- Close button as a backup --}}
-        <button @click="closeWelcomeModal()" class="mt-6 text-sm font-semibold text-[#c32126] hover:underline dark:text-red-400">
+        <button @click="closeWelcomeModal()" class="mt-6 text-sm font-semibold text-[#6d0e16] hover:underline dark:text-red-400">
             {{ __('إغلاق') }}
         </button>
     </div>
@@ -1900,6 +2082,121 @@ document.addEventListener('alpine:init', () => {
     }
 </style>
 @endif
+
+<div id="iosInstallGuideModal" class="fixed inset-0 z-[250] hidden items-center justify-center p-4 ios-install-modal" aria-hidden="true">
+  <div class="ios-install-card w-full max-w-md p-5 md:p-6 text-right">
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <div class="flex items-center gap-3">
+        <img src="{{ asset('logo.png') }}" alt="Tofof" class="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 object-contain bg-white">
+        <div>
+          <p class="font-extrabold text-[#6d0e16] dark:text-[#f0b0ad] leading-none">تثبيت طفوف</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">لأجهزة iPhone و iPad</p>
+        </div>
+      </div>
+      <button type="button" id="closeIosInstallGuide" class="text-gray-500 hover:text-red-600 text-2xl leading-none" aria-label="اغلاق">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="space-y-3 text-sm text-gray-700 dark:text-gray-200">
+      <p class="font-bold">الخطوات:</p>
+      <p>1. افتح الموقع من متصفح Safari.</p>
+      <p>2. اضغط زر المشاركة <i class="bi bi-box-arrow-up"></i>.</p>
+      <p>3. اختر "Add to Home Screen" أو "إضافة إلى الشاشة الرئيسية".</p>
+      <p>4. اضغط "Add" وسيظهر التطبيق على سطح الجهاز.</p>
+    </div>
+
+    <div class="mt-5 flex justify-end">
+      <button type="button" id="iosInstallGuideDone" class="px-4 py-2 rounded-xl text-white font-bold" style="background:#6d0e16;">
+        فهمت
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const androidBtn = document.getElementById('androidInstallBtn');
+    const iosBtn = document.getElementById('iosInstallBtn');
+    const iosModal = document.getElementById('iosInstallGuideModal');
+    const closeIosBtn = document.getElementById('closeIosInstallGuide');
+    const doneIosBtn = document.getElementById('iosInstallGuideDone');
+    let deferredInstallPrompt = null;
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    const isAndroid = /android/i.test(ua);
+    const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    function openIosGuide() {
+      if (!iosModal) return;
+      iosModal.classList.remove('hidden');
+      iosModal.classList.add('flex');
+      iosModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeIosGuide() {
+      if (!iosModal) return;
+      iosModal.classList.add('hidden');
+      iosModal.classList.remove('flex');
+      iosModal.setAttribute('aria-hidden', 'true');
+    }
+
+    if (closeIosBtn) closeIosBtn.addEventListener('click', closeIosGuide);
+    if (doneIosBtn) doneIosBtn.addEventListener('click', closeIosGuide);
+    if (iosModal) {
+      iosModal.addEventListener('click', function (e) {
+        if (e.target === iosModal) closeIosGuide();
+      });
+    }
+
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+    });
+
+    if (androidBtn) {
+      androidBtn.addEventListener('click', async function () {
+        if (isStandalone) {
+          alert('التطبيق مثبت مسبقا على جهازك.');
+          return;
+        }
+
+        if (isAndroid && deferredInstallPrompt) {
+          deferredInstallPrompt.prompt();
+          try {
+            await deferredInstallPrompt.userChoice;
+          } catch (err) {
+            console.error('Install prompt failed:', err);
+          }
+          deferredInstallPrompt = null;
+          return;
+        }
+
+        if (isIOS) {
+          openIosGuide();
+          return;
+        }
+
+        alert('لإضافة الموقع كتطبيق، افتح قائمة المتصفح ثم اختر Add to Home Screen.');
+      });
+    }
+
+    if (iosBtn) {
+      iosBtn.addEventListener('click', function () {
+        openIosGuide();
+      });
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('{{ asset('sw.js') }}').catch(function (err) {
+          console.error('Service worker registration failed:', err);
+        });
+      });
+    }
+  })();
+</script>
 
     @stack("scripts")
 </body>

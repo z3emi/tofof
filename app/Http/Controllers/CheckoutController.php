@@ -73,8 +73,16 @@ class CheckoutController extends Controller
         $request->validate([
             'saved_address_id' => 'required|exists:addresses,id',
             'payment_method'   => 'required|string',
+            'is_gift' => 'nullable|boolean',
+            'gift_recipient_name' => 'required_if:is_gift,1|nullable|string|max:255',
+            'gift_recipient_phone' => 'required_if:is_gift,1|nullable|string|max:50',
+            'gift_recipient_address_details' => 'required_if:is_gift,1|nullable|string|max:1000',
+            'gift_message' => 'nullable|string|max:1000',
         ], [
-            'saved_address_id.required' => 'يرجى اختيار أو إضافة عنوان شحن للمتابعة.'
+            'saved_address_id.required' => 'يرجى اختيار أو إضافة عنوان شحن للمتابعة.',
+            'gift_recipient_name.required_if' => 'يرجى إدخال اسم مستلم الهدية.',
+            'gift_recipient_phone.required_if' => 'يرجى إدخال رقم هاتف مستلم الهدية.',
+            'gift_recipient_address_details.required_if' => 'يرجى إدخال عنوان مستلم الهدية.',
         ]);
 
         $cart = session()->get('cart', []);
@@ -108,6 +116,7 @@ class CheckoutController extends Controller
             $discountAmount = session('discount_value', 0);
             $discountCodeId = session('discount_code_id', null);
             $finalTotal = ($subtotal - $discountAmount) + $shippingCost;
+            $isGift = $request->boolean('is_gift');
 
             $order = Order::create([
                 'user_id'          => $user->id,
@@ -121,6 +130,11 @@ class CheckoutController extends Controller
                 'city'             => $address->city ?? '',
                 'address_details'  => $address->address_details ?? '',
                 'nearest_landmark' => $address->nearest_landmark ?? '',
+                'is_gift' => $isGift,
+                'gift_recipient_name' => $isGift ? $request->gift_recipient_name : null,
+                'gift_recipient_phone' => $isGift ? $request->gift_recipient_phone : null,
+                'gift_recipient_address_details' => $isGift ? $request->gift_recipient_address_details : null,
+                'gift_message' => $isGift ? $request->gift_message : null,
                 'payment_method'   => $request->payment_method,
             ]);
             

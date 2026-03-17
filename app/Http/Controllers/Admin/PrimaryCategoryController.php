@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use App\Traits\HandlesImageUploads;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PrimaryCategoriesExport;
 
 class PrimaryCategoryController extends Controller
 {
@@ -203,4 +205,18 @@ public function children(\App\Models\PrimaryCategory $primary_category)
     return response()->json($children);
 }
 
+    public function exportExcel()
+    {
+        $items = PrimaryCategory::withCount('products')->with('parent')->get();
+        $data = $items->map(function ($item) {
+            return [
+                $item->name_ar,
+                $item->name_en ?? '-',
+                $item->parent?->name_ar ?? '-',
+                $item->products_count,
+            ];
+        })->toArray();
+
+        return Excel::download(new PrimaryCategoriesExport($data), 'primary-categories.xlsx');
+    }
 }

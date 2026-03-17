@@ -14,7 +14,11 @@ return new class extends Migration
 
         Schema::table('managers', function (Blueprint $table) {
             if (! Schema::hasColumn('managers', 'permissions')) {
-                $table->json('permissions')->nullable()->after('allowances');
+                $column = $table->json('permissions')->nullable();
+
+                if (Schema::hasColumn('managers', 'allowances')) {
+                    $column->after('allowances');
+                }
             }
         });
     }

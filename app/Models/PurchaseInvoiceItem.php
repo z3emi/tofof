@@ -21,14 +21,6 @@ class PurchaseInvoiceItem extends Model
     ];
 
     /**
-     * العلاقة مع فاتورة الشراء
-     */
-    public function purchaseInvoice()
-    {
-        return $this->belongsTo(PurchaseInvoice::class);
-    }
-
-    /**
      * العلاقة مع المنتج
      */
     public function product()

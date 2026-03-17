@@ -78,6 +78,9 @@
             <button type="submit" class="btn btn-sm">
                 <i class="bi bi-search me-1"></i> تطبيق
             </button>
+            <a href="{{ route('admin.reports.customers.export', ['month' => ($month ?? now()->month), 'year' => ($year ?? now()->year)]) }}" class="btn btn-sm btn-success" title="تصدير Excel" aria-label="تصدير Excel">
+                <i class="bi bi-file-earmark-excel"></i>
+            </a>
         </form>
     </div>
 
