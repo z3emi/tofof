@@ -2,84 +2,129 @@
 
 @section('title', 'تأكيد رقم الهاتف')
 
+@php
+  $phoneForVerification = session('phone_for_verification');
+  $oldOtp = preg_replace('/\D+/', '', old('otp', ''));
+  $otpDigits = array_pad(str_split(substr($oldOtp, 0, 6)), 6, '');
+@endphp
+
 @push('styles')
 <style>
-  /* ===== Card Glow / Subtle accents ===== */
+  /* ===== Match current login page ===== */
+  .otp-scope{
+    --c-primary:#6d0e16;
+    --c-hover:#c9101d;
+    --c-focus-ring:rgba(227,19,34,.16);
+    --c-text:#1d2432;
+    background:#f5f7fb !important;
+    min-height: 100vh;
+  }
+
   .otp-card{
-    background: #ffffff;
-    border-radius: 16px;
-    box-shadow:
-      0 14px 28px rgba(0,0,0,.08),
-      0 6px 12px rgba(0,0,0,.04),
-      inset 0 0 0 1px #eadbcd;
+    background: #fff;
+    border: 1px solid #e4e8f0;
+    border-radius: 0;
+    box-shadow: 0 18px 42px rgba(17,22,38,.14);
     overflow: hidden;
     position: relative;
-    isolation: isolate;
   }
-  .otp-card::before{
-    content:"";
-    position:absolute; inset:0;
-    background:
-      radial-gradient(120% 60% at 110% -10%, rgba(205,137,133,.06), transparent 50%),
-      radial-gradient(80% 40% at -10% 10%, rgba(255,255,255,.9), transparent 45%);
-    pointer-events:none;
-    z-index:0;
-  }
-  .otp-head{
-    position: relative;
-    background: linear-gradient(90deg, rgba(190,102,97,.08), rgba(209,163,164,.08));
-    border-bottom: 1px solid #eadbcd;
-  }
-  .otp-body{ position: relative; z-index: 1; }
 
-  /* Inputs focus ring to brand */
+  .otp-shell{ position:relative; }
+  .otp-shell::before,
+  .otp-shell::after{
+    content:'';
+    position:absolute;
+    width:74px;
+    height:74px;
+    border:1px solid rgba(227,19,34,.22);
+    pointer-events:none;
+  }
+  .otp-shell::before{ top:-14px; inset-inline-start:-14px; border-inline-end:0; border-bottom:0; }
+  .otp-shell::after{ bottom:-14px; inset-inline-end:-14px; border-inline-start:0; border-top:0; }
+
+  .otp-head{
+    background: transparent;
+    text-align: right;
+  }
+  .otp-body{ position: relative; }
+
+  .otp-phone-chip{
+    background:#f3f5f9;
+    border:1px solid #e2e6ef;
+    color:#4b5563;
+    border-radius: 8px;
+    padding: .55rem .85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    font-size: .9rem;
+    margin-top: .45rem;
+  }
+
+  .otp-input{
+    border: 1px solid #e2e6ef;
+    border-radius: 0;
+    background:#f3f5f9;
+    color: var(--c-text);
+    font-weight: 800;
+    text-align: center;
+  }
+
   .otp-input:focus{
     outline: none;
     box-shadow:
-      0 0 0 2px rgba(190,102,97,.25),
-      0 2px 8px rgba(190,102,97,.15);
-    border-color: #cd8985 !important;
+      0 0 0 2px var(--c-focus-ring);
+    border-color: var(--c-primary) !important;
+    background:#fff;
   }
 
-  /* Alert blocks rounded + border */
   .otp-alert{
     border-radius: 12px;
     border-width: 1px;
   }
 
-  /* WhatsApp button icon alignment fix */
   .otp-wa i{ line-height: 1; }
 
+  .otp-btn{
+    background: var(--c-primary) !important;
+    color: #fff !important;
+    border-radius: 0.95rem;
+    box-shadow: 0 4px 18px rgba(109,14,22,.32);
+  }
+  .otp-btn:hover{
+    background: var(--c-hover) !important;
+    box-shadow: 0 6px 22px rgba(201,16,29,.28);
+  }
+
   /* ===== Dark Mode ===== */
+  html.dark .otp-scope{
+    --c-text:#f2f4f8;
+    --c-focus-ring:rgba(227,19,34,.16);
+    background:#06070a !important;
+  }
   html.dark .otp-card{
-    background: #0f172a !important;
-    box-shadow:
-      0 14px 28px rgba(0,0,0,.35),
-      inset 0 0 0 1px #1f2937 !important;
+    background: linear-gradient(160deg,#10131a 0%,#0a0c11 100%) !important;
+    border-color: #1d212b;
+    box-shadow: 0 24px 50px rgba(0,0,0,.48);
   }
-  html.dark .otp-card::before{
-    background:
-      radial-gradient(120% 60% at 110% -10%, rgba(205,137,133,.08), transparent 50%),
-      radial-gradient(80% 40% at -10% 10%, rgba(255,255,255,.05), transparent 45%);
+  html.dark .otp-shell::before,
+  html.dark .otp-shell::after{
+    border-color: rgba(227,19,34,.55);
   }
-  html.dark .otp-head{
-    background: linear-gradient(90deg, rgba(190,102,97,.12), rgba(209,163,164,.12));
-    border-bottom-color: #1f2937;
-  }
-  html.dark .otp-title{ color: #e5e7eb !important; }
-  html.dark .otp-sub{ color: #cbd5e1 !important; }
+  html.dark .otp-title{ color: #f2f4f8 !important; }
+  html.dark .otp-sub{ color: #7d8592 !important; }
+  html.dark .otp-phone-chip{ background:#1a1d24; border-color:#262b37; color:#d8dce4; }
 
   html.dark .otp-input{
-    background: #111827 !important;
-    border-color: #374151 !important;
-    color: #f9fafb !important;
+    background:#1a1d24 !important;
+    border-color:#262b37 !important;
+    color:#f2f4f8 !important;
   }
   html.dark .otp-input::placeholder{ color: #9ca3af !important; }
   html.dark .otp-input:focus{
-    box-shadow:
-      0 0 0 2px rgba(190,102,97,.35),
-      0 2px 8px rgba(190,102,97,.22);
-    border-color: #be6661 !important;
+    box-shadow: 0 0 0 2px rgba(227,19,34,.16);
+    border-color: #e31322 !important;
+    background:#1a1d24 !important;
   }
 
   html.dark .otp-btn{
@@ -114,23 +159,34 @@
 @endpush
 
 @section('content')
-<div class="container mx-auto px-4 py-16">
-  <div class="max-w-md mx-auto">
+<div class="otp-scope">
+<div class="container mx-auto px-4 py-10" dir="rtl">
+  <div class="max-w-md mx-auto otp-shell">
     <div class="otp-card">
 
       {{-- Header --}}
       <div class="otp-head py-6 px-6 md:px-8">
-        <h2 class="otp-title text-2xl font-extrabold text-center text-brand-text">تأكيد رقم الهاتف</h2>
-        <p class="otp-sub text-center text-sm text-gray-600 mt-2">لقد أرسلنا رمز تحقق مكون من 6 أرقام إلى رقم هاتفك عبر واتساب.</p>
+        <h2 class="otp-title text-[2.05rem] leading-tight font-extrabold text-right text-[#1c2230]">تأكيد رقم الهاتف</h2>
+        <p class="otp-sub text-right text-sm text-[#7b8492] mt-1">أدخل رمز التحقق المرسل عبر واتساب.</p>
+        @if($phoneForVerification)
+          <div class="text-right">
+            <span class="otp-phone-chip" dir="ltr">
+              <i class="bi bi-phone"></i>
+              {{ $phoneForVerification }}
+            </span>
+          </div>
+        @endif
       </div>
 
       {{-- Body --}}
-      <div class="otp-body py-6 px-6 md:px-8"
+      <div class="otp-body px-6 pb-6 md:px-8 md:pb-8"
            x-data="{
               timer: 60,
               canResend: false,
               message: '',
               messageType: '',
+                otpDigits: ['{{ $otpDigits[0] }}','{{ $otpDigits[1] }}','{{ $otpDigits[2] }}','{{ $otpDigits[3] }}','{{ $otpDigits[4] }}','{{ $otpDigits[5] }}'],
+                otpCombined: '',
 
               startTimer() {
                   this.canResend = false;
@@ -142,6 +198,48 @@
                           this.timer = 60;
                       }
                   }, 1000);
+              },
+
+              updateOtpCombined() {
+                this.otpCombined = this.otpDigits.join('');
+              },
+
+              onOtpInput(index, event) {
+                const value = (event.target.value || '').replace(/\D/g, '').slice(-1);
+                this.otpDigits[index] = value;
+                event.target.value = value;
+                this.updateOtpCombined();
+
+                if (value && index < 5) {
+                  this.$refs['otp' + (index + 1)].focus();
+                }
+              },
+
+              onOtpKeydown(index, event) {
+                if (event.key === 'Backspace' && !this.otpDigits[index] && index > 0) {
+                  this.$refs['otp' + (index - 1)].focus();
+                }
+              },
+
+              onOtpPaste(event) {
+                const pasted = (event.clipboardData || window.clipboardData)
+                  .getData('text')
+                  .replace(/\D/g, '')
+                  .slice(0, 6);
+
+                if (!pasted) {
+                  return;
+                }
+
+                event.preventDefault();
+
+                for (let i = 0; i < 6; i++) {
+                  this.otpDigits[i] = pasted[i] || '';
+                }
+
+                this.updateOtpCombined();
+                const focusIndex = Math.min(pasted.length, 5);
+                this.$refs['otp' + focusIndex].focus();
               },
 
               async resendCode() {
@@ -177,7 +275,7 @@
                   }
               }
            }"
-           x-init="startTimer()"
+              x-init="startTimer(); updateOtpCombined()"
       >
 
         @if (session('status'))
@@ -199,12 +297,31 @@
 
         <form method="POST" action="{{ route('otp.verification.verify') }}">
           @csrf
+           <input type="hidden" name="otp" x-model="otpCombined">
+
           <div class="mb-4">
-            <label for="otp" class="block text-gray-700 text-sm font-bold mb-2 dark:text-gray-200">رمز التحقق</label>
-            <input id="otp" type="text"
-                   class="otp-input w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-brand-primary @error('otp') border-red-500 @enderror"
-                   name="otp" required autofocus inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
-                   placeholder="أدخلي الرمز هنا">
+            <label for="otp" class="block text-[#646d7b] text-sm font-semibold mb-2 dark:text-[#abb1bc]">رمز التحقق</label>
+             <div class="grid grid-cols-6 gap-2" dir="ltr" @paste="onOtpPaste($event)">
+          <input x-ref="otp0" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
+            class="otp-input w-full h-12 text-lg @error('otp') border-red-500 @enderror"
+            x-model="otpDigits[0]" @input="onOtpInput(0, $event)" @keydown="onOtpKeydown(0, $event)" autofocus>
+          <input x-ref="otp1" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+            class="otp-input w-full h-12 text-lg @error('otp') border-red-500 @enderror"
+            x-model="otpDigits[1]" @input="onOtpInput(1, $event)" @keydown="onOtpKeydown(1, $event)">
+          <input x-ref="otp2" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+            class="otp-input w-full h-12 text-lg @error('otp') border-red-500 @enderror"
+            x-model="otpDigits[2]" @input="onOtpInput(2, $event)" @keydown="onOtpKeydown(2, $event)">
+          <input x-ref="otp3" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+            class="otp-input w-full h-12 text-lg @error('otp') border-red-500 @enderror"
+            x-model="otpDigits[3]" @input="onOtpInput(3, $event)" @keydown="onOtpKeydown(3, $event)">
+          <input x-ref="otp4" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+            class="otp-input w-full h-12 text-lg @error('otp') border-red-500 @enderror"
+            x-model="otpDigits[4]" @input="onOtpInput(4, $event)" @keydown="onOtpKeydown(4, $event)">
+          <input x-ref="otp5" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*"
+            class="otp-input w-full h-12 text-lg @error('otp') border-red-500 @enderror"
+            x-model="otpDigits[5]" @input="onOtpInput(5, $event)" @keydown="onOtpKeydown(5, $event)">
+             </div>
+             <p class="text-xs text-gray-500 mt-2 dark:text-[#737b88]">أدخل كل رقم في مربع مستقل أو الصق الرمز كاملًا.</p>
             @error('otp')
               <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
             @enderror
@@ -212,7 +329,7 @@
 
           <div class="mb-4">
             <button type="submit"
-                    class="otp-btn w-full bg-brand-primary text-white font-extrabold py-3 px-4 rounded-md hover:bg-brand-dark transition duration-300">
+                    class="otp-btn w-full text-white font-extrabold py-3 px-4 transition duration-300">
               تحقق
             </button>
           </div>
@@ -223,7 +340,7 @@
             يمكنك طلب رمز جديد خلال <span x-text="timer" class="font-extrabold"></span> ثانية.
           </p>
           <button @click="resendCode()" :disabled="!canResend" x-show="canResend"
-                  class="otp-resend font-extrabold text-brand-primary hover:underline disabled:text-gray-400 disabled:cursor-not-allowed">
+                  class="otp-resend font-extrabold text-[#6d0e16] hover:underline disabled:text-gray-400 disabled:cursor-not-allowed">
             إعادة إرسال الرمز
           </button>
         </div>
@@ -241,5 +358,6 @@
       </div>
     </div>
   </div>
+</div>
 </div>
 @endsection
