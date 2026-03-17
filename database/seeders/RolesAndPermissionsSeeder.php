@@ -68,26 +68,35 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'admin']);
         }
 
+        $adminPermissions = Permission::query()
+            ->where('guard_name', 'admin')
+            ->get();
+
         // المدير العام (Super-Admin)
-        Role::firstOrCreate(['name' => 'Super-Admin'])->givePermissionTo(Permission::all());
+        Role::firstOrCreate(['name' => 'Super-Admin', 'guard_name' => 'admin'])
+            ->syncPermissions($adminPermissions);
 
         // مدير الطلبات (Order-Manager)
-        Role::firstOrCreate(['name' => 'Order-Manager'])->syncPermissions([
-            'view-admin-panel', 'view-orders', 'create-orders', 'edit-orders', 
-            'view-customers', 'view-reports'
-        ]);
-        
+        Role::firstOrCreate(['name' => 'Order-Manager', 'guard_name' => 'admin'])
+            ->syncPermissions([
+                'view-admin-panel', 'view-orders', 'create-orders', 'edit-orders',
+                'view-customers', 'view-reports',
+            ]);
+
         // كاتب المحتوى (Content-Creator)
-        Role::firstOrCreate(['name' => 'Content-Creator'])->syncPermissions([
-            'view-admin-panel', 'view-products', 'create-products', 'edit-products',
-            'view-categories', 'create-categories', 'edit-categories', 'view-blog',
-            'create-blog', 'edit-blog'
-        ]);
+        Role::firstOrCreate(['name' => 'Content-Creator', 'guard_name' => 'admin'])
+            ->syncPermissions([
+                'view-admin-panel', 'view-products', 'create-products', 'edit-products',
+                'view-categories', 'create-categories', 'edit-categories', 'view-blog',
+                'create-blog', 'edit-blog',
+            ]);
 
         // المستخدم العادي (user)
-        Role::firstOrCreate(['name' => 'user'])->syncPermissions([]);
+        Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web'])->syncPermissions([]);
+
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
     }
 }

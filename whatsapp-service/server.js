@@ -9,6 +9,7 @@ app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 3001);
 const API_KEY = process.env.WHATSAPP_SERVICE_KEY || '';
+const CHROME_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROME_BIN || undefined;
 
 const state = {
   status: 'initializing',
@@ -75,6 +76,7 @@ async function initializeClient() {
       }),
       puppeteer: {
         headless: true,
+        executablePath: CHROME_PATH,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       },
     });
