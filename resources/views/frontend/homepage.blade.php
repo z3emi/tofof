@@ -313,8 +313,8 @@
     .home-scope .product-content-link { display:flex; flex-direction:column; flex-grow:1; text-decoration:none; color:inherit; }
     .home-scope .product-info { padding:12px; display:flex; flex-direction:column; gap:8px; text-align:center; flex-grow:1; }
     .home-scope .product-title { font-weight:700; color:#2d2a2a; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.6em; }
-    .home-scope .price { color:var(--primary-color); font-weight:800; font-size:1rem; }
-    .home-scope .old { text-decoration:line-through; color:#9ca3af; font-size:.85rem; }
+    .home-scope .price { color:#000; font-weight:800; font-size:1rem; }
+    .home-scope .old { text-decoration:line-through; color:#e53935; font-size:.85rem; }
     .home-scope .product-actions { display:flex; gap:8px; margin-top:auto; padding-top:4px; position:relative; z-index:2; }
     .home-scope .btn-primary { background:#6d0e16 !important; color:#fff; border-radius:10px; font-weight:700; transition:.2s; }
     .home-scope .btn-primary:hover{ background:#500a10 !important; }
@@ -1261,7 +1261,7 @@
 
                             <div class="flex items-baseline justify-center gap-2">
                                 @if($product->isOnSale())
-                                    <div class="price" style="color:#6d0e16">{{ number_format($product->sale_price,0) }} د.ع</div>
+                                    <div class="price">{{ number_format($product->sale_price,0) }} د.ع</div>
                                     <div class="old">{{ number_format($product->price,0) }} د.ع</div>
                                 @else
                                     <div class="price">{{ number_format($product->price,0) }} د.ع</div>

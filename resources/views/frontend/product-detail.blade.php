@@ -336,7 +336,6 @@
                                     <input type="number" x-model.number="quantity" min="1" max="{{ $stock }}" class="qty-input" aria-label="الكمية" />
                                     <button type="button" @click="quantity < {{ $stock }} ? quantity++ : {{ $stock }}" class="qty-btn">+</button>
                                 </div>
-                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">({{ $stock }} قطعة متوفرة)</span>
                             </div>
                         </div>
                         <button
