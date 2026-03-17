@@ -101,13 +101,20 @@
                 <p class="mb-1"><strong>الاسم:</strong> {{ $order->customer->name ?? 'عميل محذوف' }}</p>
                 <p><strong>الهاتف:</strong> <a href="tel:{{ $order->customer->phone_number ?? '' }}">{{ $order->customer->phone_number ?? 'N/A' }}</a></p>
                 <hr class="my-2">
-                <p class="mb-1"><strong>المحافظة:</strong> {{ $resolvedGovernorate ?? 'غير محدد' }}</p>
-                <p class="mb-1"><strong>المدينة:</strong> {{ $resolvedCity ?? 'غير محددة' }}</p>
-                @if($addressDetails)
-                    <p class="mb-1"><strong>تفاصيل العنوان:</strong> {{ $addressDetails }}</p>
-                @endif
-                @if($nearestLandmark)
-                    <p class="mb-1"><strong>أقرب نقطة دالة:</strong> {{ $nearestLandmark }}</p>
+                @if($order->is_gift)
+                    <p class="mb-1"><strong>عنوان التوصيل المعتمد:</strong> {{ $order->gift_recipient_address_details ?: $addressDetails ?: 'غير محدد' }}</p>
+                    @if($order->gift_recipient_name)
+                        <p class="mb-1"><strong>المستلم:</strong> {{ $order->gift_recipient_name }}</p>
+                    @endif
+                @else
+                    <p class="mb-1"><strong>المحافظة:</strong> {{ $resolvedGovernorate ?? 'غير محدد' }}</p>
+                    <p class="mb-1"><strong>المدينة:</strong> {{ $resolvedCity ?? 'غير محددة' }}</p>
+                    @if($addressDetails)
+                        <p class="mb-1"><strong>تفاصيل العنوان:</strong> {{ $addressDetails }}</p>
+                    @endif
+                    @if($nearestLandmark)
+                        <p class="mb-1"><strong>أقرب نقطة دالة:</strong> {{ $nearestLandmark }}</p>
+                    @endif
                 @endif
                 @if($addressNotes)
                     <p class="text-muted small mb-0">ملاحظات: {{ $addressNotes }}</p>
@@ -220,7 +227,16 @@
                                     <div class="d-flex align-items-center">
                                         <img src="{{ $item->product?->firstImage ? asset('storage/' . $item->product->firstImage->image_path) : 'https://placehold.co/50x50?text=Img' }}"
                                              width="50" height="50" class="rounded me-2" style="object-fit:cover;">
-                                        <span>{{ $item->product->name_ar ?? 'منتج محذوف' }}</span>
+                                        <div>
+                                            <div>{{ $item->product->name_ar ?? 'منتج محذوف' }}</div>
+                                            @if(!empty($item->option_selections))
+                                                <div class="small text-muted mt-1">
+                                                    @foreach($item->option_selections as $label => $value)
+                                                        <div>{{ $label }}: {{ is_array($value) ? implode(', ', $value) : $value }}</div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </div>
                                     </div>
                                 </td>
                                 <td class="text-center">{{ number_format($item->price, 0) }} د.ع</td>

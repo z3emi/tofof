@@ -70,6 +70,10 @@
 @endpush
 
 @section('content')
+@php
+    $giftOrderSelected = (bool) old('is_gift');
+    $selectedSavedAddressId = old('saved_address_id', $addresses->first()->id ?? null);
+@endphp
 <div class="min-h-screen bg-gray-50/50 dark:bg-[#0b0f14]">
     <div class="container mx-auto px-4 py-12">
         <div class="text-center mb-10">
@@ -108,9 +112,9 @@
                     <h2 class="text-xl font-bold text-brand-text dark:text-gray-100">معلومات الشحن</h2>
                 </div>
                 
-                <div class="space-y-4" x-data="{ selectedAddressId: {{ $addresses->first()->id ?? 'null' }} }">
+                <div class="space-y-4" x-data="{ selectedAddressId: {{ $selectedSavedAddressId ?? 'null' }} }">
                     @if($addresses->isNotEmpty())
-                    <div class="mb-4">
+                    <div id="shipping_address_section" class="mb-4 {{ $giftOrderSelected ? 'hidden' : '' }}">
                         <h3 class="text-md font-semibold text-gray-800 mb-2 dark:text-gray-100">اختر من عناوينك المحفوظة:</h3>
                         <div class="space-y-3" id="saved_addresses_list">
                             @foreach($addresses as $address)
@@ -119,7 +123,7 @@
                                     <input type="radio" name="saved_address_id" value="{{ $address->id }}"
                                         class="saved-address-radio h-4 w-4 text-brand-primary focus:ring-brand-primary"
                                         @click="selectedAddressId = {{ $address->id }}"
-                                        {{ $loop->first ? 'checked' : '' }}>
+                                        {{ (string) $selectedSavedAddressId === (string) $address->id ? 'checked' : '' }}>
                                     <div class="ml-3">
                                         <p class="font-semibold text-gray-800 dark:text-gray-100">{{ $address->governorate }}, {{ $address->city }}</p>
                                         <p class="text-sm text-gray-600 dark:text-gray-400">{{ $address->address_details }}</p>
@@ -129,13 +133,13 @@
                             @endforeach
                         </div>
                     </div>
-                    @else
-                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 dark:bg-opacity-10">
-                        <p class="text-yellow-800 dark:text-yellow-200">لم تقم بإضافة أي عنوان بعد. يرجى إضافة عنوان للمتابعة.</p>
-                    </div>
                     @endif
 
-                    <a href="{{ route('profile.addresses.create') }}" class="w-full text-left border rounded-lg p-4 flex items-center gap-3 text-brand-primary font-semibold hover:bg-gray-50 transition dark:border-gray-800 dark:hover:bg-gray-800/50">
+                    <div id="shipping_address_empty_state" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 dark:bg-opacity-10 {{ $addresses->isEmpty() && ! $giftOrderSelected ? '' : 'hidden' }}">
+                        <p class="text-yellow-800 dark:text-yellow-200">لم تقم بإضافة أي عنوان بعد. يرجى إضافة عنوان للمتابعة.</p>
+                    </div>
+
+                    <a href="{{ route('profile.addresses.create') }}" id="shipping_address_actions" class="w-full text-left border rounded-lg p-4 flex items-center gap-3 text-brand-primary font-semibold hover:bg-gray-50 transition dark:border-gray-800 dark:hover:bg-gray-800/50 {{ $giftOrderSelected ? 'hidden' : '' }}">
                         <i class="bi bi-plus-circle-fill"></i>
                         <span>إضافة عنوان شحن جديد</span>
                     </a>
@@ -145,7 +149,7 @@
                             <input type="checkbox" name="is_gift" id="is_gift" value="1" class="h-4 w-4 text-brand-primary focus:ring-brand-primary" {{ old('is_gift') ? 'checked' : '' }}>
                             <div>
                                 <div class="font-semibold text-gray-800 dark:text-gray-100">هذا الطلب هدية</div>
-                                <div class="text-sm text-gray-600 dark:text-gray-400">عند التفعيل يجب إدخال بيانات مستلم الهدية.</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">عند التفعيل سيتم اعتماد عنوان مستلم الهدية، ولن يكون عنوانك المحفوظ مطلوبًا.</div>
                             </div>
                         </label>
 
@@ -161,6 +165,10 @@
                             <div>
                                 <label for="gift_recipient_address_details" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">عنوان مستلم الهدية</label>
                                 <textarea id="gift_recipient_address_details" name="gift_recipient_address_details" rows="3" class="w-full rounded-md border-gray-300 focus:border-brand-primary focus:ring-brand-primary dark:border-gray-700" placeholder="اكتب الموقع/العنوان الذي سيتم التوصيل إليه">{{ old('gift_recipient_address_details') }}</textarea>
+                            </div>
+                            <div id="gift_address_preview" class="rounded-lg border border-brand-primary/30 bg-brand-primary/5 px-4 py-3 {{ $giftOrderSelected && old('gift_recipient_address_details') ? '' : 'hidden' }}">
+                                <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">عنوان التوصيل المعتمد</div>
+                                <p id="gift_address_preview_text" class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ old('gift_recipient_address_details') }}</p>
                             </div>
                             <div>
                                 <label for="gift_message" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">رسالة الهدية (اختياري)</label>
@@ -201,6 +209,13 @@
                                 <div>
                                     <p class="text-gray-800 font-semibold dark:text-gray-100">{{ $item['product']->name_ar }}</p>
                                     <p class="text-gray-500 dark:text-gray-400">الكمية: {{ $item['quantity'] }}</p>
+                                    @if(!empty($item['selected_options']))
+                                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            @foreach($item['selected_options'] as $label => $value)
+                                                <div>{{ $label }}: {{ $value }}</div>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                             <span class="font-medium text-gray-800 dark:text-gray-100">{{ number_format($item['price'] * $item['quantity']) }} د.ع</span>
@@ -236,13 +251,17 @@
                 </div>
 
                 <div class="mt-6">
-                    <button class="w-full bg-brand-dark text-white font-bold py-3 px-4 rounded-md hover:bg-brand-primary transition duration-300 text-lg" type="submit" @if($addresses->isEmpty()) disabled @endif>
+                    <button id="checkout_submit_button" class="w-full bg-brand-dark text-white font-bold py-3 px-4 rounded-md hover:bg-brand-primary transition duration-300 text-lg {{ $addresses->isEmpty() && ! $giftOrderSelected ? 'opacity-60 cursor-not-allowed' : '' }}" type="submit" @if($addresses->isEmpty() && ! $giftOrderSelected) disabled @endif>
                         <i class="bi bi-shield-check"></i>
                         تأكيد الطلب الآن
                     </button>
-                    @if($addresses->isEmpty())
-                        <p class="text-red-500 text-xs text-center mt-2">يجب إضافة عنوان أولاً لتتمكن من تأكيد الطلب.</p>
-                    @endif
+                    <p id="checkout_submit_hint" class="text-xs text-center mt-2 {{ $giftOrderSelected ? 'text-gray-500 dark:text-gray-400' : ($addresses->isEmpty() ? 'text-red-500' : 'hidden') }}">
+                        @if($giftOrderSelected)
+                            سيتم اعتماد عنوان الهدية للتوصيل.
+                        @elseif($addresses->isEmpty())
+                            يجب إضافة عنوان أولاً لتتمكن من تأكيد الطلب.
+                        @endif
+                    </p>
                 </div>
             </div>
         </div>
@@ -278,6 +297,13 @@
             const giftRecipientName = document.getElementById('gift_recipient_name');
             const giftRecipientPhone = document.getElementById('gift_recipient_phone');
             const giftRecipientAddress = document.getElementById('gift_recipient_address_details');
+            const shippingAddressSection = document.getElementById('shipping_address_section');
+            const shippingAddressActions = document.getElementById('shipping_address_actions');
+            const shippingAddressEmptyState = document.getElementById('shipping_address_empty_state');
+            const giftAddressPreview = document.getElementById('gift_address_preview');
+            const giftAddressPreviewText = document.getElementById('gift_address_preview_text');
+            const checkoutSubmitButton = document.getElementById('checkout_submit_button');
+            const checkoutSubmitHint = document.getElementById('checkout_submit_hint');
 
             function selectAddress(radio) {
                 document.querySelectorAll('.address-card').forEach(card => card.classList.remove('selected'));
@@ -293,6 +319,56 @@
             const checkedRadio = document.querySelector('input[name="saved_address_id"]:checked');
             if (checkedRadio) selectAddress(checkedRadio);
 
+            function hasSavedAddresses() {
+                return savedAddressesRadios.length > 0;
+            }
+
+            function toggleSubmitState(isGift) {
+                if (!checkoutSubmitButton) {
+                    return;
+                }
+
+                const shouldDisable = !isGift && !hasSavedAddresses();
+
+                checkoutSubmitButton.disabled = shouldDisable;
+                checkoutSubmitButton.classList.toggle('opacity-60', shouldDisable);
+                checkoutSubmitButton.classList.toggle('cursor-not-allowed', shouldDisable);
+
+                if (!checkoutSubmitHint) {
+                    return;
+                }
+
+                if (isGift) {
+                    checkoutSubmitHint.textContent = 'سيتم اعتماد عنوان الهدية للتوصيل.';
+                    checkoutSubmitHint.className = 'text-xs text-center mt-2 text-gray-500 dark:text-gray-400';
+                    return;
+                }
+
+                if (!hasSavedAddresses()) {
+                    checkoutSubmitHint.textContent = 'يجب إضافة عنوان أولاً لتتمكن من تأكيد الطلب.';
+                    checkoutSubmitHint.className = 'text-red-500 text-xs text-center mt-2';
+                    return;
+                }
+
+                checkoutSubmitHint.textContent = '';
+                checkoutSubmitHint.className = 'hidden';
+            }
+
+            function toggleGiftAddressPreview() {
+                if (!giftAddressPreview || !giftRecipientAddress || !isGiftCheckbox) {
+                    return;
+                }
+
+                const previewText = giftRecipientAddress.value.trim();
+                const showPreview = isGiftCheckbox.checked && previewText !== '';
+
+                giftAddressPreview.classList.toggle('hidden', !showPreview);
+
+                if (giftAddressPreviewText) {
+                    giftAddressPreviewText.textContent = previewText;
+                }
+            }
+
             function toggleGiftFields() {
                 if (!isGiftCheckbox || !giftFields) return;
 
@@ -302,11 +378,39 @@
                 if (giftRecipientName) giftRecipientName.required = enabled;
                 if (giftRecipientPhone) giftRecipientPhone.required = enabled;
                 if (giftRecipientAddress) giftRecipientAddress.required = enabled;
+
+                savedAddressesRadios.forEach(radio => {
+                    radio.disabled = enabled;
+                });
+
+                if (shippingAddressSection) {
+                    shippingAddressSection.classList.toggle('hidden', enabled);
+                }
+
+                if (shippingAddressActions) {
+                    shippingAddressActions.classList.toggle('hidden', enabled);
+                }
+
+                if (shippingAddressEmptyState) {
+                    shippingAddressEmptyState.classList.toggle('hidden', enabled || hasSavedAddresses());
+                }
+
+                toggleGiftAddressPreview();
+                toggleSubmitState(enabled);
             }
 
             if (isGiftCheckbox) {
                 isGiftCheckbox.addEventListener('change', toggleGiftFields);
                 toggleGiftFields();
+            }
+
+            if (giftRecipientAddress) {
+                giftRecipientAddress.addEventListener('input', toggleGiftAddressPreview);
+                toggleGiftAddressPreview();
+            }
+
+            if (!isGiftCheckbox) {
+                toggleSubmitState(false);
             }
 
             // ---- حساب المحفظة في الواجهة (عرض فقط)

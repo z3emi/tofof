@@ -9,7 +9,6 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Customer;
-use App\Models\Address;
 use App\Models\Setting;
 use App\Services\InventoryService;
 use App\Models\DiscountCodeUsage;
@@ -17,29 +16,35 @@ use App\Models\User;
 use App\Models\Manager;
 use App\Notifications\NewOrderNotification;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\Rule;
 
 class CheckoutController extends Controller
 {
     public function index()
     {
-        $cart = session()->get('cart', []);
+        $cart = $this->normalizeCart(session()->get('cart', []));
+        session()->put('cart', $cart);
         if (empty($cart)) {
             return redirect()->route('shop')->with('info', 'عربة التسوق فارغة.');
         }
 
         $cartItems = [];
         $subtotal = 0;
-        $productIds = array_keys($cart);
+        $productIds = collect($cart)->pluck('product_id')->filter()->unique()->values()->all();
         $products = Product::whereIn('id', $productIds)->with('firstImage')->get()->keyBy('id');
 
-        foreach ($cart as $id => $details) {
-            if (isset($products[$id])) {
-                $product = $products[$id];
+        foreach ($cart as $rowId => $details) {
+            $productId = (int) ($details['product_id'] ?? 0);
+            if (isset($products[$productId])) {
+                $product = $products[$productId];
                 $price = $product->sale_price ?? $product->price;
-                $cartItems[$id] = [
+                $cartItems[$rowId] = [
+                    'row_id' => $rowId,
+                    'product_id' => $productId,
                     'product'  => $product,
                     'quantity' => $details['quantity'],
                     'price'    => $price,
+                    'selected_options' => $details['selected_options'] ?? [],
                 ];
                 $subtotal += $price * $details['quantity'];
             }
@@ -70,8 +75,10 @@ class CheckoutController extends Controller
 
     public function store(Request $request, InventoryService $inventoryService)
     {
+        $isGift = $request->boolean('is_gift');
+
         $request->validate([
-            'saved_address_id' => 'required|exists:addresses,id',
+            'saved_address_id' => ['nullable', 'integer', Rule::requiredIf(! $isGift), Rule::exists('addresses', 'id')],
             'payment_method'   => 'required|string',
             'is_gift' => 'nullable|boolean',
             'gift_recipient_name' => 'required_if:is_gift,1|nullable|string|max:255',
@@ -85,30 +92,41 @@ class CheckoutController extends Controller
             'gift_recipient_address_details.required_if' => 'يرجى إدخال عنوان مستلم الهدية.',
         ]);
 
-        $cart = session()->get('cart', []);
+        $cart = $this->normalizeCart(session()->get('cart', []));
         if (empty($cart)) {
             return redirect()->route('shop')->with('error', 'عربة التسوق فارغة!');
         }
 
+        $user = Auth::user();
+        $address = null;
+
+        if ($request->filled('saved_address_id')) {
+            $address = $user->addresses()->find($request->saved_address_id);
+
+            if (! $address) {
+                return redirect()->back()->withInput()->withErrors([
+                    'saved_address_id' => 'العنوان المحدد غير صالح.',
+                ]);
+            }
+        }
+
         DB::beginTransaction();
         try {
-            $user = Auth::user();
             $customer = Customer::firstOrCreate(['user_id' => $user->id], ['name' => $user->name, 'phone_number' => $user->phone_number, 'email' => $user->email]);
 
             $subtotal = 0;
-            $productIds = array_keys($cart);
+            $productIds = collect($cart)->pluck('product_id')->filter()->unique()->values()->all();
             $products   = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
-            foreach ($cart as $id => $details) {
-                if (isset($products[$id])) {
-                    $product = $products[$id];
+            foreach ($cart as $details) {
+                $productId = (int) ($details['product_id'] ?? 0);
+                if (isset($products[$productId])) {
+                    $product = $products[$productId];
                     $price   = $product->sale_price ?? $product->price;
                     $subtotal += $price * $details['quantity'];
                 }
             }
 
-            $address = Address::findOrFail($request->saved_address_id);
-            
             $freeShippingThreshold = (int) config('shop.free_shipping_threshold', 85000);
             $baseShippingCost = Setting::shippingCost();
             $shippingCost   = ($subtotal >= $freeShippingThreshold) ? 0 : $baseShippingCost;
@@ -116,7 +134,9 @@ class CheckoutController extends Controller
             $discountAmount = session('discount_value', 0);
             $discountCodeId = session('discount_code_id', null);
             $finalTotal = ($subtotal - $discountAmount) + $shippingCost;
-            $isGift = $request->boolean('is_gift');
+            $shippingAddressDetails = $isGift
+                ? trim((string) $request->gift_recipient_address_details)
+                : ($address->address_details ?? '');
 
             $order = Order::create([
                 'user_id'          => $user->id,
@@ -126,10 +146,10 @@ class CheckoutController extends Controller
                 'discount_amount'  => $discountAmount,
                 'discount_code_id' => $discountCodeId,
                 'status'           => 'pending',
-                'governorate'      => $address->governorate ?? '',
-                'city'             => $address->city ?? '',
-                'address_details'  => $address->address_details ?? '',
-                'nearest_landmark' => $address->nearest_landmark ?? '',
+                'governorate'      => $isGift ? '' : ($address->governorate ?? ''),
+                'city'             => $isGift ? '' : ($address->city ?? ''),
+                'address_details'  => $shippingAddressDetails,
+                'nearest_landmark' => $isGift ? '' : ($address->nearest_landmark ?? ''),
                 'is_gift' => $isGift,
                 'gift_recipient_name' => $isGift ? $request->gift_recipient_name : null,
                 'gift_recipient_phone' => $isGift ? $request->gift_recipient_phone : null,
@@ -147,17 +167,24 @@ class CheckoutController extends Controller
             }
 
             $totalCost = 0;
-            foreach ($cart as $id => $details) {
-                if (!isset($products[$id])) continue;
-                $product = $products[$id];
+            foreach ($cart as $details) {
+                $productId = (int) ($details['product_id'] ?? 0);
+                if (!isset($products[$productId])) {
+                    continue;
+                }
+
+                $product = $products[$productId];
                 $price   = $product->sale_price ?? $product->price;
                 $qty     = (int) $details['quantity'];
                 $itemCost = 0;
                 $itemCost = $inventoryService->deductStock($product, $qty);
                 $totalCost += (float) $itemCost;
+
+                $selectedOptions = $this->sanitizeSelectedOptions((array) ($details['selected_options'] ?? []));
                 OrderItem::create([
-                    'order_id' => $order->id, 'product_id' => $id,
+                    'order_id' => $order->id, 'product_id' => $productId,
                     'quantity' => $qty, 'price' => $price, 'cost' => $itemCost,
+                    'option_selections' => empty($selectedOptions) ? null : $selectedOptions,
                 ]);
             }
             $order->update(['total_cost' => $totalCost]);
@@ -187,7 +214,12 @@ class CheckoutController extends Controller
             }
 
             $adminRoleNames = ['Super-Admin', 'Order-Manager'];
-            $admins = Manager::role($adminRoleNames)->get();
+            $admins = Manager::query()
+                ->whereHas('roles', function ($query) use ($adminRoleNames) {
+                    $query->where('guard_name', 'admin')
+                        ->whereIn('name', $adminRoleNames);
+                })
+                ->get();
             if ($admins->isNotEmpty()) {
                 Notification::send($admins, new NewOrderNotification($order));
             }
@@ -211,5 +243,75 @@ class CheckoutController extends Controller
             return redirect()->route('homepage');
         }
         return view('frontend.checkout.success', compact('order'));
+    }
+
+    private function sanitizeSelectedOptions(array $selectedOptions): array
+    {
+        $clean = [];
+        foreach ($selectedOptions as $label => $value) {
+            $label = trim((string) $label);
+            if ($label === '') {
+                continue;
+            }
+
+            $value = is_scalar($value) ? trim((string) $value) : '';
+            if ($value === '') {
+                continue;
+            }
+
+            $clean[$label] = $value;
+        }
+
+        ksort($clean);
+        return $clean;
+    }
+
+    private function buildSelectionKey(array $selectedOptions): string
+    {
+        if (empty($selectedOptions)) {
+            return 'default';
+        }
+
+        return sha1(json_encode($selectedOptions, JSON_UNESCAPED_UNICODE));
+    }
+
+    private function buildRowId(int $productId, string $selectionKey): string
+    {
+        return $productId . ':' . $selectionKey;
+    }
+
+    private function normalizeCart(array $cart): array
+    {
+        $normalized = [];
+
+        foreach ($cart as $key => $details) {
+            if (!is_array($details)) {
+                continue;
+            }
+
+            $productId = (int) ($details['product_id'] ?? (is_numeric($key) ? $key : 0));
+            if ($productId <= 0) {
+                continue;
+            }
+
+            $quantity = max(1, (int) ($details['quantity'] ?? 1));
+            $selectedOptions = $this->sanitizeSelectedOptions((array) ($details['selected_options'] ?? []));
+            $selectionKey = (string) ($details['selection_key'] ?? $this->buildSelectionKey($selectedOptions));
+            $rowId = $this->buildRowId($productId, $selectionKey);
+
+            if (!isset($normalized[$rowId])) {
+                $normalized[$rowId] = [
+                    'product_id' => $productId,
+                    'quantity' => $quantity,
+                    'selection_key' => $selectionKey,
+                    'selected_options' => $selectedOptions,
+                ];
+                continue;
+            }
+
+            $normalized[$rowId]['quantity'] += $quantity;
+        }
+
+        return $normalized;
     }
 }

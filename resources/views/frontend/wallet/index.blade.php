@@ -4,121 +4,228 @@
 
 @push('styles')
 <style>
-  /* ===== Theme tokens ===== */
   :root{
-    --brand:#0F2A44; --brand-dark:#0A1D2F;
-    --surface:#ffffff; --text:#111827; --text-soft:#6b7280; --border:#eadbcd;
-    --bg:#FFFFFF; --bg-soft:#E6E6E6;
-    --tile-shadow: 0 12px 30px rgba(0,0,0,.06);
-    --tile-shadow-hover: 0 18px 38px rgba(0,0,0,.10);
-    --good:#16a34a; --bad:#b91c1c;
+    --wallet-brand:#6d0e16;
+    --wallet-brand-2:#8f1a23;
+    --wallet-surface:#ffffff;
+    --wallet-text:#142133;
+    --wallet-muted:#667085;
+    --wallet-border:#e7ddd2;
+    --wallet-soft:#f7f3ee;
+    --wallet-good:#15803d;
+    --wallet-bad:#b42318;
+    --wallet-shadow:0 14px 36px rgba(10, 24, 40, 0.08);
   }
+
   html.dark{
-    --surface:#0f172a; --text:#e5e7eb; --text-soft:#9ca3af; --border:#1f2937;
-    --bg:#0b0f14; --bg-soft:#111827;
-    --tile-shadow: 0 10px 26px rgba(0,0,0,.28);
-    --tile-shadow-hover: 0 18px 40px rgba(0,0,0,.36);
+    --wallet-surface:#0f172a;
+    --wallet-text:#e5e7eb;
+    --wallet-muted:#9ca3af;
+    --wallet-border:#223148;
+    --wallet-soft:#111b2d;
+    --wallet-shadow:0 18px 44px rgba(0, 0, 0, 0.34);
   }
 
-  .surface{ background:transparent; border:none; box-shadow:none; padding:0; }
-
-  /* ===== Grid ===== */
-  .wallet-grid{ display:grid; gap:14px; grid-template-columns: 1fr; }
-  @media(min-width:768px){ .wallet-grid{ grid-template-columns: repeat(12,minmax(0,1fr)); gap:16px; } }
-
-  /* ===== Tile ===== */
-  .tile{
-    background:var(--surface); border:1px solid var(--border); border-radius:16px;
-    box-shadow: var(--tile-shadow); padding:14px; transition:.2s ease;
-  }
-  .tile:hover{ transform: translateY(-2px); box-shadow: var(--tile-shadow-hover); border-color: color-mix(in srgb, var(--brand) 30%, var(--border)); }
-  .tile h3{ margin:0; color:var(--text); font-weight:800; font-size:1rem; }
-  .sub{ color:var(--text-soft); font-size:.86rem; }
-
-  /* ===== Hero (رصيدك الآن) ===== */
-  .tile-accent{
+  .wallet-shell{ display:grid; gap:16px; }
+  .wallet-hero{
+    position:relative;
+    overflow:hidden;
+    border-radius:20px;
+    border:1px solid color-mix(in srgb, var(--wallet-brand) 22%, var(--wallet-border));
     background:
-      radial-gradient(120% 80% at 50% -20%, color-mix(in srgb, var(--brand) 10%, transparent) 0%, transparent 60%),
-      linear-gradient(180deg, color-mix(in srgb, var(--brand) 10%, var(--surface)) 0%, var(--surface) 70%);
-    overflow:hidden; padding:16px 18px;
+      radial-gradient(130% 100% at 100% 0%, rgba(255,255,255,.2), transparent 60%),
+      linear-gradient(140deg, var(--wallet-brand) 0%, var(--wallet-brand-2) 65%, #4d0a10 100%);
+    color:#fff;
+    padding:20px;
+    box-shadow:var(--wallet-shadow);
   }
-  .hero-row{ display:flex; align-items:center; justify-content:space-between; }
-  [dir="rtl"] .hero-row{ flex-direction: row-reverse; }
-  .pill{
-    display:inline-flex; align-items:center; gap:.45rem;
-    background: rgba(255,255,255,.7); color: var(--brand-dark);
-    border:1px solid #D4AF37;
-    padding:.35rem .6rem; border-radius:999px; font-weight:800; font-size:.82rem; backdrop-filter: blur(4px);
-  }
-  html.dark .pill{ background: rgba(255,255,255,.08); color:#fff; border-color: rgba(255,255,255,.18); }
-  .kpi-balance{ font-size:1.7rem; font-weight:900; color:#10b981; letter-spacing:.2px; }
-  @media(min-width:768px){ .kpi-balance{ font-size:2rem; } }
 
-  /* ===== KPI card ===== */
-  .kpi-grid{
-    display:grid; grid-template-columns: 1fr auto;
-    grid-template-areas: "title value" "delta value";
-    align-items:center; min-height:110px;
+  .wallet-hero::after{
+    content:"";
+    position:absolute;
+    inset:auto -42px -52px auto;
+    width:170px;
+    height:170px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.24);
+    background:rgba(255,255,255,.08);
+    transform:rotate(8deg);
   }
-  .kpi-title{ grid-area:title; text-align:right; }
-  .kpi-value{
-    grid-area:value; margin-inline-start:auto;
-    font-size:1.35rem; font-weight:900; color:var(--text);
-  }
-  .kpi-delta{ grid-area:delta; text-align:right; font-weight:700; font-size:.85rem; }
-  .up{ color:var(--good); } .down{ color:var(--bad); }
 
-  /* ===== Table ===== */
+  .wallet-topline{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+  }
+
+  .wallet-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    border:1px solid rgba(255,255,255,.3);
+    border-radius:999px;
+    background:rgba(255,255,255,.1);
+    padding:6px 12px;
+    font-weight:800;
+    font-size:.82rem;
+  }
+
+  .wallet-balance{
+    font-size:2rem;
+    font-weight:900;
+    line-height:1.1;
+    letter-spacing:.2px;
+    margin-top:10px;
+  }
+
+  .wallet-note{ color:rgba(255,255,255,.88); margin-top:8px; font-size:.92rem; }
+
+  .wallet-stats{
+    display:grid;
+    gap:14px;
+    grid-template-columns:1fr;
+  }
+
+  @media (min-width: 900px){
+    .wallet-stats{ grid-template-columns:1fr 1fr; }
+  }
+
+  .stat-card{
+    background:var(--wallet-surface);
+    border:1px solid var(--wallet-border);
+    border-radius:16px;
+    padding:16px;
+    box-shadow:var(--wallet-shadow);
+  }
+
+  .stat-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    color:var(--wallet-muted);
+    font-weight:700;
+    font-size:.9rem;
+  }
+
+  .stat-head i{ font-size:1.1rem; }
+  .stat-value{ font-size:1.65rem; font-weight:900; margin-top:10px; color:var(--wallet-text); }
+  .is-credit{ color:var(--wallet-good); }
+  .is-debit{ color:var(--wallet-bad); }
+
+  .wallet-panel{
+    background:var(--wallet-surface);
+    border:1px solid var(--wallet-border);
+    border-radius:16px;
+    box-shadow:var(--wallet-shadow);
+    padding:14px;
+  }
+
+  .wallet-panel-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+  .wallet-panel-title{ font-size:1.05rem; font-weight:900; color:var(--wallet-text); }
+  .wallet-panel-sub{ color:var(--wallet-muted); font-size:.86rem; }
+
   .table-wrap{ overflow-x:auto; }
-  table.wallet-table{
-    min-width:760px; width:100%; border-collapse:separate; border-spacing:0;
-    background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden;
-    box-shadow: var(--tile-shadow); font-size:.95rem;
+  .wallet-table{
+    width:100%;
+    min-width:760px;
+    border-collapse:separate;
+    border-spacing:0;
+    overflow:hidden;
+    border:1px solid var(--wallet-border);
+    border-radius:14px;
   }
-  .wallet-table thead th{
-    text-align:right; background:var(--bg-soft); color:var(--text); font-weight:800;
-    padding:.7rem .8rem; border-bottom:1px solid var(--border);
+
+  .wallet-table th{
+    text-align:right;
+    background:var(--wallet-soft);
+    color:var(--wallet-text);
+    font-size:.88rem;
+    font-weight:900;
+    padding:12px 12px;
+    border-bottom:1px solid var(--wallet-border);
   }
-  .wallet-table tbody td{ padding:.7rem .8rem; color:var(--text); border-bottom:1px solid var(--border); }
+
+  .wallet-table td{
+    padding:11px 12px;
+    border-bottom:1px solid var(--wallet-border);
+    color:var(--wallet-text);
+    font-size:.93rem;
+    vertical-align:middle;
+  }
+
   .wallet-table tbody tr:last-child td{ border-bottom:none; }
 
-  /* badges + amount with arrow */
-  .badge{
-    display:inline-flex; align-items:center; gap:.35rem; font-weight:800;
-    padding:.3rem .55rem; border-radius:10px; border:1px solid transparent; font-size:.82rem;
+  .tx-type,
+  .tx-amount{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    border-radius:999px;
+    padding:5px 10px;
+    font-size:.82rem;
+    font-weight:900;
   }
-  .badge-credit{ background:#e8f7ee; color:#166534; border-color:#cdeed9; }
-  .badge-debit { background:#ffecef; color:#8a1e1e; border-color:#ffd6db; }
-  html.dark .badge-credit{ background: rgba(22,163,74,.15); color:#86efac; border-color: rgba(22,163,74,.35); }
-  html.dark .badge-debit { background: rgba(220,38,38,.15); color:#fecaca; border-color: rgba(220,38,38,.35); }
 
-  .amount-badge{
-    display:inline-flex; align-items:center; gap:.45rem; font-weight:900;
-    padding:.25rem .55rem; border-radius:10px;
-  }
-  .amount-badge.up{ background:#e8f7ee; color:#166534; }
-  .amount-badge.down{ background:#ffecef; color:#8a1e1e; }
-  html.dark .amount-badge.up{ background: rgba(22,163,74,.15); color:#86efac; }
-  html.dark .amount-badge.down{ background: rgba(220,38,38,.15); color:#fecaca; }
+  .tx-type.credit,
+  .tx-amount.credit{ background:#e8f7ee; color:#14532d; }
+  .tx-type.debit,
+  .tx-amount.debit{ background:#ffedf0; color:#8a1c1c; }
 
-  /* ===== Mobile transaction cards ===== */
+  html.dark .tx-type.credit,
+  html.dark .tx-amount.credit{ background:rgba(34,197,94,.15); color:#86efac; }
+
+  html.dark .tx-type.debit,
+  html.dark .tx-amount.debit{ background:rgba(248,113,113,.14); color:#fecaca; }
+
+  .tx-card-list{ display:grid; gap:10px; }
+
   .tx-card{
-    display:grid; grid-template-columns: 1fr auto; align-items:center; gap:.5rem;
-    background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:.9rem .95rem; box-shadow: var(--tile-shadow);
+    border:1px solid var(--wallet-border);
+    background:var(--wallet-surface);
+    border-radius:14px;
+    box-shadow:var(--wallet-shadow);
+    padding:12px;
+    display:grid;
+    gap:8px;
   }
-  .tx-row{ display:flex; gap:.45rem; align-items:center; }
-  .tx-label{ color:var(--text-soft); font-size:.8rem; min-width:72px; }
-  .tx-value{ color:var(--text); font-weight:700; font-size:.95rem; }
-  .tx-order{ color:var(--text-soft); font-weight:700; font-size:.85rem; }
+
+  .tx-card-top,
+  .tx-card-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .tx-label{ color:var(--wallet-muted); font-size:.82rem; font-weight:700; }
+  .tx-value{ color:var(--wallet-text); font-weight:800; font-size:.92rem; }
+
+  .empty-wallet{
+    border:1px dashed var(--wallet-border);
+    border-radius:14px;
+    padding:22px 14px;
+    text-align:center;
+    color:var(--wallet-muted);
+    background:var(--wallet-soft);
+    font-weight:700;
+  }
 
   .pagination{ display:flex; justify-content:center; gap:.35rem; margin-top:1rem; flex-wrap:wrap; }
   .pagination .page-item .page-link{
-    background:var(--bg-soft)!important; color:var(--brand-dark)!important;
-    border:1px solid var(--border)!important; font-weight:800; border-radius:10px;
-    padding:.45rem .8rem; font-size:.875rem; min-width:2.4rem; transition:.18s ease;
+    background:var(--wallet-soft) !important;
+    color:var(--wallet-brand) !important;
+    border:1px solid var(--wallet-border) !important;
+    border-radius:10px;
+    font-weight:800;
+    padding:.45rem .8rem;
+    min-width:2.35rem;
   }
-  .pagination .page-item .page-link:hover{ background: color-mix(in srgb, var(--brand) 28%, var(--bg-soft))!important; color:#fff!important; border-color:var(--brand)!important; }
-  .pagination .page-item.active .page-link{ background:var(--brand-dark)!important; color:#fff!important; border-color:var(--brand-dark)!important; }
+
+  .pagination .page-item.active .page-link{
+    background:var(--wallet-brand) !important;
+    color:#fff !important;
+    border-color:var(--wallet-brand) !important;
+  }
+
+  @media (max-width: 767.98px){
+    .wallet-hero{ padding:16px; border-radius:16px; }
+    .wallet-balance{ font-size:1.65rem; }
+  }
 </style>
 @endpush
 
@@ -131,92 +238,92 @@
 @endphp
 
 <div class="surface">
-  <div class="wallet-grid">
+  <div class="wallet-shell">
 
-    {{-- 1) Hero balance --}}
-    <section class="tile tile-accent" style="grid-column: span 12;">
-      <div class="hero-row">
-        <span class="pill"><i class="bi bi-wallet2"></i> رصيدك الآن</span>
-        <div class="kpi-balance">{{ number_format($balance, 0) }} د.ع</div>
+    <section class="wallet-hero">
+      <div class="wallet-topline">
+        <span class="wallet-chip"><i class="bi bi-wallet2"></i> محفظتي</span>
+        <span class="wallet-chip"><i class="bi bi-shield-check"></i> آمن ومحدّث</span>
       </div>
-      <div class="sub mt-2">يُطبّق الرصيد تلقائيًا على الطلبات المؤهلة</div>
+      <div class="wallet-balance">{{ number_format($balance, 0) }} د.ع</div>
+      <div class="wallet-note">يمكن استخدام الرصيد تلقائيًا أثناء إنشاء الطلبات المؤهلة.</div>
     </section>
 
-    {{-- 2) إجمالي الإضافات (مربع مستقل) --}}
-    <section class="tile md:col-span-6" style="grid-column: span 12;">
-      <div class="kpi-grid">
-        <div class="kpi-title"><h3>إجمالي الإضافات</h3></div>
-        <div class="kpi-value">{{ number_format($creditsTotal, 0) }} د.ع</div>
-        <div class="kpi-delta up"><i class="bi bi-arrow-down-left"></i> إيداعات</div>
+    <section class="wallet-stats">
+      <div class="stat-card">
+        <div class="stat-head">
+          <span>إجمالي الإضافات</span>
+          <i class="bi bi-arrow-down-left"></i>
+        </div>
+        <div class="stat-value is-credit">{{ number_format($creditsTotal, 0) }} د.ع</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-head">
+          <span>إجمالي الخصومات</span>
+          <i class="bi bi-arrow-up-right"></i>
+        </div>
+        <div class="stat-value is-debit">{{ number_format($debitsTotal, 0) }} د.ع</div>
       </div>
     </section>
 
-    {{-- 3) إجمالي الخصومات (مربع مستقل) --}}
-    <section class="tile md:col-span-6" style="grid-column: span 12;">
-      <div class="kpi-grid">
-        <div class="kpi-title"><h3>إجمالي الخصومات</h3></div>
-        <div class="kpi-value">{{ number_format($debitsTotal, 0) }} د.ع</div>
-        <div class="kpi-delta down"><i class="bi bi-arrow-up-right"></i> سحوبات</div>
+    <section class="wallet-panel">
+      <div class="wallet-panel-head">
+        <div>
+          <div class="wallet-panel-title">سجل العمليات</div>
+          <div class="wallet-panel-sub">آخر العمليات المسجلة على محفظتك</div>
+        </div>
       </div>
-    </section>
-
-    {{-- 4) آخر الحركات --}}
-    <section class="tile" style="grid-column: span 12;">
-      <h3>آخر الحركات</h3>
 
       @if($transactions->isEmpty())
-        <div class="sub py-3">لا توجد حركات في المحفظة حتى الآن.</div>
+        <div class="empty-wallet">لا توجد حركات في المحفظة حتى الآن.</div>
       @else
-        {{-- موبايل --}}
-        <div class="mt-3 space-y-2 md:hidden">
+        <div class="tx-card-list md:hidden">
           @foreach($transactions as $tx)
           @php $isCredit = $tx->type === 'credit'; @endphp
           <div class="tx-card">
-            <div style="grid-column:1 / -1; display:flex; justify-content:space-between; align-items:center; gap:.5rem;">
-              <div class="tx-row">
-                <span class="tx-label">التاريخ</span>
-                <span class="tx-value">
-                  {{ optional($tx->created_at)->timezone(config('app.timezone','Asia/Baghdad'))->format('Y-m-d H:i') }}
-                </span>
-              </div>
-              <div>
-                @if($isCredit)
-                  <span class="badge badge-credit"><i class="bi bi-arrow-down-left"></i> إيداع</span>
-                @else
-                  <span class="badge badge-debit"><i class="bi bi-arrow-up-right"></i> سحب</span>
-                @endif
-              </div>
-            </div>
-
-            <div class="tx-row">
-              <span class="tx-label">القيمة</span>
-              <span class="amount-badge {{ $isCredit ? 'up' : 'down' }}">
+            <div class="tx-card-top">
+              <span class="tx-type {{ $isCredit ? 'credit' : 'debit' }}">
                 <i class="bi {{ $isCredit ? 'bi-arrow-down-left' : 'bi-arrow-up-right' }}"></i>
+                {{ $isCredit ? 'إيداع' : 'سحب' }}
+              </span>
+              <span class="tx-amount {{ $isCredit ? 'credit' : 'debit' }}">
                 {{ number_format($tx->amount, 0) }} د.ع
               </span>
             </div>
 
-            <div class="tx-row" style="grid-column:1 / -1;">
+            <div class="tx-card-row">
+              <span class="tx-label">التاريخ</span>
+              <span class="tx-value">
+                {{ optional($tx->created_at)->timezone(config('app.timezone','Asia/Baghdad'))->format('Y-m-d H:i') }}
+              </span>
+            </div>
+
+            <div class="tx-card-row">
               <span class="tx-label">الوصف</span>
               <span class="tx-value">{{ $tx->description ?: '—' }}</span>
             </div>
 
-            <div class="tx-row" style="grid-column:1 / -1;">
-              <span class="tx-label">#الطلب</span>
+            <div class="tx-card-row">
+              <span class="tx-label">رقم الطلب</span>
               <span class="tx-value">
-                @if(!empty($tx->related_order_id)) #{{ $tx->related_order_id }} @else — @endif
+                @php $orderRef = $tx->order_id ?? $tx->related_order_id; @endphp
+                @if(!empty($orderRef))
+                  #{{ $orderRef }}
+                @else
+                  —
+                @endif
               </span>
             </div>
           </div>
           @endforeach
 
-          <div class="mt-2">
+          <div>
             {{ $transactions->links() }}
           </div>
         </div>
 
-        {{-- دِسكتوب --}}
-        <div class="table-wrap hidden md:block mt-3">
+        <div class="table-wrap hidden md:block">
           <table class="wallet-table">
             <thead>
               <tr>
@@ -224,33 +331,32 @@
                 <th>النوع</th>
                 <th>القيمة</th>
                 <th>الوصف</th>
-                <th>#الطلب</th>
+                <th>رقم الطلب</th>
               </tr>
             </thead>
             <tbody>
               @foreach($transactions as $tx)
               @php $isCredit = $tx->type === 'credit'; @endphp
               <tr>
-                <td class="nowrap">
+                <td>
                   {{ optional($tx->created_at)->timezone(config('app.timezone','Asia/Baghdad'))->format('Y-m-d H:i') }}
                 </td>
                 <td>
-                  @if($isCredit)
-                    <span class="badge badge-credit"><i class="bi bi-arrow-down-left"></i> إيداع</span>
-                  @else
-                    <span class="badge badge-debit"><i class="bi bi-arrow-up-right"></i> سحب</span>
-                  @endif
+                  <span class="tx-type {{ $isCredit ? 'credit' : 'debit' }}">
+                    <i class="bi {{ $isCredit ? 'bi-arrow-down-left' : 'bi-arrow-up-right' }}"></i>
+                    {{ $isCredit ? 'إيداع' : 'سحب' }}
+                  </span>
                 </td>
                 <td>
-                  <span class="amount-badge {{ $isCredit ? 'up' : 'down' }}">
-                    <i class="bi {{ $isCredit ? 'bi-arrow-down-left' : 'bi-arrow-up-right' }}"></i>
+                  <span class="tx-amount {{ $isCredit ? 'credit' : 'debit' }}">
                     {{ number_format($tx->amount, 0) }} د.ع
                   </span>
                 </td>
                 <td>{{ $tx->description ?: '—' }}</td>
                 <td>
-                  @if(!empty($tx->related_order_id))
-                    #{{ $tx->related_order_id }}
+                  @php $orderRef = $tx->order_id ?? $tx->related_order_id; @endphp
+                  @if(!empty($orderRef))
+                    #{{ $orderRef }}
                   @else
                     —
                   @endif
@@ -266,7 +372,6 @@
         </div>
       @endif
     </section>
-
   </div>
 </div>
 @endsection

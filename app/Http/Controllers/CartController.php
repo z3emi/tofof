@@ -11,26 +11,31 @@ class CartController extends Controller
 {
     public function index()
     {
-        $cart = session()->get('cart', []);
+        $cart = $this->normalizeCart(session()->get('cart', []));
+        session()->put('cart', $cart);
         $cartItems = [];
         $total = 0;
 
         if (!empty($cart)) {
-            $productIds = array_keys($cart);
+            $productIds = collect($cart)->pluck('product_id')->filter()->unique()->values()->all();
             $products = Product::whereIn('id', $productIds)->with('firstImage')->get()->keyBy('id');
 
-            foreach ($cart as $id => $details) {
-                if (isset($products[$id])) {
-                    $product = $products[$id];
+            foreach ($cart as $rowId => $details) {
+                $productId = (int) ($details['product_id'] ?? 0);
+                if (isset($products[$productId])) {
+                    $product = $products[$productId];
                     $price = $product->sale_price ?? $product->price;
-                    $cartItems[$id] = [
+                    $cartItems[$rowId] = [
+                        'row_id' => $rowId,
+                        'product_id' => $productId,
                         'product' => $product,
                         'quantity' => $details['quantity'],
                         'price' => $price,
+                        'selected_options' => $details['selected_options'] ?? [],
                     ];
                     $total += $price * $details['quantity'];
                 } else {
-                    unset($cart[$id]);
+                    unset($cart[$rowId]);
                     session()->put('cart', $cart);
                 }
             }
@@ -61,17 +66,25 @@ class CartController extends Controller
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1'
+            'quantity' => 'required|integer|min:1',
+            'selected_options' => 'nullable|array',
         ]);
 
         $product = Product::findOrFail($request->product_id);
-        $cart = session()->get('cart', []);
+        $selectedOptions = $this->sanitizeSelectedOptions($request->input('selected_options', []));
+        $selectionKey = $this->buildSelectionKey($selectedOptions);
+        $rowId = $this->buildRowId((int) $product->id, $selectionKey);
 
-        if (isset($cart[$product->id])) {
-            $cart[$product->id]['quantity'] += $request->quantity;
+        $cart = $this->normalizeCart(session()->get('cart', []));
+
+        if (isset($cart[$rowId])) {
+            $cart[$rowId]['quantity'] += $request->quantity;
         } else {
-            $cart[$product->id] = [
+            $cart[$rowId] = [
+                'product_id' => (int) $product->id,
                 'quantity' => $request->quantity,
+                'selection_key' => $selectionKey,
+                'selected_options' => $selectedOptions,
             ];
         }
 
@@ -91,14 +104,23 @@ class CartController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'product_id' => 'required',
-            'quantity' => 'required|integer|min:1'
+            'row_id' => 'nullable|string',
+            'product_id' => 'nullable',
+            'quantity' => 'required|integer|min:1',
         ]);
 
-        $cart = session()->get('cart', []);
+        $cart = $this->normalizeCart(session()->get('cart', []));
+        $rowId = $request->input('row_id');
 
-        if (isset($cart[$request->product_id])) {
-            $cart[$request->product_id]['quantity'] = $request->quantity;
+        if (!$rowId && $request->filled('product_id')) {
+            $requestedProductId = (int) $request->input('product_id');
+            $rowId = collect($cart)
+                ->keys()
+                ->first(fn ($key) => (int) ($cart[$key]['product_id'] ?? 0) === $requestedProductId);
+        }
+
+        if ($rowId && isset($cart[$rowId])) {
+            $cart[$rowId]['quantity'] = $request->quantity;
             session()->put('cart', $cart);
         }
 
@@ -110,12 +132,23 @@ class CartController extends Controller
 
     public function destroy(Request $request)
     {
-        $request->validate(['product_id' => 'required']);
+        $request->validate([
+            'row_id' => 'nullable|string',
+            'product_id' => 'nullable',
+        ]);
 
-        $cart = session()->get('cart', []);
+        $cart = $this->normalizeCart(session()->get('cart', []));
+        $rowId = $request->input('row_id');
 
-        if (isset($cart[$request->product_id])) {
-            unset($cart[$request->product_id]);
+        if (!$rowId && $request->filled('product_id')) {
+            $requestedProductId = (int) $request->input('product_id');
+            $rowId = collect($cart)
+                ->keys()
+                ->first(fn ($key) => (int) ($cart[$key]['product_id'] ?? 0) === $requestedProductId);
+        }
+
+        if ($rowId && isset($cart[$rowId])) {
+            unset($cart[$rowId]);
             session()->put('cart', $cart);
         }
 
@@ -129,14 +162,15 @@ class CartController extends Controller
     {
         $request->validate(['discount_code' => 'required|string']);
 
-        $cart = session()->get('cart', []);
+        $cart = $this->normalizeCart(session()->get('cart', []));
         $total = 0;
-        $productIds = array_keys($cart);
+        $productIds = collect($cart)->pluck('product_id')->filter()->unique()->values()->all();
         $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
-        foreach ($cart as $id => $details) {
-            if (isset($products[$id])) {
-                $price = $products[$id]->sale_price ?? $products[$id]->price;
+        foreach ($cart as $details) {
+            $productId = (int) ($details['product_id'] ?? 0);
+            if (isset($products[$productId])) {
+                $price = $products[$productId]->sale_price ?? $products[$productId]->price;
                 $total += $price * $details['quantity'];
             }
         }
@@ -181,6 +215,76 @@ class CartController extends Controller
 
     public function content()
     {
-        return response()->json(session()->get('cart', []));
+        return response()->json($this->normalizeCart(session()->get('cart', [])));
+    }
+
+    private function sanitizeSelectedOptions(array $selectedOptions): array
+    {
+        $clean = [];
+        foreach ($selectedOptions as $label => $value) {
+            $label = trim((string) $label);
+            if ($label === '') {
+                continue;
+            }
+
+            $value = is_scalar($value) ? trim((string) $value) : '';
+            if ($value === '') {
+                continue;
+            }
+
+            $clean[$label] = $value;
+        }
+
+        ksort($clean);
+        return $clean;
+    }
+
+    private function buildSelectionKey(array $selectedOptions): string
+    {
+        if (empty($selectedOptions)) {
+            return 'default';
+        }
+
+        return sha1(json_encode($selectedOptions, JSON_UNESCAPED_UNICODE));
+    }
+
+    private function buildRowId(int $productId, string $selectionKey): string
+    {
+        return $productId . ':' . $selectionKey;
+    }
+
+    private function normalizeCart(array $cart): array
+    {
+        $normalized = [];
+
+        foreach ($cart as $key => $details) {
+            if (!is_array($details)) {
+                continue;
+            }
+
+            $productId = (int) ($details['product_id'] ?? (is_numeric($key) ? $key : 0));
+            if ($productId <= 0) {
+                continue;
+            }
+
+            $quantity = max(1, (int) ($details['quantity'] ?? 1));
+            $selectedOptions = $this->sanitizeSelectedOptions((array) ($details['selected_options'] ?? []));
+            $selectionKey = (string) ($details['selection_key'] ?? $this->buildSelectionKey($selectedOptions));
+            $rowId = $this->buildRowId($productId, $selectionKey);
+
+            if (!isset($normalized[$rowId])) {
+                $normalized[$rowId] = [
+                    'product_id' => $productId,
+                    'quantity' => $quantity,
+                    'selection_key' => $selectionKey,
+                    'selected_options' => $selectedOptions,
+                ];
+                continue;
+            }
+
+            $normalized[$rowId]['quantity'] += $quantity;
+        }
+
+        return $normalized;
     }
 }

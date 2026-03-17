@@ -15,4 +15,9 @@ class ProductImage extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function combinationImages()
+    {
+        return $this->hasMany(ProductOptionCombinationImage::class, 'product_image_id');
+    }
 }

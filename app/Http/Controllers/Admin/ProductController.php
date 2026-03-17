@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use App\Traits\HandlesImageUploads;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProductsExport;
+use Illuminate\Http\UploadedFile;
 
 class ProductController extends Controller
 {
@@ -114,6 +115,22 @@ class ProductController extends Controller
             'primary_categories'    => 'nullable|array',
             'primary_categories.*'  => 'integer|exists:primary_categories,id',
             'primary_category_id'   => 'nullable|integer|exists:primary_categories,id',
+
+            'product_options' => 'nullable|array',
+            'product_options.*.name_ar' => 'nullable|string|max:255',
+            'product_options.*.name_en' => 'nullable|string|max:255',
+            'product_options.*.is_required' => 'nullable|boolean',
+            'product_options.*.values' => 'nullable|array',
+            'product_options.*.values.*.value_ar' => 'nullable|string|max:255',
+            'product_options.*.values.*.value_en' => 'nullable|string|max:255',
+            'product_options.*.values.*.client_key' => 'nullable|string|max:100',
+
+            'combination_definitions' => 'nullable|array',
+            'combination_definitions.*' => 'nullable|string',
+            'combination_images' => 'nullable|array',
+            'combination_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp',
+            'combination_existing_image_ids' => 'nullable|array',
+            'combination_existing_image_ids.*' => 'nullable|integer|exists:product_images,id',
         ]);
 
         DB::beginTransaction();
@@ -140,6 +157,8 @@ class ProductController extends Controller
                 }
             }
 
+            $this->syncProductOptionsAndCombinations($product, $request);
+
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -154,6 +173,12 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
+        $product->load([
+            'images',
+            'options.values',
+            'optionCombinations.images',
+        ]);
+
         $categories = Category::all(); // القديمة
         $primaryCategories = PrimaryCategory::active()->ordered()->get(); // الجديدة
         // selectedPrimary ينقره بالـ Blade عبر $product->primaryCategories()->pluck('id')
@@ -180,6 +205,22 @@ class ProductController extends Controller
             'primary_categories'    => 'nullable|array',
             'primary_categories.*'  => 'integer|exists:primary_categories,id',
             'primary_category_id'   => 'nullable|integer|exists:primary_categories,id',
+
+            'product_options' => 'nullable|array',
+            'product_options.*.name_ar' => 'nullable|string|max:255',
+            'product_options.*.name_en' => 'nullable|string|max:255',
+            'product_options.*.is_required' => 'nullable|boolean',
+            'product_options.*.values' => 'nullable|array',
+            'product_options.*.values.*.value_ar' => 'nullable|string|max:255',
+            'product_options.*.values.*.value_en' => 'nullable|string|max:255',
+            'product_options.*.values.*.client_key' => 'nullable|string|max:100',
+
+            'combination_definitions' => 'nullable|array',
+            'combination_definitions.*' => 'nullable|string',
+            'combination_images' => 'nullable|array',
+            'combination_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp',
+            'combination_existing_image_ids' => 'nullable|array',
+            'combination_existing_image_ids.*' => 'nullable|integer|exists:product_images,id',
         ]);
 
         DB::beginTransaction();
@@ -202,6 +243,8 @@ class ProductController extends Controller
                     $product->images()->create(['image_path' => $path]);
                 }
             }
+
+            $this->syncProductOptionsAndCombinations($product, $request);
 
             DB::commit();
         } catch (\Exception $e) {
@@ -254,10 +297,20 @@ class ProductController extends Controller
     public function forceDelete($id)
     {
         $product = Product::onlyTrashed()->findOrFail($id);
+
+        $product->loadMissing('optionCombinations.images');
         
         // حذف الصور من التخزين
         foreach ($product->images as $image) {
             Storage::disk('public')->delete($image->image_path);
+        }
+
+        foreach ($product->optionCombinations as $combination) {
+            foreach ($combination->images as $comboImage) {
+                if (!empty($comboImage->image_path)) {
+                    Storage::disk('public')->delete($comboImage->image_path);
+                }
+            }
         }
 
         // فك الارتباط من الفئات الجديدة
@@ -330,5 +383,173 @@ class ProductController extends Controller
         })->toArray();
 
         return Excel::download(new ProductsExport($data), 'products.xlsx');
+    }
+
+    private function syncProductOptionsAndCombinations(Product $product, Request $request): void
+    {
+        $this->deleteExistingCombinationUploads($product);
+        $product->optionCombinations()->delete();
+        $product->options()->delete();
+
+        $normalizedOptions = $this->normalizeProductOptions($request->input('product_options', []));
+        if (empty($normalizedOptions)) {
+            return;
+        }
+
+        $valueIdByClientKey = [];
+        foreach ($normalizedOptions as $optionIndex => $optionPayload) {
+            $option = $product->options()->create([
+                'name_ar' => $optionPayload['name_ar'],
+                'name_en' => $optionPayload['name_en'],
+                'sort_order' => $optionIndex,
+                'is_required' => $optionPayload['is_required'],
+            ]);
+
+            foreach ($optionPayload['values'] as $valueIndex => $valuePayload) {
+                $value = $option->values()->create([
+                    'value_ar' => $valuePayload['value_ar'],
+                    'value_en' => $valuePayload['value_en'],
+                    'sort_order' => $valueIndex,
+                ]);
+
+                $valueIdByClientKey[$valuePayload['client_key']] = (int) $value->id;
+            }
+        }
+
+        $combinationDefinitions = (array) $request->input('combination_definitions', []);
+        $combinationUploads = (array) $request->file('combination_images', []);
+        $combinationExistingImageIds = (array) $request->input('combination_existing_image_ids', []);
+
+        foreach ($combinationDefinitions as $rowKey => $definitionJson) {
+            if (!is_string($definitionJson) || trim($definitionJson) === '') {
+                continue;
+            }
+
+            $definition = json_decode($definitionJson, true);
+            if (!is_array($definition)) {
+                continue;
+            }
+
+            $clientKeys = array_values(array_filter((array) ($definition['client_keys'] ?? []), fn ($v) => is_string($v) && $v !== ''));
+            if (empty($clientKeys)) {
+                continue;
+            }
+
+            $valueIds = [];
+            foreach ($clientKeys as $clientKey) {
+                if (!isset($valueIdByClientKey[$clientKey])) {
+                    continue 2;
+                }
+                $valueIds[] = $valueIdByClientKey[$clientKey];
+            }
+
+            sort($valueIds);
+            $combinationKey = implode('-', $valueIds);
+            if ($combinationKey === '') {
+                continue;
+            }
+
+            $combination = $product->optionCombinations()->create([
+                'combination_key' => $combinationKey,
+                'option_value_ids' => $valueIds,
+            ]);
+
+            $uploadedImage = $combinationUploads[$rowKey] ?? null;
+            $existingImageId = isset($combinationExistingImageIds[$rowKey])
+                ? (int) $combinationExistingImageIds[$rowKey]
+                : 0;
+
+            $imagePayload = $this->prepareCombinationImagePayload($product, $uploadedImage, $existingImageId);
+            if (!empty($imagePayload)) {
+                $combination->images()->create($imagePayload);
+            }
+        }
+    }
+
+    private function normalizeProductOptions(array $rawOptions): array
+    {
+        $normalized = [];
+
+        foreach ($rawOptions as $optionIndex => $option) {
+            if (!is_array($option)) {
+                continue;
+            }
+
+            $nameAr = trim((string) ($option['name_ar'] ?? ''));
+            $nameEn = trim((string) ($option['name_en'] ?? ''));
+            $values = [];
+
+            foreach ((array) ($option['values'] ?? []) as $valueIndex => $value) {
+                if (!is_array($value)) {
+                    continue;
+                }
+
+                $valueAr = trim((string) ($value['value_ar'] ?? ''));
+                $valueEn = trim((string) ($value['value_en'] ?? ''));
+                if ($valueAr === '' && $valueEn === '') {
+                    continue;
+                }
+
+                $clientKey = trim((string) ($value['client_key'] ?? ''));
+                if ($clientKey === '') {
+                    $clientKey = 'o' . $optionIndex . '_v' . $valueIndex;
+                }
+
+                $values[] = [
+                    'value_ar' => $valueAr !== '' ? $valueAr : $valueEn,
+                    'value_en' => $valueEn !== '' ? $valueEn : null,
+                    'client_key' => $clientKey,
+                ];
+            }
+
+            if ($nameAr === '' && $nameEn === '') {
+                continue;
+            }
+
+            if (empty($values)) {
+                continue;
+            }
+
+            $normalized[] = [
+                'name_ar' => $nameAr !== '' ? $nameAr : $nameEn,
+                'name_en' => $nameEn !== '' ? $nameEn : null,
+                'is_required' => (bool) ($option['is_required'] ?? true),
+                'values' => $values,
+            ];
+        }
+
+        return $normalized;
+    }
+
+    private function prepareCombinationImagePayload(Product $product, ?UploadedFile $uploadedImage, int $existingImageId): array
+    {
+        if ($uploadedImage instanceof UploadedFile) {
+            $imagePath = $this->uploadAndConvertImage($uploadedImage, 'products/options');
+            return [
+                'image_path' => $imagePath,
+                'product_image_id' => null,
+            ];
+        }
+
+        if ($existingImageId > 0 && $product->images()->whereKey($existingImageId)->exists()) {
+            return [
+                'product_image_id' => $existingImageId,
+                'image_path' => null,
+            ];
+        }
+
+        return [];
+    }
+
+    private function deleteExistingCombinationUploads(Product $product): void
+    {
+        $product->loadMissing('optionCombinations.images');
+        foreach ($product->optionCombinations as $combination) {
+            foreach ($combination->images as $image) {
+                if (!empty($image->image_path) && Storage::disk('public')->exists($image->image_path)) {
+                    Storage::disk('public')->delete($image->image_path);
+                }
+            }
+        }
     }
 }

@@ -90,7 +90,7 @@
                 {{-- المنتجات --}}
                 <div class="lg:w-7/12 xl:w-2/3">
                     <div class="space-y-4">
-                        <template x-for="item in Object.values(cartItems)" :key="item.product.id">
+                        <template x-for="item in Object.values(cartItems)" :key="item.row_id">
                             <div class="bg-white rounded-lg shadow-sm p-4 flex gap-4">
                                 <a :href="`/product/${item.product.slug}`" class="w-24 h-24 flex-shrink-0">
                                     <img :src="item.product.first_image ? `/storage/${item.product.first_image.image_path}` : 'https://placehold.co/150x150?text=No+Image'" :alt="item.product.name_ar" class="w-full h-full object-cover rounded-md">
@@ -100,6 +100,17 @@
                                         <div>
                                             <a :href="`/product/${item.product.slug}`" class="font-bold text-lg text-brand-text hover:text-brand-primary" x-text="item.product.name_ar"></a>
                                             <p class="text-sm text-gray-500">SKU: <span x-text="item.product.sku || 'N/A'"></span></p>
+
+                                            <template x-if="item.selected_options && Object.keys(item.selected_options).length">
+                                              <div class="mt-2 text-xs text-gray-600">
+                                                <template x-for="([label, value], idx) in Object.entries(item.selected_options)" :key="`${item.row_id}-${idx}`">
+                                                  <div>
+                                                    <span class="font-semibold" x-text="label + ':'"></span>
+                                                    <span x-text="value"></span>
+                                                  </div>
+                                                </template>
+                                              </div>
+                                            </template>
 
                                             <template x-if="isOut(item)">
                                               <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold mt-2" style="background:#9CA3AF; color:#fff;">
@@ -113,7 +124,7 @@
                                               </span>
                                             </template>
                                         </div>
-                                        <button @click="removeItem(item.product.id)" class="text-gray-400 hover:text-red-500 transition" title="إزالة المنتج">
+                                        <button @click="removeItem(item.row_id)" class="text-gray-400 hover:text-red-500 transition" title="إزالة المنتج">
                                             <i class="bi bi-x-lg"></i>
                                         </button>
                                     </div>
@@ -121,9 +132,9 @@
                                         <div>
                                             <div class="flex items-center border rounded-md overflow-hidden"
                                                  :class="{'opacity-60 pointer-events-none': isOut(item)}">
-                                                <button @click="updateQuantity(item.product.id, item.quantity + 1)" class="px-3 py-1 text-lg hover:bg-gray-100">+</button>
-                                                <input type="number" x-model.number="item.quantity" @change="updateQuantity(item.product.id, item.quantity)" class="w-12 text-center border-x focus:outline-none">
-                                                <button @click="updateQuantity(item.product.id, item.quantity - 1)" class="px-3 py-1 text-lg hover:bg-gray-100">-</button>
+                                                <button @click="updateQuantity(item.row_id, item.quantity + 1)" class="px-3 py-1 text-lg hover:bg-gray-100">+</button>
+                                                <input type="number" x-model.number="item.quantity" @change="updateQuantity(item.row_id, item.quantity)" class="w-12 text-center border-x focus:outline-none">
+                                                <button @click="updateQuantity(item.row_id, item.quantity - 1)" class="px-3 py-1 text-lg hover:bg-gray-100">-</button>
                                             </div>
                                             
                                             <template x-if="showStockInfo(item)">
@@ -266,42 +277,42 @@
       itemLineTotal(item) {
         return this.effectivePrice(item.product) * item.quantity;
       },
-      updateQuantity(productId, newQuantity) {
-        const item = this.cartItems[productId];
+      updateQuantity(rowId, newQuantity) {
+        const item = this.cartItems[rowId];
         if (!item) return;
         if (this.isOut(item)) { return; }
         const max = this.getMax(item);
         if (newQuantity < 1) newQuantity = 1;
         if (max !== null && newQuantity > max) newQuantity = max;
-        this.cartItems[productId].quantity = newQuantity;
-        this.updateCartOnServer(productId, newQuantity);
+        this.cartItems[rowId].quantity = newQuantity;
+        this.updateCartOnServer(rowId, newQuantity);
       },
-      removeItem(productId) {
+      removeItem(rowId) {
         if (!confirm("هل أنت متأكد من إزالة هذا المنتج؟")) return;
         fetch("{{ route('cart.destroy') }}", {
           method: "POST",
           headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}", "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify({ product_id: productId })
+          body: JSON.stringify({ row_id: rowId })
         })
         .then(res => res.json())
         .then(data => {
           if(data.success) {
-            delete this.cartItems[productId];
+            delete this.cartItems[rowId];
             window.dispatchEvent(new CustomEvent("cart-updated", { detail: { cartCount: data.cartCount } }));
             this.recalculateTotal();
           }
         });
       },
-      updateCartOnServer(productId, quantity) {
+      updateCartOnServer(rowId, quantity) {
         fetch("{{ route('cart.update') }}", {
           method: "POST",
           headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}", "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify({ product_id: productId, quantity: quantity })
+          body: JSON.stringify({ row_id: rowId, quantity: quantity })
         })
         .then(res => res.json())
         .then(data => {
           if(!data.success && (data.reason === "out_of_stock" || data.available !== undefined)) {
-            const it = this.cartItems[productId];
+            const it = this.cartItems[rowId];
             const available = Math.max(0, parseInt(data.available ?? 0, 10));
             if (it) {
               it.quantity = available > 0 ? available : 1;

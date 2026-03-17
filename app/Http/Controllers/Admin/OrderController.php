@@ -509,7 +509,12 @@ public function updateStatus(Request $request, Order $order, InventoryService $i
             $order->customer->user->notify(new OrderStatusUpdated($order));
         }
         $adminRoleNames = ['Super-Admin', 'Order-Manager'];
-        $admins = Manager::role($adminRoleNames)->get();
+        $admins = Manager::query()
+            ->whereHas('roles', function ($query) use ($adminRoleNames) {
+                $query->where('guard_name', 'admin')
+                    ->whereIn('name', $adminRoleNames);
+            })
+            ->get();
 
         if ($admins->isNotEmpty()) {
             Notification::send($admins, new AdminOrderStatusUpdated($order));

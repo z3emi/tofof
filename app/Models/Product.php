@@ -99,6 +99,16 @@ class Product extends Model
         return $this->hasMany(ProductImage::class);
     }
 
+        public function options()
+        {
+            return $this->hasMany(ProductOption::class)->orderBy('sort_order');
+        }
+
+        public function optionCombinations()
+        {
+            return $this->hasMany(ProductOptionCombination::class);
+        }
+
     /**
      * Relationship to get just the first image (useful for display).
      */

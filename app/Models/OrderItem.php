@@ -19,7 +19,12 @@ class OrderItem extends Model
         'product_id',
         'quantity',
         'price',
-        'cost'
+        'cost',
+        'option_selections',
+    ];
+
+    protected $casts = [
+        'option_selections' => 'array',
     ];
 
     /**

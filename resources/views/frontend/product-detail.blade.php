@@ -228,10 +228,16 @@
              x-data="{
                  @if($product->images->isNotEmpty())
                      mainImage: '{{ asset('storage/' . $product->images->first()->image_path) }}',
+                     defaultImage: '{{ asset('storage/' . $product->images->first()->image_path) }}',
                  @else
                      mainImage: 'https://placehold.co/600x600?text=No+Image',
+                     defaultImage: 'https://placehold.co/600x600?text=No+Image',
                  @endif
                  quantity: 1,
+                 selectedOptions: {},
+                 selectedOptionValueIds: {},
+                 options: @js($productOptionsPayload ?? []),
+                 combinationImageMap: @js($combinationImageMap ?? []),
                  added: false,
                  loadingAdd: false,
                  isFavorite: {{ $isFavorited ? 'true' : 'false' }},
@@ -245,6 +251,40 @@
                      const y = ((e.clientY - rect.top) / rect.height) * 100;
                      this.zoomOrigin = `${x}% ${y}%`;
                      this.isZoomed = true;
+                 },
+                 selectOption(option, value) {
+                     this.selectedOptionValueIds[option.id] = value.id;
+                     this.selectedOptions[option.name] = value.label;
+                     this.updateImageFromSelection();
+                 },
+                 optionIsSelected(option, value) {
+                     return Number(this.selectedOptionValueIds[option.id] || 0) === Number(value.id);
+                 },
+                 resolveCombinationKey() {
+                     if (!this.options.length) {
+                         return null;
+                     }
+
+                     const pickedValues = [];
+                     for (const option of this.options) {
+                         const selectedId = Number(this.selectedOptionValueIds[option.id] || 0);
+                         if (!selectedId) {
+                             return null;
+                         }
+                         pickedValues.push(selectedId);
+                     }
+
+                     return pickedValues.sort((a, b) => a - b).join('-');
+                 },
+                 updateImageFromSelection() {
+                     const key = this.resolveCombinationKey();
+                     if (!key) {
+                         this.mainImage = this.defaultImage;
+                         return;
+                     }
+
+                     const mapped = this.combinationImageMap[key] || null;
+                     this.mainImage = mapped || this.defaultImage;
                  }
              }">
 
@@ -319,6 +359,25 @@
                     <div class="flex items-center text-sm text-gray-700"><i class="bi bi-box-seam text-brand-primary text-xl w-8 text-center"></i><span>اشتري بقيمة 60 ألف و احصل على هديتين</span></div>
                     <div class="flex items-center text-sm text-gray-700"><i class="bi bi-patch-check-fill text-brand-primary text-xl w-8 text-center"></i><span>منتجات أصلية و مضمونة</span></div>
                 </div>
+
+                <template x-if="options.length">
+                    <div class="mb-6 space-y-4">
+                        <template x-for="option in options" :key="option.id">
+                            <div>
+                                <div class="text-sm font-semibold text-gray-700 mb-2" x-text="option.name"></div>
+                                <div class="flex flex-wrap gap-2">
+                                    <template x-for="value in option.values" :key="value.id">
+                                        <button type="button"
+                                                @click="selectOption(option, value)"
+                                                class="px-3 py-2 text-sm rounded-md border transition"
+                                                :class="optionIsSelected(option, value) ? 'border-brand-primary text-brand-primary bg-white' : 'border-gray-200 text-gray-700 hover:border-brand-primary'"
+                                                x-text="value.label"></button>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
                 
                 {{-- ✅ [تعديل] تم تحديث هذا البلوك بالكامل --}}
                 <div class="space-y-4 mb-8">
@@ -339,7 +398,7 @@
                             </div>
                         </div>
                         <button
-                            @click.prevent="loadingAdd = true; addToCart({{ $product->id }}, quantity).then(data => { if(data.success) { added = true; window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cartCount: data.cartCount } })); setTimeout(() => added = false, 2000); } else { alert(data.message || 'حدث خطأ ما.'); } loadingAdd = false; }).catch(() => { alert('حدث خطأ في الاتصال بالخادم.'); loadingAdd = false; });"
+                            @click.prevent="loadingAdd = true; addToCart({{ $product->id }}, quantity, selectedOptions).then(data => { if(data.success) { added = true; window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cartCount: data.cartCount } })); setTimeout(() => added = false, 2000); } else { alert(data.message || 'حدث خطأ ما.'); } loadingAdd = false; }).catch(() => { alert('حدث خطأ في الاتصال بالخادم.'); loadingAdd = false; });"
                             class="btn-primary shadow" :disabled="loadingAdd || added">
                             <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus-fill text-xl"></i> أضف إلى السلة</span>
                             <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin text-xl"></i></span>
@@ -604,11 +663,11 @@
     });
 
     // سلة + مفضلة
-    function addToCart(productId, quantity) {
+    function addToCart(productId, quantity, selectedOptions = {}) {
         return fetch("{{ route('cart.store') }}", {
             method: "POST",
             headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": "{{ csrf_token() }}", "Accept": "application/json" },
-            body: JSON.stringify({ product_id: productId, quantity: quantity })
+            body: JSON.stringify({ product_id: productId, quantity: quantity, selected_options: selectedOptions })
         })
         .then(r => r.json())
         .then(function (data) {

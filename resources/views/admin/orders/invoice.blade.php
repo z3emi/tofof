@@ -135,7 +135,16 @@
                     <tbody>
                         @foreach($order->items as $item)
                         <tr>
-                            <td>{{ $item->product->name_ar ?? 'منتج محذوف' }}</td>
+                            <td>
+                                <div>{{ $item->product->name_ar ?? 'منتج محذوف' }}</div>
+                                @if(!empty($item->option_selections))
+                                    <div class="small text-muted mt-1">
+                                        @foreach($item->option_selections as $label => $value)
+                                            <div>{{ $label }}: {{ is_array($value) ? implode(', ', $value) : $value }}</div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </td>
                             <td class="text-center">{{ number_format($item->price, 0) }} د.ع</td>
                             <td class="text-center">{{ $item->quantity }}</td>
                             <td class="text-end">{{ number_format($item->price * $item->quantity, 0) }} د.ع</td>

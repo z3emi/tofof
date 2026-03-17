@@ -355,7 +355,50 @@ public function homepage(Request $request)
             abort(404);
         }
 
-        $product->load('images', 'category', 'reviews.user');
+        $product->load([
+            'images',
+            'category',
+            'reviews.user',
+            'options.values',
+            'optionCombinations.images.productImage',
+        ]);
+
+        $productOptionsPayload = $product->options
+            ->sortBy('sort_order')
+            ->values()
+            ->map(function ($option) {
+                return [
+                    'id' => (int) $option->id,
+                    'name' => $option->name_ar,
+                    'is_required' => (bool) $option->is_required,
+                    'values' => $option->values
+                        ->sortBy('sort_order')
+                        ->values()
+                        ->map(function ($value) {
+                            return [
+                                'id' => (int) $value->id,
+                                'label' => $value->value_ar,
+                            ];
+                        })
+                        ->toArray(),
+                ];
+            })
+            ->toArray();
+
+        $combinationImageMap = [];
+        foreach ($product->optionCombinations as $combination) {
+            $comboImage = $combination->images->first();
+            if (!$comboImage) {
+                continue;
+            }
+
+            $imagePath = $comboImage->image_path ?: $comboImage->productImage?->image_path;
+            if (!$imagePath) {
+                continue;
+            }
+
+            $combinationImageMap[$combination->combination_key] = asset('storage/' . $imagePath);
+        }
 
         $relatedProducts = collect();
         if ($product->category_id) {
@@ -379,7 +422,9 @@ public function homepage(Request $request)
             'product',
             'relatedProducts',
             'isFavorited',
-            'favoriteProductIds'
+            'favoriteProductIds',
+            'productOptionsPayload',
+            'combinationImageMap'
         ));
     }
 

@@ -143,6 +143,13 @@
         <div class="flex-grow min-w-0">
           <div class="product-name text-sm md:text-base truncate">{{ $item->product->name_translated ?? 'منتج محذوف' }}</div>
           <div class="product-meta">الكمية: {{ $item->quantity }}</div>
+          @if(!empty($item->option_selections))
+            <div class="product-meta mt-1">
+              @foreach($item->option_selections as $label => $value)
+                <div>{{ $label }}: {{ is_array($value) ? implode(', ', $value) : $value }}</div>
+              @endforeach
+            </div>
+          @endif
         </div>
         <div class="text-left">
           <div class="text-[var(--brand-dark)] font-extrabold text-sm md:text-base">
@@ -184,13 +191,20 @@
     </div>
 
     <div class="summary-panel">
-      <h3 class="text-lg md:text-xl font-extrabold text-[var(--text)] mb-2 md:mb-3">عنوان الشحن</h3>
+      <h3 class="text-lg md:text-xl font-extrabold text-[var(--text)] mb-2 md:mb-3">{{ $order->is_gift ? 'عنوان التوصيل المعتمد' : 'عنوان الشحن' }}</h3>
       <div class="space-y-2 text-sm">
+        @if($order->is_gift)
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">العنوان:</span><span class="row-strong">{{ $order->gift_recipient_address_details ?: $order->address_details }}</span></div>
+        @if($order->gift_recipient_name)
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">المستلم:</span><span class="row-strong">{{ $order->gift_recipient_name }}</span></div>
+        @endif
+        @else
         <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">المحافظة:</span><span class="row-strong">{{ $order->governorate }}</span></div>
         <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">المدينة:</span><span class="row-strong">{{ $order->city }}</span></div>
         <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">تفاصيل العنوان:</span><span class="row-strong">{{ $order->address_details }}</span></div>
         @if($order->nearest_landmark)
         <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">أقرب نقطة دالة:</span><span class="row-strong">{{ $order->nearest_landmark }}</span></div>
+        @endif
         @endif
       </div>
     </div>
