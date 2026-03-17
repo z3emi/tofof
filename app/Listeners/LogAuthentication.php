@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Models\ActivityLog;
+use App\Models\Manager;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Auth\Events\Failed;
@@ -13,8 +14,10 @@ class LogAuthentication
     {
         if ($event instanceof Login) {
             $user = $event->user;
+            $managerId = $user instanceof Manager ? $user->id : null;
+
             ActivityLog::create([
-                'user_id'       => $user?->id,
+                'user_id'       => $managerId,
                 'loggable_id'   => $user?->id,
                 'loggable_type' => $user ? get_class($user) : null,
                 'action'        => 'login',
@@ -24,8 +27,10 @@ class LogAuthentication
             ]);
         } elseif ($event instanceof Logout) {
             $user = $event->user;
+            $managerId = $user instanceof Manager ? $user->id : null;
+
             ActivityLog::create([
-                'user_id'       => $user?->id,
+                'user_id'       => $managerId,
                 'loggable_id'   => $user?->id,
                 'loggable_type' => $user ? get_class($user) : null,
                 'action'        => 'logout',
@@ -35,8 +40,10 @@ class LogAuthentication
             ]);
         } elseif ($event instanceof Failed) {
             $user = $event->user; // قد يكون null
+            $managerId = $user instanceof Manager ? $user->id : null;
+
             ActivityLog::create([
-                'user_id'       => $user?->id,
+                'user_id'       => $managerId,
                 'loggable_id'   => $user?->id,
                 'loggable_type' => $user ? get_class($user) : null,
                 'action'        => 'failed_login',

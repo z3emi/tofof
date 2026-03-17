@@ -259,7 +259,7 @@ public function update(Request $request, User $user)
 
     public function ban(User $user)
     {
-        if ($user->id === auth()->id()) {
+        if ($user->id === Auth::guard('web')->id()) {
             return redirect()->back()->with('error', 'لا يمكنك حظر حسابك الخاص.');
         }
         $user->update(['banned_at' => Carbon::now()]);
@@ -300,7 +300,7 @@ public function update(Request $request, User $user)
     
     public function destroy(User $user)
     {
-        if ($user->id === auth()->id()) {
+        if ($user->id === Auth::guard('web')->id()) {
             return redirect()->back()->with('error', 'لا يمكنك حذف حسابك الخاص.');
         }
         $user->delete();
