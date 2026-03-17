@@ -16,7 +16,7 @@ class LogAuthentication
             $user = $event->user;
             $managerId = $user instanceof Manager ? $user->id : null;
 
-            ActivityLog::create([
+            ActivityLog::record([
                 'user_id'       => $managerId,
                 'loggable_id'   => $user?->id,
                 'loggable_type' => $user ? get_class($user) : null,
@@ -29,7 +29,7 @@ class LogAuthentication
             $user = $event->user;
             $managerId = $user instanceof Manager ? $user->id : null;
 
-            ActivityLog::create([
+            ActivityLog::record([
                 'user_id'       => $managerId,
                 'loggable_id'   => $user?->id,
                 'loggable_type' => $user ? get_class($user) : null,
@@ -42,7 +42,7 @@ class LogAuthentication
             $user = $event->user; // قد يكون null
             $managerId = $user instanceof Manager ? $user->id : null;
 
-            ActivityLog::create([
+            ActivityLog::record([
                 'user_id'       => $managerId,
                 'loggable_id'   => $user?->id,
                 'loggable_type' => $user ? get_class($user) : null,

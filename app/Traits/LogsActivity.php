@@ -54,7 +54,7 @@ trait LogsActivity
     {
         $userId = Auth::check() ? Auth::id() : null;
 
-        ActivityLog::create([
+        ActivityLog::record([
             'user_id'       => $userId,
             'loggable_id'   => $model->id,
             'loggable_type' => get_class($model),

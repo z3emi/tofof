@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Throwable;
 
 class ActivityLog extends Model
 {
@@ -24,6 +25,15 @@ class ActivityLog extends Model
         'before' => 'array',
         'after'  => 'array',
     ];
+
+    public static function record(array $attributes): void
+    {
+        try {
+            static::create($attributes);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+    }
 
     public function user()
     {
