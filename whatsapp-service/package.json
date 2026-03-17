@@ -5,7 +5,8 @@
   "description": "WhatsApp Web QR session service for Tofof",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "install:chrome": "node ./node_modules/puppeteer/lib/cjs/puppeteer/node/cli.js browsers install chrome"
   },
   "dependencies": {
     "dotenv": "^16.4.5",

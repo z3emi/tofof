@@ -13,6 +13,7 @@ class WhatsAppSessionController extends Controller
         $statusData = $whatsAppWebService->getStatus();
         $status = (string) ($statusData['status'] ?? 'offline');
         $phone = $statusData['phone'] ?? null;
+        $lastError = $statusData['last_error'] ?? null;
         $qr = null;
 
         if ($status !== 'connected') {
@@ -23,6 +24,7 @@ class WhatsAppSessionController extends Controller
             'status' => $status,
             'phone' => $phone,
             'qr' => $qr,
+            'last_error' => $lastError,
         ]);
     }
 

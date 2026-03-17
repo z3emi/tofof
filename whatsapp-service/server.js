@@ -8,8 +8,12 @@ const app = express();
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 3001);
-const API_KEY = process.env.WHATSAPP_SERVICE_KEY || '';
-const CHROME_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROME_BIN || undefined;
+const API_KEY = String(process.env.WHATSAPP_SERVICE_KEY || '').trim();
+const CHROME_PATH = (process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROME_BIN || '').trim() || null;
+
+console.log('[Config] PORT:', PORT);
+console.log('[Config] CHROME_PATH:', CHROME_PATH || '(bundled)');
+console.log('[Config] API auth enabled:', API_KEY !== '');
 
 const state = {
   status: 'initializing',
@@ -50,9 +54,14 @@ function authMiddleware(req, res, next) {
     return next();
   }
 
-  const provided = req.header('X-API-Key') || '';
+  const provided = String(req.header('X-API-Key') || '').trim();
 
   if (provided !== API_KEY) {
+    console.warn('[Auth] Unauthorized request', {
+      providedLength: provided.length,
+      expectedLength: API_KEY.length,
+    });
+
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
 
@@ -68,52 +77,77 @@ async function initializeClient() {
   state.status = 'initializing';
   state.lastError = null;
 
+  console.log('[WA] Initializing WhatsApp client...');
+
   try {
+    const puppeteerOpts = {
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-extensions',
+      ],
+    };
+
+    if (CHROME_PATH) {
+      puppeteerOpts.executablePath = CHROME_PATH;
+      console.log('[WA] Using Chrome at:', CHROME_PATH);
+    } else {
+      console.log('[WA] Using bundled Chromium from puppeteer');
+    }
+
     client = new Client({
       authStrategy: new LocalAuth({
         clientId: 'tofof-main',
         dataPath: path.resolve(__dirname, '.wwebjs_auth'),
       }),
-      puppeteer: {
-        headless: true,
-        executablePath: CHROME_PATH,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      },
+      puppeteer: puppeteerOpts,
     });
 
     client.on('qr', async (qrText) => {
+      console.log('[WA] QR received, generating image...');
       try {
         state.qr = await qrcode.toDataURL(qrText, { width: 320, margin: 2 });
         state.status = 'qr';
         state.phone = null;
+        console.log('[WA] QR ready.');
       } catch (error) {
+        console.error('[WA] QR generation error:', error.message);
         state.status = 'error';
         state.lastError = String(error.message || error);
       }
     });
 
     client.on('authenticated', () => {
+      console.log('[WA] Authenticated.');
       state.status = 'authenticated';
       state.lastError = null;
     });
 
     client.on('ready', () => {
+      const user = client.info && client.info.wid ? client.info.wid.user : null;
+      state.phone = user ? `+${user}` : null;
       state.status = 'connected';
       state.qr = null;
       state.lastError = null;
-
-      const user = client.info && client.info.wid ? client.info.wid.user : null;
-      state.phone = user ? `+${user}` : null;
+      console.log('[WA] Ready! Phone:', state.phone);
     });
 
     client.on('auth_failure', (message) => {
+      console.error('[WA] Auth failure:', message);
       state.status = 'auth_failure';
       state.phone = null;
       state.qr = null;
       state.lastError = String(message || 'Authentication failed');
     });
 
-    client.on('disconnected', async () => {
+    client.on('disconnected', async (reason) => {
+      console.warn('[WA] Disconnected:', reason);
       state.status = 'disconnected';
       state.phone = null;
       state.qr = null;
@@ -123,16 +157,23 @@ async function initializeClient() {
           await client.destroy();
         }
       } catch (error) {
+        console.error('[WA] Destroy error:', error.message);
         state.lastError = String(error.message || error);
       }
 
       client = null;
       setTimeout(() => {
-        initializeClient().catch(() => undefined);
+        initializeClient().catch((e) => console.error('[WA] Re-init error:', e.message));
       }, 1500);
     });
 
+    console.log('[WA] Calling client.initialize()...');
     await client.initialize();
+    console.log('[WA] client.initialize() completed.');
+  } catch (error) {
+    console.error('[WA] initializeClient error:', error.message || error);
+    state.status = 'error';
+    state.lastError = String(error.message || error);
   } finally {
     isInitializing = false;
   }
@@ -208,9 +249,9 @@ app.post('/api/logout', async (_, res) => {
 });
 
 app.listen(PORT, () => {
-  // eslint-disable-next-line no-console
   console.log(`WhatsApp service running on port ${PORT}`);
   initializeClient().catch((error) => {
+    console.error('[WA] Startup init error:', error.message || error);
     state.status = 'error';
     state.lastError = String(error.message || error);
   });

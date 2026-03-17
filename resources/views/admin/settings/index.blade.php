@@ -411,8 +411,8 @@
                                         <div class="alert alert-warning text-start">
                                             <strong>الحالة:</strong> غير متصل. قم بمسح QR لتسجيل الدخول.
                                         </div>
-                                        <img id="wa-qr-image" src="" alt="WhatsApp QR" class="img-fluid border rounded p-2 bg-white" style="max-width: 320px;">
-                                        <div class="mt-3 text-muted">امسح الباركود من تطبيق واتساب على الهاتف.</div>
+                                        <img id="wa-qr-image" src="" alt="WhatsApp QR" class="img-fluid border rounded p-2 bg-white d-none" style="max-width: 320px;">
+                                        <div id="wa-qr-help" class="mt-3 text-muted">جاري انتظار توليد الباركود من خدمة واتساب...</div>
                                         <button type="button" id="wa-refresh-btn" class="btn btn-outline-secondary mt-3">
                                             تحديث الباركود
                                         </button>
@@ -749,6 +749,7 @@
         const errorState = document.getElementById('wa-error-state');
         const phoneNumber = document.getElementById('wa-phone-number');
         const qrImage = document.getElementById('wa-qr-image');
+        const qrHelp = document.getElementById('wa-qr-help');
         const logoutBtn = document.getElementById('wa-logout-btn');
         const refreshBtn = document.getElementById('wa-refresh-btn');
 
@@ -803,7 +804,23 @@
                     phoneNumber.textContent = payload.phone || '-';
                     showState('connected');
                 } else {
-                    qrImage.src = payload.qr || '';
+                    if (payload.qr) {
+                        qrImage.src = payload.qr;
+                        qrImage.classList.remove('d-none');
+                        qrHelp.textContent = 'امسح الباركود من تطبيق واتساب على الهاتف.';
+                    } else {
+                        qrImage.removeAttribute('src');
+                        qrImage.classList.add('d-none');
+
+                        if (payload.status === 'initializing' || payload.status === 'authenticated') {
+                            qrHelp.textContent = 'الخدمة تعمل الآن، انتظر قليلاً حتى يتم توليد الباركود.';
+                        } else if (payload.last_error) {
+                            qrHelp.textContent = 'تعذر توليد الباركود: ' + payload.last_error;
+                        } else {
+                            qrHelp.textContent = 'لم يتم استلام باركود حتى الآن. جرّب التحديث بعد ثوانٍ.';
+                        }
+                    }
+
                     showState('disconnected');
                 }
             } catch (error) {

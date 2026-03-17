@@ -201,13 +201,19 @@ class BackupController extends Controller
             // خزّن الفهارس كأوامر ADD لاحقًا
             $adds = [];
             foreach ($idxLines as $line) {
-                $adds[] = "ADD " . trim($line);
+                $normalizedLine = rtrim(trim($line), ", \t\n\r\0\x0B");
+                if ($normalizedLine !== '') {
+                    $adds[] = "ADD " . $normalizedLine;
+                }
             }
             $idxAlters[$table] = $adds;
 
             // خزّن قيود FK كأوامر ALTER لاحقًا
             foreach ($fkLines as $fk) {
-                $fkAlters[] = "ALTER TABLE `{$table}` ADD " . trim($fk) . ";";
+                $normalizedFk = rtrim(trim($fk), ", \t\n\r\0\x0B");
+                if ($normalizedFk !== '') {
+                    $fkAlters[] = "ALTER TABLE `{$table}` ADD " . $normalizedFk . ";";
+                }
             }
 
             // *** تنظيف CREATE: إزالة الفهارس + قيود FK ***
@@ -281,6 +287,14 @@ class BackupController extends Controller
         foreach ($baseTables as $table) {
             $adds = $idxAlters[$table] ?? [];
             if (!empty($adds)) {
+                $adds = array_values(array_filter(array_map(function ($add) {
+                    return preg_replace('/,+\s*$/', '', trim($add));
+                }, $adds)));
+
+                if (empty($adds)) {
+                    continue;
+                }
+
                 $out .= "ALTER TABLE `{$table}`\n  " . implode(",\n  ", $adds) . ";\n\n";
             }
             if (!empty($autoIncs[$table])) {
@@ -480,9 +494,12 @@ class BackupController extends Controller
                 // Check if statement is complete by checking for delimiter at end of line (ignoring trailing whitespace)
                 if (preg_match('/' . preg_quote($delimiter, '/') . '\s*$/S', $line)) {
                     try {
-                        DB::unprepared($query);
+                        $queryToRun = $this->sanitizeSqlStatement($query);
+                        if (trim($queryToRun) !== '') {
+                            DB::unprepared($queryToRun);
+                        }
                     } catch (\Exception $qe) {
-                        Log::error("SQL Restore Error in query: " . $query . " Error: " . $qe->getMessage());
+                        Log::error("SQL Restore Error in query: " . $queryToRun . " Error: " . $qe->getMessage());
                         throw $qe;
                     }
                     $query = '';
@@ -492,7 +509,10 @@ class BackupController extends Controller
 
             // Execute any remaining query
             if (trim($query) !== '') {
-                DB::unprepared($query);
+                $queryToRun = $this->sanitizeSqlStatement($query);
+                if (trim($queryToRun) !== '') {
+                    DB::unprepared($queryToRun);
+                }
             }
 
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
@@ -514,6 +534,19 @@ class BackupController extends Controller
         } else {
             unlink($path);
         }
+    }
+
+    private function sanitizeSqlStatement(string $sql): string
+    {
+        $normalized = trim($sql);
+
+        // Legacy backups may contain malformed ALTER TABLE clauses like ",," or ",;".
+        if (preg_match('/^\s*ALTER\s+TABLE\b/i', $normalized) === 1) {
+            $normalized = preg_replace('/,\s*,+/m', ',', $normalized);
+            $normalized = preg_replace('/,\s*;/m', ';', $normalized);
+        }
+
+        return $normalized;
     }
 
     private function copyDirectory($source, $target)

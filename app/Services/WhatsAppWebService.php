@@ -41,6 +41,7 @@ class WhatsAppWebService
             return [
                 'status' => (string) data_get($payload, 'status', 'offline'),
                 'phone' => data_get($payload, 'phone'),
+                'last_error' => data_get($payload, 'lastError'),
             ];
         } catch (Throwable $e) {
             report($e);
@@ -52,6 +53,7 @@ class WhatsAppWebService
             return [
                 'status' => 'offline',
                 'phone' => null,
+                'last_error' => $e->getMessage(),
             ];
         }
     }
