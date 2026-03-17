@@ -85,8 +85,8 @@
 
                                     <td>
                                         @if($slide->background_image_url)
-                                            <img src="{{ $slide->background_image_url }}"
-                                                 alt="{{ $slide->alt_text ?: $slide->title }}"
+                                                <img src="{{ $slide->background_image_url }}"
+                                                    alt="{{ $slide->alt_text ?: ($slide->title ?: 'صورة سلايدر') }}"
                                                  class="rounded border"
                                                  style="width: 130px; height: 72px; object-fit: cover;">
                                         @else
@@ -98,7 +98,7 @@
                                     </td>
 
                                     <td>
-                                        <div class="fw-bold mb-1">{{ $slide->title }}</div>
+                                        <div class="fw-bold mb-1">{{ $slide->title ?: 'بدون عنوان' }}</div>
                                         @if($slide->subtitle)
                                             <div class="text-muted small mb-2">{{ \Illuminate\Support\Str::limit($slide->subtitle, 120) }}</div>
                                         @endif

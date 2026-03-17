@@ -75,7 +75,7 @@ class Manager extends Authenticatable
 
     public function hasPermission(string $permission): bool
     {
-        $permissions = $this->permissions ?? [];
+        $permissions = $this->getAttribute('permissions') ?? [];
 
         if (is_string($permissions)) {
             $decoded = json_decode($permissions, true);
@@ -84,6 +84,30 @@ class Manager extends Authenticatable
         }
 
         return in_array($permission, $permissions, true);
+    }
+
+    public function getAllPermissions(): Collection
+    {
+        $directPermissions = $this->getRelationValue('permissions');
+
+        if (! $directPermissions instanceof Collection) {
+            $directPermissions = $this->permissions()->get();
+            $this->setRelation('permissions', $directPermissions);
+        }
+
+        $storedPermissions = collect($this->getAttribute('permissions') ?? [])
+            ->filter()
+            ->map(function ($permission) {
+                return $this->resolvePermissionModel($permission);
+            })
+            ->filter();
+
+        return $directPermissions
+            ->merge($storedPermissions)
+            ->merge($this->getPermissionsViaRoles())
+            ->unique(fn ($permission) => $permission->getKey())
+            ->sortBy('name')
+            ->values();
     }
 
     protected $guard_name = 'admin';

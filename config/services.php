@@ -40,4 +40,8 @@ return [
         'chat_id'    => env('TELEGRAM_CHAT_ID'),
         'parse_mode' => env('TELEGRAM_PARSE_MODE', 'HTML'),
     ],
+    'whatsapp_web' => [
+        'url' => env('WHATSAPP_SERVICE_URL', 'http://localhost:3001'),
+        'key' => env('WHATSAPP_SERVICE_KEY', ''),
+    ],
 ];

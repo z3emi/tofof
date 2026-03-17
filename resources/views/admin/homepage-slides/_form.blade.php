@@ -26,9 +26,9 @@
                     </div>
 
                     <div class="col-12">
-                        <label for="title" class="form-label">العنوان <span class="text-danger">*</span></label>
+                        <label for="title" class="form-label">العنوان (اختياري)</label>
                         <input type="text" name="title" id="title" class="form-control @error('title') is-invalid @enderror"
-                               value="{{ old('title', $homepageSlide->title ?? '') }}" required>
+                               value="{{ old('title', $homepageSlide->title ?? '') }}">
                         @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
@@ -79,7 +79,7 @@
                 @if(!empty($homepageSlide?->background_image_url))
                     <div class="mt-3">
                         <div class="small text-muted mb-2">المعاينة الحالية</div>
-                        <img src="{{ $homepageSlide->background_image_url }}" alt="{{ $homepageSlide->alt_text ?: $homepageSlide->title }}"
+                            <img src="{{ $homepageSlide->background_image_url }}" alt="{{ $homepageSlide->alt_text ?: ($homepageSlide->title ?: 'صورة سلايدر') }}"
                              class="img-fluid rounded border" style="max-height: 220px; object-fit: cover; width: 100%;">
                     </div>
                 @endif

@@ -633,7 +633,7 @@
                     <div class="slide">
                         <img src="{{ $slide->image_path ?? $slide->background_image_url }}"
                              class="slide-bg"
-                             alt="{{ $slide->alt_text ?? ($slide->title ?? '') }}"
+                                alt="{{ $slide->alt_text ?: ($slide->title ?: 'صورة سلايدر') }}"
                              width="1974"
                              height="1316">
                         @if(!empty($slide->show_overlay))
@@ -644,7 +644,9 @@
                             <div class="slide-overlay" style="background: linear-gradient(90deg, rgba({{ $sRgb }}, {{ $sStrength }}), rgba({{ $sRgb }}, {{ $sStrength * 0.45 }}));"></div>
                         @endif
                         <div class="slide-content">
-                            <h2 class="text-2xl md:text-5xl font-extrabold mb-2 w-full text-center">{{ $slide->title }}</h2>
+                            @if(!empty($slide->title))
+                                <h2 class="text-2xl md:text-5xl font-extrabold mb-2 w-full text-center">{{ $slide->title }}</h2>
+                            @endif
                             @if(!empty($slide->subtitle))
                                 <p class="mb-6 text-sm md:text-lg opacity-90 max-w-xl w-full mx-auto text-center">
                                     {{ $slide->subtitle }}
@@ -760,7 +762,7 @@
             {{-- أزرار التنقل (نفس الأزرار) --}}
             <button
                 class="brand-nav hidden md:flex absolute left-4 pos-mid z-[10001]"
-                :class="{'opacity-100': canNext, 'opacity-40 pointer-events-none': !canNext}"
+                :class="{'opacity-100': canGoLeft, 'opacity-40 pointer-events-none': !canGoLeft}"
                 type="button" aria-label="التالي"
                 @click="go('next')">
                 <i class="bi bi-chevron-left text-2xl"></i>
@@ -768,7 +770,7 @@
 
             <button
                 class="brand-nav hidden md:flex absolute right-4 pos-mid z-[10001]"
-                :class="{'opacity-100': canPrev, 'opacity-40 pointer-events-none': !canPrev}"
+                :class="{'opacity-100': canGoRight, 'opacity-40 pointer-events-none': !canGoRight}"
                 type="button" aria-label="السابق"
                 @click="go('prev')">
                 <i class="bi bi-chevron-right text-2xl"></i>
@@ -937,7 +939,7 @@
             <div class="slide">
               <img src="{{ $slide->background_image_url }}"
                    class="slide-bg"
-                   alt="{{ $slide->alt_text ?: $slide->title }}"
+                    alt="{{ $slide->alt_text ?: ($slide->title ?: 'صورة سلايدر') }}"
                    width="1974"
                    height="1316">
               @if($slide->show_overlay)
@@ -948,7 +950,9 @@
                 <div class="slide-overlay" style="background: linear-gradient(90deg, rgba({{ $spRgb }}, {{ $spStrength }}), rgba({{ $spRgb }}, {{ $spStrength * 0.45 }}));"></div>
               @endif
               <div class="slide-content">
-                <h2 class="text-2xl md:text-4xl font-extrabold mb-2">{{ $slide->title }}</h2>
+                                @if($slide->title)
+                                        <h2 class="text-2xl md:text-4xl font-extrabold mb-2">{{ $slide->title }}</h2>
+                                @endif
                 @if($slide->subtitle)
                     <p class="mb-4 text-sm md:text-base">{{ $slide->subtitle }}</p>
                 @endif
@@ -1072,10 +1076,10 @@
     </div>
 
     {{-- Buttons --}}
-    <button type="button" x-cloak x-show="!isMobile && showLeftButton" x-transition class="cat-side-nav-glass inline-flex absolute top-1/2 left-4 -translate-y-1/2 z-[5]" aria-label="السابق" @click="go('prev')">
+    <button type="button" x-cloak x-show="!isMobile && showLeftButton" x-transition class="cat-side-nav-glass inline-flex absolute top-1/2 left-4 -translate-y-1/2 z-[5]" aria-label="التالي" @click="go('next')">
         <i class="bi bi-chevron-left text-base md:text-lg"></i>
     </button>
-    <button type="button" x-cloak x-show="!isMobile && showRightButton" x-transition class="cat-side-nav-glass inline-flex absolute top-1/2 right-4 -translate-y-1/2 z-[5]" aria-label="التالي" @click="go('next')">
+    <button type="button" x-cloak x-show="!isMobile && showRightButton" x-transition class="cat-side-nav-glass inline-flex absolute top-1/2 right-4 -translate-y-1/2 z-[5]" aria-label="السابق" @click="go('prev')">
         <i class="bi bi-chevron-right text-base md:text-lg"></i>
     </button>
     
@@ -1429,12 +1433,14 @@
                     <div class="slide">
                         <img src="{{ $slide->background_image_url }}"
                              class="slide-bg"
-                             alt="{{ $slide->alt_text ?: $slide->title }}"
+                             alt="{{ $slide->alt_text ?: ($slide->title ?: 'صورة سلايدر') }}"
                              width="1200"
                              height="800">
                         <div class="slide-overlay"></div>
                         <div class="slide-content">
-                            <h2 class="text-2xl md:text-3xl font-bold mb-2">{{ $slide->title }}</h2>
+                            @if($slide->title)
+                                <h2 class="text-2xl md:text-3xl font-bold mb-2">{{ $slide->title }}</h2>
+                            @endif
                             @if($slide->subtitle)
                                 <p class="mb-4">{{ $slide->subtitle }}</p>
                             @endif

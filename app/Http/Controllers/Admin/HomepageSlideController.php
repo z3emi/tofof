@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\HomepageSlide;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use App\Traits\HandlesImageUploads;
@@ -155,7 +156,7 @@ class HomepageSlideController extends Controller
     {
         $data = $request->validate([
             'section' => ['required', Rule::in(array_keys(HomepageSlide::sections()))],
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['nullable', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:1000'],
             'button_text' => ['nullable', 'string', 'max:255'],
             'button_url' => ['nullable', 'string', 'max:255'],
@@ -168,7 +169,13 @@ class HomepageSlideController extends Controller
         ]);
 
         $data['is_active'] = $request->boolean('is_active');
-        $data['show_overlay'] = $request->has('show_overlay');
+
+        // Keep backward compatibility when the overlay migration is missing.
+        if (Schema::hasColumn('homepage_slides', 'show_overlay')) {
+            $data['show_overlay'] = $request->has('show_overlay');
+        } else {
+            unset($data['show_overlay'], $data['overlay_color'], $data['overlay_strength']);
+        }
 
         return $data;
     }

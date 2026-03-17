@@ -16,6 +16,60 @@ use Illuminate\Support\Facades\Storage;
 
 class ImportController extends Controller
 {
+    private function normalizeImportLookupValue($value): string
+    {
+        $text = trim((string) ($value ?? ''));
+
+        if ($text === '') {
+            return '';
+        }
+
+        // Normalize hidden spaces that often appear in copied Excel values.
+        $text = preg_replace('/[\x{00A0}\x{2007}\x{202F}]/u', ' ', $text);
+        $text = trim((string) $text);
+
+        // Convert values like 123.0 (common in Excel) to 123.
+        if (preg_match('/^-?\d+\.0+$/', $text) === 1) {
+            $text = strstr($text, '.', true) ?: $text;
+        }
+
+        return mb_strtoupper($text, 'UTF-8');
+    }
+
+    private function parseImportedQuantity($value): ?int
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (int) round((float) $value);
+        }
+
+        $text = trim((string) $value);
+        if ($text === '') {
+            return null;
+        }
+
+        // Convert Arabic/Persian digits to Western digits.
+        $text = strtr($text, [
+            '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+            '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+            '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
+            '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
+        ]);
+
+        // Remove separators and any text units like "قطعة".
+        $text = str_replace([',', '،'], '', $text);
+        $text = preg_replace('/[^0-9\.-]/u', '', $text);
+
+        if ($text === '' || !is_numeric($text)) {
+            return null;
+        }
+
+        return (int) round((float) $text);
+    }
+
     public function index()
     {
         return view('admin.imports.index');
@@ -321,29 +375,44 @@ class ImportController extends Controller
             $updated = 0;
             $notFoundCount = 0;
             $notFoundSkus = [];
+            $skippedInvalid = 0;
 
             foreach ($rows as $row) {
-                $sku = trim($row[$skuCol] ?? '');
-                $quantity = $row[$qtyCol] ?? null;
+                $rawLookup = $row[$skuCol] ?? '';
+                $lookup = $this->normalizeImportLookupValue($rawLookup);
+                $quantity = $this->parseImportedQuantity($row[$qtyCol] ?? null);
 
-                if ($sku !== '' && is_numeric($quantity)) {
-                    $product = Product::where('sku', $sku)->first();
-                    if ($product) {
-                        $product->update(['stock_quantity' => (int)$quantity]);
-                        $updated++;
-                    } else {
-                        $notFoundCount++;
-                        $notFoundSkus[] = $sku;
-                    }
+                if ($lookup === '' || $quantity === null) {
+                    $skippedInvalid++;
+                    continue;
+                }
+
+                $product = Product::whereRaw('UPPER(TRIM(sku)) = ?', [$lookup])->first();
+
+                // Support ID-based matching as a fallback when user maps ID column.
+                if (!$product && ctype_digit($lookup)) {
+                    $product = Product::find((int) $lookup);
+                }
+
+                if ($product) {
+                    $product->update(['stock_quantity' => $quantity]);
+                    $updated++;
+                } else {
+                    $notFoundCount++;
+                    $notFoundSkus[] = (string) $rawLookup;
                 }
             }
 
-            \Log::info('importQuantity: finished update', ['updated' => $updated, 'notFoundCount' => $notFoundCount]);
+            \Log::info('importQuantity: finished update', ['updated' => $updated, 'notFoundCount' => $notFoundCount, 'skippedInvalid' => $skippedInvalid]);
             if ($updated === 0 && $notFoundCount === 0) {
                 return redirect()->back()->with('error', 'لم يتم العثور على بيانات صالحة في الملف. تأكد من تحديد الأعمدة بشكل صحيح.');
             }
 
-            $msg = "✅ تم تحديث كمية {$updated} منتج بنجاح. (تجاهل {$notFoundCount} منتج غير موجود)";
+            $msg = "✅ تم تحديث كمية {$updated} منتج بنجاح. (تجاهل {$notFoundCount} منتج غير موجود";
+            if ($skippedInvalid > 0) {
+                $msg .= "، و{$skippedInvalid} صف غير صالح";
+            }
+            $msg .= ")";
             if ($notFoundCount > 0) {
                 $msg .= "<br>الأكواد غير الموجودة: " . implode(', ', $notFoundSkus);
             }

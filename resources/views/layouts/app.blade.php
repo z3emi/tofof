@@ -76,7 +76,9 @@
             $u = auth()->user();
             $hasSuper = method_exists($u, 'hasRole') && $u->hasRole('super-admin');
             $hasNonUserRole = $u->roles && $u->roles->where('name', '!=', 'user')->isNotEmpty();
-            $hasAnyPerms = method_exists($u, 'getAllPermissions') && $u->getAllPermissions() && $u->getAllPermissions()->isNotEmpty();
+        $hasAnyPerms = method_exists($u, 'canAccessAdminPanel')
+          ? $u->canAccessAdminPanel()
+          : (method_exists($u, 'permissions') && $u->permissions()->exists());
             $showDashboardLink = $hasSuper || $hasNonUserRole || $hasAnyPerms;
         }
     } catch (\Exception $e) {
@@ -2030,6 +2032,50 @@ document.addEventListener('alpine:init', () => {
 @if(($show_welcome_screen ?? 'off') === 'on')
 <div
     x-show="showWelcome"
+  x-data="{
+    welcomeImageOnly: false,
+    closeBtnSize: 36,
+    closeBtnGap: 10,
+    syncWelcomeCloseSize() {
+      if (!this.welcomeImageOnly) {
+        this.closeBtnSize = 36;
+        return;
+      }
+
+      const img = this.$refs.welcomeContent?.querySelector('img');
+      if (!img) {
+        this.closeBtnSize = 36;
+        return;
+      }
+
+      const renderedWidth = img.getBoundingClientRect().width || 0;
+      const computed = Math.round(renderedWidth * 0.075);
+      this.closeBtnSize = Math.max(30, Math.min(44, computed || 36));
+
+      if (!img.complete) {
+        img.addEventListener('load', () => {
+          this.syncWelcomeCloseSize();
+        }, { once: true });
+      }
+    },
+    detectWelcomeMode() {
+      const container = this.$refs.welcomeContent;
+      if (!container) {
+        this.welcomeImageOnly = false;
+        return;
+      }
+
+      const clone = container.cloneNode(true);
+      clone.querySelectorAll('script,style,noscript').forEach((el) => el.remove());
+
+      const hasImage = !!clone.querySelector('img');
+      const plainText = (clone.textContent || '').replace(/\u00A0/g, ' ').trim();
+      this.welcomeImageOnly = hasImage && plainText.length === 0;
+
+      this.$nextTick(() => this.syncWelcomeCloseSize());
+    }
+  }"
+  x-init="$watch('showWelcome', (value) => { if (value) { $nextTick(() => detectWelcomeMode()); } }); window.addEventListener('resize', () => { if (showWelcome) { syncWelcomeCloseSize(); } }); if (showWelcome) { $nextTick(() => detectWelcomeMode()); }"
     x-transition:enter="transition ease-out duration-500"
     x-transition:enter-start="opacity-0"
     x-transition:enter-end="opacity-100"
@@ -2044,7 +2090,9 @@ document.addEventListener('alpine:init', () => {
 
     {{-- Simplified Modal Card --}}
     <div
-        class="relative w-full max-w-[480px] bg-white dark:bg-gray-900 shadow-2xl overflow-hidden transition-all mx-4 rounded-3xl flex flex-col items-center justify-center p-8 min-h-[480px]"
+      class="welcome-modal-card relative w-full max-w-[480px] bg-white dark:bg-gray-900 shadow-2xl overflow-hidden transition-all mx-4 rounded-3xl flex flex-col items-center justify-center p-8 min-h-[480px]"
+      :class="{ 'welcome-image-only': welcomeImageOnly }"
+      :style="welcomeImageOnly ? `--welcome-close-space:${closeBtnSize + closeBtnGap + 4}px;` : '--welcome-close-space:0px;'"
         x-show="showWelcome"
         x-transition:enter="transition ease-out duration-500 transform"
         x-transition:enter-start="scale-95 opacity-0"
@@ -2053,17 +2101,23 @@ document.addEventListener('alpine:init', () => {
         x-transition:leave-start="scale-100 opacity-100"
         x-transition:leave-end="scale-95 opacity-0"
     >
-        <div class="relative z-10 flex flex-col items-center text-center w-full">
+        <div class="welcome-content-shell relative z-10 flex flex-col items-center text-center w-full" :class="{ 'welcome-content-shell-image': welcomeImageOnly }">
+      <button
+        type="button"
+        @click="closeWelcomeModal()"
+        class="welcome-close-btn"
+        :class="{ 'welcome-close-btn-image': welcomeImageOnly }"
+        :style="`width:${closeBtnSize}px;height:${closeBtnSize}px;`"
+        aria-label="إغلاق"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+
             {{-- Content only --}}
-            <div class="w-full welcome-text-container dark:text-gray-100" dir="rtl">
+        <div x-ref="welcomeContent" class="w-full welcome-text-container dark:text-gray-100" dir="rtl">
                 {!! $welcome_screen_content ?? '' !!}
             </div>
         </div>
-        
-        {{-- Close button as a backup --}}
-        <button @click="closeWelcomeModal()" class="mt-6 text-sm font-semibold text-[#6d0e16] hover:underline dark:text-red-400">
-            {{ __('إغلاق') }}
-        </button>
     </div>
 
         {{-- Hidden Close Area (clicking the modal itself won't close it, but children can) --}}
@@ -2071,12 +2125,86 @@ document.addEventListener('alpine:init', () => {
 </div>
 
 <style>
+  .welcome-modal-card {
+    max-width: min(92vw, 480px);
+  }
+
+  .welcome-close-btn {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    width: clamp(2rem, 6vw, 2.25rem);
+    height: clamp(2rem, 6vw, 2.25rem);
+    border: 0;
+    border-radius: 999px;
+    background: rgba(17, 24, 39, 0.7);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    z-index: 20;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+  }
+  .welcome-close-btn:hover {
+    transform: scale(1.05);
+    background: rgba(17, 24, 39, 0.9);
+  }
+
+  .welcome-content-shell {
+    width: 100%;
+  }
+
+  .welcome-content-shell.welcome-content-shell-image {
+    width: auto;
+    display: inline-block;
+    position: relative;
+    padding-top: var(--welcome-close-space, 0px);
+  }
+
+  .welcome-close-btn.welcome-close-btn-image {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .welcome-close-btn.welcome-close-btn-image:hover {
+    transform: translateX(-50%) scale(1.05);
+  }
+
+  .welcome-modal-card.welcome-image-only {
+    background: transparent !important;
+    box-shadow: none !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    width: auto !important;
+    max-width: calc(100vw - 1rem) !important;
+    border-radius: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .welcome-modal-card.welcome-image-only .welcome-text-container {
+    width: auto !important;
+  }
+
     .welcome-text-container img {
         max-width: 100%;
         height: auto;
-        display: block;
-        margin: 0 auto;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .welcome-modal-card.welcome-image-only .welcome-text-container img {
+    width: auto;
+    max-width: calc(100vw - 1rem);
+    max-height: 88vh;
+    margin: 0;
+    border-radius: 18px;
     }
+
     .welcome-text-container p, .welcome-text-container h1, .welcome-text-container h2 {
         margin: 0;
     }

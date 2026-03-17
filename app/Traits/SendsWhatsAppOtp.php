@@ -2,7 +2,7 @@
 
 namespace App\Traits;
 
-use Illuminate\Support\Facades\Http;
+use App\Services\WhatsAppWebService;
 use Illuminate\Support\Facades\Log;
 
 trait SendsWhatsAppOtp
@@ -21,45 +21,13 @@ trait SendsWhatsAppOtp
             return;
         }
 
-        $accessToken   = env('WHATSAPP_ACCESS_TOKEN');
-        $phoneNumberId = env('WHATSAPP_PHONE_NUMBER_ID');
-        $version       = env('WHATSAPP_VERSION', 'v23.0');
-        $templateName  = 'register_otp'; // تأكد أن هذا هو اسم القالب الصحيح
+        $message = "رمز التحقق الخاص بك: {$otp}";
+        $sent = app(WhatsAppWebService::class)->sendMessage((string) $recipientPhoneNumber, $message);
 
-        $response = Http::withToken($accessToken)->post(
-            "https://graph.facebook.com/{$version}/{$phoneNumberId}/messages",
-            [
-                'messaging_product' => 'whatsapp',
-                'to'   => $recipientPhoneNumber,
-                'type' => 'template',
-                'template' => [
-                    'name'     => $templateName,
-                    'language' => ['code' => 'ar'],
-                    'components' => [
-                        [
-                            'type'       => 'body',
-                            'parameters' => [
-                                ['type' => 'text', 'text' => (string) $otp],
-                            ],
-                        ],
-                        [
-                            'type'     => 'button',
-                            'sub_type' => 'url',
-                            'index'    => '0',
-                            'parameters' => [
-                                [
-                                    'type' => 'text',
-                                    'text' => 'verify',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ]
-        );
-
-        if ($response->failed()) {
-            Log::error('WhatsApp API Error: ' . $response->body());
+        if (!$sent) {
+            Log::error('WhatsApp Web OTP send failed', [
+                'phone' => $recipientPhoneNumber,
+            ]);
         }
     }
 }

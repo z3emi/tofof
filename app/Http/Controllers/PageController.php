@@ -23,6 +23,7 @@ public function homepage(Request $request)
     $heroSlides = collect();
     $promoPrimarySlides = collect();
     $promoSecondarySlides = collect();
+    $homepageSlides = collect();
 
     // 1) جديد المتجر
     $newProducts = Product::query()
@@ -115,53 +116,59 @@ public function homepage(Request $request)
         ? Auth::user()->favorites()->pluck('product_id')->toArray()
         : [];
 
-    // 8) جلب منتجات الساعات وتحويلها إلى شرائح
-    $watchProducts = Product::query()
-        ->where('is_active', true)
-        ->with('firstImage')
-        ->whereHas('primaryCategories', function($q) {
-            $q->where('slug', 'watches')->orWhere('name_ar', 'ساعات');
-        })
-        ->inRandomOrder()
-        ->take(3)
-        ->get();
-
-    // تحويل منتجات الساعات إلى شرائح (format) بنفس هيكل HomepageSlide
-    $heroSlides = $watchProducts->map(function($product) {
-        $imageUrl = $product->firstImage?->image_path 
-            ? asset('storage/' . ltrim($product->firstImage->image_path, '/'))
-            : ($product->image_url ?? 'https://via.placeholder.com/1974x1316');
-        
-        return (object)[
-            'title' => $product->name_ar ?? $product->name_en,
-            'subtitle' => null,
-            'button_text' => 'عرض المنتج',
-            'button_url' => route('product.detail', $product),
-            'background_image_url' => $imageUrl,
-            'alt_text' => $product->name_ar ?? $product->name_en,
-            'show_overlay' => false,
-            'overlay_color' => '#000000',
-            'overlay_strength' => 0.5,
-        ];
-    })->values();
-
-    // إذا لم نجد منتجات ساعات، استخدم السلايدات الافتراضية
-    if ($heroSlides->isEmpty()) {
-        $heroSlides = HomepageSlide::defaultSlidesForSection(HomepageSlide::SECTION_HERO);
-    }
-
-    // جلب سلايدات promos من قاعدة البيانات أو من الديفولت
+    // جلب سلايدات الصفحة الرئيسية من قاعدة البيانات
     if (Schema::hasTable('homepage_slides')) {
-        $slides = HomepageSlide::query()
+        $homepageSlides = HomepageSlide::query()
             ->active()
             ->ordered()
             ->get()
             ->groupBy('section');
 
-        $promoPrimarySlides = $slides->get(HomepageSlide::SECTION_PROMO_PRIMARY, collect());
-        $promoSecondarySlides = $slides->get(HomepageSlide::SECTION_PROMO_SECONDARY, collect());
-    } else {
+        $heroSlides = $homepageSlides->get(HomepageSlide::SECTION_HERO, collect());
+        $promoPrimarySlides = $homepageSlides->get(HomepageSlide::SECTION_PROMO_PRIMARY, collect());
+        $promoSecondarySlides = $homepageSlides->get(HomepageSlide::SECTION_PROMO_SECONDARY, collect());
+    }
+
+    // fallback للهيرو إذا ماكو سلايدات هيرو فعالة بالإدارة
+    if ($heroSlides->isEmpty()) {
+        $watchProducts = Product::query()
+            ->where('is_active', true)
+            ->with('firstImage')
+            ->whereHas('primaryCategories', function($q) {
+                $q->where('slug', 'watches')->orWhere('name_ar', 'ساعات');
+            })
+            ->inRandomOrder()
+            ->take(3)
+            ->get();
+
+        $heroSlides = $watchProducts->map(function($product) {
+            $imageUrl = $product->firstImage?->image_path
+                ? asset('storage/' . ltrim($product->firstImage->image_path, '/'))
+                : ($product->image_url ?? 'https://via.placeholder.com/1974x1316');
+
+            return (object)[
+                'title' => $product->name_ar ?? $product->name_en,
+                'subtitle' => null,
+                'button_text' => 'عرض المنتج',
+                'button_url' => route('product.detail', $product),
+                'background_image_url' => $imageUrl,
+                'alt_text' => $product->name_ar ?? $product->name_en,
+                'show_overlay' => false,
+                'overlay_color' => '#000000',
+                'overlay_strength' => 0.5,
+            ];
+        })->values();
+    }
+
+    if ($heroSlides->isEmpty()) {
+        $heroSlides = HomepageSlide::defaultSlidesForSection(HomepageSlide::SECTION_HERO);
+    }
+
+    if ($promoPrimarySlides->isEmpty()) {
         $promoPrimarySlides = HomepageSlide::defaultSlidesForSection(HomepageSlide::SECTION_PROMO_PRIMARY);
+    }
+
+    if ($promoSecondarySlides->isEmpty()) {
         $promoSecondarySlides = HomepageSlide::defaultSlidesForSection(HomepageSlide::SECTION_PROMO_SECONDARY);
     }
 
