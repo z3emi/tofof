@@ -9,6 +9,9 @@ use App\Models\WalletTransaction;
 use App\Traits\SendsWhatsAppOtp;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
@@ -86,12 +89,65 @@ class RegisterController extends Controller
         if ($customer && is_null($customer->user_id)) {
             $customer->update(['user_id' => $user->id, 'name' => $user->name, 'email' => $user->email]);
         } elseif (!$customer) {
-            Customer::create([
-                'user_id' => $user->id,
-                'name' => $user->name,
-                'phone_number' => $user->phone_number,
-                'email' => $user->email,
-            ]);
+            try {
+                Customer::create([
+                    'user_id' => $user->id,
+                    'name' => $user->name,
+                    'phone_number' => $user->phone_number,
+                    'email' => $user->email,
+                ]);
+            } catch (QueryException $e) {
+                if (! $this->isCustomersIdAutoIncrementError($e)) {
+                    throw $e;
+                }
+
+                $this->ensurePrimaryKeyAndAutoIncrement('customers');
+
+                Customer::create([
+                    'user_id' => $user->id,
+                    'name' => $user->name,
+                    'phone_number' => $user->phone_number,
+                    'email' => $user->email,
+                ]);
+            }
         }
+    }
+
+    private function isCustomersIdAutoIncrementError(QueryException $e): bool
+    {
+        $errorCode = (string) ($e->errorInfo[1] ?? '');
+        $message = strtolower($e->getMessage());
+
+        return $errorCode === '1364'
+            && str_contains($message, 'customers')
+            && str_contains($message, "field 'id' doesn't have a default value");
+    }
+
+    private function ensurePrimaryKeyAndAutoIncrement(string $table, string $column = 'id'): void
+    {
+        if (! Schema::hasTable($table) || ! Schema::hasColumn($table, $column)) {
+            return;
+        }
+
+        $primaryIndex = DB::select("SHOW INDEX FROM `{$table}` WHERE Key_name = 'PRIMARY'");
+
+        if (empty($primaryIndex)) {
+            DB::statement("ALTER TABLE `{$table}` ADD PRIMARY KEY (`{$column}`)");
+        }
+
+        $columnDefinition = collect(DB::select("SHOW COLUMNS FROM `{$table}` WHERE Field = ?", [$column]))->first();
+
+        if (! $columnDefinition) {
+            return;
+        }
+
+        $extra = strtolower((string) ($columnDefinition->Extra ?? ''));
+
+        if (! str_contains($extra, 'auto_increment')) {
+            DB::statement("ALTER TABLE `{$table}` MODIFY `{$column}` bigint unsigned NOT NULL AUTO_INCREMENT");
+        }
+
+        $nextId = ((int) DB::table($table)->max($column)) + 1;
+        DB::statement('ALTER TABLE `' . $table . '` AUTO_INCREMENT = ' . max($nextId, 1));
     }
 }
