@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\QueryException;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
@@ -15,17 +16,23 @@ return new class extends Migration
             return;
         }
 
-        Schema::create('wallet_transactions', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id')->index();
-            $table->decimal('amount', 10, 2);
-            $table->enum('type', ['credit', 'debit'])->index();
-            $table->string('description')->index();
-            $table->decimal('balance_after', 15, 2)->nullable();
-            $table->unsignedBigInteger('related_order_id')->nullable();
-            $table->unsignedBigInteger('order_id')->nullable()->index();
-            $table->timestamps();
-        });
+        try {
+            Schema::create('wallet_transactions', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('user_id')->index();
+                $table->decimal('amount', 10, 2);
+                $table->enum('type', ['credit', 'debit'])->index();
+                $table->string('description')->index();
+                $table->decimal('balance_after', 15, 2)->nullable();
+                $table->unsignedBigInteger('related_order_id')->nullable();
+                $table->unsignedBigInteger('order_id')->nullable()->index();
+                $table->timestamps();
+            });
+        } catch (QueryException $e) {
+            if (($e->errorInfo[1] ?? null) !== 1050) {
+                throw $e;
+            }
+        }
     }
 
     /**
