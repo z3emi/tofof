@@ -102,8 +102,8 @@ Route::get('/debug-locale', function (Request $request) {
     ]);
 });
 
-// Replace your existing route with this:
-Route::get('/lang/{locale}', function ($locale, Request $request) {
+// Language switch route uses /locale to avoid conflict with physical /lang directory on some hosts.
+Route::get('/locale/{locale}', function ($locale, Request $request) {
     $availableLocales = ['ar', 'en'];
 
     if (!in_array($locale, $availableLocales)) {
@@ -120,7 +120,7 @@ Route::get('/lang/{locale}', function ($locale, Request $request) {
     $from = str_replace(['/index.php/', '/index.php'], ['/', ''], $from);
 
     // Safety: only redirect to same-host relative paths
-    $skipPatterns = ['cart/count', 'wishlist/count', 'live-search', 'cart/content', '/lang/'];
+    $skipPatterns = ['cart/count', 'wishlist/count', 'live-search', 'cart/content', '/lang/', '/locale/'];
     $safe = true;
     foreach ($skipPatterns as $pattern) {
         if (str_contains($from, $pattern)) { $safe = false; break; }
