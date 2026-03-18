@@ -363,27 +363,54 @@ class BackupController extends Controller
 
     public function upload(Request $request)
     {
+        // Detect post_max_size exceeded — PHP drops the body silently
+        $contentLength = (int) $request->server('CONTENT_LENGTH', 0);
+        $postMaxBytes  = $this->parsePhpBytes(ini_get('post_max_size'));
+        if ($contentLength > 0 && $postMaxBytes > 0 && $contentLength > $postMaxBytes) {
+            return redirect()->back()->with('error',
+                'فشل في رفع الملف: حجم الملف يتجاوز الحد الأقصى المسموح به (' . ini_get('post_max_size') . ').');
+        }
+
+        // Detect upload_max_filesize exceeded
+        if (isset($_FILES['backup_file']) && $_FILES['backup_file']['error'] === UPLOAD_ERR_INI_SIZE) {
+            return redirect()->back()->with('error',
+                'فشل في رفع الملف: حجم الملف يتجاوز الحد الأقصى المسموح به (' . ini_get('upload_max_filesize') . ').');
+        }
+
         try {
             $request->validate([
-                'backup_file' => 'required|file' // Limit removed, governed by php.ini
+                'backup_file' => 'required|file'
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            $error = "فشل في رفع الملف.";
-            return redirect()->back()->with('error', $error);
+            $messages = implode(' ', $e->validator->errors()->all());
+            return redirect()->back()->with('error', 'فشل في رفع الملف: ' . ($messages ?: 'تأكد من اختيار ملف صالح.'));
         }
 
         $file = $request->file('backup_file');
         $extension = strtolower($file->getClientOriginalExtension());
-        
-        // Manual extension check as fallback/security
+
         if (!in_array($extension, ['zip', 'sql'])) {
-            return redirect()->back()->with('error', "فشل في رفع الملف. تأكد من أن الملف بصيغة .zip أو .sql.");
+            return redirect()->back()->with('error', 'فشل في رفع الملف. تأكد من أن الملف بصيغة .zip أو .sql.');
         }
 
         $fileName = $file->getClientOriginalName();
         $this->disk->putFileAs($this->backupFolderName, $file, $fileName);
 
         return redirect()->route('admin.backups.index')->with('success', 'تم رفع ملف النسخة الاحتياطية بنجاح.');
+    }
+
+    /** Convert php.ini size string (e.g. "40M") to bytes */
+    private function parsePhpBytes(string $val): int
+    {
+        $val  = trim($val);
+        $last = strtolower($val[strlen($val) - 1]);
+        $num  = (int) $val;
+        switch ($last) {
+            case 'g': $num *= 1024;
+            case 'm': $num *= 1024;
+            case 'k': $num *= 1024;
+        }
+        return $num;
     }
 
     public function restore(Request $request)
