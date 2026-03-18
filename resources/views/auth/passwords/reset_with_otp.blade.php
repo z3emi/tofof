@@ -1,294 +1,149 @@
 @extends('layouts.app')
-@section('title', 'إعادة تعيين كلمة السر')
+@section('title', 'إعادة تعيين كلمة المرور')
+
 @push('styles')
 <style>
-    /* تحسينات للخلفية (وضع فاتح) */
-    body {
-        background-color: #f9f5f1;
-        background-image:
-            radial-gradient(circle at 10% 20%, rgba(205, 137, 133, 0.05) 0%, transparent 20%),
-            radial-gradient(circle at 90% 80%, rgba(205, 137, 133, 0.05) 0%, transparent 20%);
-    }
+.auth-scope{
+  --c-primary:#6d0e16;
+  --c-bg:#06070a;
+  --c-field-bg:#1a1d24;
+  --c-field-border:#262b37;
+  --c-text:#f2f4f8;
+}
 
-    /* تحسينات للبطاقة (وضع فاتح) */
-    .bg-white {
-        background-color: #ffffff;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-        border: 1px solid #f3e5e3;
-    }
+.auth-scope{background:var(--c-bg) !important;min-height:100vh;}
+.auth-shell{position:relative;}
+.auth-shell::before,.auth-shell::after{content:'';position:absolute;width:74px;height:74px;border:1px solid rgba(227,19,34,.55);pointer-events:none;}
+.auth-shell::before{top:-14px;inset-inline-start:-14px;border-inline-end:0;border-bottom:0;}
+.auth-shell::after{bottom:-14px;inset-inline-end:-14px;border-inline-start:0;border-top:0;}
 
-    /* الحقول */
-    input[type="text"], input[type="password"] {
-        transition: all 0.3s ease;
-        background-color: #fff;
-        border: 2px solid #e5e7eb;
-        color: #111827;
-    }
-    input[type="text"]::placeholder,
-    input[type="password"]::placeholder { color:#9ca3af; }
+.auth-card{background:linear-gradient(160deg,#10131a 0%,#0a0c11 100%) !important;border:1px solid #1d212b !important;border-radius:0 !important;box-shadow:0 24px 50px rgba(0,0,0,.48) !important;overflow:visible;}
+.auth-card-header{background:transparent !important;padding:2rem 2.1rem .7rem !important;text-align:right !important;}
+.auth-card-header h2{color:#f2f4f8 !important;font-size:2.05rem !important;font-weight:800;margin:0;}
+.auth-card-header p{color:#7d8592 !important;font-size:.95rem;margin-top:.3rem;}
+.auth-form{padding:1rem 2.1rem 2rem !important;}
 
-    input[type="text"]:focus, input[type="password"]:focus {
-        background-color: #fff9f9;
-        border-color: #cd8985;
-        box-shadow: 0 0 0 3px rgba(205, 137, 133, 0.2);
-        outline: none;
-    }
+.auth-label{display:block;color:#abb1bc !important;font-size:.8rem !important;text-transform:uppercase;letter-spacing:.12em;margin-bottom:.5rem;}
 
-    /* الأزرار */
-    button { transition: all 0.3s ease; }
+.auth-field{width:100%;height:54px !important;padding:.5rem 1rem;background:var(--c-field-bg) !important;border:1px solid var(--c-field-border) !important;border-radius:0 !important;color:var(--c-text) !important;outline:none;}
+.auth-field:focus{border-color:#e31322 !important;box-shadow:0 0 0 2px rgba(227,19,34,.16) !important;}
+.auth-field::placeholder{color:#737b88 !important;}
 
-    /* تحسينات للجوال */
-    @media (max-width: 640px) {
-        .container { padding-left: 1rem; padding-right: 1rem; }
-        .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
-        .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
-    }
+.password-wrapper{position:relative;}
+.auth-field.pe-12{padding-inline-end:3rem !important;}
+.password-toggle{position:absolute;inset-inline-end:1rem;top:50%;transform:translateY(-50%);cursor:pointer;color:#9ca3af;transition:.2s;line-height:1;z-index:10;}
+.password-toggle:hover{color:#e31322;}
 
-    /* RTL */
-    [dir="rtl"] input[type="text"],
-    [dir="rtl"] input[type="password"] { direction: rtl; text-align: right; }
+.auth-phone-chip{margin-top:.45rem;color:#8f96a3;font-size:.76rem;}
 
-    /* أيقونات الحقول */
-    .field-icon-left {
-        position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
-        pointer-events: none; z-index: 10;
-    }
-    .field-icon-right {
-        position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
-        cursor: pointer; z-index: 10;
-    }
-    [dir="rtl"] .field-icon-left { right: 1rem; left: auto; }
-    [dir="rtl"] .field-icon-right { left: 1rem; right: auto; }
+.auth-btn-primary{width:100%;padding:.85rem 1rem;background:#6d0e16 !important;color:#fff;font-weight:700;font-size:1rem;border:none;border-radius:0;cursor:pointer;transition:.22s;display:flex;align-items:center;justify-content:center;gap:.5rem;}
+.auth-btn-primary:hover{background:#c9101d !important;}
 
-    /* مسافات داخلية للحقول مع الأيقونات */
-    .input-with-icons { padding-right: 3rem !important; padding-left: 3rem !important; }
-    [dir="rtl"] .input-with-icons { padding-right: 3rem !important; padding-left: 3rem !important; }
-    .input-with-icon-right { padding-left: 3rem !important; }
-    [dir="rtl"] .input-with-icon-right { padding-left: 0 !important; padding-right: 3rem !important; }
-    .input-with-icon-left { padding-right: 3rem !important; }
-    [dir="rtl"] .input-with-icon-left { padding-right: 0 !important; padding-left: 3rem !important; }
+.auth-foot{color:#8f96a3;text-align:center;text-transform:uppercase;letter-spacing:.08em;font-size:.9rem;margin-top:1.2rem;}
+.auth-foot a{color:#fff;text-decoration:none;margin-inline-start:.4rem;}
+.auth-foot a:hover{color:#e31322;}
 
-    /* =========================
-       وضع داكن (Dark Mode)
-       ========================= */
-    html.dark body{
-        background-color:#0b0f14;
-        background-image:
-            radial-gradient(circle at 10% 20%, rgba(205,137,133,.05) 0%, transparent 22%),
-            radial-gradient(circle at 90% 80%, rgba(205,137,133,.05) 0%, transparent 22%);
-    }
-    html.dark .bg-white{
-        background-color:#0f172a;               /* سطح البطاقة */
-        border-color:#1f2937;
-        box-shadow:0 10px 30px rgba(0,0,0,.22);
-    }
-    /* نصوص عامة */
-    html.dark .text-gray-600{ color:#d1d5db !important; }
-    html.dark .text-gray-500{ color:#94a3b8 !important; }
-    html.dark .text-brand-text{ color:#e5e7eb !important; }
+.auth-alert{margin-bottom:1.25rem;border:1px solid rgba(239,68,68,.35);background:rgba(127,29,29,.2);color:#fecaca;padding:.85rem 1rem;font-size:.85rem;}
+.auth-success{margin-bottom:1.25rem;border:1px solid rgba(34,197,94,.35);background:rgba(20,83,45,.2);color:#bbf7d0;padding:.85rem 1rem;font-size:.85rem;}
 
-    /* الحقول في الوضع الداكن */
-    html.dark input[type="text"],
-    html.dark input[type="password"]{
-        background-color:#0f172a;
-        border-color:#1f2937;
-        color:#e5e7eb;
-    }
-    html.dark input[type="text"]::placeholder,
-    html.dark input[type="password"]::placeholder{ color:#94a3b8; }
-    html.dark input[type="text"]:focus,
-    html.dark input[type="password"]:focus{
-        background-color:#0f172a;
-        border-color:#cd8985;
-        box-shadow:0 0 0 3px rgba(205,137,133,.22);
-    }
-
-    /* أيقونات Bootstrap الرمادية */
-    html.dark .text-gray-400{ color:#9aa4b2 !important; }
-
-    /* الفواصل والحدود داخل البطاقة */
-    html.dark .border-gray-200{ border-color:#374151 !important; }
-
-    /* =========================
-       إخفاء البحث + الفوتر لهذه الصفحة فقط
-       ========================= */
-    header form[action*="{{ route('products.search') }}"],
-    header form[role="search"],
-    header .search, header .search-form, header .searchbar,
-    header .main-search, header .desktop-search, header .mobile-search,
-    header .container form {
-        display: none !important;
-    }
-    footer, .site-footer, .footer, .footer-mobile {
-        display: none !important;
-    }
+html:not(.dark) .auth-scope{background:#f5f7fb !important;}
+html:not(.dark) .auth-card{background:#fff !important;border-color:#e4e8f0 !important;box-shadow:0 18px 42px rgba(17,22,38,.14) !important;}
+html:not(.dark) .auth-card-header h2{color:#1c2230 !important;}
+html:not(.dark) .auth-card-header p{color:#6f7785 !important;}
+html:not(.dark) .auth-label{color:#646d7b !important;}
+html:not(.dark) .auth-field{background:#f3f5f9 !important;border-color:#e2e6ef !important;color:#1d2432 !important;}
+html:not(.dark) .auth-foot a{color:#202737;}
+html:not(.dark) .auth-phone-chip{color:#6b7280;}
+html:not(.dark) .auth-alert{border-color:#fecaca;background:#fef2f2;color:#b91c1c;}
+html:not(.dark) .auth-success{border-color:#86efac;background:#f0fdf4;color:#166534;}
 </style>
 @endpush
 
 @section('content')
-<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" dir="rtl">
-    <div class="max-w-md w-full space-y-8">
-        <!-- Logo and Title -->
-        <div class="text-center mb-10">
-            <div class="flex justify-center mb-4">
-                <div class="w-20 h-20 rounded-full bg-brand-secondary flex items-center justify-center">
-                    <img src="{{ asset('logo.png') }}" alt="Tofof Logo" class="w-16 h-16">
-                </div>
+<div class="auth-scope flex items-center justify-center py-10 px-4" dir="rtl">
+  <div class="w-full max-w-md auth-shell">
+
+    <div class="auth-card mb-6"
+         x-data="{
+           showPassword:false,
+           showConfirmPassword:false
+         }">
+
+      <div class="auth-card-header">
+        <h2>تحديث كلمة المرور</h2>
+        <p>أدخل رمز التحقق وكلمة المرور الجديدة</p>
+      </div>
+
+      <div class="p-6 md:p-8 auth-form">
+        @if (session('status'))
+          <div class="auth-success">{{ session('status') }}</div>
+        @endif
+
+        @if ($errors->any())
+          <div class="auth-alert">
+            <ul class="list-disc pr-5 space-y-1">
+              @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+              @endforeach
+            </ul>
+          </div>
+        @endif
+
+        <form method="POST" action="{{ route('password.update.with.otp') }}">
+          @csrf
+          <input type="hidden" name="phone_number" value="{{ session('phone_number_for_reset') }}">
+
+          <div class="mb-5">
+            <label class="auth-label" for="otp">رمز التحقق</label>
+            <input id="otp" type="text" class="auth-field @error('otp') border-red-500 @enderror"
+                   name="otp" required autofocus placeholder="أدخل الرمز المرسل">
+          </div>
+
+          <div class="mb-5">
+            <label class="auth-label" for="password">كلمة المرور الجديدة</label>
+            <div class="password-wrapper">
+              <input :type="showPassword ? 'text' : 'password'" id="password" name="password"
+                     class="auth-field pe-12 @error('password') border-red-500 @enderror"
+                     required placeholder="أدخل كلمة المرور الجديدة">
+              <span class="password-toggle" @click="showPassword = !showPassword">
+                <i class="bi text-xl" :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+              </span>
             </div>
-            <h2 class="text-3xl font-extrabold text-brand-text mb-2">أدخل الرمز وكلمة السر الجديدة</h2>
-            <p class="text-gray-600">لقد أرسلنا رمزًا إلى رقم هاتفك</p>
-            <p class="text-brand-primary font-medium">{{ session('phone_number_for_reset') }}</p>
-        </div>
+          </div>
 
-        <!-- Form Card -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div class="py-8 px-6 md:px-8">
-                @if (session('status'))
-                    <div class="mb-6 bg-green-50 border-r-4 border-green-500 p-4 rounded-md dark:bg-[#0f172a] dark:border-green-600">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <i class="bi bi-check-circle-fill text-green-500 text-xl"></i>
-                            </div>
-                            <div class="mr-3">
-                                <h3 class="text-sm font-medium text-green-800 dark:text-green-300">نجاح</h3>
-                                <div class="mt-2 text-sm text-green-700 dark:text-green-200">
-                                    <p>{{ session('status') }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-
-                @if ($errors->any())
-                    <div class="mb-6 bg-red-50 border-r-4 border-red-500 p-4 rounded-md dark:bg-[#1f2937] dark:border-red-500">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <i class="bi bi-exclamation-triangle-fill text-red-500 text-xl"></i>
-                            </div>
-                            <div class="mr-3">
-                                <h3 class="text-sm font-medium text-red-800 dark:text-red-300">حدث خطأ</h3>
-                                <div class="mt-2 text-sm text-red-700 dark:text-red-300/90">
-                                    <ul class="list-disc pr-5 space-y-1">
-                                        @foreach ($errors->all() as $error)
-                                            <li>{{ $error }}</li>
-                                        @endforeach
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-
-                <form method="POST" action="{{ route('password.update.with.otp') }}" x-data="{ 
-                    showPassword: false,
-                    showConfirmPassword: false
-                }">
-                    @csrf
-                    <input type="hidden" name="phone_number" value="{{ session('phone_number_for_reset') }}">
-
-                    <div class="mb-6">
-                        <label for="otp" class="block text-gray-700 font-medium mb-2 dark:text-gray-200">رمز التحقق (OTP)</label>
-                        <div class="relative">
-                            <i class="bi bi-shield-lock text-gray-400 field-icon-right"></i>
-                            <input id="otp" type="text"
-                                   class="w-full px-4 py-3 input-with-icon-right border-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-                                   name="otp" required autofocus placeholder="أدخل الرمز المرسل">
-                        </div>
-                    </div>
-
-                    <div class="mb-6">
-                        <label for="password" class="block text-gray-700 font-medium mb-2 dark:text-gray-200">كلمة المرور الجديدة</label>
-                        <div class="relative">
-                            <i class="bi bi-lock text-gray-400 field-icon-left"></i>
-                            <span class="field-icon-right text-gray-500 hover:text-brand-primary" @click="showPassword = !showPassword">
-                                <i class="bi text-lg" :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
-                            </span>
-                            <input :type="showPassword ? 'text' : 'password'" id="password"
-                                   class="w-full px-4 py-3 input-with-icons border-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-                                   name="password" required placeholder="أدخل كلمة المرور الجديدة">
-                        </div>
-                    </div>
-
-                    <div class="mb-8">
-                        <label for="password-confirm" class="block text-gray-700 font-medium mb-2 dark:text-gray-200">تأكيد كلمة المرور</label>
-                        <div class="relative">
-                            <i class="bi bi-lock-fill text-gray-400 field-icon-left"></i>
-                            <span class="field-icon-right text-gray-500 hover:text-brand-primary" @click="showConfirmPassword = !showConfirmPassword">
-                                <i class="bi text-lg" :class="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
-                            </span>
-                            <input :type="showConfirmPassword ? 'text' : 'password'" id="password-confirm"
-                                   class="w-full px-4 py-3 input-with-icons border-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
-                                   name="password_confirmation" required placeholder="أعد كتابة كلمة المرور">
-                        </div>
-                    </div>
-
-                    <div class="mb-6">
-                        <button type="submit"
-                                class="w-full bg-brand-dark text-white font-bold py-3 px-4 rounded-full hover:bg-brand-primary transition duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl flex items-center justify-center">
-                            <i class="bi bi-shield-check ml-2"></i>
-                            إعادة تعيين كلمة السر
-                        </button>
-                    </div>
-                </form>
-
-                <!-- Divider -->
-                <div class="relative mb-6">
-                    <div class="absolute inset-0 flex items-center">
-                        <div class="w-full border-t border-gray-200 dark:border-gray-700"></div>
-                    </div>
-                    <div class="relative flex justify-center text-sm">
-                        <span class="px-4 bg-white text-gray-500 dark:bg-[#0f172a] dark:text-gray-400">أو</span>
-                    </div>
-                </div>
-
-                <!-- رابط العودة لتسجيل الدخول -->
-                <div class="text-center">
-                    <p class="text-gray-600 dark:text-gray-300 mb-3">تذكرت كلمة السر؟</p>
-                    <a class="w-full block border-2 border-brand-primary text-brand-primary font-bold py-3 px-4 rounded-full hover:bg-brand-primary hover:text-white transition duration-300" href="{{ route('login') }}">
-                        العودة لتسجيل الدخول
-                    </a>
-                </div>
-
-                <!-- زر التواصل عبر واتساب -->
-                <div class="mt-8 text-center pt-6 border-top border-gray-100 dark:border-gray-700">
-                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">بحاجة لمساعدة؟ تواصل معنا على الواتساب:</p>
-                    <a href="https://wa.me/9647744969024" target="_blank"
-                       class="inline-flex items-center px-5 py-3 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-full shadow transition duration-300 transform hover:-translate-y-0.5">
-                        <i class="bi bi-whatsapp text-xl ml-2"></i>
-                        تواصل عبر واتساب
-                    </a>
-                </div>
+          <div class="mb-6">
+            <label class="auth-label" for="password-confirm">تأكيد كلمة المرور</label>
+            <div class="password-wrapper">
+              <input :type="showConfirmPassword ? 'text' : 'password'" id="password-confirm"
+                     class="auth-field pe-12" name="password_confirmation" required
+                     placeholder="أعد كتابة كلمة المرور">
+              <span class="password-toggle" @click="showConfirmPassword = !showConfirmPassword">
+                <i class="bi text-xl" :class="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+              </span>
             </div>
-        </div>
+          </div>
+
+          <button type="submit" class="auth-btn-primary">
+            <i class="bi bi-shield-check"></i>
+            تحديث كلمة المرور
+          </button>
+
+          <p class="auth-phone-chip">الرقم: {{ session('phone_number_for_reset') }}</p>
+          <p class="auth-foot">تذكرت كلمة المرور؟ <a href="{{ route('login') }}">تسجيل الدخول</a></p>
+        </form>
+      </div>
     </div>
+
+    <div class="text-center">
+      <p class="text-sm text-gray-500 mb-2">بحاجة إلى مساعدة؟</p>
+      <a href="https://wa.me/9647744969024" target="_blank"
+         class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white shadow transition hover:-translate-y-0.5"
+         style="background:#25d366">
+        <i class="bi bi-whatsapp text-lg"></i>
+        تواصل معنا عبر واتساب
+      </a>
+    </div>
+
+  </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-  // Fallback لإخفاء البحث والفوتر إذا كان في ستايلات Utility تغيّر العرض
-  document.addEventListener('DOMContentLoaded', function () {
-    var searchSelectors = [
-      'header form[action*="{{ route('products.search') }}"]',
-      'header form[role="search"]',
-      'header .search', 'header .search-form', 'header .searchbar',
-      'header .main-search', 'header .desktop-search', 'header .mobile-search',
-      'header .container form'
-    ];
-    var footerSelectors = ['footer', '.site-footer', '.footer', '.footer-mobile'];
-
-    searchSelectors.forEach(function (sel) {
-      document.querySelectorAll(sel).forEach(function (el) {
-        el.style.setProperty('display', 'none', 'important');
-        el.classList.add('hidden');
-      });
-    });
-    footerSelectors.forEach(function (sel) {
-      document.querySelectorAll(sel).forEach(function (el) {
-        el.style.setProperty('display', 'none', 'important');
-        el.classList.add('hidden');
-      });
-    });
-  });
-</script>
-@endpush
