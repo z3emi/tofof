@@ -257,10 +257,42 @@
                             <div class="card h-100">
                                 <div class="card-header"><h6 class="mb-0">🚚 تكلفة التوصيل</h6></div>
                                 <div class="card-body">
+                                    {{-- Toggle to enable/disable shipping --}}
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="shipping_enabled" id="shipping_enabled"
+                                                   {{ old('shipping_enabled', $settings['shipping_enabled'] ?? '1') === '1' || old('shipping_enabled', $settings['shipping_enabled'] ?? '1') === 1 ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="shipping_enabled">
+                                                تفعيل خاصية التوصيل
+                                            </label>
+                                        </div>
+                                        <small class="text-muted d-block mt-2">عند تعطيل الخاصية، لن يتم احتساب تكاليف التوصيل على أي طلب</small>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="free_shipping_enabled" id="free_shipping_enabled"
+                                                   {{ old('free_shipping_enabled', $settings['free_shipping_enabled'] ?? '1') === '1' || old('free_shipping_enabled', $settings['free_shipping_enabled'] ?? '1') === 1 ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="free_shipping_enabled">
+                                                تفعيل الشحن المجاني حسب حد السلة
+                                            </label>
+                                        </div>
+                                        <small class="text-muted d-block mt-2">عند تعطيله، لا يوجد شحن مجاني حتى لو تجاوزت السلة الحد.</small>
+                                    </div>
+
+                                    <hr class="my-3">
+
                                     <label for="shipping_cost" class="form-label">سعر التوصيل الأساسي (د.ع)</label>
                                     <input type="number" min="0" step="100" name="shipping_cost" id="shipping_cost" class="form-control"
                                            value="{{ old('shipping_cost', $settings['shipping_cost'] ?? config('shop.default_shipping_cost')) }}">
                                     <small class="text-muted">يُطبق تلقائياً على الطلبات التي لا تصل لحد الشحن المجاني.</small>
+
+                                    <div class="mt-3">
+                                        <label for="free_shipping_threshold" class="form-label">حد الشحن المجاني (د.ع)</label>
+                                        <input type="number" min="0" step="1000" name="free_shipping_threshold" id="free_shipping_threshold" class="form-control"
+                                               value="{{ old('free_shipping_threshold', $settings['free_shipping_threshold'] ?? config('shop.free_shipping_threshold')) }}">
+                                        <small class="text-muted">عند وصول مجموع السلة لهذا المبلغ أو أكثر، يصبح الشحن مجاني.</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -175,10 +175,12 @@
                     </li>
 
                     {{-- الشحن --}}
+                    @if($order->shipping_cost > 0 || \App\Models\Setting::isShippingEnabled())
                     <li class="list-group-item d-flex justify-content-between">
                         <span>الشحن:</span>
                         <span>{{ $order->shipping_cost > 0 ? number_format($order->shipping_cost, 0) . ' د.ع' : 'مجاني' }}</span>
                     </li>
+                    @endif
 
                     {{-- ✅ [تصحيح] يتم عرض هذا الحقل فقط اذا كان هناك مبلغ مدفوع من المحفظة --}}
                     @if ($walletPaidAmount > 0)

@@ -50,9 +50,16 @@ class CheckoutController extends Controller
             }
         }
 
-        $freeShippingThreshold = (int) config('shop.free_shipping_threshold', 85000);
+        $freeShippingThreshold = Setting::freeShippingThreshold();
         $baseShippingCost = Setting::shippingCost();
-        $shippingCost  = ($subtotal >= $freeShippingThreshold) ? 0 : $baseShippingCost;
+        $isShippingEnabled = Setting::isShippingEnabled();
+        $isFreeShippingEnabled = Setting::isFreeShippingEnabled();
+        $shippingCost  = 0;
+        
+        if ($isShippingEnabled) {
+            $canUseFreeShipping = $isFreeShippingEnabled && $subtotal >= $freeShippingThreshold;
+            $shippingCost = $canUseFreeShipping ? 0 : $baseShippingCost;
+        }
 
         $discountValue = session('discount_value', 0);
         $finalTotal    = ($subtotal - $discountValue) + $shippingCost;
@@ -69,7 +76,9 @@ class CheckoutController extends Controller
             'finalTotal',
             'walletBalance',
             'baseShippingCost',
-            'freeShippingThreshold'
+            'freeShippingThreshold',
+            'isShippingEnabled',
+            'isFreeShippingEnabled'
         ));
     }
 
@@ -127,9 +136,14 @@ class CheckoutController extends Controller
                 }
             }
 
-            $freeShippingThreshold = (int) config('shop.free_shipping_threshold', 85000);
+            $freeShippingThreshold = Setting::freeShippingThreshold();
             $baseShippingCost = Setting::shippingCost();
-            $shippingCost   = ($subtotal >= $freeShippingThreshold) ? 0 : $baseShippingCost;
+            $shippingCost   = 0;
+            
+            if (Setting::isShippingEnabled()) {
+                $canUseFreeShipping = Setting::isFreeShippingEnabled() && $subtotal >= $freeShippingThreshold;
+                $shippingCost = $canUseFreeShipping ? 0 : $baseShippingCost;
+            }
             
             $discountAmount = session('discount_value', 0);
             $discountCodeId = session('discount_code_id', null);

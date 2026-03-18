@@ -31,7 +31,10 @@ class SettingsController extends Controller
             'session_lifetime',
             'referral_reward_percentage',
             'referral_reward_max_amount',
+            'shipping_enabled',
+            'free_shipping_enabled',
             'shipping_cost',
+            'free_shipping_threshold',
 
             // SEO (عام قديم + جديد متعدد اللغات)
             'site_title',
@@ -43,16 +46,19 @@ class SettingsController extends Controller
 
             // (اختياري مستقبلاً) رابط الأساس للكانونيكال
             'site_url',
-
-            'shipping_cost',
         ];
 
         foreach ($settingsKeys as $key) {
-            if (str_starts_with($key, 'show_') || $key === 'maintenance_mode') {
+            if ($key === 'shipping_enabled' || $key === 'free_shipping_enabled') {
+                $value = $request->has($key) ? '1' : '0';
+            } elseif (str_starts_with($key, 'show_') || $key === 'maintenance_mode') {
                 $value = $request->has($key) ? 'on' : 'off';
             } elseif ($key === 'shipping_cost') {
                 $value = $request->input($key);
                 $value = is_numeric($value) ? max(0, (float) $value) : null;
+            } elseif ($key === 'free_shipping_threshold') {
+                $value = $request->input($key);
+                $value = is_numeric($value) ? max(0, (int) $value) : null;
             } else {
                 $value = $request->input($key);
             }

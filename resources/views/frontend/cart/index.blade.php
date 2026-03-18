@@ -169,11 +169,14 @@
                         <div class="space-y-3 text-gray-700">
                             <div class="flex justify-between"><span>الإجمالي</span><span class="font-semibold" x-text="`${formatPrice(subtotal)} د.ع`"></span></div>
                             <div class="flex justify-between"><span>الخصم</span><span class="font-semibold text-green-600" x-text="`- ${formatPrice(discount)} د.ع`"></span></div>
+                            @if($isShippingEnabled)
                             <div class="flex justify-between"><span>الشحن</span><span class="font-semibold" x-text="shippingCost > 0 ? `${formatPrice(shippingCost)} د.ع` : 'مجاني'"></span></div>
+                            @endif
                         </div>
 
                         <div class="flex justify-between font-bold text-xl border-t mt-4 pt-4"><span>المجموع</span><span x-text="`${formatPrice(subtotal - discount + shippingCost)} د.ع`"></span></div>
 
+                        @if($isShippingEnabled && $isFreeShippingEnabled)
                         <div class="mt-4 text-center">
                             {{-- ✅ [تعديل] تحديث حد الشحن المجاني هنا --}}
                             <div x-show="subtotal < freeShippingThreshold" style="display: none;">
@@ -189,6 +192,7 @@
                                 <p>🎉 لقد حصلت على شحن مجاني!</p>
                             </div>
                         </div>
+                        @endif
 
                         <div class="mt-6">
                             <a href="{{ route('checkout.index') }}" class="block text-center w-full bg-brand-dark text-white font-bold py-3 px-4 rounded-md hover:bg-brand-primary transition duration-300"
@@ -235,6 +239,7 @@
       shippingCost: {{ (float)$shippingCost }},
       baseShippingCost: {{ (float)$baseShippingCost }},
       freeShippingThreshold: {{ (int)$freeShippingThreshold }},
+      isFreeShippingEnabled: {{ $isFreeShippingEnabled ? 'true' : 'false' }},
       discountCode: "{{ session('discount_code', '') }}",
       feedbackMessage: "{{ session('discount_error') ?: (session('discount_code') ? 'تم تطبيق كود الخصم: ' . session('discount_code') : '') }}",
       feedbackType: "{{ session('discount_error') ? 'error' : (session('discount_code') ? 'success' : '') }}",
@@ -334,9 +339,8 @@
 
         const threshold = Math.max(0, parseFloat(this.freeShippingThreshold ?? 0));
         const baseShipping = Math.max(0, parseFloat(this.baseShippingCost ?? 0));
-        this.shippingCost = (threshold > 0 && newTotal >= threshold) || threshold === 0
-          ? 0
-          : baseShipping;
+        const hasFreeShipping = this.isFreeShippingEnabled && ((threshold > 0 && newTotal >= threshold) || threshold === 0);
+        this.shippingCost = hasFreeShipping ? 0 : baseShipping;
       },
       applyDiscount() {
         fetch("{{ route('cart.applyDiscount') }}", {

@@ -175,7 +175,9 @@
       <div class="row-line" style="color:#166534"><span>الخصم:</span><span class="row-strong" style="color:#166534">-{{ number_format($order->discount_amount, 0) }} د.ع</span></div>
       @endif
 
+      @if($order->shipping_cost > 0 || \App\Models\Setting::isShippingEnabled())
       <div class="row-line"><span class="row-muted">الشحن:</span><span class="row-strong">{{ $order->shipping_cost > 0 ? number_format($order->shipping_cost, 0) . ' د.ع' : 'مجاني' }}</span></div>
+      @endif
 
       @if(isset($walletPaidAmount) && $walletPaidAmount > 0)
       <div class="row-line" style="color: #059669;">

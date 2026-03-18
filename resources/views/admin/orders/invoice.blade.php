@@ -165,10 +165,12 @@
                                     <td class="text-end">الخصم:</td>
                                     <td class="text-end fw-bold text-success">- {{ number_format($discountAmount, 0) }} د.ع</td>
                                 </tr>
+                                @if($shippingCost > 0 || \App\Models\Setting::isShippingEnabled())
                                 <tr>
                                     <td class="text-end">رسوم التوصيل:</td>
                                     <td class="text-end fw-bold">{{ $shippingCost > 0 ? number_format($shippingCost, 0) . ' د.ع' : 'مجاني' }}</td>
                                 </tr>
+                                @endif
                                 <tr class="total-row">
                                     <td class="text-end">المجموع الكلي:</td>
                                     <td class="text-end">{{ number_format($finalTotal, 0) }} د.ع</td>

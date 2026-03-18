@@ -226,7 +226,9 @@
                 <div class="space-y-2 border-t pt-4 dark:border-gray-800">
                     <div class="flex justify-between font-semibold text-gray-800 dark:text-gray-100"><span>المجموع الفرعي</span><span>{{ number_format($subtotal) }} د.ع</span></div>
                     <div class="flex justify-between text-green-600"><span>الخصم</span><span>- {{ number_format($discountValue) }} د.ع</span></div>
-                    <div class="flex justify-between text-gray-500 dark:text-gray-400"><span>الشحن</span><span>{{ $shippingCost > 0 ? number_format($shippingCost) . ' د.ع' : 'مجاني' }}</span></div>
+                    @if($isShippingEnabled)
+                    <div class="flex justify-between text-gray-500 dark:text-gray-400"><span>الشحن</span><span>{{ $shippingCost > 0 ? number_format($shippingCost) . ' د.ع' : ($isFreeShippingEnabled ? 'مجاني' : number_format($baseShippingCost) . ' د.ع') }}</span></div>
+                    @endif
 
                     {{-- استخدام المحفظة --}}
                     <div class="mt-3 p-3 rounded-md border bg-gray-50 dark:bg-gray-800 dark:border-gray-800">

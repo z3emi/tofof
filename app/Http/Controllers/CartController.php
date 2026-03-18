@@ -41,9 +41,16 @@ class CartController extends Controller
             }
         }
 
-        $freeShippingThreshold = (int) config('shop.free_shipping_threshold', 85000);
+        $freeShippingThreshold = Setting::freeShippingThreshold();
         $baseShippingCost = Setting::shippingCost();
-        $shippingCost = ($total >= $freeShippingThreshold) ? 0 : $baseShippingCost;
+        $isShippingEnabled = Setting::isShippingEnabled();
+        $isFreeShippingEnabled = Setting::isFreeShippingEnabled();
+        $shippingCost = 0;
+        
+        if ($isShippingEnabled) {
+            $canUseFreeShipping = $isFreeShippingEnabled && $total >= $freeShippingThreshold;
+            $shippingCost = $canUseFreeShipping ? 0 : $baseShippingCost;
+        }
 
         $discountValue = session()->get('discount_value', 0);
         $finalTotal = ($total - $discountValue) + $shippingCost;
@@ -57,7 +64,9 @@ class CartController extends Controller
                 'finalTotal',
                 'shippingCost',
                 'baseShippingCost',
-                'freeShippingThreshold'
+                'freeShippingThreshold',
+                'isShippingEnabled',
+                'isFreeShippingEnabled'
             )
         );
     }

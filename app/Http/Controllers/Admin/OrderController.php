@@ -205,7 +205,15 @@ class OrderController extends Controller
             }
             
             $defaultShippingCost = $this->defaultShippingCost();
-            $shippingCost = $request->boolean('free_shipping') ? 0 : $defaultShippingCost;
+            $shippingCost = 0;
+            
+            if (Setting::isShippingEnabled() && Setting::isFreeShippingEnabled() && !$request->boolean('free_shipping')) {
+                $shippingCost = $defaultShippingCost;
+            } elseif (Setting::isShippingEnabled() && !Setting::isFreeShippingEnabled()) {
+                $shippingCost = $defaultShippingCost;
+            } else {
+                $shippingCost = 0;
+            }
 
             $discountAmount = 0;
             $discountCodeId = null;
@@ -336,7 +344,15 @@ class OrderController extends Controller
             }
 
             $defaultShippingCost = $this->defaultShippingCost();
-            $shippingCost = $request->boolean('free_shipping') ? 0 : $defaultShippingCost;
+            $shippingCost = 0;
+            
+            if (Setting::isShippingEnabled() && Setting::isFreeShippingEnabled() && !$request->boolean('free_shipping')) {
+                $shippingCost = $defaultShippingCost;
+            } elseif (Setting::isShippingEnabled() && !Setting::isFreeShippingEnabled()) {
+                $shippingCost = $defaultShippingCost;
+            } else {
+                $shippingCost = 0;
+            }
 
             $discountAmount = 0;
             $discountCodeId = null;
