@@ -290,8 +290,9 @@ html.dark .glass-item.active{ color:#f0b0ad; }
         .footer-mobile a::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background-color: #6d0e16; transform: scaleX(0); transition: transform 0.3s ease; }
         .dark .footer-mobile a::after { background-color: #f0b0ad; }
         .footer-mobile a.active::after { transform: scaleX(1); }
-        .footer-mobile .icon { font-size: 1.5rem; margin-bottom: 0.25rem; transition: transform 0.3s ease; }
-        .footer-mobile a:hover .icon { transform: translateY(-3px); }
+        .footer-mobile .icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
+        /* حذف تأثير الأيقونات */
+        .footer-mobile a:hover .icon { transform: none; }
 
         .badge { position: absolute; top: -5px; right: -5px; background-color: rgba(245,158,11,0.85); color: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10; }
         .dark .badge, .dark .badge-cart { background-color: rgba(251,191,36,0.95) !important; color: #111827 !important; }
@@ -319,43 +320,60 @@ html.dark .glass-item.active{ color:#f0b0ad; }
     align-items: center;
   }
   .store-badge-btn {
-    min-width: 148px;
-    height: 40px;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: linear-gradient(180deg, #0a0d12 0%, #06080d 100%);
-    color: #ffffff;
+    min-width: 160px;
+    height: 52px;
+    border-radius: 12px;
+    border: 1px solid #333;
+    background: #000;
+    color: #fff;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.48rem;
-    padding: 0.32rem 0.55rem;
-    transition: transform 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease;
+    gap: 0.6rem;
+    padding: 0.4rem 0.9rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   }
   .store-badge-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.22);
-    opacity: 0.98;
+    transform: translateY(-2px);
+    background: #1a1a1a;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   }
-  .store-badge-btn i {
-    font-size: 0.82rem;
+  .store-badge-btn .store-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .store-badge-btn .store-icon i {
+    font-size: 1.7rem;
+    color: #fff;
     line-height: 1;
+  }
+  .store-badge-btn .store-icon svg {
+    width: 26px;
+    height: 26px;
   }
   .store-badge-btn .text-wrap {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    line-height: 1.1;
+    line-height: 1.15;
   }
   .store-badge-btn .mini {
-    font-size: 0.52rem;
-    opacity: 0.8;
-    letter-spacing: 0.02em;
-    font-weight: 600;
+    font-size: 0.55rem;
+    opacity: 0.85;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+    color: #fff;
+    text-transform: uppercase;
   }
   .store-badge-btn .label {
-    font-size: 0.82rem;
-    font-weight: 800;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
   }
   .footer-bottom-bar {
     border-top: 1px solid #e5e5e5;
@@ -411,13 +429,18 @@ html.dark .glass-item.active{ color:#f0b0ad; }
     width: auto;
     object-fit: contain;
     display: block;
-    filter: grayscale(100%) contrast(125%);
+    filter: none;
   }
   .dark .payment-pill img {
-    filter: grayscale(100%) contrast(120%) brightness(115%);
+    filter: none;
   }
   .dark .payment-pill img[alt="Zain Cash"] {
-    filter: grayscale(100%) brightness(0) invert(1) contrast(140%);
+    filter: none;
+  }
+  .dark .payment-pill.pill-has-bg {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 3px 8px;
   }
   @media (min-width: 1024px) {
     .footer-bottom-grid {
@@ -627,11 +650,11 @@ html.dark .glass-item.active{ color:#f0b0ad; }
 
         .desktop-liquid-shell {
           border-radius: 0;
-          background: #0f172a; /* لون المينيو الجديد */
+          background: linear-gradient(90deg, #B8860B 0%, #FFD700 40%, #FFC200 70%, #B8860B 100%);
           border: none;
           -webkit-backdrop-filter: blur(32px);
           backdrop-filter: blur(32px);
-          box-shadow: 0 10px 30px rgba(0,0,0,.14);
+          box-shadow: 0 10px 30px rgba(0,0,0,.18);
         }
 
         .desktop-liquid-nav a,
@@ -650,7 +673,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
 
         .desktop-liquid-nav a:hover,
         .desktop-liquid-nav button:hover {
-          color: #f3f4f6 !important;
+          color: #fff0c0 !important;
         }
 
         .desktop-liquid-nav > a span {
@@ -659,19 +682,19 @@ html.dark .glass-item.active{ color:#f0b0ad; }
 
         html.dark .desktop-liquid-shell {
           border-radius: 0;
-          background: #0f172a;
+          background: #FFD700;
           border: 1px solid rgba(148,163,184,0.24);
           box-shadow: 0 12px 32px rgba(0,0,0,.5);
         }
 
         html.dark .desktop-liquid-nav > a,
         html.dark .desktop-liquid-nav > div > button {
-          color: #f8fafc;
+          color: #ffffff;
         }
 
         html.dark .desktop-liquid-nav > a:hover,
         html.dark .desktop-liquid-nav > div > button:hover {
-          color: #fca5a5;
+          color: #fff0c0;
         }
       }
     </style>
@@ -1681,7 +1704,7 @@ function brandMenuV4(){
     <div class="container mx-auto px-4 footer-bottom-grid">
       <div class="footer-payment-row footer-left-col">
         <div class="payment-pill"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="Mastercard"></div>
-        <div class="payment-pill"><img src="https://zaincash.com/static/media/ZainCashLogo.fea8cf3bb90421f45dd384d6afc6fe3b.svg" alt="Zain Cash"></div>
+        <div class="payment-pill pill-has-bg"><img src="https://zaincash.com/static/media/ZainCashLogo.fea8cf3bb90421f45dd384d6afc6fe3b.svg" alt="Zain Cash"></div>
         <div class="payment-pill"><img src="https://qi.iq/images/logo.svg?1=1" alt="Qi Card"></div>
       </div>
 
@@ -1698,7 +1721,18 @@ function brandMenuV4(){
 
       <div class="store-badge-row footer-right-col">
         <button type="button" id="androidInstallBtn" class="store-badge-btn" aria-label="تثبيت التطبيق على اندرويد">
-          <i class="bi bi-google-play"></i>
+          <span class="store-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+              <!-- Green: top-left quadrant -->
+              <polygon points="3,1.5 3,12 12,12" fill="#4CAF50"/>
+              <!-- Blue: bottom-left quadrant -->
+              <polygon points="3,12 12,12 3,22.5" fill="#1976D2"/>
+              <!-- Yellow: upper-right to tip -->
+              <polygon points="3,1.5 12,12 21.5,12" fill="#FFC107"/>
+              <!-- Red: lower-right to tip -->
+              <polygon points="12,12 21.5,12 3,22.5" fill="#F44336"/>
+            </svg>
+          </span>
           <span class="text-wrap">
             <span class="mini">GET IT ON</span>
             <span class="label">Google Play</span>
@@ -1706,9 +1740,9 @@ function brandMenuV4(){
         </button>
 
         <button type="button" id="iosInstallBtn" class="store-badge-btn" aria-label="شرح التثبيت لاجهزة ابل">
-          <i class="bi bi-apple"></i>
+          <span class="store-icon"><i class="bi bi-apple"></i></span>
           <span class="text-wrap">
-            <span class="mini">Download on the</span>
+            <span class="mini">Available on the</span>
             <span class="label">App Store</span>
           </span>
         </button>

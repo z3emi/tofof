@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class WalletTransaction extends Model
 {
     protected $fillable = [
-        'user_id', 'type', 'amount', 'description', 'balance_after',
+        'user_id', 'type', 'amount', 'description', 'balance_after', 'related_order_id', 'order_id',
     ];
 
     public function user()
