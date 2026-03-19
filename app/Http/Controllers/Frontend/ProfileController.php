@@ -32,9 +32,13 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
+        $currentNameParts = preg_split('/\s+/', trim((string) $user->name), 2);
+        $currentFirstName = $currentNameParts[0] ?? '';
+        $currentLastName  = $currentNameParts[1] ?? '';
+
         $rules = [
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name'  => ['required', 'string', 'max:255'],
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'last_name'  => ['nullable', 'string', 'max:255'],
             'email'      => ['nullable', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'avatar'     => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ];
@@ -52,15 +56,24 @@ class ProfileController extends Controller
                         ->withInput($request->input());
         }
 
-        $validatedData   = $validator->validated();
-        $user->name      = $validatedData['first_name'] . ' ' . $validatedData['last_name'];
-        $user->email     = $validatedData['email'];
+        $validatedData = $validator->validated();
+
+        $firstName = trim((string) ($validatedData['first_name'] ?? $currentFirstName));
+        $lastName  = trim((string) ($validatedData['last_name'] ?? $currentLastName));
+        $fullName  = trim($firstName . ' ' . $lastName);
+
+        if ($fullName !== '') {
+            $user->name = $fullName;
+        }
+
+        $user->email = $validatedData['email'] ?? $user->email;
 
         if ($request->hasFile('avatar')) {
-            if ($user->avatar) {
+            if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
                 Storage::disk('public')->delete($user->avatar);
             }
-            $user->avatar = $request->file('avatar')->store('avatars', 'public');
+            $storedPath = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = str_replace('\\', '/', (string) $storedPath);
         }
 
         if (isset($validatedData['new_password'])) {

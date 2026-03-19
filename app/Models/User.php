@@ -174,22 +174,62 @@ class User extends Authenticatable
     {
         return $this->hasMany(WalletTransaction::class, 'user_id')->latest();
     }
+
     public function getAvatarUrlAttribute(): string
-{
-    $val = $this->avatar;
+    {
+        $val = trim((string) $this->avatar);
 
-    // لو مخزّن URL كامل (طرف ثالث مثلاً)
-    if (!empty($val) && str_starts_with($val, 'http')) {
-        return $val;
+        if ($val === '') {
+            return $this->getDefaultAvatarUrl();
+        }
+
+        // لو مخزّن URL كامل (طرف ثالث مثلاً)
+        if (str_starts_with($val, 'http://') || str_starts_with($val, 'https://')) {
+            return $val;
+        }
+
+        // توحيد المسار لمعالجة ويندوز وصيغ التخزين المختلفة.
+        $normalized = ltrim(str_replace('\\', '/', $val), '/');
+        if (str_starts_with($normalized, 'storage/')) {
+            $normalized = substr($normalized, 8);
+        }
+        if (str_starts_with($normalized, 'public/')) {
+            $normalized = substr($normalized, 7);
+        }
+
+        // الحالة القياسية: public/storage -> storage/app/public
+        $standardPublicPath = public_path('storage/' . $normalized);
+        if (file_exists($standardPublicPath)) {
+            return asset('storage/' . $normalized);
+        }
+
+        // بعض الاستضافات تضع الملفات داخل public/storage/app/public مباشرةً.
+        $directPublicStoragePath = public_path('storage/app/public/' . $normalized);
+        if (file_exists($directPublicStoragePath)) {
+            return asset('storage/app/public/' . $normalized);
+        }
+
+        return Storage::disk('public')->url($normalized);
     }
 
-    // لو مخزّن مسار نسبي مثل "avatars/xxx.jpg"
-    if (!empty($val) && Storage::disk('public')->exists($val)) {
-        // مهم: نستخدم asset('storage/...') حتى يحترم ASSET_URL=/public
-        return asset('storage/'.$val);
-    }
+    protected function getDefaultAvatarUrl(): string
+    {
+        if (file_exists(public_path('storage/avatars/default.png'))) {
+            return asset('storage/avatars/default.png');
+        }
 
-    // Fallback للديفولت داخل storage/app/public/avatars/default.jpg
-    return asset('storage/avatars/default.jpg');
-}
+        if (file_exists(public_path('storage/avatars/default.jpg'))) {
+            return asset('storage/avatars/default.jpg');
+        }
+
+        if (file_exists(public_path('storage/app/public/avatars/default.png'))) {
+            return asset('storage/app/public/avatars/default.png');
+        }
+
+        if (file_exists(public_path('storage/app/public/avatars/default.jpg'))) {
+            return asset('storage/app/public/avatars/default.jpg');
+        }
+
+        return asset('storage/avatars/default.png');
+    }
 }

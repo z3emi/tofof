@@ -11,16 +11,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-dark: #be6661;
-            --primary-medium: #cd8985;
-            --secondary-light: #eadbcd;
-            --bg-light: #fdfaf7;
+            --primary-dark: #6d0e16;
+            --primary-medium: #D1A3A4;
+            --secondary-light: #F3E5E3;
+            --bg-light: #FFFFFF;
             --white: #ffffff;
-            --text-dark: #333333;
+            --text-dark: #34282C;
+            --line: #e8d8d9;
         }
         body {
             font-family: 'Tajawal', sans-serif;
-            background-color: #f8f9fa;
+            background-color: #f6f1f1;
             color: var(--text-dark);
         }
         .invoice-container {
@@ -29,7 +30,8 @@
             background: var(--white);
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--line);
+            box-shadow: 0 4px 20px rgba(109, 14, 22, 0.08);
         }
         .invoice-header {
             padding-bottom: 25px;
@@ -57,6 +59,9 @@
             vertical-align: middle;
             padding: 12px 15px;
         }
+        .table-bordered > :not(caption) > * > * {
+            border-color: var(--line);
+        }
         .totals-table td {
             padding: 12px 15px;
         }
@@ -65,6 +70,26 @@
             color: var(--white);
             font-weight: 700;
             font-size: 1.2rem;
+        }
+        .btn-primary {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        .btn-primary:hover,
+        .btn-primary:focus {
+            background-color: #5a0c12;
+            border-color: #5a0c12;
+        }
+        .btn-secondary {
+            background-color: var(--secondary-light);
+            border-color: var(--primary-medium);
+            color: var(--text-dark);
+        }
+        .btn-secondary:hover,
+        .btn-secondary:focus {
+            background-color: var(--primary-medium);
+            border-color: var(--primary-medium);
+            color: var(--text-dark);
         }
         .no-print {
             margin-bottom: 20px;
@@ -97,6 +122,21 @@
                 $shippingCost = $order->shipping_cost;
                 $discountAmount = $order->discount_amount;
                 $finalTotal = ($subtotal - $discountAmount) + $shippingCost;
+
+                $isGift = (bool) $order->is_gift;
+                $customerName = $order->customer->name ?? 'عميل محذوف';
+                $customerPhone = $order->customer->phone_number ?? 'N/A';
+                $standardAddress = trim(implode('، ', array_filter([$order->governorate, $order->city, $order->nearest_landmark])));
+
+                $invoiceRecipientName = $isGift
+                    ? ($order->gift_recipient_name ?: $customerName)
+                    : $customerName;
+                $invoiceRecipientPhone = $isGift
+                    ? ($order->gift_recipient_phone ?: $customerPhone)
+                    : $customerPhone;
+                $invoiceRecipientAddress = $isGift
+                    ? ($order->gift_recipient_address_details ?: ($standardAddress !== '' ? $standardAddress : 'غير محدد'))
+                    : ($standardAddress !== '' ? $standardAddress : 'غير محدد');
             @endphp
 
             <header class="invoice-header row align-items-center mb-5">
@@ -111,10 +151,19 @@
             <section class="row mb-5 invoice-details">
                 <div class="col-6">
                     <h5 class="fw-bold mb-3">فاتورة إلى:</h5>
-                    <p><strong>الاسم:</strong> {{ $order->customer->name ?? 'عميل محذوف' }}</p>
-                    <p><strong>الهاتف:</strong> {{ $order->customer->phone_number ?? 'N/A' }}</p>
-                    <p><strong>العنوان:</strong> {{ $order->governorate }}, {{ $order->city }}</p>
-                    <p class="text-muted"><small>{{ $order->nearest_landmark }}</small></p>
+                    <p><strong>الاسم:</strong> {{ $invoiceRecipientName }}</p>
+                    <p><strong>الهاتف:</strong> {{ $invoiceRecipientPhone }}</p>
+                    <p><strong>العنوان:</strong> {{ $invoiceRecipientAddress }}</p>
+                    @if($isGift)
+                        <p class="mb-1"><strong>نوع الطلب:</strong> هدية</p>
+                        <p class="mb-1"><strong>مرسل الهدية:</strong> {{ $customerName }}</p>
+                        <p class="mb-1"><strong>هاتف مرسل الهدية:</strong> {{ $customerPhone }}</p>
+                        @if(!empty($order->gift_message))
+                            <p class="text-muted mb-0"><small><strong>رسالة الهدية:</strong> {{ $order->gift_message }}</small></p>
+                        @endif
+                    @elseif(!empty($order->nearest_landmark))
+                        <p class="text-muted"><small>{{ $order->nearest_landmark }}</small></p>
+                    @endif
                 </div>
                 <div class="col-6 text-end">
                     <p><strong>رقم الطلب:</strong> #{{ $order->id }}</p>
@@ -126,7 +175,9 @@
                 <table class="table table-bordered">
                     <thead>
                         <tr>
+                            <th scope="col" class="text-center" style="width: 60px;">ت</th>
                             <th scope="col">المنتج</th>
+                            <th scope="col" class="text-center">SKU</th>
                             <th scope="col" class="text-center">السعر</th>
                             <th scope="col" class="text-center">الكمية</th>
                             <th scope="col" class="text-end">الإجمالي</th>
@@ -135,6 +186,7 @@
                     <tbody>
                         @foreach($order->items as $item)
                         <tr>
+                            <td class="text-center">{{ $loop->iteration }}</td>
                             <td>
                                 <div>{{ $item->product->name_ar ?? 'منتج محذوف' }}</div>
                                 @if(!empty($item->option_selections))
@@ -145,6 +197,7 @@
                                     </div>
                                 @endif
                             </td>
+                            <td class="text-center">{{ optional($item->product)->sku ?: '—' }}</td>
                             <td class="text-center">{{ number_format($item->price, 0) }} د.ع</td>
                             <td class="text-center">{{ $item->quantity }}</td>
                             <td class="text-end">{{ number_format($item->price * $item->quantity, 0) }} د.ع</td>

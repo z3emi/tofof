@@ -161,17 +161,22 @@
     </div>
   @endif
 
+  <form id="profile-edit-form" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" class="mt-0">
+    @csrf
+    @method('PATCH')
+
+    <input type="file" id="avatar" name="avatar" class="hidden" accept="image/*" onchange="previewAvatar(event)">
+
   <div class="hero">
     <div class="avatar-wrap">
       <img id="avatarPreview"
            src="{{ $avatar }}"
            alt="avatar"
            class="avatar"
-           onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.jpg') }}';">
+         onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.png') }}';">
       <label for="avatar" class="avatar-edit" title="تغيير الصورة">
         <i class="bi bi-camera-fill"></i>
       </label>
-      <input type="file" id="avatar" name="avatar" form="profile-edit-form" class="hidden" accept="image/*" onchange="previewAvatar(event)">
     </div>
 
     <h3 class="title">{{ $user->name }}</h3>
@@ -195,10 +200,6 @@
     </div>
     <div id="copy-success" class="text-green-600 text-sm mt-2" style="display:none">تم نسخ الرمز بنجاح</div>
   </div>
-
-  <form id="profile-edit-form" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" class="mt-4">
-    @csrf
-    @method('PATCH')
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
       <div class="field">
