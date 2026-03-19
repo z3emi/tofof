@@ -4,28 +4,27 @@ $locale = app()->getLocale();
 $isArabic = $locale === 'ar';
 
 $countriesRaw = [
-  ['ar' => 'العراق', 'en' => 'Iraq', 'code' => '+964', 'flag' => '🇮🇶'],
-  ['ar' => 'مصر', 'en' => 'Egypt', 'code' => '+20', 'flag' => '🇪🇬'],
-  ['ar' => 'السعودية', 'en' => 'Saudi Arabia', 'code' => '+966', 'flag' => '🇸🇦'],
-  ['ar' => 'الإمارات', 'en' => 'United Arab Emirates', 'code' => '+971', 'flag' => '🇦🇪'],
-  ['ar' => 'الأردن', 'en' => 'Jordan', 'code' => '+962', 'flag' => '🇯🇴'],
-  ['ar' => 'سوريا', 'en' => 'Syria', 'code' => '+963', 'flag' => '🇸🇾'],
-  ['ar' => 'لبنان', 'en' => 'Lebanon', 'code' => '+961', 'flag' => '🇱🇧'],
-  ['ar' => 'فلسطين', 'en' => 'Palestine', 'code' => '+970', 'flag' => '🇵🇸'],
-  ['ar' => 'قطر', 'en' => 'Qatar', 'code' => '+974', 'flag' => '🇶🇦'],
-  ['ar' => 'البحرين', 'en' => 'Bahrain', 'code' => '+973', 'flag' => '🇧🇭'],
-  ['ar' => 'الكويت', 'en' => 'Kuwait', 'code' => '+965', 'flag' => '🇰🇼'],
-  ['ar' => 'عُمان', 'en' => 'Oman', 'code' => '+968', 'flag' => '🇴🇲'],
-  ['ar' => 'اليمن', 'en' => 'Yemen', 'code' => '+967', 'flag' => '🇾🇪'],
-  ['ar' => 'الجزائر', 'en' => 'Algeria', 'code' => '+213', 'flag' => '🇩🇿'],
-  ['ar' => 'تونس', 'en' => 'Tunisia', 'code' => '+216', 'flag' => '🇹🇳'],
-  ['ar' => 'المغرب', 'en' => 'Morocco', 'code' => '+212', 'flag' => '🇲🇦'],
-  ['ar' => 'ليبيا', 'en' => 'Libya', 'code' => '+218', 'flag' => '🇱🇾'],
-  ['ar' => 'السودان', 'en' => 'Sudan', 'code' => '+249', 'flag' => '🇸🇩'],
-  ['ar' => 'موريتانيا', 'en' => 'Mauritania', 'code' => '+222', 'flag' => '🇲🇷'],
-  ['ar' => 'الصومال', 'en' => 'Somalia', 'code' => '+252', 'flag' => '🇸🇴'],
-  ['ar' => 'جيبوتي', 'en' => 'Djibouti', 'code' => '+253', 'flag' => '🇩🇯'],
-  ['ar' => 'جزر القمر', 'en' => 'Comoros', 'code' => '+269', 'flag' => '🇰🇲'],
+  ['ar' => 'العراق', 'en' => 'Iraq', 'code' => '+964', 'flag' => 'iq'],
+  ['ar' => 'مصر', 'en' => 'Egypt', 'code' => '+20', 'flag' => 'eg'],
+  ['ar' => 'السعودية', 'en' => 'Saudi Arabia', 'code' => '+966', 'flag' => 'sa'],
+  ['ar' => 'الإمارات', 'en' => 'United Arab Emirates', 'code' => '+971', 'flag' => 'ae'],
+  ['ar' => 'تركيا', 'en' => 'Turkey', 'code' => '+90', 'flag' => 'tr'],
+  ['ar' => 'الأردن', 'en' => 'Jordan', 'code' => '+962', 'flag' => 'jo'],
+  ['ar' => 'سوريا', 'en' => 'Syria', 'code' => '+963', 'flag' => 'sy'],
+  ['ar' => 'لبنان', 'en' => 'Lebanon', 'code' => '+961', 'flag' => 'lb'],
+  ['ar' => 'فلسطين', 'en' => 'Palestine', 'code' => '+970', 'flag' => 'ps'],
+  ['ar' => 'قطر', 'en' => 'Qatar', 'code' => '+974', 'flag' => 'qa'],
+  ['ar' => 'البحرين', 'en' => 'Bahrain', 'code' => '+973', 'flag' => 'bh'],
+  ['ar' => 'الكويت', 'en' => 'Kuwait', 'code' => '+965', 'flag' => 'kw'],
+  ['ar' => 'عُمان', 'en' => 'Oman', 'code' => '+968', 'flag' => 'om'],
+  ['ar' => 'اليمن', 'en' => 'Yemen', 'code' => '+967', 'flag' => 'ye'],
+  ['ar' => 'الجزائر', 'en' => 'Algeria', 'code' => '+213', 'flag' => 'dz'],
+  ['ar' => 'تونس', 'en' => 'Tunisia', 'code' => '+216', 'flag' => 'tn'],
+  ['ar' => 'المغرب', 'en' => 'Morocco', 'code' => '+212', 'flag' => 'ma'],
+  ['ar' => 'ليبيا', 'en' => 'Libya', 'code' => '+218', 'flag' => 'ly'],
+  ['ar' => 'السودان', 'en' => 'Sudan', 'code' => '+249', 'flag' => 'sd'],
+  ['ar' => 'موريتانيا', 'en' => 'Mauritania', 'code' => '+222', 'flag' => 'mr'],
+  ['ar' => 'الصومال', 'en' => 'Somalia', 'code' => '+252', 'flag' => 'so'],
 ];
 
 $countries = array_map(function ($country) use ($isArabic) {
@@ -170,8 +169,6 @@ $countries = array_map(function ($country) use ($isArabic) {
 /* تثبيت محاذاة الأيقونات/الأعلام مع النص العربي */
 .register-scope .icon-inline,
 .register-scope .country-code-btn i,
-.register-scope .country-code-btn .flag,
-.register-scope .country-list .flag,
 .register-scope .country-list .dial-code,
 .register-scope .country-list .country-name,
 .register-scope .reg-btn-primary i,
@@ -183,6 +180,21 @@ $countries = array_map(function ($country) use ($isArabic) {
   justify-content:center;
   line-height:1;
   vertical-align:middle;
+}
+.register-scope .country-code-btn img.flag,
+.register-scope .country-list img.flag{
+  display:block !important;
+  width:24px !important;
+  height:16px !important;
+  min-width:24px !important;
+  min-height:16px !important;
+  object-fit:contain !important;
+  background:#fff;
+  line-height:0 !important;
+  vertical-align:top !important;
+  border-radius:2px;
+  box-shadow:0 1px 2px rgba(0,0,0,.25);
+  flex-shrink:0;
 }
 .register-scope .country-list .country-name{ text-align:right; }
 .register-scope .country-list .dial-code{ white-space:nowrap; }
@@ -316,7 +328,7 @@ html.dark .reg-btn-outline:hover{ background:#a61c20; color:#fff; border-color:#
 .register-scope .country-code-btn{height:54px !important;background:#151922 !important;border-inline-end:1px solid #262b37 !important;color:#d2d7df !important;direction:ltr !important;}
 .register-scope .phone-input,.register-scope .r-field{height:54px !important;color:#f2f4f8 !important;}
 .register-scope .phone-input::placeholder,.register-scope .r-field::placeholder{color:#737b88 !important;}
-.register-scope .country-list{background:#12151c !important;border-color:#2a303d !important;border-radius:0 !important;}
+.register-scope .country-list{background:#12151c !important;border-color:#2a303d !important;border-radius:0 !important;width:min(560px, calc(100vw - 2rem)) !important;left:50% !important;right:auto !important;transform:translateX(-50%);}
 .register-scope .country-list a{color:#d8dce4 !important;border-bottom-color:#212734 !important;}
 .register-scope .country-list a:hover{background:#181d27 !important;}
 /* زر إنشاء الحساب لون ثابت */
@@ -401,7 +413,7 @@ html:not(.dark) .reg-foot a{color:#202737;}
             <label class="r-label" for="local_phone_number">رقم الهاتف</label>
             <div class="phone-input-group">
               <button type="button" class="country-code-btn" @click="toggleCountryMenu()">
-                <span x-text="selectedCountry.flag" class="flag text-xl"></span>
+                <img :src="'https://flagcdn.com/' + selectedCountry.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="selectedCountry.name + ' flag'">
                 <span class="font-bold dial-code" x-text="selectedCountry.code"></span>
                 <i class="bi bi-chevron-down text-xs icon-inline transition-transform duration-200" :class="{'rotate-180': countryMenuOpen}"></i>
               </button>
@@ -429,7 +441,7 @@ html:not(.dark) .reg-foot a{color:#202737;}
                  class="country-list" style="display:none;">
               <template x-for="country in countries" :key="country.code">
                 <a href="#" @click.prevent="selectCountry(country)">
-                  <span class="flag text-lg" x-text="country.flag"></span>
+                  <img :src="'https://flagcdn.com/' + country.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="country.name + ' flag'">
                   <span class="country-name flex-grow" x-text="country.name"></span>
                   <span class="dial-code text-gray-400 text-sm font-medium" x-text="country.code"></span>
                 </a>

@@ -2,25 +2,41 @@
   "name": "Tofof",
   "short_name": "Tofof",
   "description": "Tofof - Premium accessories store",
-  "start_url": "/",
+  "id": "/?source=pwa",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#6d0e16",
   "lang": "ar",
   "dir": "rtl",
+  "prefer_related_applications": false,
+  "categories": ["shopping", "lifestyle"],
   "icons": [
     {
       "src": "/logo.png",
-      "sizes": "192x192",
+      "sizes": "1000x1000",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
       "src": "/logo.png",
-      "sizes": "512x512",
+      "sizes": "1000x1000",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "المتجر",
+      "short_name": "المتجر",
+      "url": "/shop"
+    },
+    {
+      "name": "السلة",
+      "short_name": "السلة",
+      "url": "/cart"
     }
   ]
 }

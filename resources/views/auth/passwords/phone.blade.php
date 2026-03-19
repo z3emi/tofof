@@ -1,28 +1,27 @@
 @php
 // قائمة الدول
 $countries = [
-    ['name' => 'العراق', 'code' => '+964', 'flag' => '🇮🇶'],
-    ['name' => 'مصر', 'code' => '+20', 'flag' => '🇪🇬'],
-    ['name' => 'السعودية', 'code' => '+966', 'flag' => '🇸🇦'],
-    ['name' => 'الإمارات', 'code' => '+971', 'flag' => '🇦🇪'],
-    ['name' => 'الأردن', 'code' => '+962', 'flag' => '🇯🇴'],
-    ['name' => 'سوريا', 'code' => '+963', 'flag' => '🇸🇾'],
-    ['name' => 'لبنان', 'code' => '+961', 'flag' => '🇱🇧'],
-    ['name' => 'فلسطين', 'code' => '+970', 'flag' => '🇵🇸'],
-    ['name' => 'قطر', 'code' => '+974', 'flag' => '🇶🇦'],
-    ['name' => 'البحرين', 'code' => '+973', 'flag' => '🇧🇭'],
-    ['name' => 'الكويت', 'code' => '+965', 'flag' => '🇰🇼'],
-    ['name' => 'عُمان', 'code' => '+968', 'flag' => '🇴🇲'],
-    ['name' => 'اليمن', 'code' => '+967', 'flag' => '🇾🇪'],
-    ['name' => 'الجزائر', 'code' => '+213', 'flag' => '🇩🇿'],
-    ['name' => 'تونس', 'code' => '+216', 'flag' => '🇹🇳'],
-    ['name' => 'المغرب', 'code' => '+212', 'flag' => '🇲🇦'],
-    ['name' => 'ليبيا', 'code' => '+218', 'flag' => '🇱🇾'],
-    ['name' => 'السودان', 'code' => '+249', 'flag' => '🇸🇩'],
-    ['name' => 'موريتانيا', 'code' => '+222', 'flag' => '🇲🇷'],
-    ['name' => 'الصومال', 'code' => '+252', 'flag' => '🇸🇴'],
-    ['name' => 'جيبوتي', 'code' => '+253', 'flag' => '🇩🇯'],
-    ['name' => 'جزر القمر', 'code' => '+269', 'flag' => '🇰🇲'],
+  ['name' => 'العراق', 'code' => '+964', 'flag' => 'iq'],
+  ['name' => 'مصر', 'code' => '+20', 'flag' => 'eg'],
+  ['name' => 'السعودية', 'code' => '+966', 'flag' => 'sa'],
+  ['name' => 'الإمارات', 'code' => '+971', 'flag' => 'ae'],
+  ['name' => 'تركيا', 'code' => '+90', 'flag' => 'tr'],
+  ['name' => 'الأردن', 'code' => '+962', 'flag' => 'jo'],
+  ['name' => 'سوريا', 'code' => '+963', 'flag' => 'sy'],
+  ['name' => 'لبنان', 'code' => '+961', 'flag' => 'lb'],
+  ['name' => 'فلسطين', 'code' => '+970', 'flag' => 'ps'],
+  ['name' => 'قطر', 'code' => '+974', 'flag' => 'qa'],
+  ['name' => 'البحرين', 'code' => '+973', 'flag' => 'bh'],
+  ['name' => 'الكويت', 'code' => '+965', 'flag' => 'kw'],
+  ['name' => 'عُمان', 'code' => '+968', 'flag' => 'om'],
+  ['name' => 'اليمن', 'code' => '+967', 'flag' => 'ye'],
+  ['name' => 'الجزائر', 'code' => '+213', 'flag' => 'dz'],
+  ['name' => 'تونس', 'code' => '+216', 'flag' => 'tn'],
+  ['name' => 'المغرب', 'code' => '+212', 'flag' => 'ma'],
+  ['name' => 'ليبيا', 'code' => '+218', 'flag' => 'ly'],
+  ['name' => 'السودان', 'code' => '+249', 'flag' => 'sd'],
+  ['name' => 'موريتانيا', 'code' => '+222', 'flag' => 'mr'],
+  ['name' => 'الصومال', 'code' => '+252', 'flag' => 'so'],
 ];
 @endphp
 
@@ -57,11 +56,12 @@ $countries = [
 .phone-input-group:focus-within{border-color:#e31322 !important;box-shadow:0 0 0 2px rgba(227,19,34,.16) !important;}
 
 .country-code-btn{height:54px !important;min-width:110px;padding:.5rem .75rem;background:#151922 !important;border-inline-end:1px solid var(--c-field-border) !important;color:#d2d7df !important;display:flex;align-items:center;justify-content:center;gap:.4rem;direction:ltr !important;font-size:.88rem;cursor:pointer;}
+.country-code-btn img.flag,.country-list img.flag{display:block !important;width:24px !important;height:16px !important;min-width:24px !important;min-height:16px !important;object-fit:contain !important;background:#fff;line-height:0 !important;vertical-align:top !important;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.25);flex-shrink:0;}
 
 .phone-input{flex:1;height:54px !important;padding:.5rem 1rem;border:0;outline:0;font-size:1rem;background:transparent;color:var(--c-text) !important;direction:ltr;text-align:left;}
 .phone-input::placeholder{color:#737b88 !important;}
 
-.country-list{position:absolute;left:0;right:0;top:calc(100% + 6px);max-height:240px;overflow-y:auto;background:#12151c !important;border:1px solid #2a303d !important;border-radius:0 !important;box-shadow:0 12px 32px rgba(0,0,0,.4);z-index:9999;direction:rtl;}
+.country-list{position:absolute;left:50%;right:auto;transform:translateX(-50%);width:min(640px, calc(100vw - 1rem));top:calc(100% + 6px);max-height:240px;overflow-y:auto;background:#12151c !important;border:1px solid #2a303d !important;border-radius:0 !important;box-shadow:0 12px 32px rgba(0,0,0,.4);z-index:9999;direction:rtl;}
 .country-list a{display:flex;align-items:center;gap:.65rem;padding:.65rem 1rem;font-size:.9rem;color:#d8dce4 !important;border-bottom:1px solid #212734 !important;transition:.12s;}
 .country-list a:last-child{border-bottom:0;}
 .country-list a:hover{background:#181d27 !important;}
@@ -139,7 +139,7 @@ html:not(.dark) .auth-alert{border-color:#fecaca;background:#fef2f2;color:#b91c1
             <label for="local_phone_number" class="auth-label">رقم الهاتف</label>
             <div class="phone-input-group">
               <button type="button" class="country-code-btn" @click="toggleCountryMenu()">
-                <span x-text="selectedCountry.flag"></span>
+                <img :src="'https://flagcdn.com/' + selectedCountry.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="selectedCountry.name + ' flag'">
                 <span class="font-semibold" x-text="selectedCountry.code"></span>
                 <i class="bi bi-chevron-down text-xs transition-transform duration-300" :class="{'rotate-180': countryMenuOpen}"></i>
               </button>
@@ -169,7 +169,7 @@ html:not(.dark) .auth-alert{border-color:#fecaca;background:#fef2f2;color:#b91c1
                  style="display:none;">
               <template x-for="country in countries" :key="country.code">
                 <a href="#" role="option" tabindex="0" @click.prevent="selectCountry(country)">
-                  <span class="text-xl" x-text="country.flag"></span>
+                  <img :src="'https://flagcdn.com/' + country.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="country.name + ' flag'">
                   <span class="flex-grow text-right" x-text="country.name"></span>
                   <span class="font-medium" x-text="country.code"></span>
                 </a>

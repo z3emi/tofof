@@ -398,39 +398,42 @@
      ========================= */
   @media (max-width: 640px){
         .slider-dots{
-            bottom: 6px !important; /* أقرب للأسفل */
-            left: 50%;
-            right: auto;
-            padding: 2px 0 !important;
-            gap: 2px !important;
-            background: rgba(0,0,0,0.10) !important;
+            bottom: 10px !important;
+            left: 10px !important;
+            right: auto !important;
+            top: auto !important;
+            padding: 6px 5px !important;
+            gap: 6px !important;
+            background: rgba(0,0,0,0.18) !important;
             box-shadow: none !important;
-            border-radius: 6px !important;
-            min-width: 48px;
-            max-width: 90vw;
+            border-radius: 999px !important;
+            min-width: auto;
+            max-width: none;
             width: auto;
-            height: 8px;
-            transform: translateX(-50%) scale(.85);
-            opacity: .93;
+            height: auto;
+            transform: none !important;
+            opacity: .96;
             justify-content: center;
             align-items: center;
+            flex-direction: column;
         }
         .slider-dots .dot{
-            width: 18px !important;
-            height: 4px !important;
-            border-radius: 3px !important;
+            width: 6px !important;
+            height: 6px !important;
+            border-radius: 999px !important;
             background: #fff !important;
-            opacity: 0.45;
-            margin: 0 1px !important;
+            opacity: 0.55;
+            margin: 0 !important;
             border: none !important;
             box-shadow: none !important;
-            transition: background 0.2s, opacity 0.2s, width 0.2s;
+            transition: transform 0.2s, background 0.2s, opacity 0.2s;
         }
         .slider-dots .dot.active{
-            width: 28px !important;
-            height: 4px !important;
-            background: var(--primary-color, #0B0B0B) !important;
-            opacity: 0.85;
+            width: 8px !important;
+            height: 8px !important;
+            background: #6d0e16 !important;
+            opacity: 1;
+            transform: scale(1.05);
         }
   }
 

@@ -105,6 +105,14 @@
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
     <link rel="apple-touch-icon" href="{{ asset('logo.png') }}">
 
+    <script>
+      window.__tofofDeferredInstallPrompt = null;
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        window.__tofofDeferredInstallPrompt = e;
+      });
+    </script>
+
     <meta property="og:site_name" content="{{ $locale === 'ar' ? ($seo['site_title_ar'] ?? $seo['site_title'] ?? 'طفوف') : ($seo['site_title_en'] ?? $seo['site_title'] ?? 'Tofof') }}">
     <meta property="og:title" content="@yield('title', $siteTitle)">
     <meta property="og:description" content="@yield('meta_description', $metaDescription)">
@@ -294,8 +302,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
         /* حذف تأثير الأيقونات */
         .footer-mobile a:hover .icon { transform: none; }
 
-        .badge { position: absolute; top: -5px; right: -5px; background-color: rgba(245,158,11,0.85); color: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10; }
-        .dark .badge, .dark .badge-cart { background-color: rgba(251,191,36,0.95) !important; color: #111827 !important; }
+        .badge, .dark .badge, .dark .badge-cart { position: absolute; top: -5px; right: -5px; background-color: #d59e06 !important; color: #fff !important; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10; }
 
         .mobile-nav-item.active { background: linear-gradient(to top, rgba(190, 102, 97, 0.1), transparent); }
         
@@ -2251,8 +2258,8 @@ document.addEventListener('alpine:init', () => {
       <div class="flex items-center gap-3">
         <img src="{{ asset('logo.png') }}" alt="Tofof" class="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 object-contain bg-white">
         <div>
-          <p class="font-extrabold text-[#6d0e16] dark:text-[#f0b0ad] leading-none">تثبيت طفوف</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">لأجهزة iPhone و iPad</p>
+          <p id="installGuideTitle" class="font-extrabold text-[#6d0e16] dark:text-[#f0b0ad] leading-none">تثبيت طفوف</p>
+          <p id="installGuideSubTitle" class="text-xs text-gray-500 dark:text-gray-400 mt-1">شرح التثبيت على جهازك</p>
         </div>
       </div>
       <button type="button" id="closeIosInstallGuide" class="text-gray-500 hover:text-red-600 text-2xl leading-none" aria-label="اغلاق">
@@ -2260,12 +2267,10 @@ document.addEventListener('alpine:init', () => {
       </button>
     </div>
 
-    <div class="space-y-3 text-sm text-gray-700 dark:text-gray-200">
+    <div class="space-y-3 text-sm text-gray-700 dark:text-gray-200" id="installGuideSteps">
       <p class="font-bold">الخطوات:</p>
-      <p>1. افتح الموقع من متصفح Safari.</p>
-      <p>2. اضغط زر المشاركة <i class="bi bi-box-arrow-up"></i>.</p>
-      <p>3. اختر "Add to Home Screen" أو "إضافة إلى الشاشة الرئيسية".</p>
-      <p>4. اضغط "Add" وسيظهر التطبيق على سطح الجهاز.</p>
+      <p>1. اضغط زر التثبيت المباشر.</p>
+      <p>2. إذا لم يظهر خيار التثبيت، استخدم خيار إضافة إلى الشاشة الرئيسية من المتصفح.</p>
     </div>
 
     <div class="mt-5 flex justify-end">
@@ -2281,17 +2286,48 @@ document.addEventListener('alpine:init', () => {
     const androidBtn = document.getElementById('androidInstallBtn');
     const iosBtn = document.getElementById('iosInstallBtn');
     const iosModal = document.getElementById('iosInstallGuideModal');
+    const installGuideTitle = document.getElementById('installGuideTitle');
+    const installGuideSubTitle = document.getElementById('installGuideSubTitle');
+    const installGuideSteps = document.getElementById('installGuideSteps');
     const closeIosBtn = document.getElementById('closeIosInstallGuide');
     const doneIosBtn = document.getElementById('iosInstallGuideDone');
-    let deferredInstallPrompt = null;
+    let deferredInstallPrompt = window.__tofofDeferredInstallPrompt || null;
 
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     const ua = navigator.userAgent || navigator.vendor || window.opera;
     const isAndroid = /android/i.test(ua);
+    const isAndroidChrome = isAndroid && /chrome|crios/i.test(ua) && !/edpgg|edge|opr|opera|samsungbrowser|ucbrowser/i.test(ua);
     const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-    function openIosGuide() {
+    function setGuideContent(type) {
+      if (!installGuideTitle || !installGuideSubTitle || !installGuideSteps) return;
+
+      if (type === 'ios') {
+        installGuideTitle.textContent = 'تثبيت طفوف على iPhone / iPad';
+        installGuideSubTitle.textContent = 'في iOS لا يوجد تثبيت مباشر من الزر، اتبع الخطوات التالية';
+        installGuideSteps.innerHTML = `
+          <p class="font-bold">الخطوات:</p>
+          <p>1. افتح الموقع من متصفح Safari.</p>
+          <p>2. اضغط زر المشاركة <i class="bi bi-box-arrow-up"></i>.</p>
+          <p>3. اختر "Add to Home Screen" أو "إضافة إلى الشاشة الرئيسية".</p>
+          <p>4. اضغط "Add" وسيظهر التطبيق على سطح الجهاز.</p>
+        `;
+        return;
+      }
+
+      installGuideTitle.textContent = 'تثبيت طفوف على Android';
+      installGuideSubTitle.textContent = 'إذا لم يظهر التثبيت المباشر، استخدم إضافة للشاشة الرئيسية';
+      installGuideSteps.innerHTML = `
+        <p class="font-bold">الخطوات:</p>
+        <p>1. من متصفح Chrome اضغط قائمة المتصفح (⋮).</p>
+        <p>2. اختر "Install app" أو "Add to Home screen".</p>
+        <p>3. أكّد التثبيت وسيظهر التطبيق على شاشة الهاتف.</p>
+      `;
+    }
+
+    function openInstallGuide(type) {
       if (!iosModal) return;
+      setGuideContent(type);
       iosModal.classList.remove('hidden');
       iosModal.classList.add('flex');
       iosModal.setAttribute('aria-hidden', 'false');
@@ -2315,47 +2351,121 @@ document.addEventListener('alpine:init', () => {
     window.addEventListener('beforeinstallprompt', function (e) {
       e.preventDefault();
       deferredInstallPrompt = e;
+      window.__tofofDeferredInstallPrompt = e;
     });
+
+    function waitForInstallPrompt(timeoutMs) {
+      if (deferredInstallPrompt) return Promise.resolve(true);
+
+      return new Promise((resolve) => {
+        let done = false;
+        const onReady = function () {
+          if (done) return;
+          done = true;
+          deferredInstallPrompt = window.__tofofDeferredInstallPrompt || deferredInstallPrompt;
+          clearTimeout(timer);
+          resolve(!!deferredInstallPrompt);
+        };
+
+        const timer = setTimeout(() => {
+          if (done) return;
+          done = true;
+          window.removeEventListener('beforeinstallprompt', onReady);
+          deferredInstallPrompt = window.__tofofDeferredInstallPrompt || deferredInstallPrompt;
+          resolve(!!deferredInstallPrompt);
+        }, timeoutMs);
+
+        window.addEventListener('beforeinstallprompt', onReady, { once: true });
+      });
+    }
+
+    async function tryDirectInstall() {
+      if (isStandalone) {
+        alert('التطبيق مثبت مسبقا على جهازك.');
+        return { done: true, installed: true };
+      }
+
+      await waitForInstallPrompt(1200);
+
+      if (!deferredInstallPrompt) {
+        return { done: false, installed: false };
+      }
+
+      try {
+        deferredInstallPrompt.prompt();
+        const choice = await deferredInstallPrompt.userChoice;
+        const accepted = !!(choice && choice.outcome === 'accepted');
+        deferredInstallPrompt = null;
+        window.__tofofDeferredInstallPrompt = null;
+        return { done: true, installed: accepted };
+      } catch (err) {
+        console.error('Install prompt failed:', err);
+        deferredInstallPrompt = null;
+        window.__tofofDeferredInstallPrompt = null;
+        return { done: false, installed: false };
+      }
+    }
 
     if (androidBtn) {
       androidBtn.addEventListener('click', async function () {
-        if (isStandalone) {
-          alert('التطبيق مثبت مسبقا على جهازك.');
-          return;
-        }
-
-        if (isAndroid && deferredInstallPrompt) {
-          deferredInstallPrompt.prompt();
-          try {
-            await deferredInstallPrompt.userChoice;
-          } catch (err) {
-            console.error('Install prompt failed:', err);
-          }
-          deferredInstallPrompt = null;
-          return;
-        }
+        const attempt = await tryDirectInstall();
+        if (attempt.done && attempt.installed) return;
 
         if (isIOS) {
-          openIosGuide();
+          openInstallGuide('ios');
           return;
         }
 
-        alert('لإضافة الموقع كتطبيق، افتح قائمة المتصفح ثم اختر Add to Home Screen.');
+        if (isAndroid) {
+          if (isAndroidChrome) {
+            alert('أنت داخل Chrome بالفعل، لكن التثبيت المباشر غير جاهز بعد لأن شروط PWA لم تكتمل في هذه اللحظة. جرّب تحديث الصفحة وانتظر ثواني ثم اضغط الزر مرة أخرى.');
+            return;
+          }
+
+          alert('استخدم Google Chrome على أندرويد للحصول على التثبيت المباشر.');
+          return;
+        }
+
+        alert('التثبيت المباشر متاح فقط على الأجهزة المدعومة.');
       });
     }
 
     if (iosBtn) {
-      iosBtn.addEventListener('click', function () {
-        openIosGuide();
+      iosBtn.addEventListener('click', async function () {
+        const attempt = await tryDirectInstall();
+        if (attempt.done && attempt.installed) return;
+
+        if (isIOS) {
+          openInstallGuide('ios');
+          return;
+        }
+
+        if (isAndroid) {
+          if (isAndroidChrome) {
+            alert('أنت داخل Chrome بالفعل، لكن التثبيت المباشر غير جاهز بعد لأن شروط PWA لم تكتمل في هذه اللحظة. جرّب تحديث الصفحة وانتظر ثواني ثم اضغط الزر مرة أخرى.');
+            return;
+          }
+
+          alert('استخدم Google Chrome على أندرويد للحصول على التثبيت المباشر.');
+          return;
+        }
+
+        openInstallGuide('ios');
       });
     }
 
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function () {
-        navigator.serviceWorker.register('{{ asset('sw.js') }}').catch(function (err) {
+      navigator.serviceWorker
+        .register('/sw.js', { scope: '/' })
+        .then(function () {
+          return navigator.serviceWorker.ready;
+        })
+        .then(function () {
+          // Service worker is active and can control pages for PWA installability.
+        })
+        .catch(function (err) {
           console.error('Service worker registration failed:', err);
         });
-      });
     }
   })();
 </script>

@@ -84,6 +84,28 @@ Auth::routes(['verify' => false]);
 // ===== B) Maintenance & Language Switch =====
 Route::get('/maintenance', fn() => view('frontend.maintenance'))->name('maintenance.page');
 
+// PWA endpoints at root to avoid hosting path mismatches (some hosts serve static files from /public only).
+Route::get('/manifest.webmanifest', function () {
+    $path = public_path('manifest.webmanifest');
+    abort_unless(file_exists($path), 404);
+
+    return response()->file($path, [
+        'Content-Type' => 'application/manifest+json; charset=utf-8',
+        'Cache-Control' => 'public, max-age=300',
+    ]);
+});
+
+Route::get('/sw.js', function () {
+    $path = public_path('sw.js');
+    abort_unless(file_exists($path), 404);
+
+    return response()->file($path, [
+        'Content-Type' => 'application/javascript; charset=utf-8',
+        'Cache-Control' => 'no-cache',
+        'Service-Worker-Allowed' => '/',
+    ]);
+});
+
 // TEMP DEBUG: remove after testing
 Route::get('/debug-locale', function (Request $request) {
     $sessionLocale = Session::get('locale');

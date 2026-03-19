@@ -10,10 +10,10 @@
 <style>
     /* ========== Tokens خاصة بهذه الصفحة ========== */
     .product-page{
-        --brand:#C81D25;
-        --brand-dark:#0B0B0B;
-        --brand-gold:#D4AF37;
-        --bg:#F5F5F5;
+        --brand:#6d0e16;
+        --brand-dark:#4f0b12;
+        --brand-gold:#d59e06;
+        --bg:#F7F7F7;
         --bg-soft:#FFFFFF;
         --surface:#ffffff;
         --text:#111111;
@@ -354,10 +354,10 @@
                     @endif
                 </div>
                 <div class="border-t border-b border-gray-200 py-4 mb-8 space-y-3">
-                    <div class="flex items-center text-sm text-gray-700"><i class="bi bi-truck text-brand-primary text-xl w-8 text-center"></i><span>توصيل لكل محافظات العراق</span></div>
-                    <div class="flex items-center text-sm text-gray-700"><i class="bi bi-gift text-brand-primary text-xl w-8 text-center"></i><span>اشتري بقيمة 85 ألف و احصل على هديتين وتوصيل مجاني</span></div>
-                    <div class="flex items-center text-sm text-gray-700"><i class="bi bi-box-seam text-brand-primary text-xl w-8 text-center"></i><span>اشتري بقيمة 60 ألف و احصل على هديتين</span></div>
-                    <div class="flex items-center text-sm text-gray-700"><i class="bi bi-patch-check-fill text-brand-primary text-xl w-8 text-center"></i><span>منتجات أصلية و مضمونة</span></div>
+                    <div class="flex items-center text-sm text-gray-700"><span>🚚 خدمة توصيل موثوقة داخل وخارج العراق</span></div>
+                    <div class="flex items-center text-sm text-gray-700"><span>⚡ معالجة سريعة للطلبات لضمان وصولها بأفضل وقت</span></div>
+                    <div class="flex items-center text-sm text-gray-700"><span>🔒 تجربة شراء آمنة وسلسة</span></div>
+                    <div class="flex items-center text-sm text-gray-700"><span>✔️ منتجات أصلية بمعايير جودة عالية</span></div>
                 </div>
 
                 <template x-if="options.length">

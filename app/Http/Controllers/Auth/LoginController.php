@@ -37,10 +37,19 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
+        $resolvedUser = $this->findUserByPhoneInput((string) $request->input($this->username(), ''));
+
+        // نوحّد قيمة رقم الهاتف بالصيغة المخزنة فعلياً إن وجد المستخدم
+        if ($resolvedUser) {
+            $request->merge([$this->username() => (string) $resolvedUser->phone_number]);
+        } else {
+            $request->merge([$this->username() => $this->normalizePhoneNumber((string) $request->input($this->username(), ''))]);
+        }
+
         $this->validateLogin($request);
 
         // --- فحص التفعيل قبل محاولة تسجيل الدخول القياسية ---
-        $user = User::where($this->username(), $request->input($this->username()))->first();
+        $user = $resolvedUser ?: User::where($this->username(), $request->input($this->username()))->first();
 
         if ($user && Hash::check($request->password, $user->password)) {
             if ($user->banned_at) {
@@ -112,6 +121,55 @@ class LoginController extends Controller
             $this->credentials($request),
             $request->boolean('remember')
         );
+    }
+
+    /**
+     * Normalize user-entered phone number to a consistent numeric format.
+     */
+    private function normalizePhoneNumber(string $phone): string
+    {
+        $digits = preg_replace('/\D+/', '', $phone) ?? '';
+
+        if (str_starts_with($digits, '00')) {
+            $digits = substr($digits, 2);
+        }
+
+        // شائع محلياً: 96407xxxxxxxx -> 9647xxxxxxxx
+        if (str_starts_with($digits, '9640')) {
+            $digits = '964' . substr($digits, 4);
+        }
+
+        return $digits;
+    }
+
+    /**
+     * Find a user by trying common phone representations.
+     */
+    private function findUserByPhoneInput(string $phoneInput): ?User
+    {
+        $normalized = $this->normalizePhoneNumber($phoneInput);
+        $candidates = collect([$phoneInput, $normalized]);
+
+        if ($normalized !== '' && str_starts_with($normalized, '0')) {
+            $candidates->push(ltrim($normalized, '0'));
+        }
+
+        if ($normalized !== '') {
+            $candidates->push('+' . $normalized);
+        }
+
+        $phones = $candidates
+            ->map(fn ($v) => trim((string) $v))
+            ->filter(fn ($v) => $v !== '')
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($phones)) {
+            return null;
+        }
+
+        return User::whereIn('phone_number', $phones)->first();
     }
 
     /**
