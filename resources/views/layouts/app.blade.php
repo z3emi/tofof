@@ -657,7 +657,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
 
         .desktop-liquid-shell {
           border-radius: 0;
-          background: linear-gradient(90deg, #B8860B 0%, #FFD700 40%, #FFC200 70%, #B8860B 100%);
+          background: #D4AF37;
           border: none;
           -webkit-backdrop-filter: blur(32px);
           backdrop-filter: blur(32px);
@@ -2344,9 +2344,48 @@ document.addEventListener('alpine:init', () => {
       });
     }
 
+    function resetButtonsToInstallState() {
+      pwaBtns.forEach(pwaBtn => {
+        const label = pwaBtn.querySelector('.label');
+        const mini = pwaBtn.querySelector('.mini');
+        const ariaLabel = pwaBtn.getAttribute('aria-label') || '';
+        
+        if (label) {
+          if (ariaLabel.includes('اندرويد')) label.textContent = 'Google Play';
+          else if (ariaLabel.includes('ايفون')) label.textContent = 'App Store';
+          else if (ariaLabel.includes('ويندوز')) label.textContent = 'Windows';
+          else label.textContent = 'تثبيت التطبيق';
+        }
+        if (mini) {
+          if (ariaLabel.includes('ويندوز')) mini.textContent = 'متوفر لـ';
+          else mini.textContent = 'متوفر على';
+        }
+        
+        pwaBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+        pwaBtn.dataset.installed = "false";
+      });
+    }
+
+    function setButtonsToInstalledState() {
+      pwaBtns.forEach(pwaBtn => {
+        const label = pwaBtn.querySelector('.label');
+        const mini = pwaBtn.querySelector('.mini');
+        if (label) label.textContent = 'مثبت بالفعل';
+        if (mini) mini.textContent = 'التطبيق';
+        pwaBtn.classList.add('opacity-70', 'cursor-not-allowed');
+        pwaBtn.dataset.installed = "true";
+      });
+    }
+
     window.addEventListener('beforeinstallprompt', function (e) {
       e.preventDefault();
       window.__tofofDeferredInstallPrompt = e;
+      if (localStorage.getItem('tofof_pwa_installed') === '1') {
+        localStorage.removeItem('tofof_pwa_installed');
+        if (!isStandalone) {
+          resetButtonsToInstallState();
+        }
+      }
     });
 
     async function waitForInstallPrompt(timeoutMs) {
@@ -2371,49 +2410,47 @@ document.addEventListener('alpine:init', () => {
 
     window.addEventListener('appinstalled', function() {
       localStorage.setItem('tofof_pwa_installed', '1');
+      setButtonsToInstalledState();
     });
 
     const isInstalled = isStandalone || localStorage.getItem('tofof_pwa_installed') === '1';
 
     if (pwaBtns.length > 0) {
       if (isInstalled) {
-        pwaBtns.forEach(pwaBtn => {
-          const label = pwaBtn.querySelector('.label');
-          const mini = pwaBtn.querySelector('.mini');
-          if (label) label.textContent = 'مثبت بالفعل';
-          if (mini) mini.textContent = 'التطبيق';
-          pwaBtn.classList.add('opacity-70', 'cursor-not-allowed');
-          pwaBtn.addEventListener('click', function () {
-            alert('التطبيق مثبت بالفعل على جهازك.');
-          });
-        });
-      } else {
-        pwaBtns.forEach(pwaBtn => {
-          pwaBtn.addEventListener('click', async function () {
-            const deferredPrompt = await waitForInstallPrompt(1500);
-
-            if (deferredPrompt) {
-              try {
-                deferredPrompt.prompt();
-                const choice = await deferredPrompt.userChoice;
-                if (choice.outcome === 'accepted') {
-                  window.__tofofDeferredInstallPrompt = null;
-                  localStorage.setItem('tofof_pwa_installed', '1');
-                }
-              } catch (err) {
-                console.error('Install prompt failed:', err);
-                openInstallGuide();
-              }
-            } else {
-              if (isIOS) {
-                openInstallGuide();
-              } else {
-                alert('التطبيق مثبت بالفعل على جهازك.');
-              }
-            }
-          });
-        });
+        setButtonsToInstalledState();
       }
+
+      pwaBtns.forEach(pwaBtn => {
+        pwaBtn.addEventListener('click', async function () {
+          if (pwaBtn.dataset.installed === "true") {
+            alert('التطبيق مثبت بالفعل على جهازك.');
+            return;
+          }
+
+          const deferredPrompt = await waitForInstallPrompt(1500);
+
+          if (deferredPrompt) {
+            try {
+              deferredPrompt.prompt();
+              const choice = await deferredPrompt.userChoice;
+              if (choice.outcome === 'accepted') {
+                window.__tofofDeferredInstallPrompt = null;
+                localStorage.setItem('tofof_pwa_installed', '1');
+                setButtonsToInstalledState();
+              }
+            } catch (err) {
+              console.error('Install prompt failed:', err);
+              openInstallGuide();
+            }
+          } else {
+            if (isIOS) {
+              openInstallGuide();
+            } else {
+              alert('التطبيق مثبت بالفعل على جهازك.');
+            }
+          }
+        });
+      });
     }
 
     if ('serviceWorker' in navigator) {

@@ -224,28 +224,60 @@ app.post('/api/send', async (req, res) => {
 
 app.post('/api/logout', async (_, res) => {
   if (!client) {
-    return res.json({ success: true, message: 'Already logged out' });
-  }
-
-  try {
-    await client.logout();
-    await client.destroy();
-    client = null;
-
     state.status = 'logged_out';
     state.phone = null;
     state.qr = null;
     state.lastError = null;
 
     setTimeout(() => {
-      initializeClient().catch(() => undefined);
+      initializeClient().catch((e) => console.error('[WA] Re-init after empty logout:', e.message));
     }, 1000);
 
-    return res.json({ success: true });
-  } catch (error) {
-    state.lastError = String(error.message || error);
-    return res.status(500).json({ success: false, message: state.lastError });
+    return res.json({ success: true, message: 'Already logged out' });
   }
+
+  let logoutError = null;
+  let destroyError = null;
+
+  try {
+    await client.logout();
+    console.log('[WA] Logout request sent successfully.');
+  } catch (error) {
+    logoutError = String(error.message || error);
+    console.warn('[WA] client.logout() failed, continuing with destroy:', logoutError);
+  }
+
+  try {
+    await client.destroy();
+    console.log('[WA] Client destroyed after logout.');
+  } catch (error) {
+    destroyError = String(error.message || error);
+    console.error('[WA] client.destroy() failed:', destroyError);
+  }
+
+  client = null;
+  state.status = 'logged_out';
+  state.phone = null;
+  state.qr = null;
+  state.lastError = destroyError || logoutError;
+
+  setTimeout(() => {
+    initializeClient().catch((e) => console.error('[WA] Re-init after logout:', e.message));
+  }, 1000);
+
+  if (destroyError) {
+    return res.status(500).json({
+      success: false,
+      message: destroyError,
+      warning: logoutError,
+    });
+  }
+
+  return res.json({
+    success: true,
+    message: logoutError ? 'Logged out with warning' : 'Logged out successfully',
+    warning: logoutError,
+  });
 });
 
 app.listen(PORT, () => {

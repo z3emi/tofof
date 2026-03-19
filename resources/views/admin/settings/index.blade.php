@@ -867,7 +867,7 @@
                 logoutBtn.disabled = true;
 
                 try {
-                    await fetch(logoutUrl, {
+                    const response = await fetch(logoutUrl, {
                         method: 'POST',
                         headers: {
                             'Accept': 'application/json',
@@ -876,6 +876,16 @@
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     });
+
+                    const payload = await response.json().catch(() => ({}));
+
+                    if (!response.ok || payload.success === false) {
+                        qrHelp.textContent = payload.message
+                            ? 'فشل تسجيل الخروج: ' + payload.message
+                            : 'فشل تسجيل الخروج من واتساب. حاول مرة أخرى.';
+                    } else {
+                        qrHelp.textContent = 'تم تسجيل الخروج بنجاح. انتظر توليد QR جديد...';
+                    }
                 } finally {
                     logoutBtn.disabled = false;
                     await loadWhatsAppStatus();
