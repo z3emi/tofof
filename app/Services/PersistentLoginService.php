@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\PersistentLogin;
+use App\Support\RepairsPrimaryKeyAutoIncrement;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Str;
@@ -24,7 +26,7 @@ class PersistentLoginService
         $hash      = password_hash($validator, PASSWORD_BCRYPT);
 
         // خزّن بالسجل
-        PersistentLogin::create([
+        $this->createPersistentLogin([
             'user_id'        => $userId,
             'selector'       => $selector,
             'validator_hash' => $hash,
@@ -130,5 +132,20 @@ class PersistentLoginService
     {
         $record->delete();
         Cookie::queue(Cookie::forget(self::COOKIE_NAME, '/', config('session.domain'), config('session.secure', true), config('session.same_site', 'lax')));
+    }
+
+    protected function createPersistentLogin(array $attributes): PersistentLogin
+    {
+        try {
+            return PersistentLogin::create($attributes);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'persistent_logins')) {
+                throw $exception;
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('persistent_logins');
+
+            return PersistentLogin::create($attributes);
+        }
     }
 }
