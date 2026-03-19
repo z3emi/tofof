@@ -647,19 +647,33 @@
                             <div class="slide-overlay" style="background: linear-gradient(90deg, rgba({{ $sRgb }}, {{ $sStrength }}), rgba({{ $sRgb }}, {{ $sStrength * 0.45 }}));"></div>
                         @endif
                         <div class="slide-content">
-                            @if(!empty($slide->title))
-                                <h2 class="text-2xl md:text-5xl font-extrabold mb-2 w-full text-center">{{ $slide->title }}</h2>
+                            @if(!empty($slide->title) || !empty($slide->title_en))
+                                <h2 class="text-2xl md:text-5xl font-extrabold mb-2 w-full text-center">
+                                    @if(app()->getLocale() === 'en' && !empty($slide->title_en))
+                                        {{ $slide->title_en }}
+                                    @else
+                                        {{ $slide->title }}
+                                    @endif
+                                </h2>
                             @endif
-                            @if(!empty($slide->subtitle))
+                            @if(!empty($slide->subtitle) || !empty($slide->subtitle_en))
                                 <p class="mb-6 text-sm md:text-lg opacity-90 max-w-xl w-full mx-auto text-center">
-                                    {{ $slide->subtitle }}
+                                    @if(app()->getLocale() === 'en' && !empty($slide->subtitle_en))
+                                        {{ $slide->subtitle_en }}
+                                    @else
+                                        {{ $slide->subtitle }}
+                                    @endif
                                 </p>
                             @endif
-                            @if(!empty($slide->button_text))
+                            @if(!empty($slide->button_text) || !empty($slide->button_text_en))
                                 <div class="-mt-2 w-full flex justify-center">
                                     <a href="{{ $slide->button_url ?? '#' }}" 
                                        class="inline-block bg-white text-[#c32126] px-6 py-2 rounded-full font-bold text-base hover:bg-gray-100 transition shadow-lg mx-auto">
-                                        {{ $slide->button_text }}
+                                        @if(app()->getLocale() === 'en' && !empty($slide->button_text_en))
+                                            {{ $slide->button_text_en }}
+                                        @else
+                                            {{ $slide->button_text }}
+                                        @endif
                                     </a>
                                 </div>
                             @endif
@@ -825,7 +839,11 @@
                 @endif
             </div>
             <h3 class="category-name mt-2 md:mt-4 text-base font-semibold group-hover:text-[#c32126]">
-                {{ $pc->name_ar }}
+                @if(app()->getLocale() === 'en' && !empty($pc->name_en))
+                    {{ $pc->name_en }}
+                @else
+                    {{ $pc->name_ar }}
+                @endif
             </h3>
         </a>
     @endif
@@ -953,17 +971,33 @@
                 <div class="slide-overlay" style="background: linear-gradient(90deg, rgba({{ $spRgb }}, {{ $spStrength }}), rgba({{ $spRgb }}, {{ $spStrength * 0.45 }}));"></div>
               @endif
               <div class="slide-content">
-                                @if($slide->title)
-                                        <h2 class="text-2xl md:text-4xl font-extrabold mb-2">{{ $slide->title }}</h2>
-                                @endif
-                @if($slide->subtitle)
-                    <p class="mb-4 text-sm md:text-base">{{ $slide->subtitle }}</p>
+                @if($slide->title || $slide->title_en)
+                    <h2 class="text-2xl md:text-4xl font-extrabold mb-2">
+                        @if(app()->getLocale() === 'en' && !empty($slide->title_en))
+                            {{ $slide->title_en }}
+                        @else
+                            {{ $slide->title }}
+                        @endif
+                    </h2>
                 @endif
-                @if($slide->button_text)
+                @if($slide->subtitle || $slide->subtitle_en)
+                    <p class="mb-4 text-sm md:text-base">
+                        @if(app()->getLocale() === 'en' && !empty($slide->subtitle_en))
+                            {{ $slide->subtitle_en }}
+                        @else
+                            {{ $slide->subtitle }}
+                        @endif
+                    </p>
+                @endif
+                @if($slide->button_text || $slide->button_text_en)
                     <div class="-mt-2">
                         <a href="{{ $slide->button_url ?: '#' }}"
                            class="inline-block bg-white text-[#c32126] px-5 py-1.5 rounded-full font-bold text-sm hover:bg-gray-100 transition">
-                          {{ $slide->button_text }}
+                          @if(app()->getLocale() === 'en' && !empty($slide->button_text_en))
+                              {{ $slide->button_text_en }}
+                          @else
+                              {{ $slide->button_text }}
+                          @endif
                         </a>
                     </div>
                 @endif
@@ -1441,15 +1475,33 @@
                              height="800">
                         <div class="slide-overlay"></div>
                         <div class="slide-content">
-                            @if($slide->title)
-                                <h2 class="text-2xl md:text-3xl font-bold mb-2">{{ $slide->title }}</h2>
+                            @if($slide->title || $slide->title_en)
+                                <h2 class="text-2xl md:text-3xl font-bold mb-2">
+                                    @if(app()->getLocale() === 'en' && !empty($slide->title_en))
+                                        {{ $slide->title_en }}
+                                    @else
+                                        {{ $slide->title }}
+                                    @endif
+                                </h2>
                             @endif
-                            @if($slide->subtitle)
-                                <p class="mb-4">{{ $slide->subtitle }}</p>
+                            @if($slide->subtitle || $slide->subtitle_en)
+                                <p class="mb-4">
+                                    @if(app()->getLocale() === 'en' && !empty($slide->subtitle_en))
+                                        {{ $slide->subtitle_en }}
+                                    @else
+                                        {{ $slide->subtitle }}
+                                    @endif
+                                </p>
                             @endif
-                            @if($slide->button_text)
+                            @if($slide->button_text || $slide->button_text_en)
                                 <div class="-mt-2">
-                                    <a href="{{ $slide->button_url ?: '#' }}" class="inline-block bg-white text-[#c32126] px-5 py-1.5 rounded-full font-bold text-sm hover:bg-gray-100 transition">{{ $slide->button_text }}</a>
+                                    <a href="{{ $slide->button_url ?: '#' }}" class="inline-block bg-white text-[#c32126] px-5 py-1.5 rounded-full font-bold text-sm hover:bg-gray-100 transition">
+                                        @if(app()->getLocale() === 'en' && !empty($slide->button_text_en))
+                                            {{ $slide->button_text_en }}
+                                        @else
+                                            {{ $slide->button_text }}
+                                        @endif
+                                    </a>
                                 </div>
                             @endif
                         </div>

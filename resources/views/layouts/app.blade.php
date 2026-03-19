@@ -1157,7 +1157,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
 
             // البراندات التي تملك منتجات داخل هذه الفئة/الأبناء
             $brands = \App\Models\PrimaryCategory::query()
-                ->active()->ordered()->select('id','name_ar','slug','icon','image')
+                ->active()->ordered()->select('id','name_ar','name_en','slug','icon','image')
                 ->whereHas('products', fn($q)=>$q->where('is_active',true)->whereIn('category_id',$catIds))
                 ->get();
 
@@ -1170,7 +1170,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                 if (!isset($brandCategoriesMap[$b->slug])) {
                     $brandCategoriesMap[$b->slug] = [
                         'slug' => $b->slug,
-                        'name' => $b->name_ar,
+                        'name' => app()->getLocale() === 'en' && !empty($b->name_en) ? $b->name_en : $b->name_ar,
                         'image'=> $bImg,
                         'categories' => [],
                     ];
@@ -1182,7 +1182,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
 
                 $brandCategoriesMap[$b->slug]['categories'][$cat->slug] = [
                     'slug'  => $cat->slug,
-                    'name'  => $cat->name_ar ?? $cat->name ?? '',
+                    'name'  => app()->getLocale() === 'en' && !empty($cat->name_en) ? $cat->name_en : ($cat->name_ar ?? $cat->name ?? ''),
                     'image' => $cImg,
                 ];
             }
@@ -1446,12 +1446,12 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                                         $defaultLogo = asset('logo.png'); 
                                     @endphp
                                     @if($img) 
-                                        <img src="{{ asset('storage/' . $img) }}" alt="{{ $brand->name_ar }}">
+                                        <img src="{{ asset('storage/' . $img) }}" alt="{{ app()->getLocale() === 'en' && !empty($brand->name_en) ? $brand->name_en : $brand->name_ar }}">
                                     @else 
                                         <img src="{{ $defaultLogo }}" alt="Default Logo">
                                     @endif
                                 </div>
-                                <span class="liquid-name">{{ $brand->name_ar }}</span>
+                                <span class="liquid-name">{{ app()->getLocale() === 'en' && !empty($brand->name_en) ? $brand->name_en : $brand->name_ar }}</span>
                             </a>
                             @if($brand->children->isNotEmpty())
                                 <button type="button" @click="open = !open" class="liquid-toggle">
@@ -1467,12 +1467,12 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                                         <div class="liquid-logo">
                                             @php $childImg = $child->image ?: $child->icon; @endphp
                                             @if($childImg) 
-                                                <img src="{{ asset('storage/' . $childImg) }}" alt="{{ $child->name_ar }}">
+                                                <img src="{{ asset('storage/' . $childImg) }}" alt="{{ app()->getLocale() === 'en' && !empty($child->name_en) ? $child->name_en : $child->name_ar }}">
                                             @else 
                                                 <img src="{{ $defaultLogo }}" alt="Default Logo">
                                             @endif
                                         </div>
-                                        <span class="liquid-name">{{ $child->name_ar }}</span>
+                                        <span class="liquid-name">{{ app()->getLocale() === 'en' && !empty($child->name_en) ? $child->name_en : $child->name_ar }}</span>
                                     </a>
                                 @endforeach
                             </div>
@@ -1574,10 +1574,10 @@ function brandMenuV4(){
                       <a href="{{ route('shop', ['category' => $category->slug]) }}" class="category-link">
                         <div class="category-icon">
                           @php $img = $category->image ? asset('storage/' . $category->image) : null; @endphp
-                          @if($img) <img src="{{ $img }}" alt="{{ $category->name_ar }}" class="icon-image"> @else <div class="icon-placeholder">🧴</div> @endif
+                          @if($img) <img src="{{ $img }}" alt="{{ app()->getLocale() === 'en' && !empty($category->name_en) ? $category->name_en : $category->name_ar }}" class="icon-image"> @else <div class="icon-placeholder">🧴</div> @endif
                         </div>
                         <div class="category-details">
-                          <h3 class="category-name">{{ $category->name_ar }}</h3>
+                          <h3 class="category-name">{{ app()->getLocale() === 'en' && !empty($category->name_en) ? $category->name_en : $category->name_ar }}</h3>
                           <div class="category-meta"><span class="meta-item"><i class="bi bi-diagram-3"></i> رئيسي</span><span class="meta-item"><i class="bi bi-box-seam"></i> {{ $category->total_products_count ?? 0 }} منتج</span></div>
                         </div>
                       </a>
@@ -1592,10 +1592,10 @@ function brandMenuV4(){
                                 <a href="{{ route('shop', ['category' => $child->slug]) }}" class="subcategory-link">
                                   <div class="subcategory-icon">
                                     @php $img2 = $child->image ? asset('storage/' . $child->image) : null; @endphp
-                                    @if($img2) <img src="{{ $img2 }}" alt="{{ $child->name_ar }}" class="icon-image"> @else <div class="icon-placeholder">🧴</div> @endif
+                                    @if($img2) <img src="{{ $img2 }}" alt="{{ app()->getLocale() === 'en' && !empty($child->name_en) ? $child->name_en : $child->name_ar }}" class="icon-image"> @else <div class="icon-placeholder">🧴</div> @endif
                                   </div>
                                   <div class="subcategory-details">
-                                    <h4 class="subcategory-name">{{ $child->name_ar }}</h4>
+                                    <h4 class="subcategory-name">{{ app()->getLocale() === 'en' && !empty($child->name_en) ? $child->name_en : $child->name_ar }}</h4>
                                     <div class="category-meta"><span class="meta-item"><i class="bi bi-box-seam"></i> {{ $child->total_products_count ?? 0 }} منتج</span></div>
                                   </div>
                                 </a>
@@ -1610,10 +1610,10 @@ function brandMenuV4(){
                                           <a href="{{ route('shop', ['category' => $grand->slug]) }}" class="sub-subcategory-link">
                                             <div class="sub-subcategory-icon">
                                               @php $img3 = $grand->image ? asset('storage/' . $grand->image) : null; @endphp
-                                              @if($img3) <img src="{{ $img3 }}" alt="{{ $grand->name_ar }}" class="icon-image"> @else <div class="icon-placeholder">🧴</div> @endif
+                                              @if($img3) <img src="{{ $img3 }}" alt="{{ app()->getLocale() === 'en' && !empty($grand->name_en) ? $grand->name_en : $grand->name_ar }}" class="icon-image"> @else <div class="icon-placeholder">🧴</div> @endif
                                             </div>
                                             <div class="subcategory-details">
-                                              <h5 class="sub-subcategory-name">{{ $grand->name_ar }}</h5>
+                                              <h5 class="sub-subcategory-name">{{ app()->getLocale() === 'en' && !empty($grand->name_en) ? $grand->name_en : $grand->name_ar }}</h5>
                                               <div class="category-meta"><span class="meta-item"><i class="bi bi-box-seam"></i> {{ $grand->total_products_count ?? 0 }} منتج</span></div>
                                             </div>
                                           </a>

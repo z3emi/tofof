@@ -4,7 +4,7 @@
     <div class="col-lg-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">محتوى السلايد</h5>
+                <h5 class="mb-0">محتوى السلايد - العربية</h5>
             </div>
             <div class="card-body">
                 <div class="row g-3">
@@ -57,6 +57,42 @@
                         <input type="text" name="alt_text" id="alt_text" class="form-control @error('alt_text') is-invalid @enderror"
                                value="{{ old('alt_text', $homepageSlide->alt_text ?? '') }}">
                         @error('alt_text') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">محتوى السلايد - English</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="title_en" class="form-label">Title (Optional)</label>
+                        <input type="text" name="title_en" id="title_en" class="form-control @error('title_en') is-invalid @enderror"
+                               value="{{ old('title_en', $homepageSlide->title_en ?? '') }}" dir="ltr">
+                        @error('title_en') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div class="col-12">
+                        <label for="subtitle_en" class="form-label">Description Text</label>
+                        <textarea name="subtitle_en" id="subtitle_en" rows="4" class="form-control @error('subtitle_en') is-invalid @enderror" dir="ltr">{{ old('subtitle_en', $homepageSlide->subtitle_en ?? '') }}</textarea>
+                        @error('subtitle_en') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="button_text_en" class="form-label">Button Text</label>
+                        <input type="text" name="button_text_en" id="button_text_en" class="form-control @error('button_text_en') is-invalid @enderror"
+                               value="{{ old('button_text_en', $homepageSlide->button_text_en ?? '') }}" dir="ltr">
+                        @error('button_text_en') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">&nbsp;</label>
+                        <small class="text-muted d-block">
+                            <i class="bi bi-info-circle"></i> The button URL is the same for both languages
+                        </small>
                     </div>
                 </div>
             </div>

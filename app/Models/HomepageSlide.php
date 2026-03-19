@@ -18,8 +18,11 @@ class HomepageSlide extends Model
     protected $fillable = [
         'section',
         'title',
+        'title_en',
         'subtitle',
+        'subtitle_en',
         'button_text',
+        'button_text_en',
         'button_url',
         'background_image',
         'alt_text',
