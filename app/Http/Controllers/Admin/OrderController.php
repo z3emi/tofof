@@ -257,7 +257,7 @@ class OrderController extends Controller
                     'price' => $productData['price'],
                 ];
             }
-            $order->items()->createMany($orderItemsData);
+            $this->createOrderItemsWithRepair($order, $orderItemsData);
 
             // =========================================================
             // ✅ خصم الكميات من المخزون مباشرة
@@ -328,6 +328,21 @@ class OrderController extends Controller
         }
     }
 
+    private function createOrderItemsWithRepair(Order $order, array $items): void
+    {
+        try {
+            $order->items()->createMany($items);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'order_items')) {
+                throw $exception;
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('order_items');
+
+            $order->items()->createMany($items);
+        }
+    }
+
     public function update(Request $request, Order $order, InventoryService $inventoryService, DiscountService $discountService)
     {
         $request->validate([
@@ -391,7 +406,7 @@ class OrderController extends Controller
                     'price' => $productData['price'],
                 ];
             }
-            $order->items()->createMany($newOrderItemsData);
+            $this->createOrderItemsWithRepair($order, $newOrderItemsData);
 
             $order->update([
                 'governorate' => $request->governorate,

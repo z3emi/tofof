@@ -197,7 +197,7 @@ class CheckoutController extends Controller
                 $totalCost += (float) $itemCost;
 
                 $selectedOptions = $this->sanitizeSelectedOptions((array) ($details['selected_options'] ?? []));
-                OrderItem::create([
+                $this->createOrderItemWithRepair([
                     'order_id' => $order->id, 'product_id' => $productId,
                     'quantity' => $qty, 'price' => $price, 'cost' => $itemCost,
                     'option_selections' => empty($selectedOptions) ? null : $selectedOptions,
@@ -273,6 +273,21 @@ class CheckoutController extends Controller
             RepairsPrimaryKeyAutoIncrement::ensure('orders');
 
             return Order::create($attributes);
+        }
+    }
+
+    private function createOrderItemWithRepair(array $attributes): OrderItem
+    {
+        try {
+            return OrderItem::create($attributes);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'order_items')) {
+                throw $exception;
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('order_items');
+
+            return OrderItem::create($attributes);
         }
     }
 
