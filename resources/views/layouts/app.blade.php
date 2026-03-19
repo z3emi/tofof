@@ -1726,31 +1726,38 @@ function brandMenuV4(){
         </div>
       </div>
 
-      <div class="store-badge-row footer-right-col">
-        <button type="button" id="androidInstallBtn" class="store-badge-btn" aria-label="تثبيت التطبيق على اندرويد">
+      <div class="store-badge-row footer-right-col" style="flex-wrap: wrap; justify-content: center; max-width: 480px; margin: 0 auto md:0 0;">
+        <!-- Google Play -->
+        <button type="button" class="pwa-install-btn store-badge-btn bg-black hover:bg-gray-900 border border-gray-700 transition shadow-lg" aria-label="تثبيت التطبيق على اندرويد">
           <span class="store-icon">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
-              <!-- Green: top-left quadrant -->
               <polygon points="3,1.5 3,12 12,12" fill="#4CAF50"/>
-              <!-- Blue: bottom-left quadrant -->
               <polygon points="3,12 12,12 3,22.5" fill="#1976D2"/>
-              <!-- Yellow: upper-right to tip -->
               <polygon points="3,1.5 12,12 21.5,12" fill="#FFC107"/>
-              <!-- Red: lower-right to tip -->
               <polygon points="12,12 21.5,12 3,22.5" fill="#F44336"/>
             </svg>
           </span>
-          <span class="text-wrap">
-            <span class="mini">GET IT ON</span>
-            <span class="label">Google Play</span>
+          <span class="text-wrap text-right mr-1">
+            <span class="mini text-gray-300">متوفر على</span>
+            <span class="label text-white">Google Play</span>
           </span>
         </button>
 
-        <button type="button" id="iosInstallBtn" class="store-badge-btn" aria-label="شرح التثبيت لاجهزة ابل">
-          <span class="store-icon"><i class="bi bi-apple"></i></span>
-          <span class="text-wrap">
-            <span class="mini">Available on the</span>
-            <span class="label">App Store</span>
+        <!-- App Store -->
+        <button type="button" class="pwa-install-btn store-badge-btn bg-black hover:bg-gray-900 border border-gray-700 transition shadow-lg" aria-label="تثبيت التطبيق على ايفون">
+          <span class="store-icon"><i class="bi bi-apple text-white" style="font-size: 1.8rem; line-height: 1;"></i></span>
+          <span class="text-wrap text-right mr-1">
+            <span class="mini text-gray-300">متوفر على</span>
+            <span class="label text-white">App Store</span>
+          </span>
+        </button>
+
+        <!-- Windows -->
+        <button type="button" class="pwa-install-btn store-badge-btn bg-black hover:bg-gray-900 border border-gray-700 transition shadow-lg" aria-label="تثبيت التطبيق على ويندوز">
+          <span class="store-icon"><i class="bi bi-windows text-[#00a4ef]" style="font-size: 1.7rem; line-height: 1;"></i></span>
+          <span class="text-wrap text-right mr-1">
+            <span class="mini text-gray-300">متوفر لـ</span>
+            <span class="label text-white">Windows</span>
           </span>
         </button>
       </div>
@@ -2283,26 +2290,21 @@ document.addEventListener('alpine:init', () => {
 
 <script>
   (function () {
-    const androidBtn = document.getElementById('androidInstallBtn');
-    const iosBtn = document.getElementById('iosInstallBtn');
+    const pwaBtns = document.querySelectorAll('.pwa-install-btn');
     const iosModal = document.getElementById('iosInstallGuideModal');
     const installGuideTitle = document.getElementById('installGuideTitle');
     const installGuideSubTitle = document.getElementById('installGuideSubTitle');
     const installGuideSteps = document.getElementById('installGuideSteps');
     const closeIosBtn = document.getElementById('closeIosInstallGuide');
     const doneIosBtn = document.getElementById('iosInstallGuideDone');
-    let deferredInstallPrompt = window.__tofofDeferredInstallPrompt || null;
 
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
     const ua = navigator.userAgent || navigator.vendor || window.opera;
-    const isAndroid = /android/i.test(ua);
-    const isAndroidChrome = isAndroid && /chrome|crios/i.test(ua) && !/edpgg|edge|opr|opera|samsungbrowser|ucbrowser/i.test(ua);
     const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-    function setGuideContent(type) {
-      if (!installGuideTitle || !installGuideSubTitle || !installGuideSteps) return;
-
-      if (type === 'ios') {
+    function openInstallGuide() {
+      if (!iosModal) return;
+      if (isIOS) {
         installGuideTitle.textContent = 'تثبيت طفوف على iPhone / iPad';
         installGuideSubTitle.textContent = 'في iOS لا يوجد تثبيت مباشر من الزر، اتبع الخطوات التالية';
         installGuideSteps.innerHTML = `
@@ -2312,130 +2314,111 @@ document.addEventListener('alpine:init', () => {
           <p>3. اختر "Add to Home Screen" أو "إضافة إلى الشاشة الرئيسية".</p>
           <p>4. اضغط "Add" وسيظهر التطبيق على سطح الجهاز.</p>
         `;
-        return;
+      } else {
+        installGuideTitle.textContent = 'تثبيت طفوف (للكمبيوتر والأندرويد)';
+        installGuideSubTitle.textContent = 'إذا لم يظهر التثبيت المباشر، اتبع هذه الخطوات:';
+        installGuideSteps.innerHTML = `
+          <p class="font-bold">الخطوات:</p>
+          <p>1. من متصفحك الحالي اضغط قائمة الخيارات (⋮ أو ⋯).</p>
+          <p>2. اختر "Install app" أو "Add to Home screen" أو "App install".</p>
+          <p>3. أكّد التثبيت وسيظهر التطبيق على جهازك.</p>
+        `;
       }
-
-      installGuideTitle.textContent = 'تثبيت طفوف (للكمبيوتر والأندرويد)';
-      installGuideSubTitle.textContent = 'إذا لم يظهر التثبيت المباشر، اتبع هذه الخطوات:';
-      installGuideSteps.innerHTML = `
-        <p class="font-bold">الخطوات:</p>
-        <p>1. من متصفحك الحالي اضغط قائمة الخيارات (⋮ أو ⋯).</p>
-        <p>2. اختر "Install app" أو "Add to Home screen" أو "App install".</p>
-        <p>3. أكّد التثبيت وسيظهر التطبيق على جهازك.</p>
-      `;
-    }
-
-    function openInstallGuide(type) {
-      if (!iosModal) return;
-      setGuideContent(type);
       iosModal.classList.remove('hidden');
       iosModal.classList.add('flex');
       iosModal.setAttribute('aria-hidden', 'false');
     }
 
-    function closeIosGuide() {
+    function closeInstallGuide() {
       if (!iosModal) return;
       iosModal.classList.add('hidden');
       iosModal.classList.remove('flex');
       iosModal.setAttribute('aria-hidden', 'true');
     }
 
-    if (closeIosBtn) closeIosBtn.addEventListener('click', closeIosGuide);
-    if (doneIosBtn) doneIosBtn.addEventListener('click', closeIosGuide);
+    if (closeIosBtn) closeIosBtn.addEventListener('click', closeInstallGuide);
+    if (doneIosBtn) doneIosBtn.addEventListener('click', closeInstallGuide);
     if (iosModal) {
       iosModal.addEventListener('click', function (e) {
-        if (e.target === iosModal) closeIosGuide();
+        if (e.target === iosModal) closeInstallGuide();
       });
     }
 
     window.addEventListener('beforeinstallprompt', function (e) {
       e.preventDefault();
-      deferredInstallPrompt = e;
       window.__tofofDeferredInstallPrompt = e;
     });
 
-    function waitForInstallPrompt(timeoutMs) {
-      if (deferredInstallPrompt) return Promise.resolve(true);
-
+    async function waitForInstallPrompt(timeoutMs) {
+      if (window.__tofofDeferredInstallPrompt) return window.__tofofDeferredInstallPrompt;
       return new Promise((resolve) => {
         let done = false;
-        const onReady = function () {
+        const onReady = function (e) {
           if (done) return;
           done = true;
-          deferredInstallPrompt = window.__tofofDeferredInstallPrompt || deferredInstallPrompt;
           clearTimeout(timer);
-          resolve(!!deferredInstallPrompt);
+          resolve(window.__tofofDeferredInstallPrompt);
         };
-
         const timer = setTimeout(() => {
           if (done) return;
           done = true;
           window.removeEventListener('beforeinstallprompt', onReady);
-          deferredInstallPrompt = window.__tofofDeferredInstallPrompt || deferredInstallPrompt;
-          resolve(!!deferredInstallPrompt);
+          resolve(window.__tofofDeferredInstallPrompt);
         }, timeoutMs);
-
         window.addEventListener('beforeinstallprompt', onReady, { once: true });
       });
     }
 
-    async function tryDirectInstall() {
-      if (isStandalone) {
-        return { done: true, installed: true };
+    window.addEventListener('appinstalled', function() {
+      localStorage.setItem('tofof_pwa_installed', '1');
+    });
+
+    const isInstalled = isStandalone || localStorage.getItem('tofof_pwa_installed') === '1';
+
+    if (pwaBtns.length > 0) {
+      if (isInstalled) {
+        pwaBtns.forEach(pwaBtn => {
+          const label = pwaBtn.querySelector('.label');
+          const mini = pwaBtn.querySelector('.mini');
+          if (label) label.textContent = 'مثبت بالفعل';
+          if (mini) mini.textContent = 'التطبيق';
+          pwaBtn.classList.add('opacity-70', 'cursor-not-allowed');
+          pwaBtn.addEventListener('click', function () {
+            alert('التطبيق مثبت بالفعل على جهازك.');
+          });
+        });
+      } else {
+        pwaBtns.forEach(pwaBtn => {
+          pwaBtn.addEventListener('click', async function () {
+            const deferredPrompt = await waitForInstallPrompt(1500);
+
+            if (deferredPrompt) {
+              try {
+                deferredPrompt.prompt();
+                const choice = await deferredPrompt.userChoice;
+                if (choice.outcome === 'accepted') {
+                  window.__tofofDeferredInstallPrompt = null;
+                  localStorage.setItem('tofof_pwa_installed', '1');
+                }
+              } catch (err) {
+                console.error('Install prompt failed:', err);
+                openInstallGuide();
+              }
+            } else {
+              if (isIOS) {
+                openInstallGuide();
+              } else {
+                alert('التطبيق مثبت بالفعل على جهازك.');
+              }
+            }
+          });
+        });
       }
-
-      await waitForInstallPrompt(1200);
-
-      if (!deferredInstallPrompt) {
-        return { done: false, installed: false };
-      }
-
-      try {
-        deferredInstallPrompt.prompt();
-        const choice = await deferredInstallPrompt.userChoice;
-        const accepted = !!(choice && choice.outcome === 'accepted');
-        deferredInstallPrompt = null;
-        window.__tofofDeferredInstallPrompt = null;
-        return { done: true, installed: accepted };
-      } catch (err) {
-        console.error('Install prompt failed:', err);
-        deferredInstallPrompt = null;
-        window.__tofofDeferredInstallPrompt = null;
-        return { done: false, installed: false };
-      }
-    }
-
-    if (androidBtn) {
-      androidBtn.addEventListener('click', async function () {
-        const attempt = await tryDirectInstall();
-        if (attempt.done && attempt.installed) return;
-
-        if (isIOS) {
-          openInstallGuide('ios');
-        } else {
-          openInstallGuide('other');
-        }
-      });
-    }
-
-    if (iosBtn) {
-      iosBtn.addEventListener('click', async function () {
-        const attempt = await tryDirectInstall();
-        if (attempt.done && attempt.installed) return;
-
-        openInstallGuide('ios');
-      });
     }
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/sw.js', { scope: '/' })
-        .then(function () {
-          return navigator.serviceWorker.ready;
-        })
-        .then(function () {
-          // Service worker is active and can control pages for PWA installability.
-        })
         .catch(function (err) {
           console.error('Service worker registration failed:', err);
         });
