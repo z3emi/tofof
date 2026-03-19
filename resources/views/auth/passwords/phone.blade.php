@@ -139,7 +139,7 @@ html:not(.dark) .auth-alert{border-color:#fecaca;background:#fef2f2;color:#b91c1
             <label for="local_phone_number" class="auth-label">رقم الهاتف</label>
             <div class="phone-input-group">
               <button type="button" class="country-code-btn" @click="toggleCountryMenu()">
-                <img :src="'https://flagcdn.com/' + selectedCountry.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="selectedCountry.name + ' flag'">
+                <img :src="'{{ request()->root() }}/flags/' + selectedCountry.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="selectedCountry.name + ' flag'">
                 <span class="font-semibold" x-text="selectedCountry.code"></span>
                 <i class="bi bi-chevron-down text-xs transition-transform duration-300" :class="{'rotate-180': countryMenuOpen}"></i>
               </button>
@@ -169,7 +169,7 @@ html:not(.dark) .auth-alert{border-color:#fecaca;background:#fef2f2;color:#b91c1
                  style="display:none;">
               <template x-for="country in countries" :key="country.code">
                 <a href="#" role="option" tabindex="0" @click.prevent="selectCountry(country)">
-                  <img :src="'https://flagcdn.com/' + country.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="country.name + ' flag'">
+                  <img :src="'{{ request()->root() }}/flags/' + country.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="country.name + ' flag'">
                   <span class="flex-grow text-right" x-text="country.name"></span>
                   <span class="font-medium" x-text="country.code"></span>
                 </a>

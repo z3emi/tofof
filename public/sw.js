@@ -1,6 +1,6 @@
-const CACHE_VERSION = 'tofof-pwa-v3';
+const CACHE_VERSION = 'tofof-pwa-v4';
 const STATIC_CACHE = `tofof-static-${CACHE_VERSION}`;
-const CORE_ASSETS = ['/', '/manifest.webmanifest', '/logo.png'];
+const CORE_ASSETS = ['./', './manifest.webmanifest', './logo.png'];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
@@ -34,6 +34,16 @@ self.addEventListener('fetch', (event) => {
     const sameOrigin = url.origin === self.location.origin;
 
     if (!sameOrigin) {
+        return;
+    }
+
+    // Do not cache dynamic downloads/exports or manifest to avoid stale installability/download behavior.
+    if (
+        url.pathname.endsWith('/manifest.webmanifest') ||
+        url.pathname.includes('/backups/download/') ||
+        url.pathname.endsWith('/export')
+    ) {
+        event.respondWith(fetch(req));
         return;
     }
 

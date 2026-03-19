@@ -106,6 +106,30 @@ Route::get('/sw.js', function () {
     ]);
 });
 
+Route::get('/flags/{code}.svg', function (string $code) {
+    abort_unless(preg_match('/^[a-z]{2}$/', $code) === 1, 404);
+
+    $path = public_path('flags/' . $code . '.svg');
+    abort_unless(file_exists($path), 404);
+
+    return response()->file($path, [
+        'Content-Type' => 'image/svg+xml; charset=utf-8',
+        'Cache-Control' => 'public, max-age=86400',
+    ]);
+});
+
+Route::get('/icons/{name}', function (string $name) {
+    abort_unless(preg_match('/^icon-(192|512)\.png$/', $name) === 1, 404);
+
+    $path = public_path('icons/' . $name);
+    abort_unless(file_exists($path), 404);
+
+    return response()->file($path, [
+        'Content-Type' => 'image/png',
+        'Cache-Control' => 'public, max-age=86400',
+    ]);
+});
+
 // TEMP DEBUG: remove after testing
 Route::get('/debug-locale', function (Request $request) {
     $sessionLocale = Session::get('locale');

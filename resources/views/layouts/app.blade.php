@@ -954,9 +954,9 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                             class="flex items-center gap-1.5 rounded-full px-3 py-1.5 bg-white/15 hover:bg-white/25 transition text-sm font-semibold"
                             title="تغيير اللغة">
                             @if($locale === 'ar')
-                                <img src="https://flagcdn.com/iq.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="Arabic"><span>ع</span>
+                              <img src="{{ request()->root() }}/flags/iq.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="Arabic"><span>ع</span>
                             @elseif($locale === 'en')
-                                <img src="https://flagcdn.com/us.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="English"><span>En</span>
+                              <img src="{{ request()->root() }}/flags/us.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="English"><span>En</span>
                             @endif
                             <i class="bi bi-chevron-down text-xs" :class="{ 'rotate-180': langOpen }" style="transition: transform 0.2s"></i>
                         </button>
@@ -964,11 +964,11 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                               class="absolute top-full mt-2 {{ $dir === 'rtl' ? 'left-0' : 'right-0' }} w-36 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-[99999] text-gray-800 dark:text-gray-100">
                             @php $currentUrl = url()->current(); @endphp
                             <a href="{{ route('language.switch', ['locale' => 'ar', 'from' => $currentUrl]) }}" class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[#6d0e16]/10 transition {{ $locale === 'ar' ? 'font-bold text-[#6d0e16]' : '' }}">
-                                <img src="https://flagcdn.com/iq.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="Arabic"> عربي
+                              <img src="{{ request()->root() }}/flags/iq.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="Arabic"> عربي
                                 @if($locale === 'ar') <i class="bi bi-check2 mr-auto text-[#6d0e16]"></i> @endif
                             </a>
                             <a href="{{ route('language.switch', ['locale' => 'en', 'from' => $currentUrl]) }}" class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[#6d0e16]/10 transition {{ $locale === 'en' ? 'font-bold text-[#6d0e16]' : '' }}">
-                                <img src="https://flagcdn.com/us.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="English"> English
+                              <img src="{{ request()->root() }}/flags/us.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="English"> English
                                 @if($locale === 'en') <i class="bi bi-check2 mr-auto text-[#6d0e16]"></i> @endif
                             </a>
                           </div>
@@ -1033,20 +1033,20 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                           class="flex items-center gap-1 p-2 hover:bg-white/10 rounded-full text-sm font-bold"
                           title="تغيير اللغة">
                           @if($locale === 'ar')
-                              <img src="https://flagcdn.com/iq.svg" class="w-6 h-4 object-cover rounded-sm shadow-sm" alt="Arabic">
+                            <img src="{{ request()->root() }}/flags/iq.svg" class="w-6 h-4 object-cover rounded-sm shadow-sm" alt="Arabic">
                           @elseif($locale === 'en')
-                              <img src="https://flagcdn.com/us.svg" class="w-6 h-4 object-cover rounded-sm shadow-sm" alt="English">
+                            <img src="{{ request()->root() }}/flags/us.svg" class="w-6 h-4 object-cover rounded-sm shadow-sm" alt="English">
                           @endif
                       </button>
                         <div x-show="langOpen" x-cloak x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
                             class="absolute top-full mt-2 {{ $dir === 'rtl' ? 'left-0' : 'right-0' }} w-36 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-[99999] text-gray-800 dark:text-gray-100">
                           @php $currentUrl = url()->current(); @endphp
                           <a href="{{ route('language.switch', ['locale' => 'ar', 'from' => $currentUrl]) }}" class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[#6d0e16]/10 transition {{ $locale === 'ar' ? 'font-bold text-[#6d0e16]' : '' }}">
-                              <img src="https://flagcdn.com/iq.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="Arabic"> عربي
+                              <img src="{{ request()->root() }}/flags/iq.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="Arabic"> عربي
                               @if($locale === 'ar') <i class="bi bi-check2 mr-auto text-[#6d0e16]"></i> @endif
                           </a>
                           <a href="{{ route('language.switch', ['locale' => 'en', 'from' => $currentUrl]) }}" class="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[#6d0e16]/10 transition {{ $locale === 'en' ? 'font-bold text-[#6d0e16]' : '' }}">
-                              <img src="https://flagcdn.com/us.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="English"> English
+                              <img src="{{ request()->root() }}/flags/us.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="English"> English
                               @if($locale === 'en') <i class="bi bi-check2 mr-auto text-[#6d0e16]"></i> @endif
                           </a>
                         </div>
@@ -2315,13 +2315,13 @@ document.addEventListener('alpine:init', () => {
         return;
       }
 
-      installGuideTitle.textContent = 'تثبيت طفوف على Android';
-      installGuideSubTitle.textContent = 'إذا لم يظهر التثبيت المباشر، استخدم إضافة للشاشة الرئيسية';
+      installGuideTitle.textContent = 'تثبيت طفوف (للكمبيوتر والأندرويد)';
+      installGuideSubTitle.textContent = 'إذا لم يظهر التثبيت المباشر، اتبع هذه الخطوات:';
       installGuideSteps.innerHTML = `
         <p class="font-bold">الخطوات:</p>
-        <p>1. من متصفح Chrome اضغط قائمة المتصفح (⋮).</p>
-        <p>2. اختر "Install app" أو "Add to Home screen".</p>
-        <p>3. أكّد التثبيت وسيظهر التطبيق على شاشة الهاتف.</p>
+        <p>1. من متصفحك الحالي اضغط قائمة الخيارات (⋮ أو ⋯).</p>
+        <p>2. اختر "Install app" أو "Add to Home screen" أو "App install".</p>
+        <p>3. أكّد التثبيت وسيظهر التطبيق على جهازك.</p>
       `;
     }
 
@@ -2381,7 +2381,6 @@ document.addEventListener('alpine:init', () => {
 
     async function tryDirectInstall() {
       if (isStandalone) {
-        alert('التطبيق مثبت مسبقا على جهازك.');
         return { done: true, installed: true };
       }
 
@@ -2413,20 +2412,9 @@ document.addEventListener('alpine:init', () => {
 
         if (isIOS) {
           openInstallGuide('ios');
-          return;
+        } else {
+          openInstallGuide('other');
         }
-
-        if (isAndroid) {
-          if (isAndroidChrome) {
-            alert('أنت داخل Chrome بالفعل، لكن التثبيت المباشر غير جاهز بعد لأن شروط PWA لم تكتمل في هذه اللحظة. جرّب تحديث الصفحة وانتظر ثواني ثم اضغط الزر مرة أخرى.');
-            return;
-          }
-
-          alert('استخدم Google Chrome على أندرويد للحصول على التثبيت المباشر.');
-          return;
-        }
-
-        alert('التثبيت المباشر متاح فقط على الأجهزة المدعومة.');
       });
     }
 
@@ -2434,21 +2422,6 @@ document.addEventListener('alpine:init', () => {
       iosBtn.addEventListener('click', async function () {
         const attempt = await tryDirectInstall();
         if (attempt.done && attempt.installed) return;
-
-        if (isIOS) {
-          openInstallGuide('ios');
-          return;
-        }
-
-        if (isAndroid) {
-          if (isAndroidChrome) {
-            alert('أنت داخل Chrome بالفعل، لكن التثبيت المباشر غير جاهز بعد لأن شروط PWA لم تكتمل في هذه اللحظة. جرّب تحديث الصفحة وانتظر ثواني ثم اضغط الزر مرة أخرى.');
-            return;
-          }
-
-          alert('استخدم Google Chrome على أندرويد للحصول على التثبيت المباشر.');
-          return;
-        }
 
         openInstallGuide('ios');
       });

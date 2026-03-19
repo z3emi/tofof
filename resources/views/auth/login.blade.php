@@ -393,7 +393,7 @@ html:not(.dark) .auth-foot a{color:#202737;}
             <label class="auth-label">رقم الهاتف</label>
             <div class="phone-input-group">
               <button type="button" @click="countryMenuOpen = !countryMenuOpen" class="country-code-btn">
-                <img :src="'https://flagcdn.com/' + selectedCountry.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="selectedCountry.name + ' flag'">
+                <img :src="'{{ request()->root() }}/flags/' + selectedCountry.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="selectedCountry.name + ' flag'">
                 <span class="font-bold dial-code" x-text="selectedCountry.code"></span>
                 <i class="bi bi-chevron-down text-xs icon-inline transition-transform duration-200" :class="{'rotate-180': countryMenuOpen}"></i>
               </button>
@@ -420,7 +420,7 @@ html:not(.dark) .auth-foot a{color:#202737;}
               @foreach($countries as $country)
                 <a href="#"
                    @click.prevent="selectedCountry = {{ json_encode($country) }}; countryMenuOpen = false">
-                  <img src="https://flagcdn.com/{{ $country['flag'] }}.svg" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" alt="{{ $country['name'] }} flag">
+                  <img src="{{ request()->root() }}/flags/{{ $country['flag'] }}.svg" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" alt="{{ $country['name'] }} flag">
                   <span class="country-name flex-grow">{{ $country['name'] }}</span>
                   <span class="dial-code text-gray-400 text-sm font-medium">{{ $country['code'] }}</span>
                 </a>

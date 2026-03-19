@@ -413,7 +413,7 @@ html:not(.dark) .reg-foot a{color:#202737;}
             <label class="r-label" for="local_phone_number">رقم الهاتف</label>
             <div class="phone-input-group">
               <button type="button" class="country-code-btn" @click="toggleCountryMenu()">
-                <img :src="'https://flagcdn.com/' + selectedCountry.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="selectedCountry.name + ' flag'">
+                <img :src="'{{ request()->root() }}/flags/' + selectedCountry.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="selectedCountry.name + ' flag'">
                 <span class="font-bold dial-code" x-text="selectedCountry.code"></span>
                 <i class="bi bi-chevron-down text-xs icon-inline transition-transform duration-200" :class="{'rotate-180': countryMenuOpen}"></i>
               </button>
@@ -441,7 +441,7 @@ html:not(.dark) .reg-foot a{color:#202737;}
                  class="country-list" style="display:none;">
               <template x-for="country in countries" :key="country.code">
                 <a href="#" @click.prevent="selectCountry(country)">
-                  <img :src="'https://flagcdn.com/' + country.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="country.name + ' flag'">
+                  <img :src="'{{ request()->root() }}/flags/' + country.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="country.name + ' flag'">
                   <span class="country-name flex-grow" x-text="country.name"></span>
                   <span class="dial-code text-gray-400 text-sm font-medium" x-text="country.code"></span>
                 </a>
