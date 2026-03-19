@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -15,6 +16,7 @@ use App\Models\DiscountCodeUsage;
 use App\Models\User;
 use App\Models\Manager;
 use App\Notifications\NewOrderNotification;
+use App\Support\RepairsPrimaryKeyAutoIncrement;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 
@@ -152,7 +154,7 @@ class CheckoutController extends Controller
                 ? trim((string) $request->gift_recipient_address_details)
                 : ($address->address_details ?? '');
 
-            $order = Order::create([
+            $order = $this->createOrderWithRepair([
                 'user_id'          => $user->id,
                 'customer_id'      => $customer->id,
                 'total_amount'     => $finalTotal,
@@ -171,7 +173,7 @@ class CheckoutController extends Controller
                 'gift_message' => $isGift ? $request->gift_message : null,
                 'payment_method'   => $request->payment_method,
             ]);
-            
+
             if ($discountCodeId) {
                 DiscountCodeUsage::create([
                     'discount_code_id' => $discountCodeId,
@@ -257,6 +259,21 @@ class CheckoutController extends Controller
             return redirect()->route('homepage');
         }
         return view('frontend.checkout.success', compact('order'));
+    }
+
+    private function createOrderWithRepair(array $attributes): Order
+    {
+        try {
+            return Order::create($attributes);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'orders')) {
+                throw $exception;
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('orders');
+
+            return Order::create($attributes);
+        }
     }
 
     private function sanitizeSelectedOptions(array $selectedOptions): array

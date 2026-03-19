@@ -145,10 +145,7 @@
                 <select id="governorate" name="governorate" required class="control">
                     <option value="">اختر المحافظة</option>
                     @php
-                        $governorates = [
-                          'بغداد','نينوى','البصرة','صلاح الدين','دهوك','أربيل','السليمانية','ديالى',
-                          'واسط','ميسان','ذي قار','المثنى','بابل','كربلاء','النجف','القادسية','الأنبار'
-                        ];
+                        $governorates = config('locations.iraqi_governorates');
                     @endphp
                     @foreach ($governorates as $gov)
                         <option value="{{ $gov }}" {{ old('governorate') == $gov ? 'selected' : '' }}>{{ $gov }}</option>

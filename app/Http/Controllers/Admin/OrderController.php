@@ -19,6 +19,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Setting;
 use App\Models\DiscountCode;
+use App\Support\RepairsPrimaryKeyAutoIncrement;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
 use App\Services\WalletService;
 use App\Models\WalletTransaction;
@@ -226,7 +228,7 @@ class OrderController extends Controller
             $finalTotal = ($subtotal - $discountAmount) + $shippingCost;
             $isGift = $request->boolean('is_gift');
 
-            $order = Order::create([
+            $order = $this->createOrderWithRepair([
                 'user_id' => auth()->id(),
                 'customer_id' => $request->customer_id,
                 'governorate' => $addressPayload['governorate'],
@@ -309,6 +311,21 @@ class OrderController extends Controller
         $defaultShippingCost = $this->defaultShippingCost();
 
         return view('admin.orders.edit', compact('order', 'products', 'defaultShippingCost'));
+    }
+
+    private function createOrderWithRepair(array $attributes): Order
+    {
+        try {
+            return Order::create($attributes);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'orders')) {
+                throw $exception;
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('orders');
+
+            return Order::create($attributes);
+        }
     }
 
     public function update(Request $request, Order $order, InventoryService $inventoryService, DiscountService $discountService)
