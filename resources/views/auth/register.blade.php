@@ -325,10 +325,10 @@ html.dark .reg-btn-outline:hover{ background:#a61c20; color:#fff; border-color:#
 .r-label-ar{font-size:.74rem;letter-spacing:0;text-transform:none;color:#8d94a1;}
 .register-scope .phone-input-group,.register-scope .r-field,.register-scope .r-field-referral{background:#1a1d24 !important;border:1px solid #262b37 !important;border-radius:0 !important;color:#f2f4f8 !important;}
 .register-scope .phone-input-group:focus-within,.register-scope .r-field:focus,.register-scope .r-field-referral:focus{border-color:#e31322 !important;box-shadow:0 0 0 2px rgba(227,19,34,.16) !important;}
-.register-scope .country-code-btn{height:54px !important;background:#151922 !important;border-inline-end:1px solid #262b37 !important;color:#d2d7df !important;direction:ltr !important;}
+.register-scope .country-code-btn{height:60px !important;min-width:160px !important;background:#151922 !important;border-inline-end:1px solid #262b37 !important;color:#d2d7df !important;direction:ltr !important;}
 .register-scope .phone-input,.register-scope .r-field{height:54px !important;color:#f2f4f8 !important;}
 .register-scope .phone-input::placeholder,.register-scope .r-field::placeholder{color:#737b88 !important;}
-.register-scope .country-list{background:#12151c !important;border-color:#2a303d !important;border-radius:0 !important;width:min(560px, calc(100vw - 2rem)) !important;left:50% !important;right:auto !important;transform:translateX(-50%);}
+.register-scope .country-list{background:#12151c !important;border-color:#2a303d !important;border-radius:0 !important;width:360px !important;max-width:95vw;left:50% !important;right:auto !important;transform:translateX(-50%);}
 .register-scope .country-list a{color:#d8dce4 !important;border-bottom-color:#212734 !important;}
 .register-scope .country-list a:hover{background:#181d27 !important;}
 /* زر إنشاء الحساب لون ثابت */
@@ -350,6 +350,26 @@ html:not(.dark) .register-scope .r-field{color:#1d2432 !important;}
 html:not(.dark) .register-scope .country-list{background:#fff !important;border-color:#d8ddea !important;}
 html:not(.dark) .register-scope .country-list a{color:#1f2533 !important;border-bottom-color:#edf1f7 !important;}
 html:not(.dark) .reg-foot a{color:#202737;}
+
+@media (max-width: 640px){
+  .register-scope .country-code-btn{
+    font-size:.76rem !important;
+    gap:.25rem !important;
+    padding:.4rem .6rem !important;
+    direction:ltr !important;
+    flex-direction:row-reverse !important;
+    justify-content:center !important;
+    align-items:center !important;
+    flex-wrap:nowrap !important;
+  }
+  .register-scope .country-code-btn span{white-space:nowrap;line-height:1;}
+  .register-scope .country-code-btn img.flag{
+    width:24px !important;
+    height:16px !important;
+    min-width:24px !important;
+    min-height:16px !important;
+  }
+}
 </style>
 @endpush
 

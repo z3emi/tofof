@@ -325,7 +325,7 @@ html.dark .auth-btn-outline:hover{ background:#a61c20; color:#fff; border-color:
 .auth-scope .country-code-btn{height:54px !important;background:#151922 !important;border-inline-end:1px solid #262b37 !important;color:#d2d7df !important;direction:ltr !important;}
 .auth-scope .phone-input{height:54px !important;color:#f2f4f8 !important;}
 .auth-scope .phone-input::placeholder,.auth-scope .auth-field::placeholder{color:#737b88 !important;}
-.auth-scope .country-list{background:#12151c !important;border-color:#2a303d !important;border-radius:0 !important;width:min(640px, calc(100vw - 1rem)) !important;left:50% !important;right:auto !important;transform:translateX(-50%);}
+.auth-scope .country-list{background:#12151c !important;border-color:#2a303d !important;border-radius:0 !important;width:360px !important;max-width:95vw;left:50% !important;right:auto !important;transform:translateX(-50%);}
 .auth-scope .country-list a{color:#d8dce4 !important;border-bottom-color:#212734 !important;}
 .auth-scope .country-list a:hover{background:#181d27 !important;}
 .auth-help{color:#9da3ad;font-size:.84rem;}
@@ -349,6 +349,26 @@ html:not(.dark) .auth-scope .country-list{background:#fff !important;border-colo
 html:not(.dark) .auth-scope .country-list a{color:#1f2533 !important;border-bottom-color:#edf1f7 !important;}
 html:not(.dark) .auth-scope .country-list a:hover{background:#eef2f8 !important;color:#111827 !important;}
 html:not(.dark) .auth-foot a{color:#202737;}
+
+@media (max-width: 640px){
+  .auth-scope .country-code-btn{
+    font-size:.76rem !important;
+    gap:.25rem !important;
+    padding:.4rem .6rem !important;
+    direction:ltr !important;
+    flex-direction:row-reverse !important;
+    justify-content:center !important;
+    align-items:center !important;
+    flex-wrap:nowrap !important;
+  }
+  .auth-scope .country-code-btn span{white-space:nowrap;line-height:1;}
+  .auth-scope .country-code-btn img.flag{
+    width:24px !important;
+    height:16px !important;
+    min-width:24px !important;
+    min-height:16px !important;
+  }
+}
 </style>
 @endpush
 
