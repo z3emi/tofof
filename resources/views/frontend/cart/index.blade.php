@@ -1,13 +1,34 @@
 @extends('layouts.app')
 @push('styles')
 <style>
-  /* ===== دعم الوضع الليلي لصفحة السلة ===== */
+  /* ===== هوية بصرية موحدة لصفحة السلة ===== */
+  .bg-gray-50 { background: #f8f4f4 !important; }
 
-  /* خلفية عامة */
-  .dark .bg-gray-50 { background: #0b0f14 !important; }
+  /* ألوان الأزرار في الوضع الفاتح */
+  .bg-brand-primary,
+  .bg-brand-dark {
+    background: #6d0e16 !important;
+    color: #fff !important;
+  }
+  .hover\:bg-brand-primary:hover,
+  .hover\:bg-brand-dark:hover {
+    background: #a61c20 !important;
+    color: #fff !important;
+  }
+  .bg-gray-200 {
+    background: #ead0d2 !important;
+    color: #6d0e16 !important;
+  }
+  .hover\:bg-gray-300:hover {
+    background: #cd8985 !important;
+    color: #fff !important;
+  }
+
+  /* خلفية عامة في الوضع الداكن */
+  .dark .bg-gray-50 { background: #0d0d0f !important; }
 
   /* بطاقات */
-  .dark .bg-white { background: #111827 !important; color: #e5e7eb !important; }
+  .dark .bg-white { background: #161b27 !important; color: #e5e7eb !important; }
   .dark .shadow-sm { box-shadow: 0 2px 4px rgba(0,0,0,.7) !important; }
 
   /* نصوص */
@@ -20,34 +41,39 @@
 
   /* روابط */
   .dark a.text-gray-500 { color: #9ca3af !important; }
-  .dark a.text-gray-500:hover { color: #f0c0b7 !important; }
+  .dark a.text-gray-500:hover { color: #f8c7ca !important; }
 
   /* الحقول */
   .dark input[type="number"],
   .dark input[type="text"] {
-    background: #1f2937 !important;
+    background: #1a1d24 !important;
     color: #f3f4f6 !important;
-    border-color: #374151 !important;
+    border-color: #2a303d !important;
   }
 
   /* أزرار زيادة/نقصان الكمية */
-  .dark .hover\:bg-gray-100:hover { background: #1f2937 !important; }
+  .dark .hover\:bg-gray-100:hover { background: #1e2430 !important; }
 
   /* أزرار رئيسية (إتمام عملية الشراء مثلاً) */
   .dark .bg-brand-dark {
-    background: #0F2A44 !important;   /* Navy */
+    background: #6d0e16 !important;
+    color: #fff !important;
+  }
+  .dark .bg-brand-primary {
+    background: #6d0e16 !important;
     color: #fff !important;
   }
   .dark .bg-brand-dark:hover {
-    background: #0a1d2f !important;
+    background: #a61c20 !important;
   }
+  .dark .hover\:bg-brand-primary:hover { background: #a61c20 !important; }
 
   /* أزرار رمادية (مثل تطبيق الكوبون) */
-  .dark .bg-gray-200 { background: #374151 !important; color: #f9fafb !important; }
-  .dark .hover\:bg-gray-300:hover { background: #4b5563 !important; }
+  .dark .bg-gray-200 { background: #2a303d !important; color: #f9fafb !important; }
+  .dark .hover\:bg-gray-300:hover { background: #363d4c !important; }
 
   /* شريط التقدّم */
-  .dark .w-full.bg-gray-200 { background: #374151 !important; }
+  .dark .w-full.bg-gray-200 { background: #2a303d !important; }
   .dark .bg-green-500 { background: #10b981 !important; }
 
   /* تنبيهات */
@@ -119,7 +145,7 @@
                                             </template>
 
                                             <template x-if="!isOut(item) && isOnSale(item.product)">
-                                              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold mt-2 ml-2" style="background:#0F2A44; color:#D4AF37; border: 1px solid #D4AF37;">
+                                              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold mt-2 ml-2" style="background:#6d0e16; color:#ffe4e6; border: 1px solid #cd8985;">
                                                 <i class="bi bi-tag"></i> خصم
                                               </span>
                                             </template>
@@ -138,9 +164,7 @@
                                             </div>
                                             
                                             <template x-if="showStockInfo(item)">
-                                                <p class="text-xs mt-1 text-right" style="color: #D4AF37;">
-                                                    متوفر: <strong x-text="getMax(item)"></strong> قطع فقط
-                                                </p>
+                                              <p class="text-xs mt-1 text-right" style="color: #cd8985;"></p>
                                             </template>
                                         </div>
 

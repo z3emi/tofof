@@ -4,26 +4,38 @@
 
 @push('styles')
     <style>
+        /* ألوان الأزرار في الوضع الفاتح */
+        .bg-brand-primary,
+        .bg-brand-dark {
+            background-color: #6d0e16 !important;
+            color: #fff !important;
+        }
+        .hover\:bg-brand-primary:hover,
+        .hover\:bg-brand-dark:hover {
+            background-color: #a61c20 !important;
+            color: #fff !important;
+        }
+
         .step-badge {
             width: 2.5rem; height: 2.5rem; border-radius: 9999px;
             display: inline-flex; align-items: center; justify-content: center;
             font-weight: bold; color: white;
         }
         .address-card.selected {
-            border-color: #D4AF37; /* Gold */
-            box-shadow: 0 0 0 2px #D4AF37;
+            border-color: #6d0e16;
+            box-shadow: 0 0 0 2px rgba(109,14,22,.25);
         }
 
-        /* ====== Dark Mode Identity Fixes (Azure) ====== */
+        /* ====== Dark Mode Identity Fixes (Burgundy) ====== */
         /* صناديق بيضاء تصبح أسطح داكنة */
-        .dark .bg-white { background-color: #0f172a !important; }
+        .dark .bg-white { background-color: #161b27 !important; }
         .dark .bg-gray-50,
-        .dark .bg-gray-50\/50 { background-color: #0b0f14 !important; }
+        .dark .bg-gray-50\/50 { background-color: #0d0d0f !important; }
 
         /* حدود أخف بالداكن */
         .dark .border,
         .dark .border-gray-200,
-        .dark .border-gray-300 { border-color: #1f2937 !important; }
+        .dark .border-gray-300 { border-color: #2a303d !important; }
 
         /* نصوص */
         .dark .text-brand-text,
@@ -34,8 +46,8 @@
 
         /* بطاقات العناوين عند التحديد تحافظ على لون الهوية */
         .dark .address-card.selected {
-            border-color: #D4AF37 !important;
-            box-shadow: 0 0 0 2px #D4AF37 !important;
+            border-color: #cd8985 !important;
+            box-shadow: 0 0 0 2px rgba(205,137,133,.35) !important;
         }
 
         /* بطاقات الأقسام */
@@ -47,17 +59,19 @@
         .dark .text-red-700 { color: #fca5a5 !important; }
 
         /* صناديق مساعدة */
-        .dark .bg-yellow-50 { background-color: rgba(234, 179, 8, .10) !important; }
-        .dark .text-yellow-800 { color: #fde68a !important; }
-        .dark .border-yellow-400 { border-color: rgba(234, 179, 8, .45) !important; }
+        .dark .bg-yellow-50 { background-color: rgba(205, 137, 133, .12) !important; }
+        .dark .text-yellow-800 { color: #f8c7ca !important; }
+        .dark .border-yellow-400 { border-color: rgba(205, 137, 133, .4) !important; }
 
         /* عناصر الملخص */
         .dark .text-green-600 { color: #86efac !important; }
-        .dark .bg-gray-50 { background-color: #0f172a !important; }
+        .dark .bg-gray-50 { background-color: #161b27 !important; }
 
         /* زر التأكيد يحافظ على ألوان الهوية */
-        .dark .bg-brand-dark { background-color: #111827 !important; }
-        .dark .hover\:bg-brand-primary:hover { background-color: #0F2A44 !important; }
+        .dark .bg-brand-dark,
+        .dark .bg-brand-primary { background-color: #6d0e16 !important; color:#fff !important; }
+        .dark .hover\:bg-brand-primary:hover,
+        .dark .hover\:bg-brand-dark:hover { background-color: #a61c20 !important; color:#fff !important; }
 
         /* حقول الإدخال (لو ظهرت) */
         .dark input, .dark select, .dark textarea {

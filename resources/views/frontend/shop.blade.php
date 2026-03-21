@@ -47,6 +47,29 @@
       padding:.6rem 1rem; display:flex; justify-content:space-between; align-items:center;
       box-shadow:0 6px 14px rgba(0,0,0,.04);
     }
+    .toolbar form { display: flex; align-items: center; gap: 0.75rem; }
+    .toolbar-label { font-size: 0.9rem; color: #6b7280; font-weight: 600; }
+    .sort-select-wrap {
+        position: relative; min-width: 220px;
+    }
+    .sort-select {
+        width: 100%; appearance: none; -webkit-appearance: none; -moz-appearance: none;
+        background: #fcfbfa; border: 1px solid #e7ddd4; border-radius: 16px;
+        padding: 0.8rem 2.75rem 0.8rem 1rem; color: #2d2a2a; font-size: 0.95rem; font-weight: 600;
+        line-height: 1.2; box-shadow: inset 0 1px 2px rgba(0,0,0,.03); transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+    }
+    .sort-select:focus {
+        outline: none; border-color: rgba(109, 14, 22, 0.45); box-shadow: 0 0 0 4px rgba(109, 14, 22, 0.08);
+    }
+    .sort-select-icon {
+        position: absolute; top: 50%; left: 1rem; transform: translateY(-50%);
+        color: #6b7280; font-size: 1rem; pointer-events: none;
+    }
+    @media(max-width:640px){
+        .toolbar { gap: 0.75rem; align-items: stretch; flex-direction: column; }
+        .toolbar form { width: 100%; justify-content: space-between; }
+        .sort-select-wrap { min-width: 0; flex: 1; }
+    }
     .toolbar > div:first-child {
         font-size: 0.75rem !important;
     }
@@ -87,8 +110,8 @@
     .product-info{ padding: 10px; display: flex; flex-direction: column; gap: 5px; text-align: center; flex-grow: 1; }
     
     .product-title{ font-weight:700; color:#2d2a2a; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.6em; }
-    .price{ color:var(--primary-color); font-weight:800; font-size:1rem; }
-    .old{ text-decoration:line-through; color:#9ca3af; font-size:.85rem; }
+    .price{ color:#000; font-weight:800; font-size:1rem; }
+    .old{ text-decoration:line-through; color:#dc2626; font-size:.85rem; }
     .product-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 4px; position: relative; z-index: 2; }
     .btn-primary{ background:var(--primary-color); color:#fff; border-radius:10px; font-weight:700; transition: .2s; }
     .btn-primary:hover{ background:var(--primary-hover); }
@@ -151,7 +174,10 @@
 
     /* === DARK MODE STYLES === */
     .dark .toolbar { background-color: #1f2937; color: #d1d5db; border-color: #4b5563; }
-    .dark .toolbar select { background-color: #374151; color: #f9fafb; border-color: #6b7280; }
+    .dark .toolbar-label { color: #d1d5db; }
+    .dark .sort-select { background-color: #374151; color: #f9fafb; border-color: #4b5563; box-shadow: none; }
+    .dark .sort-select:focus { border-color: #f0b0ad; box-shadow: 0 0 0 4px rgba(240, 176, 173, 0.12); }
+    .dark .sort-select-icon { color: #d1d5db; }
     .dark .dock-card { background: #1f2937; color: #d1d5db; border-color: #4b5563; }
     .dark .dock-card:before { background: linear-gradient(90deg, #1f2937, #2c3a4f); border-bottom-color: #4b5563; }
     .dark .mobile-filter-sheet { background-color: #111827; color: #d1d5db; border-top-color: #4b5563; }
@@ -162,6 +188,8 @@
     .dark .no-products-message { background-color: #1f2937; border-color: #4b5563; color: #9ca3af; }
     .dark .product-card { background-color: #1f2937; }
     .dark .product-title { color: #f9fafb; }
+    .dark .price { color: #fff; }
+    .dark .old { color: #ef4444; }
     .dark .btn-fav { background-color: #374151; color: #9ca3af; }
     .dark .btn-fav:hover { background-color: #4b5563; }
     .dark .btn-fav.favorited { background-color: rgba(15, 42, 68, 0.2); color: #D4AF37; }
@@ -418,21 +446,24 @@
             @endphp
             عرض {{ $from }}–{{ $to }} من {{ $products->total() }} منتج
         </div>
-        <form method="GET" class="flex items-center gap-2">
+        <form method="GET">
             @foreach(request()->except('sort') as $k=>$v)
                 @if(is_array($v))
                     @foreach($v as $vv)<input type="hidden" name="{{ $k }}[]" value="{{ $vv }}">@endforeach
                 @else <input type="hidden" name="{{ $k }}" value="{{ $v }}"> @endif
             @endforeach
             @php $sort = request('sort'); @endphp
-            <label class="text-sm text-gray-600">الترتيب:</label>
-            <select name="sort" class="border rounded-lg px-3 py-2 text-sm" onchange="this.form.submit()">
-                <option value="" {{ $sort===''||$sort===null ? 'selected' : '' }}>الأحدث</option>
-                <option value="price_asc"  {{ $sort==='price_asc'  ? 'selected' : '' }}>السعر: من الأقل للأعلى</option>
-                <option value="price_desc" {{ $sort==='price_desc' ? 'selected' : '' }}>السعر: من الأعلى للأقل</option>
-                <option value="rating_desc"{{ $sort==='rating_desc'? 'selected' : '' }}>الأعلى تقييماً</option>
-                <option value="bestseller" {{ $sort==='bestseller' ? 'selected' : '' }}>الأكثر مبيعاً</option>
-            </select>
+            <label class="toolbar-label">الترتيب:</label>
+            <div class="sort-select-wrap">
+                <select name="sort" class="sort-select" onchange="this.form.submit()">
+                    <option value="" {{ $sort===''||$sort===null ? 'selected' : '' }}>الأحدث</option>
+                    <option value="price_asc"  {{ $sort==='price_asc'  ? 'selected' : '' }}>السعر: من الأقل للأعلى</option>
+                    <option value="price_desc" {{ $sort==='price_desc' ? 'selected' : '' }}>السعر: من الأعلى للأقل</option>
+                    <option value="rating_desc"{{ $sort==='rating_desc'? 'selected' : '' }}>الأعلى تقييماً</option>
+                    <option value="bestseller" {{ $sort==='bestseller' ? 'selected' : '' }}>الأكثر مبيعاً</option>
+                </select>
+                <i class="bi bi-chevron-down sort-select-icon"></i>
+            </div>
         </form>
     </div>
     @endisset
@@ -645,7 +676,7 @@
                                 </div>
                                 <div class="flex items-baseline justify-center gap-2">
                                     @if($product->isOnSale())
-                                        <div class="price" style="color:#6d0e16">{{ number_format($product->sale_price,0) }} د.ع</div>
+                                        <div class="price">{{ number_format($product->sale_price,0) }} د.ع</div>
                                         <div class="old">{{ number_format($product->price,0) }} د.ع</div>
                                     @else
                                         <div class="price">{{ number_format($product->price,0) }} د.ع</div>

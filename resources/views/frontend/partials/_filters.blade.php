@@ -71,8 +71,20 @@
             background: #374151; border-color: #f0b0ad; box-shadow: 0 0 0 2px #374151;
         }
 
-        .price-display { padding: 0.25rem 0.75rem; background-color: #f3f4f6; font-size: 0.8rem; border-radius: 999px; color: #4b5563; font-weight: 500; }
-        .dark .price-display { background-color: #374151; color: #d1d5db; }
+        .price-inputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin-top: 0.75rem; }
+        .price-field { display: flex; flex-direction: column; gap: 0.35rem; }
+        .price-field-label { font-size: 0.8rem; font-weight: 700; color: #6b7280; text-align: center; }
+        .dark .price-field-label { color: #d1d5db; }
+        .price-input {
+            width: 100%; padding: 0.45rem 0.75rem; background-color: #f3f4f6; font-size: 0.9rem;
+            border-radius: 999px; color: #374151; font-weight: 600; border: 1px solid transparent;
+            text-align: center; direction: ltr;
+        }
+        .price-input:focus { outline: none; border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(109, 14, 22, 0.12); }
+        .price-input::-webkit-outer-spin-button,
+        .price-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .price-input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+        .dark .price-input { background-color: #374151; color: #f3f4f6; }
 
         .sale-checkbox { height: 1.125rem; width: 1.125rem; border-radius: 0.25rem; color: var(--brand-primary); border-color: #d1d5db; transition: .2s; flex-shrink: 0; }
         .dark .sale-checkbox { border-color: #6b7280; background-color: #374151; }
@@ -96,7 +108,7 @@
       dir="rtl"
       x-data="filters({
           initialMin: {{ (int) request('min_price', 0) }},
-          initialMax: {{ (int) request('max_price', 500000) }},
+          initialMax: {{ (int) request('max_price', 50000000) }},
           initialBrand: @js(request('brand')),
           initialCategory: @js(request('category')),
       })"
@@ -275,9 +287,15 @@
                     <input type="range" :min="minLimit" :max="maxLimit" x-model.number="minPrice" step="1000" class="price-slider-input">
                     <input type="range" :min="minLimit" :max="maxLimit" x-model.number="maxPrice" step="1000" class="price-slider-input">
                 </div>
-                <div class="flex justify_between items-center mt-3">
-                    <div class="price-display" x-text="formatPrice(minPrice)"></div>
-                    <div class="price-display" x-text="formatPrice(maxPrice)"></div>
+                <div class="price-inputs">
+                    <div class="price-field">
+                        <label class="price-field-label" for="filter-min-price">من</label>
+                        <input id="filter-min-price" type="number" min="0" :max="maxPrice - 1000" step="1000" inputmode="numeric" class="price-input" x-model.number="minPrice" @blur="normalizeMinPrice()">
+                    </div>
+                    <div class="price-field">
+                        <label class="price-field-label" for="filter-max-price">إلى</label>
+                        <input id="filter-max-price" type="number" :min="minPrice + 1000" :max="maxLimit" step="1000" inputmode="numeric" class="price-input" x-model.number="maxPrice" @blur="normalizeMaxPrice()">
+                    </div>
                 </div>
             </div>
         </div>
@@ -360,9 +378,9 @@
                 selectedCategoryId: null,
 
                 minPrice: opts.initialMin ?? 0,
-                maxPrice: opts.initialMax ?? 500000,
+                maxPrice: opts.initialMax ?? 50000000,
                 minLimit: 0,
-                maxLimit: 500000,
+                maxLimit: 50000000,
                 startPercent: 0,
                 endPercentFromLeft: 0,
 
@@ -385,6 +403,22 @@
                 updateThumbs(){
                     this.startPercent = ((this.minPrice - this.minLimit) / (this.maxLimit - this.minLimit)) * 100;
                     this.endPercentFromLeft = 100 - (((this.maxPrice - this.minLimit) / (this.maxLimit - this.minLimit)) * 100);
+                },
+                normalizeMinPrice(){
+                    let value = parseInt(this.minPrice, 10);
+                    if (Number.isNaN(value)) value = this.minLimit;
+                    if (value < this.minLimit) value = this.minLimit;
+                    if (value >= this.maxPrice) value = Math.max(this.minLimit, this.maxPrice - 1000);
+                    this.minPrice = value;
+                    this.updateThumbs();
+                },
+                normalizeMaxPrice(){
+                    let value = parseInt(this.maxPrice, 10);
+                    if (Number.isNaN(value)) value = this.maxLimit;
+                    if (value > this.maxLimit) value = this.maxLimit;
+                    if (value <= this.minPrice) value = Math.min(this.maxLimit, this.minPrice + 1000);
+                    this.maxPrice = value;
+                    this.updateThumbs();
                 },
                 formatPrice(price){ return new Intl.NumberFormat('en-US').format(price) + ' د.ع'; }
             }))

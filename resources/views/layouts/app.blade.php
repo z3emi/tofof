@@ -689,9 +689,9 @@ html.dark .glass-item.active{ color:#f0b0ad; }
 
         html.dark .desktop-liquid-shell {
           border-radius: 0;
-          background: #FFD700;
-          border: 1px solid rgba(148,163,184,0.24);
-          box-shadow: 0 12px 32px rgba(0,0,0,.5);
+          background: #D4AF37;
+          border: none;
+          box-shadow: 0 10px 30px rgba(0,0,0,.18);
         }
 
         html.dark .desktop-liquid-nav > a,

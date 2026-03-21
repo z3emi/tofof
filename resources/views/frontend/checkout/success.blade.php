@@ -8,28 +8,28 @@
   .order-success{
     --card-bg:#ffffff;
     --card-border:#e5e7eb;
-    --body-bg:#f9fafb;
-    --text:#1f2937;
-    --muted:#6b7280;
-    --brand:#be6661;
-    --brand-soft:#f3e5e3;
+    --body-bg:#f8f4f4;
+    --text:#2f1113;
+    --muted:#7b4a4d;
+    --brand:#6d0e16;
+    --brand-soft:#f8e9ea;
     --ok:#22c55e;
     --ok-soft:#dcfce7;
-    --blue-soft:#eff6ff;
-    --blue:#1d4ed8;
+    --blue-soft:#f8e9ea;
+    --blue:#6d0e16;
   }
   html.dark .order-success{
-    --card-bg:#0f172a;
-    --card-border:#1f2937;
-    --body-bg:#0b0f14;
+    --card-bg:#161b27;
+    --card-border:#2a303d;
+    --body-bg:#0d0d0f;
     --text:#e5e7eb;
     --muted:#9ca3af;
-    --brand:#f0b0ad;
-    --brand-soft:rgba(240,176,173,.08);
+    --brand:#cd8985;
+    --brand-soft:rgba(205,137,133,.12);
     --ok:#22c55e;
     --ok-soft:rgba(34,197,94,.12);
-    --blue-soft:rgba(29,78,216,.12);
-    --blue:#93c5fd;
+    --blue-soft:rgba(205,137,133,.12);
+    --blue:#f8c7ca;
   }
 
   /* Confetti background (scoped) */
@@ -40,20 +40,20 @@
   .order-success .confetti-bg::before{
     content:''; position:absolute; inset:0; z-index:0; opacity:.28;
     background-image:
-      radial-gradient(circle at 15% 50%, #a8e6cf 2px, transparent 0),
-      radial-gradient(circle at 85% 30%, #dcedc1 2px, transparent 0),
-      radial-gradient(circle at 25% 90%, #ffd3b6 2px, transparent 0),
-      radial-gradient(circle at 75% 70%, #ffaaa5 2px, transparent 0);
+      radial-gradient(circle at 15% 50%, #f5c2c5 2px, transparent 0),
+      radial-gradient(circle at 85% 30%, #f8d9db 2px, transparent 0),
+      radial-gradient(circle at 25% 90%, #f3b6bb 2px, transparent 0),
+      radial-gradient(circle at 75% 70%, #e9a7ad 2px, transparent 0);
     background-size: 50px 50px;
     pointer-events:none;
   }
   html.dark .order-success .confetti-bg::before{
     opacity:.22;
     background-image:
-      radial-gradient(circle at 15% 50%, rgba(168,230,207,.75) 2px, transparent 0),
-      radial-gradient(circle at 85% 30%, rgba(220,237,193,.75) 2px, transparent 0),
-      radial-gradient(circle at 25% 90%, rgba(255,211,182,.75) 2px, transparent 0),
-      radial-gradient(circle at 75% 70%, rgba(255,170,165,.75) 2px, transparent 0);
+      radial-gradient(circle at 15% 50%, rgba(205,137,133,.55) 2px, transparent 0),
+      radial-gradient(circle at 85% 30%, rgba(248,199,202,.5) 2px, transparent 0),
+      radial-gradient(circle at 25% 90%, rgba(160,38,50,.35) 2px, transparent 0),
+      radial-gradient(circle at 75% 70%, rgba(109,14,22,.45) 2px, transparent 0);
   }
 
   /* Card */
@@ -104,14 +104,14 @@
   .order-success .btn-brand{
     background: var(--brand); color:#fff;
   }
-  .order-success .btn-brand:hover{ filter:brightness(.95); }
+  .order-success .btn-brand:hover{ background:#a61c20; color:#fff; }
   .order-success .btn-ghost{
-    background: #edf2f7; color:#111827;
+    background: #f6e6e8; color:#6d0e16;
   }
   html.dark .order-success .btn-ghost{
-    background:#1f2937; color:#e5e7eb;
+    background:#2a303d; color:#f8c7ca;
   }
-  .order-success .btn-ghost:hover{ filter:brightness(1.05); }
+  .order-success .btn-ghost:hover{ background:#cd8985; color:#fff; }
 
   /* Subtext colors */
   .order-success .muted{ color: var(--muted); }
