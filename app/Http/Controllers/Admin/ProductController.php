@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\DB;
 use App\Traits\HandlesImageUploads;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProductsExport;
-use Illuminate\Http\UploadedFile;
 
 class ProductController extends Controller
 {
@@ -127,8 +126,6 @@ class ProductController extends Controller
 
             'combination_definitions' => 'nullable|array',
             'combination_definitions.*' => 'nullable|string',
-            'combination_images' => 'nullable|array',
-            'combination_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp',
             'combination_existing_image_ids' => 'nullable|array',
             'combination_existing_image_ids.*' => 'nullable|integer|exists:product_images,id',
         ]);
@@ -217,8 +214,6 @@ class ProductController extends Controller
 
             'combination_definitions' => 'nullable|array',
             'combination_definitions.*' => 'nullable|string',
-            'combination_images' => 'nullable|array',
-            'combination_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp',
             'combination_existing_image_ids' => 'nullable|array',
             'combination_existing_image_ids.*' => 'nullable|integer|exists:product_images,id',
         ]);
@@ -417,7 +412,6 @@ class ProductController extends Controller
         }
 
         $combinationDefinitions = (array) $request->input('combination_definitions', []);
-        $combinationUploads = (array) $request->file('combination_images', []);
         $combinationExistingImageIds = (array) $request->input('combination_existing_image_ids', []);
 
         foreach ($combinationDefinitions as $rowKey => $definitionJson) {
@@ -454,12 +448,11 @@ class ProductController extends Controller
                 'option_value_ids' => $valueIds,
             ]);
 
-            $uploadedImage = $combinationUploads[$rowKey] ?? null;
             $existingImageId = isset($combinationExistingImageIds[$rowKey])
                 ? (int) $combinationExistingImageIds[$rowKey]
                 : 0;
 
-            $imagePayload = $this->prepareCombinationImagePayload($product, $uploadedImage, $existingImageId);
+            $imagePayload = $this->prepareCombinationImagePayload($product, $existingImageId);
             if (!empty($imagePayload)) {
                 $combination->images()->create($imagePayload);
             }
@@ -521,16 +514,8 @@ class ProductController extends Controller
         return $normalized;
     }
 
-    private function prepareCombinationImagePayload(Product $product, ?UploadedFile $uploadedImage, int $existingImageId): array
+    private function prepareCombinationImagePayload(Product $product, int $existingImageId): array
     {
-        if ($uploadedImage instanceof UploadedFile) {
-            $imagePath = $this->uploadAndConvertImage($uploadedImage, 'products/options');
-            return [
-                'image_path' => $imagePath,
-                'product_image_id' => null,
-            ];
-        }
-
         if ($existingImageId > 0 && $product->images()->whereKey($existingImageId)->exists()) {
             return [
                 'product_image_id' => $existingImageId,

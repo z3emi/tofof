@@ -107,6 +107,7 @@
             $existingProductImages[] = [
                 'id' => $image->id,
                 'url' => asset('storage/' . $image->image_path),
+                'name' => basename((string) $image->image_path),
             ];
         }
     }
@@ -290,6 +291,22 @@
 
     const debouncedRenderCombinations = debounce(renderCombinations, 180);
 
+    function shouldRebuildCombinations(eventTarget) {
+        if (!eventTarget || !(eventTarget instanceof Element)) {
+            return false;
+        }
+
+        if (eventTarget.closest('.inline-combo-card')) {
+            return false;
+        }
+
+        if (eventTarget.closest('[id="combinations-container"]')) {
+            return false;
+        }
+
+        return Boolean(eventTarget.closest('.option-name-ar, .option-name-en, .option-required, .value-ar, .value-en'));
+    }
+
     function addOption(optionData = {}) {
         const node = optionTemplate.content.firstElementChild.cloneNode(true);
         node.querySelector('.option-name-ar').value = optionData.name_ar || '';
@@ -312,8 +329,17 @@
             renderCombinations();
         });
 
-        node.addEventListener('input', debouncedRenderCombinations);
-        node.addEventListener('change', debouncedRenderCombinations);
+        node.addEventListener('input', (event) => {
+            if (shouldRebuildCombinations(event.target)) {
+                debouncedRenderCombinations();
+            }
+        });
+
+        node.addEventListener('change', (event) => {
+            if (shouldRebuildCombinations(event.target)) {
+                debouncedRenderCombinations();
+            }
+        });
 
         optionsContainer.appendChild(node);
         reindexOptionNames();
@@ -448,6 +474,8 @@
         const wrapper = document.createElement('div');
         wrapper.className = isInline ? 'inline-combo-card' : 'combination-row';
 
+        const productImageById = new Map(existingProductImages.map((img) => [String(img.id), img]));
+
         const hidden = document.createElement('input');
         hidden.type = 'hidden';
         hidden.name = `combination_definitions[${rowKey}]`;
@@ -465,22 +493,9 @@
 
         const col1 = document.createElement('div');
         col1.className = 'w-100';
-        const uploadLabel = document.createElement('label');
-        uploadLabel.className = 'form-label small text-muted mb-1';
-        uploadLabel.textContent = 'رفع صورة جديدة لهذه التركيبة';
-        const upload = document.createElement('input');
-        upload.type = 'file';
-        upload.accept = 'image/*';
-        upload.className = 'form-control form-control-sm';
-        upload.name = `combination_images[${rowKey}]`;
-        col1.appendChild(uploadLabel);
-        col1.appendChild(upload);
-
-        const col2 = document.createElement('div');
-        col2.className = 'w-100';
         const selectLabel = document.createElement('label');
         selectLabel.className = 'form-label small text-muted mb-1';
-        selectLabel.textContent = 'أو اختر من صور المنتج الحالية';
+        selectLabel.textContent = 'اختر صورة من صور المنتج (السلايدر)';
         const select = document.createElement('select');
         select.className = 'form-select form-select-sm';
         select.name = `combination_existing_image_ids[${rowKey}]`;
@@ -493,7 +508,7 @@
         existingProductImages.forEach((img) => {
             const opt = document.createElement('option');
             opt.value = String(img.id);
-            opt.textContent = `صورة #${img.id}`;
+            opt.textContent = `${img.name || ('صورة #' + img.id)} (#${img.id})`;
             select.appendChild(opt);
         });
 
@@ -502,23 +517,44 @@
             select.value = String(existingComboImage.product_image_id);
         }
 
-        col2.appendChild(selectLabel);
-        col2.appendChild(select);
+        const preview = document.createElement('img');
+        preview.className = 'img-thumbnail mt-2';
+        preview.style.maxWidth = '110px';
+        preview.style.maxHeight = '110px';
+        preview.style.objectFit = 'cover';
+        preview.alt = 'معاينة الصورة المختارة';
 
-        const col3 = document.createElement('div');
-        col3.className = 'small text-muted';
-        col3.textContent = 'اختر صورة جديدة أو صورة موجودة من معرض المنتج';
+        function syncPreview() {
+            const selected = productImageById.get(String(select.value));
+            if (selected && selected.url) {
+                preview.src = selected.url;
+                preview.classList.remove('d-none');
+                return;
+            }
+            preview.removeAttribute('src');
+            preview.classList.add('d-none');
+        }
+
+        select.addEventListener('change', syncPreview);
+        syncPreview();
+
+        col1.appendChild(selectLabel);
+        col1.appendChild(select);
+        col1.appendChild(preview);
+
+        const col2 = document.createElement('div');
+        col2.className = 'small text-muted';
+        col2.textContent = 'يعتمد الربط على صور المنتج المرفوعة فقط.';
 
         if (existingComboImage && existingComboImage.path) {
             const uploadedNote = document.createElement('div');
-            uploadedNote.className = 'small text-success mt-1';
-            uploadedNote.textContent = 'توجد صورة مرفوعة مسبقًا لهذه التركيبة.';
-            col3.appendChild(uploadedNote);
+            uploadedNote.className = 'small text-warning mt-1';
+            uploadedNote.textContent = 'كانت هناك صورة خاصة قديمة لهذه التركيبة. اختر صورة من السلايدر لحفظها.';
+            col2.appendChild(uploadedNote);
         }
 
         row.appendChild(col1);
         row.appendChild(col2);
-        row.appendChild(col3);
 
         wrapper.appendChild(hidden);
         wrapper.appendChild(label);
