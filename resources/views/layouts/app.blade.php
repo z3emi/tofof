@@ -800,6 +800,134 @@ html.dark .glass-item.active{ color:#f0b0ad; }
     /></noscript>
     <!-- End Meta Pixel Code -->
 
+    <style>
+      @keyframes pageShellShimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+      @keyframes pageContentFadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .page-content-shell {
+        position: relative;
+        min-height: 40vh;
+        isolation: isolate;
+      }
+      #pageTransitionOverlay {
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity .22s ease, visibility .22s ease;
+        background: rgba(247, 247, 247, 0.92);
+        backdrop-filter: blur(3px);
+      }
+      .dark #pageTransitionOverlay {
+        background: rgba(10, 10, 10, 0.9);
+      }
+      .page-transition-shell {
+        width: min(1120px, calc(100% - 2rem));
+        margin: 1rem auto 0;
+        padding-bottom: 6rem;
+      }
+      .page-shell-block,
+      .page-shell-line,
+      .page-shell-card,
+      .page-shell-thumb {
+        background: linear-gradient(90deg, #8a8a8a 0%, #696969 18%, #9a9a9a 36%, #696969 54%, #8a8a8a 100%);
+        background-size: 220% 100%;
+        animation: pageShellShimmer 1.25s linear infinite;
+      }
+      .dark .page-shell-block,
+      .dark .page-shell-line,
+      .dark .page-shell-card,
+      .dark .page-shell-thumb {
+        background: linear-gradient(90deg, #4a4a4a 0%, #3a3a3a 18%, #5a5a5a 36%, #3a3a3a 54%, #4a4a4a 100%);
+        background-size: 220% 100%;
+      }
+      .page-shell-header {
+        display: grid;
+        grid-template-columns: minmax(0, 2.4fr) minmax(280px, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+      }
+      .page-shell-block {
+        height: 112px;
+        border-radius: 28px;
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.05);
+      }
+      .page-shell-lines {
+        display: grid;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+      }
+      .page-shell-line {
+        height: 16px;
+        border-radius: 999px;
+      }
+      .page-shell-line.is-short { width: 42%; }
+      .page-shell-line.is-mid { width: 68%; }
+      .page-shell-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1rem;
+      }
+      .page-shell-card {
+        border-radius: 24px;
+        padding: 1rem;
+        min-height: 250px;
+        box-shadow: 0 18px 34px rgba(15, 23, 42, 0.06);
+      }
+      .page-shell-thumb {
+        height: 148px;
+        border-radius: 18px;
+        margin-bottom: 0.9rem;
+      }
+      html.app-shell-loading,
+      html.app-shell-loading body {
+        cursor: progress;
+      }
+      html.app-shell-loading #pageTransitionOverlay {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+      html.app-shell-loading .page-content-shell {
+        opacity: 0.18;
+        transition: opacity .18s ease;
+      }
+      html.app-shell-ready .page-content-shell {
+        animation: pageContentFadeIn .24s ease;
+      }
+      @media (max-width: 1024px) {
+        .page-shell-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      }
+      @media (max-width: 768px) {
+        .page-transition-shell {
+          width: calc(100% - 1rem);
+          margin-top: 0.75rem;
+          padding-bottom: 1rem;
+        }
+        .page-shell-header { grid-template-columns: 1fr; }
+        .page-shell-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; }
+        .page-shell-card { min-height: 210px; border-radius: 20px; }
+        .page-shell-thumb { height: 120px; }
+      }
+    </style>
+
+    <script>
+      (function () {
+        try {
+          if (sessionStorage.getItem('tofof-page-loading') === '1') {
+            document.documentElement.classList.add('app-shell-loading');
+          }
+        } catch (e) {}
+      })();
+    </script>
+
     @stack("styles")
 </head>
 
@@ -1639,7 +1767,29 @@ function brandMenuV4(){
       </div>
     </div>
 
-    <main class="flex-grow">
+    <main id="pageContent" class="flex-grow page-content-shell">
+        <div id="pageTransitionOverlay" aria-hidden="true">
+          <div class="page-transition-shell">
+            <div class="page-shell-header">
+              <div class="page-shell-block"></div>
+              <div class="page-shell-block"></div>
+            </div>
+            <div class="page-shell-lines">
+              <div class="page-shell-line is-short"></div>
+              <div class="page-shell-line is-mid"></div>
+            </div>
+            <div class="page-shell-grid">
+              @for($pageShellIndex = 0; $pageShellIndex < 8; $pageShellIndex++)
+                <div class="page-shell-card">
+                  <div class="page-shell-thumb"></div>
+                  <div class="page-shell-line"></div>
+                  <div class="page-shell-line is-mid"></div>
+                  <div class="page-shell-line is-short"></div>
+                </div>
+              @endfor
+            </div>
+          </div>
+        </div>
         @yield('content')
     </main>
 
@@ -1843,6 +1993,107 @@ function brandMenuV4(){
         window.addEventListener('load', () => { if ((window.pageYOffset || 0) <= 0) nav.classList.remove('fade-out'); });
       })();
     </script>
+
+<script>
+(function () {
+  const storageKey = 'tofof-page-loading';
+  const prefetchedUrls = new Set();
+
+  function sameOriginUrl(url) {
+    try {
+      const parsed = new URL(url, window.location.href);
+      return parsed.origin === window.location.origin ? parsed : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function shouldHandleLink(link, event) {
+    if (!link || event.defaultPrevented) return false;
+    if (link.hasAttribute('download') || link.getAttribute('target') === '_blank') return false;
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+
+    const rawHref = link.getAttribute('href') || '';
+    if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:') || rawHref.startsWith('javascript:')) return false;
+    if (link.hasAttribute('data-no-transition')) return false;
+
+    const parsed = sameOriginUrl(link.href);
+    if (!parsed) return false;
+    if (parsed.pathname === window.location.pathname && parsed.search === window.location.search && parsed.hash) return false;
+
+    return true;
+  }
+
+  function shouldHandleForm(form, event) {
+    if (!form || event.defaultPrevented) return false;
+    if ((form.getAttribute('target') || '').toLowerCase() === '_blank') return false;
+    if (form.hasAttribute('data-no-transition')) return false;
+
+    const action = form.getAttribute('action') || window.location.href;
+    return !!sameOriginUrl(action);
+  }
+
+  function activateLoading() {
+    document.documentElement.classList.add('app-shell-loading');
+    try { sessionStorage.setItem(storageKey, '1'); } catch (e) {}
+  }
+
+  function deactivateLoading() {
+    document.documentElement.classList.remove('app-shell-loading');
+    document.documentElement.classList.add('app-shell-ready');
+    window.setTimeout(() => {
+      document.documentElement.classList.remove('app-shell-ready');
+    }, 320);
+    try { sessionStorage.removeItem(storageKey); } catch (e) {}
+  }
+
+  function prefetchLink(link) {
+    const parsed = sameOriginUrl(link?.href);
+    if (!parsed) return;
+
+    const url = parsed.toString();
+    if (prefetchedUrls.has(url)) return;
+    prefetchedUrls.add(url);
+
+    const prefetchTag = document.createElement('link');
+    prefetchTag.rel = 'prefetch';
+    prefetchTag.as = 'document';
+    prefetchTag.href = url;
+    document.head.appendChild(prefetchTag);
+  }
+
+  document.addEventListener('click', (event) => {
+    const link = event.target.closest('a[href]');
+    if (!shouldHandleLink(link, event)) return;
+    activateLoading();
+  }, true);
+
+  document.addEventListener('submit', (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || !shouldHandleForm(form, event)) return;
+    activateLoading();
+  }, true);
+
+  document.addEventListener('pointerenter', (event) => {
+    const link = event.target.closest('a[href]');
+    if (!link) return;
+    const parsed = sameOriginUrl(link.href);
+    if (!parsed || parsed.origin !== window.location.origin) return;
+    prefetchLink(link);
+  }, true);
+
+  document.addEventListener('touchstart', (event) => {
+    const link = event.target.closest('a[href]');
+    if (!link) return;
+    const parsed = sameOriginUrl(link.href);
+    if (!parsed || parsed.origin !== window.location.origin) return;
+    prefetchLink(link);
+  }, { passive: true, capture: true });
+
+  window.addEventListener('pageshow', deactivateLoading);
+  window.addEventListener('load', deactivateLoading);
+})();
+</script>
 
 <script>
 document.addEventListener('alpine:init', () => {

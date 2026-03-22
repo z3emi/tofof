@@ -747,19 +747,24 @@
                   const pos = this.getNorm();
                   const isRtl = this.isRTL();
                   if (isRtl) {
-                      this.canGoLeft = pos < max - 5;
-                      this.canGoRight = pos > 5;
+                      // في العربية: اليسار يروح للخلف، اليمين يروح للأمام
+                      this.canGoLeft = pos > 5;  // الزر الأيسر يمكن الضغط لو في فراغ في البداية
+                      this.canGoRight = pos < max - 5;  // الزر الأيمين يمكن الضغط لو في فراغ في النهاية
                   } else {
+                      // في الإنجليزية: اليسار يروح للخلف، اليمين يروح للأمام
                       this.canGoLeft = pos > 5;
                       this.canGoRight = pos < max - 5;
                   }
               },
               go(dir){
                   const max = this.el.scrollWidth - this.el.clientWidth;
+                  const isRtl = this.isRTL();
                   const cur = this.getNorm();
-                  const target = Math.max(0, Math.min(max, cur + (dir === 'prev' ? -this.step : this.step)));
+                  // في RTL: عكس الاتجاه (prev يصير next والعكس)
+                  const actualDir = isRtl ? (dir === 'prev' ? 'next' : 'prev') : dir;
+                  const target = Math.max(0, Math.min(max, cur + (actualDir === 'prev' ? -this.step : this.step)));
                   const sl = this.el.scrollLeft;
-                  const final = !this.isRTL() ? target : (sl < 0 ? -target : max - target);
+                  const final = !isRtl ? target : (sl < 0 ? -target : max - target);
                   this.el.scrollTo({ left: final, behavior: 'smooth' });
                   setTimeout(() => this.updateButtons(), 250);
               },
@@ -778,19 +783,23 @@
 
         <div class="relative">
             {{-- أزرار التنقل (نفس الأزرار) --}}
+            {{-- الزر الأيسر: يرجع/للخلف (prev) --}}
             <button
                 class="brand-nav hidden md:flex absolute left-4 pos-mid z-[10001]"
-                :class="{'opacity-100': canGoLeft, 'opacity-40 pointer-events-none': !canGoLeft}"
-                type="button" aria-label="التالي"
-                @click="go('next')">
+                :class="{'brand-nav-active': canGoLeft, 'brand-nav-disabled': !canGoLeft}"
+                :disabled="!canGoLeft"
+                type="button" aria-label="السابق"
+                @click="go('prev')">
                 <i class="bi bi-chevron-left text-2xl"></i>
             </button>
 
+            {{-- الزر الأيمن: يتقدم/للأمام (next) --}}
             <button
                 class="brand-nav hidden md:flex absolute right-4 pos-mid z-[10001]"
-                :class="{'opacity-100': canGoRight, 'opacity-40 pointer-events-none': !canGoRight}"
-                type="button" aria-label="السابق"
-                @click="go('prev')">
+                :class="{'brand-nav-active': canGoRight, 'brand-nav-disabled': !canGoRight}"
+                :disabled="!canGoRight"
+                type="button" aria-label="التالي"
+                @click="go('next')">
                 <i class="bi bi-chevron-right text-2xl"></i>
             </button>
 
@@ -864,6 +873,112 @@
         .section-cats .category-name { text-align:center; white-space:normal; word-break:break-word; line-height:1.35; min-height:2.7em; max-width:110px; margin-inline:auto; }
         .section-cats .w-28.h-28 { width:7rem!important; height:7rem!important; border-radius:50%; }
         @media (max-width: 640px) { .section-cats .w-28.h-28 { width:4.2rem!important; height:4.2rem!important; } }
+        
+        /* تنسيق أزرار التنقل للفئات الأولى (Primary Categories) */
+        .brand-nav {
+            position: absolute;
+            height: 48px;
+            width: 48px;
+            border-radius: 9999px;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px solid rgba(234, 219, 205, 0.9);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px) saturate(140%);
+            -webkit-backdrop-filter: blur(12px) saturate(140%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .brand-nav::before {
+            content: "";
+            position: absolute;
+            inset: -6px;
+            border-radius: inherit;
+            backdrop-filter: blur(12px) saturate(140%);
+            -webkit-backdrop-filter: blur(12px) saturate(140%);
+            z-index: -1;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        /* حالة الزر النشط (يوجد تنقل) */
+        .brand-nav-active {
+            color: #c32126;
+            background: rgba(255, 255, 255, 0.4);
+            border-color: rgba(234, 219, 205, 0.9);
+        }
+
+        .brand-nav-active::before {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .brand-nav-active:hover {
+            background: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
+            transform: scale(1.08);
+        }
+
+        .brand-nav-active:active {
+            transform: scale(0.96);
+        }
+
+        /* حالة الزر المعطل (لا يوجد تنقل) */
+        .brand-nav-disabled {
+            color: #999;
+            background: rgba(200, 200, 200, 0.25);
+            border-color: rgba(180, 180, 180, 0.4);
+            pointer-events: none;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .brand-nav-disabled::before {
+            background: rgba(180, 180, 180, 0.1);
+        }
+
+        .brand-nav-disabled:hover {
+            background: rgba(200, 200, 200, 0.25);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.05);
+            transform: none;
+        }
+
+        /* الأيقونة */
+        .brand-nav i {
+            font-size: 1.4rem;
+            transition: all 0.3s ease;
+        }
+
+        .brand-nav-active:hover i {
+            transform: scale(1.15);
+        }
+
+        /* الوضع المظلم (Dark Mode) */
+        html.dark .brand-nav-active {
+            color: #f0b0ad;
+            background: rgba(15, 23, 42, 0.4);
+            border-color: rgba(31, 41, 55, 0.9);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        html.dark .brand-nav-active::before {
+            background: rgba(15, 23, 42, 0.2);
+        }
+
+        html.dark .brand-nav-active:hover {
+            background: rgba(15, 23, 42, 0.5);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        html.dark .brand-nav-disabled {
+            color: #666;
+            background: rgba(100, 100, 100, 0.2);
+            border-color: rgba(80, 80, 80, 0.4);
+        }
+
+        html.dark .brand-nav-disabled::before {
+            background: rgba(80, 80, 80, 0.1);
+        }
     </style>
 </section>
 @endif
@@ -1053,9 +1168,11 @@
                  const pos = this.getNorm();
                  const isRtl = this.isRTL();
                  if (isRtl) {
-                     this.showLeftButton = pos < max - 5;
-                     this.showRightButton = pos > 5;
+                     // في العربية: اليسار يروح للخلف، اليمين يروح للأمام
+                     this.showLeftButton = pos > 5;   // الزر الأيسر يمكن الضغط لو في فراغ في البداية
+                     this.showRightButton = pos < max - 5;  // الزر الأيمين يمكن الضغط لو في فراغ في النهاية
                  } else {
+                     // في الإنجليزية: اليسار يروح للخلف، اليمين يروح للأمام
                      this.showLeftButton = pos > 5;
                      this.showRightButton = pos < max - 5;
                  }
@@ -1064,10 +1181,13 @@
              go(dir) {
                  const el = this.el;
                  const max = el.scrollWidth - el.clientWidth;
+                 const isRtl = this.isRTL();
                  const cur = this.getNorm();
-                 const target = Math.max(0, Math.min(max, cur + (dir === 'prev' ? -320 : 320)));
+                 // في RTL: عكس الاتجاه (prev يصير next والعكس)
+                 const actualDir = isRtl ? (dir === 'prev' ? 'next' : 'prev') : dir;
+                 const target = Math.max(0, Math.min(max, cur + (actualDir === 'prev' ? -320 : 320)));
                  const sl = el.scrollLeft;
-                 const final = !this.isRTL() ? target : (sl < 0 ? -target : max - target);
+                 const final = !isRtl ? target : (sl < 0 ? -target : max - target);
                  el.scrollTo({ left: final, behavior: 'smooth' });
                  setTimeout(() => this.updateButtons(), 250);
              },
@@ -1114,10 +1234,24 @@
     </div>
 
     {{-- Buttons --}}
-    <button type="button" x-cloak x-show="!isMobile && showLeftButton" x-transition class="cat-side-nav-glass inline-flex absolute top-1/2 left-4 -translate-y-1/2 z-[5]" aria-label="التالي" @click="go('next')">
+    {{-- الزر الأيسر: يرجع/للخلف (prev) --}}
+    <button type="button" x-cloak class="cat-side-nav-glass inline-flex absolute top-1/2 left-4 -translate-y-1/2 z-[5]"
+            :class="{'cat-nav-active': showLeftButton, 'cat-nav-disabled': !showLeftButton}"
+            :disabled="!showLeftButton"
+            x-show="!isMobile"
+            x-transition
+            aria-label="السابق"
+            @click="go('prev')">
         <i class="bi bi-chevron-left text-base md:text-lg"></i>
     </button>
-    <button type="button" x-cloak x-show="!isMobile && showRightButton" x-transition class="cat-side-nav-glass inline-flex absolute top-1/2 right-4 -translate-y-1/2 z-[5]" aria-label="السابق" @click="go('prev')">
+    {{-- الزر الأيمن: يتقدم/للأمام (next) --}}
+    <button type="button" x-cloak class="cat-side-nav-glass inline-flex absolute top-1/2 right-4 -translate-y-1/2 z-[5]"
+            :class="{'cat-nav-active': showRightButton, 'cat-nav-disabled': !showRightButton}"
+            :disabled="!showRightButton"
+            x-show="!isMobile"
+            x-transition
+            aria-label="التالي"
+            @click="go('next')">
         <i class="bi bi-chevron-right text-base md:text-lg"></i>
     </button>
     
@@ -1129,12 +1263,112 @@
         @media (max-width: 640px) { .section-cats .w-28.h-28 { width:4.2rem!important; height:4.2rem!important; } }
         .section-cats .category-name { text-align:center; white-space:normal; word-break:break-word; line-height:1.35; min-height:2.7em; max-width:110px; margin-inline:auto; }
         @media (max-width: 640px) { .section-cats .category-name { font-size: 0.75rem!important; max-width: 75px!important; min-height: 2.2em; } }
-        .cat-side-nav-glass{ position: absolute; height: 46px; width: 46px; border-radius: 9999px; align-items: center; justify-content: center; color: #c32126; background: rgba(255,255,255,.38); border: 1px solid rgba(234,219,205,.85); box-shadow: 0 10px 20px rgba(0,0,0,.08); backdrop-filter: blur(10px) saturate(140%); -webkit-backdrop-filter: blur(10px) saturate(140%); transition: all .2s ease; }
-        .cat-side-nav-glass::after{ content:""; position:absolute; inset:-8px; border-radius:inherit; background: rgba(255,255,255,.28); backdrop-filter: blur(10px) saturate(140%); -webkit-backdrop-filter: blur(10px) saturate(140%); z-index:-1; pointer-events:none; }
-        .cat-side-nav-glass:hover{ background: rgba(255,255,255,.46); box-shadow: 0 14px 28px rgba(0,0,0,.12); }
-        html.dark .cat-side-nav-glass{ color:#f0b0ad; background: rgba(15,23,42,.38); border-color:#1f2937; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
-        html.dark .cat-side-nav-glass::after{ background: rgba(15,23,42,.22); }
-        html.dark .cat-side-nav-glass:hover{ background: rgba(15,23,42,.48); box-shadow: 0 12px 30px rgba(0,0,0,.32); }
+        
+        /* تنسيق أزرار التنقل للبراندات (Brands Section) */
+        .cat-side-nav-glass {
+            position: absolute;
+            height: 48px;
+            width: 48px;
+            border-radius: 9999px;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px solid rgba(234, 219, 205, 0.9);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px) saturate(140%);
+            -webkit-backdrop-filter: blur(12px) saturate(140%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        
+        .cat-side-nav-glass::after {
+            content: "";
+            position: absolute;
+            inset: -6px;
+            border-radius: inherit;
+            backdrop-filter: blur(12px) saturate(140%);
+            -webkit-backdrop-filter: blur(12px) saturate(140%);
+            z-index: -1;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        /* حالة الزر النشط (يوجد تنقل) */
+        .cat-nav-active {
+            color: #c32126;
+            background: rgba(255, 255, 255, 0.4);
+            border-color: rgba(234, 219, 205, 0.9);
+        }
+
+        .cat-nav-active::after {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .cat-nav-active:hover {
+            background: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
+            transform: scale(1.08);
+        }
+
+        .cat-nav-active:active {
+            transform: scale(0.96);
+        }
+
+        /* حالة الزر المعطل (لا يوجد تنقل) */
+        .cat-nav-disabled {
+            color: #999;
+            background: rgba(200, 200, 200, 0.25);
+            border-color: rgba(180, 180, 180, 0.4);
+            pointer-events: none;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .cat-nav-disabled::after {
+            background: rgba(180, 180, 180, 0.1);
+        }
+
+        .cat-nav-disabled:hover {
+            background: rgba(200, 200, 200, 0.25);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.05);
+            transform: none;
+        }
+
+        /* الأيقونة */
+        .cat-side-nav-glass i {
+            font-size: 1.3rem;
+            transition: all 0.3s ease;
+        }
+
+        .cat-nav-active:hover i {
+            transform: scale(1.15);
+        }
+        
+        /* الوضع المظلم (Dark Mode) */
+        html.dark .cat-nav-active {
+            color: #f0b0ad;
+            background: rgba(15, 23, 42, 0.4);
+            border-color: rgba(31, 41, 55, 0.9);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+        
+        html.dark .cat-nav-active::after {
+            background: rgba(15, 23, 42, 0.2);
+        }
+        
+        html.dark .cat-nav-active:hover {
+            background: rgba(15, 23, 42, 0.5);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        html.dark .cat-nav-disabled {
+            color: #666;
+            background: rgba(100, 100, 100, 0.2);
+            border-color: rgba(80, 80, 80, 0.4);
+        }
+
+        html.dark .cat-nav-disabled::after {
+            background: rgba(80, 80, 80, 0.1);
+        }
     </style>
 </section>
 
