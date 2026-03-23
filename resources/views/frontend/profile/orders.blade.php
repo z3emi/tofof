@@ -1,5 +1,5 @@
 @extends('frontend.profile.layout')
-@section('title', 'طلباتي')
+@section('title', __('profile.orders_title'))
 
 @push('styles')
 <style>
@@ -229,15 +229,15 @@
 @section('profile-content')
 <div class="surface">
   <div class="page-head mb-4 md:mb-6">
-    <h2 class="text-xl md:text-2xl"><br>سجل طلباتي</h2>
-    <p class="text-sm md:text-base mt-1">هنا يمكنك تتبّع جميع طلباتك الحالية والسابقة</p>
+    <h2 class="text-xl md:text-2xl"><br>{{ __('profile.orders_heading') }}</h2>
+    <p class="text-sm md:text-base mt-1">{{ __('profile.orders_subheading') }}</p>
   </div>
 
   @if($orders->isEmpty())
     <div class="empty-state">
       <i class="bi bi-receipt icon"></i>
-      <p class="mt-3" style="color:var(--muted)">لم تقومي بأي طلبات بعد</p>
-      <a href="{{ route('shop') }}" class="btn-brand mt-3">ابدأ التسوق الآن</a>
+      <p class="mt-3" style="color:var(--muted)">{{ __('profile.no_orders') }}</p>
+      <a href="{{ route('shop') }}" class="btn-brand mt-3">{{ __('profile.start_shopping') }}</a>
     </div>
   @else
     <div class="space-y-4 md:space-y-5">
@@ -245,12 +245,12 @@
         @php
           $statusKey = $order->status;
           $statusText = match($statusKey){
-            'pending'    => 'قيد الانتظار',
-            'processing' => 'قيد المعالجة',
-            'shipped'    => 'تم الشحن',
-            'delivered'  => 'تم التوصيل',
-            'cancelled'  => 'ملغي',
-            'returned'   => 'مرتجع',
+            'pending'    => __('profile.status_pending'),
+            'processing' => __('profile.status_processing'),
+            'shipped'    => __('profile.status_shipped'),
+            'delivered'  => __('profile.status_delivered'),
+            'cancelled'  => __('profile.status_cancelled'),
+            'returned'   => __('profile.status_returned'),
             default      => $statusKey,
           };
         @endphp
@@ -259,11 +259,11 @@
           {{-- رأس البطاقة --}}
           <div class="order-header">
             <div>
-              <div class="order-title text-sm md:text-base">طلب رقم #{{ $order->id }}</div>
+              <div class="order-title text-sm md:text-base">{{ __('profile.order_number') }}{{ $order->id }}</div>
               @if($order->is_gift)
-                <div class="mt-1"><span class="status-badge status-returned"><i class="bi bi-gift-fill"></i> هدية</span></div>
+                <div class="mt-1"><span class="status-badge status-returned"><i class="bi bi-gift-fill"></i> {{ __('profile.gift_badge') }}</span></div>
               @endif
-              <div class="order-meta">تاريخ الطلب: {{ $order->created_at->format('Y-m-d') }}</div>
+              <div class="order-meta">{{ __('profile.order_date') }} {{ $order->created_at->format('Y-m-d') }}</div>
             </div>
             <div>
               <span class="status-badge status-{{ $statusKey }}">
@@ -292,10 +292,10 @@
           {{-- تذييل البطاقة --}}
           <div class="order-footer">
             <p class="order-total">
-              الإجمالي: <b>{{ number_format($order->total_amount, 0) }} د.ع</b>
+              {{ __('profile.order_total') }} <b>{{ number_format($order->total_amount, 0) }} {{ __('profile.currency') }}</b>
             </p>
             <a href="{{ route('profile.orders.show', $order->id) }}" class="btn-outline-brand">
-              عرض التفاصيل <i class="bi bi-chevron-left"></i>
+              {{ __('profile.view_details') }} <i class="bi bi-chevron-left"></i>
             </a>
           </div>
         </div>

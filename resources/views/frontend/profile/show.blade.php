@@ -1,6 +1,6 @@
 @extends('frontend.profile.layout')
 
-@section('title', 'تعديل الملف الشخصي')
+@section('title', __('profile.edit_profile_title'))
 
 @push('styles')
 <style>
@@ -154,7 +154,7 @@
   @endif
   @if ($errors->any())
     <div class="alert alert-danger mb-3">
-      <div>الرجاء إصلاح الأخطاء التالية:</div>
+      <div>{{ __('profile.fix_errors') }}</div>
       <ul class="mt-1 list-disc pr-5">
         @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
       </ul>
@@ -174,7 +174,7 @@
            alt="avatar"
            class="avatar"
          onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.png') }}';">
-      <label for="avatar" class="avatar-edit" title="تغيير الصورة">
+      <label for="avatar" class="avatar-edit" title="{{ __('profile.edit_profile_btn') }}">
         <i class="bi bi-camera-fill"></i>
       </label>
     </div>
@@ -183,50 +183,50 @@
     <a href="tel:{{ $user->phone_number }}" class="sub ltr hover:text-[var(--brand-dark)]">{{ $user->phone_number }}</a>
 
     <div class="stats">
-      <div class="chip"><b>{{ $ordersCount }}</b><small>الطلبات</small></div>
-      <div class="chip"><b>{{ $tier }}</b><small>الفئة</small></div>
-      <div class="chip"><b>{{ $wallet }} د.ع</b><small>الرصيد</small></div>
+      <div class="chip"><b>{{ $ordersCount }}</b><small>{{ __('profile.orders_stat') }}</small></div>
+      <div class="chip"><b>{{ $tier }}</b><small>{{ __('profile.tier_stat') }}</small></div>
+      <div class="chip"><b>{{ $wallet }} {{ __('profile.currency') }}</b><small>{{ __('profile.balance_stat') }}</small></div>
     </div>
   </div>
 
   <div class="ref-card mt-4">
     <div class="ref-row mb-2">
-      <h4 class="m-0 font-extrabold" style="color:var(--text)">💖 برنامج الدعوات</h4>
-      <small>شاركي الرمز مع صديقاتك</small>
+      <h4 class="m-0 font-extrabold" style="color:var(--text)">{{ __('profile.referral_program') }}</h4>
+      <small>{{ __('profile.share_code') }}</small>
     </div>
     <div class="ref-row">
       <span id="referralCode" class="ref-code">{{ $user->referral_code }}</span>
-      <button type="button" class="btn-outline" onclick="copyReferralCode()"><i class="bi bi-clipboard-check"></i> نسخ</button>
+      <button type="button" class="btn-outline" onclick="copyReferralCode()"><i class="bi bi-clipboard-check"></i> {{ __('profile.copy') }}</button>
     </div>
-    <div id="copy-success" class="text-green-600 text-sm mt-2" style="display:none">تم نسخ الرمز بنجاح</div>
+    <div id="copy-success" class="text-green-600 text-sm mt-2" style="display:none">{{ __('profile.code_copied') }}</div>
   </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
       <div class="field">
-        <label class="label" for="first_name">الاسم الأول</label>
+        <label class="label" for="first_name">{{ __('profile.first_name') }}</label>
         <input class="control" type="text" id="first_name" name="first_name" value="{{ old('first_name', $firstName) }}">
       </div>
 
       <div class="field">
-        <label class="label" for="last_name">اسم العائلة</label>
+        <label class="label" for="last_name">{{ __('profile.last_name') }}</label>
         <input class="control" type="text" id="last_name" name="last_name" value="{{ old('last_name', $lastName) }}">
       </div>
 
       <div class="field md:col-span-2">
-        <label class="label" for="email">البريد الإلكتروني (اختياري)</label>
+        <label class="label" for="email">{{ __('profile.email') }}</label>
         <input class="control" type="email" id="email" name="email" value="{{ old('email', $user->email) }}" placeholder="example@mail.com">
       </div>
 
       <div class="field md:col-span-2">
-        <label class="label" for="phone_number">رقم الهاتف</label>
+        <label class="label" for="phone_number">{{ __('profile.phone') }}</label>
         <input class="control ltr" type="text" id="phone_number" name="phone_number" value="{{ $user->phone_number }}" readonly>
       </div>
     </div>
 
     <div class="flex flex-col sm:flex-row items-center gap-3 mt-5">
-      <button type="submit" class="btn-brand"><i class="bi bi-check2-circle"></i> حفظ التغييرات</button>
+      <button type="submit" class="btn-brand"><i class="bi bi-check2-circle"></i> {{ __('profile.save_changes') }}</button>
       @if(Route::has('profile.change-password'))
-        <a href="{{ route('profile.change-password') }}" class="btn-outline"><i class="bi bi-shield-lock"></i> تغيير كلمة المرور</a>
+        <a href="{{ route('profile.change-password') }}" class="btn-outline"><i class="bi bi-shield-lock"></i> {{ __('profile.change_password') }}</a>
       @endif
     </div>
   </form>

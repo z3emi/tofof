@@ -1,4 +1,4 @@
-@php
+﻿@php
     $favoriteProductIds = $favoriteProductIds ?? [];
 @endphp
 
@@ -322,9 +322,9 @@
             {{-- معلومات المنتج --}}
             <div class="md:col-span-3 flex flex-col">
                 <div class="text-sm text-gray-500 mb-2">
-                    <a href="{{ route('shop') }}" class="hover:text-brand-primary">المتجر</a>
+                    <a href="{{ route('shop') }}" class="hover:text-brand-primary">{{ __('product.shop') }}</a>
                     @if($product->category)
-                        / <a href="{{ route('shop', ['category' => $product->category->slug]) }}" class="hover:text-brand-primary">{{ $product->category->name_ar }}</a>
+                        / <a href="{{ route('shop', ['category' => $product->category->slug]) }}" class="hover:text-brand-primary">{{ $product->category->name_translated }}</a>
                     @endif
                 </div>
                 <h1 class="text-3xl lg:text-4xl font-bold text-brand-text mb-3">{{ $product->name_translated }}</h1>
@@ -342,22 +342,22 @@
                             <i class="bi {{ $full ? 'bi-star-fill' : ($half ? 'bi-star-half' : 'bi-star') }} text-xl me-1"></i>
                         @endfor
                     </div>
-                    <div id="avg-text" class="text-sm text-gray-600">{{ number_format($avg,1) }} / 5 · <span id="rev-count">{{ $revCount }}</span> تقييم</div>
+                    <div id="avg-text" class="text-sm text-gray-600">{{ number_format($avg,1) }} / 5 · <span id="rev-count">{{ $revCount }}</span> {{ __('product.rating') }}</div>
                 </div>
                 <span class="text-sm text-gray-500 mb-4">SKU: {{ $product->sku ?? 'N/A' }}</span>
                 <div class="mb-6">
                     @if($product->isOnSale())
-                        <span class="text-brand-primary font-bold text-3xl">{{ number_format($product->sale_price, 0) }} د.ع</span>
-                        <span class="text-gray-400 line-through text-xl ml-3">{{ number_format($product->price, 0) }} د.ع</span>
+                        <span class="text-brand-primary font-bold text-3xl">{{ number_format($product->sale_price, 0) }} {{ __('common.currency') }}</span>
+                        <span class="text-gray-400 line-through text-xl ml-3">{{ number_format($product->price, 0) }} {{ __('common.currency') }}</span>
                     @else
-                        <span class="text-brand-primary font-bold text-3xl">{{ number_format($product->price, 0) }} د.ع</span>
+                        <span class="text-brand-primary font-bold text-3xl">{{ number_format($product->price, 0) }} {{ __('common.currency') }}</span>
                     @endif
                 </div>
                 <div class="border-t border-b border-gray-200 py-4 mb-8 space-y-3">
-                    <div class="flex items-center text-sm text-gray-700"><span>🚚 خدمة توصيل موثوقة داخل وخارج العراق</span></div>
-                    <div class="flex items-center text-sm text-gray-700"><span>⚡ معالجة سريعة للطلبات لضمان وصولها بأفضل وقت</span></div>
-                    <div class="flex items-center text-sm text-gray-700"><span>🔒 تجربة شراء آمنة وسلسة</span></div>
-                    <div class="flex items-center text-sm text-gray-700"><span>✔️ منتجات أصلية بمعايير جودة عالية</span></div>
+                    <div class="flex items-center text-sm text-gray-700"><span>{{ __('product.trusted_delivery') }}</span></div>
+                    <div class="flex items-center text-sm text-gray-700"><span>{{ __('product.fast_processing') }}</span></div>
+                    <div class="flex items-center text-sm text-gray-700"><span>{{ __('product.safe_checkout') }}</span></div>
+                    <div class="flex items-center text-sm text-gray-700"><span>{{ __('product.authentic_products') }}</span></div>
                 </div>
 
                 <template x-if="options.length">
@@ -388,40 +388,40 @@
 
                     @if ($isAvailable)
                         <div class="flex items-center gap-4 flex-wrap">
-                            <label class="text-lg font-semibold text-gray-700 dark:text-gray-200">الكمية:</label>
+                            <label class="text-lg font-semibold text-gray-700 dark:text-gray-200">{{ __('product.quantity') }}</label>
                             <div class="flex items-center gap-3">
                                 <div class="qty-wrap">
                                     <button type="button" @click="quantity > 1 ? quantity-- : 1" class="qty-btn">−</button>
-                                    <input type="number" x-model.number="quantity" min="1" max="{{ $stock }}" class="qty-input" aria-label="الكمية" />
+                                    <input type="number" x-model.number="quantity" min="1" max="{{ $stock }}" class="qty-input" aria-label="{{ __('common.quantity') }}" />
                                     <button type="button" @click="quantity < {{ $stock }} ? quantity++ : {{ $stock }}" class="qty-btn">+</button>
                                 </div>
                             </div>
                         </div>
                         <button
-                            @click.prevent="loadingAdd = true; addToCart({{ $product->id }}, quantity, selectedOptions).then(data => { if(data.success) { added = true; window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cartCount: data.cartCount } })); setTimeout(() => added = false, 2000); } else { alert(data.message || 'حدث خطأ ما.'); } loadingAdd = false; }).catch(() => { alert('حدث خطأ في الاتصال بالخادم.'); loadingAdd = false; });"
+                            @click.prevent="loadingAdd = true; addToCart({{ $product->id }}, quantity, selectedOptions).then(data => { if(data.success) { added = true; window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cartCount: data.cartCount } })); setTimeout(() => added = false, 2000); } else { alert(data.message || '{{ __('common.connection_error') }}'); } loadingAdd = false; }).catch(() => { alert('{{ __('product.server_unreachable') }}'); loadingAdd = false; });"
                             class="btn-primary shadow" :disabled="loadingAdd || added">
-                            <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus-fill text-xl"></i> أضف إلى السلة</span>
+                            <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus-fill text-xl"></i> {{ __('product.add_to_cart') }}</span>
                             <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin text-xl"></i></span>
-                            <span x-show="added"><i class="bi bi-check-lg text-xl"></i> تمت الإضافة</span>
+                            <span x-show="added"><i class="bi bi-check-lg text-xl"></i> {{ __('product.added_to_cart') }}</span>
                         </button>
                     @else
-                        <button class="btn-primary" disabled><i class="bi bi-x-circle-fill"></i> منتهي الكمية</button>
+                        <button class="btn-primary" disabled><i class="bi bi-x-circle-fill"></i> {{ __('product.out_of_stock') }}</button>
                     @endif
 
                     @auth
-                    <button @click.prevent="loadingFav = true; toggleWishlist({{ $product->id }}).then(data => { if(data.success) { isFavorite = !isFavorite; window.dispatchEvent(new CustomEvent('wishlist-updated', { detail: { count: data.wishlistCount } })); } else { alert('حدث خطأ في العملية.'); } loadingFav = false; }).catch(() => { alert('حدث خطأ في الاتصال بالخادم.'); loadingFav = false; });" class="btn-secondary" :disabled="loadingFav">
+                    <button @click.prevent="loadingFav = true; toggleWishlist({{ $product->id }}).then(data => { if(data.success) { isFavorite = !isFavorite; window.dispatchEvent(new CustomEvent('wishlist-updated', { detail: { count: data.wishlistCount } })); } else { alert('{{ __('common.connection_error') }}'); } loadingFav = false; }).catch(() => { alert('{{ __('product.server_unreachable') }}'); loadingFav = false; });" class="btn-secondary" :disabled="loadingFav">
                         <i class="bi text-xl" :class="isFavorite ? 'bi-heart-fill text-red-500' : 'bi-heart'"></i>
-                        <span x-text="isFavorite ? 'إزالة من المفضلة' : 'أضف إلى المفضلة'"></span>
+                        <span x-text="isFavorite ? '{{ __('product.remove_from_wishlist') }}' : '{{ __('product.add_to_wishlist') }}'"></span>
                     </button>
                     @endauth
                 </div>
 
                 <div class="prose max-w-none leading-relaxed border-t border-gray-200 pt-8">
-                    <h3 class="font-bold text-xl mb-4" style="color:var(--text)">الوصف</h3>
+                    <h3 class="font-bold text-xl mb-4" style="color:var(--text)">{{ __('product.description') }}</h3>
                     {!! $product->description_translated !!}
                 </div>
                 <div id="reviews" class="mt-10 border-t border-gray-200 pt-8">
-                    <h3 class="font-bold text-xl mb-4" style="color:var(--text)">التقييمات</h3>
+                    <h3 class="font-bold text-xl mb-4" style="color:var(--text)">{{ __('product.reviews') }}</h3>
                     <div id="review-success" class="hidden mb-3 text-sm text-green-700 bg-green-100 rounded p-2"></div>
                     <div id="review-errors" class="hidden mb-3 text-sm text-red-700 bg-red-100 rounded p-2"></div>
                     @php
@@ -432,10 +432,10 @@
                     @auth
                         @if(!$userHasReviewed)
                         <div class="border rounded-lg p-4 mb-6">
-                            <h4 class="font-semibold mb-3" style="color:var(--text)">قيّم المنتج</h4>
+                            <h4 class="font-semibold mb-3" style="color:var(--text)">{{ __('product.rate_product') }}</h4>
                             <form id="review-form" method="POST" action="{{ url('/products/'.$product->id.'/reviews') }}" x-data="{ rating: 5 }">
                                 @csrf
-                                <label class="block mb-1" style="color:var(--text)">تقييمك:</label>
+                                <label class="block mb-1" style="color:var(--text)">{{ __('product.your_rating') }}</label>
                                 <div class="flex items-center gap-1 mb-2">
                                     @for($i=1; $i<=5; $i++)
                                         <button type="button" @click="rating={{ $i }}" class="text-2xl leading-none">
@@ -444,16 +444,16 @@
                                     @endfor
                                 </div>
                                 <input type="hidden" name="rating" x-model="rating">
-                                <textarea name="comment" rows="3" class="w-full border rounded p-2" placeholder="اكتب تعليقك (اختياري)"></textarea>
+                                <textarea name="comment" rows="3" class="w-full border rounded p-2" placeholder="{{ __('product.comment_placeholder') }}"></textarea>
                                 <div class="mt-3 flex items-center gap-2">
-                                    <button id="review-submit" class="bg-brand-primary text-white px-4 py-2 rounded hover:bg-brand-accent transition" type="submit">إرسال التقييم</button>
+                                    <button id="review-submit" class="bg-brand-primary text-white px-4 py-2 rounded hover:bg-brand-accent transition" type="submit">{{ __('product.submit_review') }}</button>
                                 </div>
                             </form>
                         </div>
                         @endif
                     @else
                         <p class="text-sm mb-6">
-                            لتقييم المنتج، <a href="{{ route('login') }}" class="text-brand-primary underline">سجّل الدخول</a>.
+                            {{ __('product.login_to_review') }} <a href="{{ route('login') }}" class="text-brand-primary underline">{{ __('product.login') }}</a>.
                         </p>
                     @endauth
                     @php
@@ -466,7 +466,7 @@
                                     <div class="flex items-center gap-3">
                                         <img src="{{ $r->user?->avatar_url ?? asset('storage/avatars/default.jpg') }}" alt="avatar" class="w-9 h-9 rounded-full object-cover border" style="border-color: var(--border);">
                                         <div>
-                                            <div class="font-semibold" style="color:var(--text)">{{ $r->user?->name ?? 'مستخدم' }}</div>
+                                            <div class="font-semibold" style="color:var(--text)">{{ $r->user?->name ?? __('product.user') }}</div>
                                             <div class="text-xs text-gray-400 mt-0.5">{{ $r->created_at->diffForHumans() }}</div>
                                         </div>
                                     </div>
@@ -478,7 +478,7 @@
                                         </div>
                                         @auth
                                             @if($isAdmin || $r->user_id === auth()->id())
-                                                <button class="text-red-600 text-sm hover:underline" data-delete-review data-product-id="{{ $product->id }}" data-review-id="{{ $r->id }}">حذف</button>
+                                                <button class="text-red-600 text-sm hover:underline" data-delete-review data-product-id="{{ $product->id }}" data-review-id="{{ $r->id }}">{{ __('product.delete') }}</button>
                                             @endif
                                         @endauth
                                     </div>
@@ -486,7 +486,7 @@
                                 @if($r->comment)<p class="mt-2 text-sm text-gray-700">{{ $r->comment }}</p>@endif
                             </div>
                         @empty
-                            <p class="text-sm text-gray-600">لا توجد تقييمات بعد — كن أول من يقيم 🤍</p>
+                            <p class="text-sm text-gray-600">{{ __('product.no_reviews') }} 🤍</p>
                         @endforelse
                     </div>
                     <div class="mt-3">{{ $reviews->withQueryString()->links() }}</div>
@@ -505,7 +505,7 @@
 
     @if($relatedProducts->isNotEmpty())
     <div class="container mx-auto px-4 py-12 border-t border-gray-200 mt-12">
-        <h2 class="text-3xl font-bold text-brand-dark mb-8 text-center">ربما يعجبك أيضاً</h2>
+        <h2 class="text-3xl font-bold text-brand-dark mb-8 text-center">{{ __('product.you_may_like') }}</h2>
         <div class="related-products-grid">
             @foreach($relatedProducts as $relatedProduct)
                 <div class="product-card"
@@ -548,7 +548,7 @@
                             {{-- شارة "منتهي الكمية" --}}
                             @if(!$isAvailable)
                                 <div class="absolute inset-0 bg-black/60 z-10 flex items-center justify-center pointer-events-none">
-                                    <span class="text-white font-bold tracking-wider text-sm border border-white/50 rounded-full px-3 py-1">منتهي الكمية</span>
+                                    <span class="text-white font-bold tracking-wider text-sm border border-white/50 rounded-full px-3 py-1">{{ __('product.out_of_stock') }}</span>
                                 </div>
                             @endif
 
@@ -591,10 +591,10 @@
 
                             <div class="flex items-baseline justify-center gap-2">
                                 @if($relatedProduct->isOnSale())
-                                    <div class="price">{{ number_format($relatedProduct->sale_price, 0) }} د.ع</div>
-                                    <div class="old">{{ number_format($relatedProduct->price, 0) }} د.ع</div>
+                                    <div class="price">{{ number_format($relatedProduct->sale_price, 0) }} {{ __('common.currency') }}</div>
+                                    <div class="old">{{ number_format($relatedProduct->price, 0) }} {{ __('common.currency') }}</div>
                                 @else
-                                    <div class="price">{{ number_format($relatedProduct->price, 0) }} د.ع</div>
+                                    <div class="price">{{ number_format($relatedProduct->price, 0) }} {{ __('common.currency') }}</div>
                                 @endif
                             </div>
 
@@ -611,16 +611,16 @@
                                 @endauth
 
                                 @if ($isAvailable)
-                                    <button @click.prevent.stop="loadingAdd = true; fetch('{{ route('cart.store') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ product_id: {{ $relatedProduct->id }}, quantity: 1 }) }).then(r => r.json()).then(d => { if (d.success) { added = true; window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cartCount: d.cartCount } })); setTimeout(() => added = false, 1800) } else { alert(d.message || 'حدث خطأ ما.') } }).finally(() => loadingAdd = false)"
+                                    <button @click.prevent.stop="loadingAdd = true; fetch('{{ route('cart.store') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ product_id: {{ $relatedProduct->id }}, quantity: 1 }) }).then(r => r.json()).then(d => { if (d.success) { added = true; window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cartCount: d.cartCount } })); setTimeout(() => added = false, 1800) } else { alert(d.message || '{{ __('common.connection_error') }}') } }).finally(() => loadingAdd = false)"
                                             @touchend.stop
                                             class="btn-primary">
-                                        <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> أضف للسلة</span>
+                                        <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
                                         <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
-                                        <span x-show="added"><i class="bi bi-check-lg"></i> تمت الإضافة</span>
+                                        <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
                                     </button>
                                 @else
                                     <button class="btn-primary" disabled>
-                                        منتهي الكمية
+                                        {{ __('common.out_of_stock') }}
                                     </button>
                                 @endif
                             </div>
@@ -641,7 +641,7 @@
     var PRODUCT_ID = {{ $product->id }};
     var PRODUCT_NAME = @json($product->name_translated);
     var PRODUCT_UNIT_PRICE = {{ $product->isOnSale() ? ($product->sale_price ?? $product->price ?? 0) : ($product->price ?? 0) }};
-    var PRODUCT_CATEGORY = @json(optional($product->category)->name_ar);
+    var PRODUCT_CATEGORY = @json(optional($product->category)->name_translated);
 
     // ===== حدث ViewContent عند فتح صفحة المنتج =====
     document.addEventListener('DOMContentLoaded', function () {
@@ -718,7 +718,7 @@
                         if (data && data.errors) {
                             Object.values(data.errors).forEach(arr => arr.forEach(m => msgs.push(m)));
                         } else {
-                            msgs.push(data.message || 'حدث خطأ أثناء الإرسال.');
+                            msgs.push(data.message || '{{ __('product.send_error') }}');
                         }
                         errorsBox.innerHTML = msgs.map(m => `<div>• ${m}</div>`).join('');
                         errorsBox.classList.remove('hidden');
@@ -726,11 +726,11 @@
                     }
                     appendReviewCard(data.review.id, data.review.user_name, data.review.rating, data.review.comment, data.review.created_at_human, true, form.dataset.userAvatar);
                     if (data.stats) updateStats(data.stats.avg, data.stats.count);
-                    successBox.textContent = data.message || 'تم حفظ تقييمك بنجاح.';
+                    successBox.textContent = data.message || '{{ __('product.saved_success') }}';
                     successBox.classList.remove('hidden');
                     form.closest('.border.rounded-lg')?.remove();
                 } catch (err) {
-                    errorsBox.textContent = 'تعذر الاتصال بالخادم.';
+                    errorsBox.textContent = '{{ __('product.server_unreachable') }}';
                     errorsBox.classList.remove('hidden');
                 }
             });
@@ -740,7 +740,7 @@
             const btn = e.target.closest('[data-delete-review]');
             if (!btn) return;
             e.preventDefault();
-            if (!confirm('هل تريد حذف هذا التعليق؟')) return;
+            if (!confirm('{{ __('product.confirm_delete_comment') }}')) return;
             const productId = btn.dataset.productId;
             const reviewId  = btn.dataset.reviewId;
             try {
@@ -750,19 +750,19 @@
                 });
                 const data = await resp.json();
                 if (!resp.ok || !data.success) {
-                    alert(data.message || 'تعذر حذف التعليق.'); return;
+                    alert(data.message || '{{ __('product.delete_comment_failed') }}'); return;
                 }
                 document.getElementById(`review-card-${reviewId}`)?.remove();
                 if (data.stats) updateStats(data.stats.avg, data.stats.count);
             } catch (_) {
-                alert('تعذر الاتصال بالخادم.');
+                alert('{{ __('product.server_unreachable') }}');
             }
         });
 
         function appendReviewCard(id, name, rating, comment, createdHuman, mine = false, avatarUrl = null) {
             const stars = Array.from({length:5}).map((_,i)=> `<i class="bi ${i+1 <= rating ? 'bi-star-fill' : 'bi-star'} ms-1 text-yellow-500"></i>`).join('');
             const commentHtml = comment ? `<p class="mt-2 text-sm text-gray-700">${escapeHtml(comment)}</p>` : '';
-            const deleteBtn = mine ? `<button class="text-red-600 text-sm hover:underline" data-delete-review data-product-id="${id}" data-review-id="${id}">حذف</button>` : '';
+            const deleteBtn = mine ? `<button class="text-red-600 text-sm hover:underline" data-delete-review data-product-id="${id}" data-review-id="${id}">{{ __('product.delete') }}</button>` : '';
             const safeAvatar = avatarUrl || '{{ auth()->user()?->avatar_url ?? asset('storage/avatars/default.jpg') }}';
             const header = `<div class="flex items-start justify-between"><div class="flex items-center gap-3"><img src="${safeAvatar}" alt="avatar" class="w-9 h-9 rounded-full object-cover border" style="border-color: var(--border);"><div><div class="font-semibold" style="color:var(--text)">${escapeHtml(name)}</div><div class="text-xs text-gray-400 mt-0.5">${escapeHtml(createdHuman || '')}</div></div></div><div class="flex items-center gap-2"><div class="flex">${stars}</div>${deleteBtn}</div></div>`;
             const card = `<div class="border rounded p-4 mb-3" id="review-card-${id}">${header}${commentHtml}</div>`;
@@ -774,7 +774,7 @@
             const avgText = document.getElementById('avg-text');
             const avgStars = document.getElementById('avg-stars');
             if (revCountEl) revCountEl.textContent = count;
-            if (avgText) avgText.innerHTML = `${Number(avg).toFixed(1)} / 5 · <span id="rev-count">${count}</span> تقييم`;
+            if (avgText) avgText.innerHTML = `${Number(avg).toFixed(1)} / 5 · <span id="rev-count">${count}</span> {{ __('product.rating') }}`;
             if (avgStars) {
                 avgStars.innerHTML = '';
                 const a = Number(avg);

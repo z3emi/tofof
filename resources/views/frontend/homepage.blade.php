@@ -1,4 +1,4 @@
-@php
+﻿@php
     // ترتيب الأقسام تنازلياً حسب عدد المنتجات
     $sortedCategories = $categories;
 
@@ -637,7 +637,7 @@
                     <div class="slide">
                         <img src="{{ $slide->image_path ?? $slide->background_image_url }}"
                              class="slide-bg"
-                                alt="{{ $slide->alt_text ?: ($slide->title ?: 'صورة سلايدر') }}"
+                                alt="{{ $slide->alt_text ?: ($slide->title ?: __('home.slider_image')) }}"
                              width="1974"
                              height="1316">
                         @if(!empty($slide->show_overlay))
@@ -687,7 +687,7 @@
                 <template x-for="(slide, index) in slides" :key="index">
                     <div class="dot"
                          role="button" tabindex="0"
-                         :aria-label="`الشريحة ${index+1}`"
+                         :aria-label="`{{ __('home.slide_label') }} ${index+1}`"
                          :class="{ 'active': currentSlide === index }"
                          @click="goToSlide(index)"
                          @keydown.enter.space="goToSlide(index)"></div>
@@ -788,7 +788,7 @@
                 class="brand-nav hidden md:flex absolute left-4 pos-mid z-[10001]"
                 :class="{'brand-nav-active': canGoLeft, 'brand-nav-disabled': !canGoLeft}"
                 :disabled="!canGoLeft"
-                type="button" aria-label="السابق"
+                type="button" aria-label="{{ __('common.prev') }}"
                 @click="go('prev')">
                 <i class="bi bi-chevron-left text-2xl"></i>
             </button>
@@ -798,7 +798,7 @@
                 class="brand-nav hidden md:flex absolute right-4 pos-mid z-[10001]"
                 :class="{'brand-nav-active': canGoRight, 'brand-nav-disabled': !canGoRight}"
                 :disabled="!canGoRight"
-                type="button" aria-label="التالي"
+                type="button" aria-label="{{ __('common.next') }}"
                 @click="go('next')">
                 <i class="bi bi-chevron-right text-2xl"></i>
             </button>
@@ -841,20 +841,14 @@
                 <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 @if($thumb)
                     <img src="{{ $thumb }}" class="w-full h-full object-cover object-center"
-                         alt="{{ $pc->name_ar }}" width="112" height="112">
+                         alt="{{ $pc->name_translated }}" width="112" height="112">
                 @else
                     <div class="w-full h-full grid place-items-center text-[#c32126] bg-gradient-to-br from-[#a61c20]/10 to-[#c32126]/10">
                         <i class="bi bi-tags" style="font-size:1.6rem;"></i>
                     </div>
                 @endif
             </div>
-            <h3 class="category-name mt-2 md:mt-4 text-base font-semibold group-hover:text-[#c32126]">
-                @if(app()->getLocale() === 'en' && !empty($pc->name_en))
-                    {{ $pc->name_en }}
-                @else
-                    {{ $pc->name_ar }}
-                @endif
-            </h3>
+            <h3 class="category-name mt-2 md:mt-4 text-base font-semibold group-hover:text-[#c32126]">{{ $pc->name_translated }}</h3>
         </a>
     @endif
 @endforeach
@@ -1076,7 +1070,7 @@
             <div class="slide">
               <img src="{{ $slide->background_image_url }}"
                    class="slide-bg"
-                    alt="{{ $slide->alt_text ?: ($slide->title ?: 'صورة سلايدر') }}"
+                    alt="{{ $slide->alt_text ?: ($slide->title ?: __('home.slider_image')) }}"
                    width="1974"
                    height="1316">
               @if($slide->show_overlay)
@@ -1219,14 +1213,14 @@
                     <div class="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white relative">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         @if($thumb)
-                            <img src="{{ $thumb }}" class="w-full h-full object-cover object-center" alt="{{ $category->name_ar }}" width="112" height="112">
+                            <img src="{{ $thumb }}" class="w-full h-full object-cover object-center" alt="{{ $category->name_translated }}" width="112" height="112">
                         @else
                             <div class="w-full h-full grid place-items-center text-[#c32126] bg-gradient-to-br from-[#a61c20]/10 to-[#c32126]/10">
                                 <i class="bi bi-tags" style="font-size:1.6rem;"></i>
                             </div>
                         @endif
                     </div>
-                    <h3 class="category-name mt-2 md:mt-4 text-base font-semibold group-hover:text-[#c32126]">{{ $category->name_ar }}</h3>
+                    <h3 class="category-name mt-2 md:mt-4 text-base font-semibold group-hover:text-[#c32126]">{{ $category->name_translated }}</h3>
                 </a>
             @endforeach
 
@@ -1240,7 +1234,7 @@
             :disabled="!showLeftButton"
             x-show="!isMobile"
             x-transition
-            aria-label="السابق"
+            aria-label="{{ __('common.prev') }}"
             @click="go('prev')">
         <i class="bi bi-chevron-left text-base md:text-lg"></i>
     </button>
@@ -1250,7 +1244,7 @@
             :disabled="!showRightButton"
             x-show="!isMobile"
             x-transition
-            aria-label="التالي"
+            aria-label="{{ __('common.next') }}"
             @click="go('next')">
         <i class="bi bi-chevron-right text-base md:text-lg"></i>
     </button>
@@ -1381,10 +1375,10 @@
     <div class="container mx-auto px-4 relative z-10">
         <div class="flex justify-between items-center mb-6">
             <div class="section-header relative">
-                <h2 class="text-3xl font-bold" style="color: var(--text);">جديد في متجرنا</h2>
+                <h2 class="text-3xl font-bold" style="color: var(--text);">{{ __('home.new_in_store') }}</h2>
             </div>
             <a href="{{ route('shop') }}" class="font-semibold hover:underline" style="color: var(--primary-color);">
-                عرض الكل <i class="bi bi-arrow-left-short"></i>
+                {{ __('common.view_all') }} <i class="bi bi-arrow-left-short"></i>
             </a>
         </div>
 
@@ -1444,7 +1438,7 @@
                             @if(!$isAvailable)
                                 <div class="absolute inset-0 bg-black/60 z-10 flex items-center justify-center pointer-events-none">
                                     <span class="text-white font-bold tracking-wider text-sm border border-white/50 rounded-full px-3 py-1">
-                                        منتهي الكمية
+                                        {{ __('common.out_of_stock') }}
                                     </span>
                                 </div>
                             @endif
@@ -1523,7 +1517,7 @@
                                 $avg = round((float) ($product->average_rating ?? 0), 1);
                                 $count = (int) ($product->reviews_count ?? 0);
                             @endphp
-                            <div class="flex items-center justify-center gap-2" title="تقييم {{ $avg }} من 5">
+                            <div class="flex items-center justify-center gap-2" title="{{ __('common.rating') }} {{ $avg }}">
                                 <div class="flex">
                                     @for($i=1;$i<=5;$i++)
                                         @php $full=$i<=floor($avg); $half=!$full && ($i-$avg)<=0.5; @endphp
@@ -1537,10 +1531,10 @@
 
                             <div class="flex items-baseline justify-center gap-2">
                                 @if($product->isOnSale())
-                                    <div class="price">{{ number_format($product->sale_price,0) }} د.ع</div>
-                                    <div class="old">{{ number_format($product->price,0) }} د.ع</div>
+                                    <div class="price">{{ number_format($product->sale_price,0) }} {{ __('common.currency') }}</div>
+                                    <div class="old">{{ number_format($product->price,0) }} {{ __('common.currency') }}</div>
                                 @else
-                                    <div class="price">{{ number_format($product->price,0) }} د.ع</div>
+                                    <div class="price">{{ number_format($product->price,0) }} {{ __('common.currency') }}</div>
                                 @endif
                             </div>
 
@@ -1587,18 +1581,18 @@
                                                     window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}}));
                                                     setTimeout(()=>added=false,1800)
                                                 } else {
-                                                    alert(d.message||'حدث خطأ ما.')
+                                                    alert(d.message||'{{ __('common.connection_error') }}')
                                                 }
                                             }).finally(()=>loadingAdd=false)"
                                         @touchend.stop
                                         class="btn-primary">
-                                        <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> أضف للسلة</span>
+                                        <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
                                         <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
-                                        <span x-show="added"><i class="bi bi-check-lg"></i> تمت الإضافة</span>
+                                        <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
                                     </button>
                                 @else
                                     <button class="btn-primary" disabled>
-                                        منتهي الكمية
+                                        {{ __('common.out_of_stock') }}
                                     </button>
                                 @endif
                             </div>
@@ -1705,7 +1699,7 @@
                     <div class="slide">
                         <img src="{{ $slide->background_image_url }}"
                              class="slide-bg"
-                             alt="{{ $slide->alt_text ?: ($slide->title ?: 'صورة سلايدر') }}"
+                             alt="{{ $slide->alt_text ?: ($slide->title ?: __('home.slider_image')) }}"
                              width="1200"
                              height="800">
                         <div class="slide-overlay"></div>
@@ -1766,9 +1760,9 @@
     <div class="container mx-auto px-4 relative z-10">
         <div class="flex justify-between items-center mb-6">
             <div class="section-header relative">
-                <h2 class="text-3xl font-bold" style="color: var(--text);">عروض مميزة</h2>
+                <h2 class="text-3xl font-bold" style="color: var(--text);">{{ __('home.featured_offers') }}</h2>
             </div>
-            <a href="{{ route('shop', ['on_sale' => 'true']) }}" class="text-sm font-semibold hover:underline" style="color: var(--primary-color);">عرض الكل <i class="bi bi-arrow-left-short"></i></a>
+            <a href="{{ route('shop', ['on_sale' => 'true']) }}" class="text-sm font-semibold hover:underline" style="color: var(--primary-color);">{{ __('common.view_all') }} <i class="bi bi-arrow-left-short"></i></a>
         </div>
         <div class="products-grid">
             @foreach($saleProducts->take(14) as $product)
@@ -1810,7 +1804,7 @@
                             @if(!$isAvailable)
                                 <div class="absolute inset-0 bg-black/60 z-10 flex items-center justify-center pointer-events-none">
                                     <span class="text-white font-bold tracking-wider text-sm border border-white/50 rounded-full px-3 py-1">
-                                        منتهي الكمية
+                                        {{ __('common.out_of_stock') }}
                                     </span>
                                 </div>
                             @endif
@@ -1890,7 +1884,7 @@
                                 $avg = round((float) ($product->average_rating ?? 0), 1);
                                 $count = (int) ($product->reviews_count ?? 0);
                             @endphp
-                            <div class="flex items-center justify-center gap-2" title="تقييم {{ $avg }} من 5">
+                            <div class="flex items-center justify-center gap-2" title="{{ __('common.rating') }} {{ $avg }}">
                                 <div class="flex">
                                     @for($i=1;$i<=5;$i++)
                                         @php $full=$i<=floor($avg); $half=!$full && ($i-$avg)<=0.5; @endphp
@@ -1904,10 +1898,10 @@
 
                             <div class="flex items-baseline justify-center gap-2">
                                 @if($product->isOnSale())
-                                    <div class="price">{{ number_format($product->sale_price,0) }} د.ع</div>
-                                    <div class="old">{{ number_format($product->price,0) }} د.ع</div>
+                                    <div class="price">{{ number_format($product->sale_price,0) }} {{ __('common.currency') }}</div>
+                                    <div class="old">{{ number_format($product->price,0) }} {{ __('common.currency') }}</div>
                                 @else
-                                    <div class="price">{{ number_format($product->price,0) }} د.ع</div>
+                                    <div class="price">{{ number_format($product->price,0) }} {{ __('common.currency') }}</div>
                                 @endif
                             </div>
 
@@ -1925,16 +1919,16 @@
 
                                 {{-- ✅ [تصحيح] توحيد وإصلاح منطق زر "أضف للسلة" و "منتهي الكمية" --}}
                                 @if ($isAvailable)
-                                    <button @click.prevent.stop="loadingAdd=true; fetch('{{ route('cart.store') }}',{method:'POST',headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({product_id:{{ $product->id }},quantity:1})}).then(r=>r.json()).then(d=>{ if(d.success){ added=true; window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}})); setTimeout(()=>added=false,1800) } else { alert(d.message||'حدث خطأ ما.') } }).finally(()=>loadingAdd=false)"
+                                    <button @click.prevent.stop="loadingAdd=true; fetch('{{ route('cart.store') }}',{method:'POST',headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({product_id:{{ $product->id }},quantity:1})}).then(r=>r.json()).then(d=>{ if(d.success){ added=true; window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}})); setTimeout(()=>added=false,1800) } else { alert(d.message||'{{ __('common.connection_error') }}') } }).finally(()=>loadingAdd=false)"
                                             @touchend.stop
                                             class="btn-primary">
-                                        <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> أضف للسلة</span>
+                                        <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
                                         <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
-                                        <span x-show="added"><i class="bi bi-check-lg"></i> تمت الإضافة</span>
+                                        <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
                                     </button>
                                 @else
                                     <button class="btn-primary" disabled>
-                                        منتهي الكمية
+                                        {{ __('common.out_of_stock') }}
                                     </button>
                                 @endif
                             </div>
@@ -1955,9 +1949,9 @@
     <div class="container mx-auto px-4 relative z-10">
         <div class="flex justify-between items-center mb-6">
             <div class="section-header relative">
-                <h2 class="text-3xl font-bold" style="color: var(--text);">الأكثر مبيعاً</h2>
+                <h2 class="text-3xl font-bold" style="color: var(--text);">{{ __('home.best_selling') }}</h2>
             </div>
-            <a href="{{ route('shop') }}" class="text-sm font-semibold hover:underline" style="color: var(--primary-color);">عرض الكل <i class="bi bi-arrow-left-short"></i></a>
+            <a href="{{ route('shop') }}" class="text-sm font-semibold hover:underline" style="color: var(--primary-color);">{{ __('common.view_all') }} <i class="bi bi-arrow-left-short"></i></a>
         </div>
         <div class="products-grid">
             @foreach($bestSellingProducts->take(14) as $product)
@@ -1999,7 +1993,7 @@
                             @if(!$isAvailable)
                                 <div class="absolute inset-0 bg-black/60 z-10 flex items-center justify-center pointer-events-none">
                                     <span class="text-white font-bold tracking-wider text-sm border border-white/50 rounded-full px-3 py-1">
-                                        منتهي الكمية
+                                        {{ __('common.out_of_stock') }}
                                     </span>
                                 </div>
                             @endif
@@ -2078,7 +2072,7 @@
                                 $avg = round((float) ($product->average_rating ?? 0), 1);
                                 $count = (int) ($product->reviews_count ?? 0);
                             @endphp
-                            <div class="flex items-center justify-center gap-2" title="تقييم {{ $avg }} من 5">
+                            <div class="flex items-center justify-center gap-2" title="{{ __('common.rating') }} {{ $avg }}">
                                 <div class="flex">
                                     @for($i=1;$i<=5;$i++)
                                         @php $full=$i<=floor($avg); $half=!$full && ($i-$avg)<=0.5; @endphp
@@ -2092,10 +2086,10 @@
 
                             <div class="flex items-baseline justify-center gap-2">
                                 @if($product->isOnSale())
-                                    <div class="price">{{ number_format($product->sale_price,0) }} د.ع</div>
-                                    <div class="old">{{ number_format($product->price,0) }} د.ع</div>
+                                    <div class="price">{{ number_format($product->sale_price,0) }} {{ __('common.currency') }}</div>
+                                    <div class="old">{{ number_format($product->price,0) }} {{ __('common.currency') }}</div>
                                 @else
-                                    <div class="price">{{ number_format($product->price,0) }} د.ع</div>
+                                    <div class="price">{{ number_format($product->price,0) }} {{ __('common.currency') }}</div>
                                 @endif
                             </div>
 
@@ -2113,16 +2107,16 @@
 
                                 {{-- ✅ [تصحيح] توحيد وإصلاح منطق زر "أضف للسلة" و "منتهي الكمية" --}}
                                 @if ($isAvailable)
-                                    <button @click.prevent.stop="loadingAdd=true; fetch('{{ route('cart.store') }}',{method:'POST',headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({product_id:{{ $product->id }},quantity:1})}).then(r=>r.json()).then(d=>{ if(d.success){ added=true; window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}})); setTimeout(()=>added=false,1800) } else { alert(d.message||'حدث خطأ ما.') } }).finally(()=>loadingAdd=false)"
+                                    <button @click.prevent.stop="loadingAdd=true; fetch('{{ route('cart.store') }}',{method:'POST',headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({product_id:{{ $product->id }},quantity:1})}).then(r=>r.json()).then(d=>{ if(d.success){ added=true; window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}})); setTimeout(()=>added=false,1800) } else { alert(d.message||'{{ __('common.connection_error') }}') } }).finally(()=>loadingAdd=false)"
                                             @touchend.stop
                                             class="btn-primary">
-                                        <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> أضف للسلة</span>
+                                        <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
                                         <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
-                                        <span x-show="added"><i class="bi bi-check-lg"></i> تمت الإضافة</span>
+                                        <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
                                     </button>
                                 @else
                                     <button class="btn-primary" disabled>
-                                        منتهي الكمية
+                                        {{ __('common.out_of_stock') }}
                                     </button>
                                 @endif
                             </div>
@@ -2190,8 +2184,8 @@
 @if($homePosts->isNotEmpty())
 <section class="home-blog container mx-auto px-4 py-12">
     <div class="flex items-end justify-between mb-6">
-        <h2 class="text-2xl md:text-3xl font-extrabold">من المدونة</h2>
-        <a href="{{ url('/blog') }}" class="text-sm font-semibold text-[#c32126] hover:underline">عرض كل المقالات</a>
+        <h2 class="text-2xl md:text-3xl font-extrabold">{{ __('home.from_blog') }}</h2>
+        <a href="{{ url('/blog') }}" class="text-sm font-semibold text-[#c32126] hover:underline">{{ __('home.view_all_articles') }}</a>
     </div>
 
     {{-- شبكة: هاتف = عمودين، من md وفوق = 3 أعمدة (إجمالي 6 عناصر) --}}
@@ -2222,7 +2216,7 @@
                     @endif
 
                     <div class="text-[11px] text-gray-400">
-                        @if(optional($post->author)->name) <span>بواسطة {{ $post->author->name }}</span> @endif
+                        @if(optional($post->author)->name) <span>{{ __('common.by') }} {{ $post->author->name }}</span> @endif
                         @php $date = $post->published_at ?? $post->created_at; @endphp
                         @if($date) &bull; <span>{{ \Illuminate\Support\Carbon::parse($date)->format('d M, Y') }}</span> @endif
                     </div>

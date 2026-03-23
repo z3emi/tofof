@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'سياسة الخصوصية - طفوف')
+@section('title', __('pages.privacy_title'))
 
 @push('styles')
 <style>
@@ -119,11 +119,11 @@
   <div class="content-wrapper max-w-5xl mx-auto brand-card p-10 rounded-lg shadow-md leading-relaxed">
 
     <!-- العنوان -->
-    <h1 class="text-4xl font-bold mb-8 text-center p-4 rounded-lg" style="background-color:#6d0e16; color:#f7f7f7;">سياسة الخصوصية</h1>
+    <h1 class="text-4xl font-bold mb-8 text-center p-4 rounded-lg" style="background-color:#6d0e16; color:#f7f7f7;">{{ __('pages.privacy_title') }}</h1>
 
     <!-- مقدمة -->
     <p class="text-lg mb-8 rtl:text-right">
-      في <strong>طفوف</strong>، خصوصيتك وثقتك شيء نعتز به جدًا. نتعامل مع بياناتك وكأنها بياناتنا، ونلتزم بأقصى درجات الأمان والشفافية.
+      {{ __('pages.privacy_intro') }}
     </p>
 
     <!-- الأقسام المتعددة -->
@@ -131,69 +131,69 @@
       
       <!-- 1. المعلومات التي نجمعها -->
       <div class="feature p-6">
-        <h2 class="text-xl font-bold mb-3">ما هي المعلومات التي نجمعها؟</h2>
+        <h2 class="text-xl font-bold mb-3">{{ __('pages.privacy_collect_title') }}</h2>
         <div class="divider mb-3" style="height: 2px; opacity: 0.2;"></div>
         <ul class="pretty-list space-y-1">
-          <li>الاسم الكامل</li>
-          <li>رقم الهاتف</li>
-          <li>عنوان التوصيل</li>
-          <li>البريد الإلكتروني (اختياري)</li>
-          <li>معلومات الدفع (لا نقوم بتخزينها، تتم معالجتها عبر بوابات دفع آمنة فقط)</li>
+          <li>{{ __('pages.privacy_collect_1') }}</li>
+          <li>{{ __('pages.privacy_collect_2') }}</li>
+          <li>{{ __('pages.privacy_collect_3') }}</li>
+          <li>{{ __('pages.privacy_collect_4') }}</li>
+          <li>{{ __('pages.privacy_collect_5') }}</li>
         </ul>
       </div>
 
       <!-- 2. لماذا نجمع المعلومات -->
       <div class="feature p-6">
-        <h2 class="text-xl font-bold mb-3">لماذا نجمع هذه المعلومات؟</h2>
+        <h2 class="text-xl font-bold mb-3">{{ __('pages.privacy_why_title') }}</h2>
         <div class="divider mb-3" style="height: 2px; opacity: 0.2;"></div>
         <ul class="pretty-list space-y-1">
-          <li>لإتمام الطلب وتوصيل المنتجات بدقة.</li>
-          <li>لإرسال العروض والتحديثات إذا وافقت عليها.</li>
-          <li>لتحسين تجربتك داخل الموقع والتطبيق.</li>
+          <li>{{ __('pages.privacy_why_1') }}</li>
+          <li>{{ __('pages.privacy_why_2') }}</li>
+          <li>{{ __('pages.privacy_why_3') }}</li>
         </ul>
       </div>
 
       <!-- 3. ماذا لا نفعل -->
       <div class="feature p-6">
-        <h2 class="text-xl font-bold mb-3">ماذا لا نفعله أبدًا؟</h2>
+        <h2 class="text-xl font-bold mb-3">{{ __('pages.privacy_not_title') }}</h2>
         <div class="divider mb-3" style="height: 2px; opacity: 0.2;"></div>
         <ul class="pretty-list space-y-1">
-          <li>لا نبيع، نشارك، أو ننشر بياناتك لأي طرف ثالث.</li>
-          <li>لا نرسل رسائل تسويقية بدون موافقتك الصريحة.</li>
-          <li>لا نحتفظ بمعلومات الدفع بعد إتمام عملية الشراء.</li>
+          <li>{{ __('pages.privacy_not_1') }}</li>
+          <li>{{ __('pages.privacy_not_2') }}</li>
+          <li>{{ __('pages.privacy_not_3') }}</li>
         </ul>
       </div>
 
       <!-- 4. حماية البيانات -->
       <div class="feature p-6">
-        <h2 class="text-xl font-bold mb-3">كيف نحمي بياناتك؟</h2>
+        <h2 class="text-xl font-bold mb-3">{{ __('pages.privacy_protect_title') }}</h2>
         <div class="divider mb-3" style="height: 2px; opacity: 0.2;"></div>
         <ul class="pretty-list space-y-1">
-          <li>تخزين المعلومات على سيرفرات آمنة ومشفّرة.</li>
-          <li>استخدام أحدث بروتوكولات الحماية (مثل SSL).</li>
-          <li>تطبيق أنظمة دخول مؤمّنة للوصول إلى البيانات.</li>
-          <li>مراجعة دورية لإجراءات الأمان.</li>
+          <li>{{ __('pages.privacy_protect_1') }}</li>
+          <li>{{ __('pages.privacy_protect_2') }}</li>
+          <li>{{ __('pages.privacy_protect_3') }}</li>
+          <li>{{ __('pages.privacy_protect_4') }}</li>
         </ul>
       </div>
     </div>
 
     <!-- حقوق المستخدم -->
     <div class="note p-6 mb-10">
-      <h2 class="text-2xl font-semibold mb-3">حقوقكِ الكاملة</h2>
-      <p class="mb-3">يمكنكِ بأي وقت:</p>
+      <h2 class="text-2xl font-semibold mb-3">{{ __('pages.privacy_rights_title') }}</h2>
+      <p class="mb-3">{{ __('pages.privacy_rights_intro') }}</p>
       <ul class="pretty-list space-y-2 text-lg rtl:pr-6">
-        <li>طلب عرض أو تعديل أو حذف بياناتك الشخصية.</li>
-        <li>طلب تحديث معلوماتك لضمان دقتها.</li>
-        <li>إلغاء الاشتراك من أي إشعارات تسويقية.</li>
+        <li>{{ __('pages.privacy_rights_1') }}</li>
+        <li>{{ __('pages.privacy_rights_2') }}</li>
+        <li>{{ __('pages.privacy_rights_3') }}</li>
       </ul>
     </div>
 
     <!-- الخاتمة -->
     <div class="text-center pt-6 border-t" style="border-color: rgba(0,0,0,0.1);">
-      <p class="text-xl mb-4">كل شيء تحت سيطرتك … لأنك أهم من أي سياسة.</p>
+      <p class="text-xl mb-4">{{ __('pages.privacy_outro') }}</p>
       <p>
-        إذا كان لديك أي استفسار، لا تتردد في 
-        <a href="{{ route('page.contact-us') }}" class="link-brand">التواصل معنا</a>.
+        {{ __('pages.privacy_contact_cta') }} 
+        <a href="{{ route('page.contact-us') }}" class="link-brand">{{ __('pages.payment_contact_link') }}</a>.
       </p>
     </div>
 

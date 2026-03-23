@@ -2,7 +2,7 @@
 
 @php
     $slug   = $brand->slug ?? null;
-    $name   = $brand->name_ar ?? $brand->name ?? 'براند';
+    $name   = $brand->name_translated ?? $brand->name ?? __('shop.brand_fallback');
     $img    = $brand->image
                 ? asset('storage/' . $brand->image)
                 : ((isset($brand->icon) && $brand->icon) ? asset('storage/' . $brand->icon) : null);
@@ -49,13 +49,13 @@
             <div class="cat-texts">
                 <div class="cat-name">{{ $name }}</div>
                 <div class="cat-meta">
-                    @if($level === 1)<span class="cat-chip text-xs"><i class="bi bi-diagram-3"></i> رئيسي</span>
-                    @elseif($level === 2)<span class="cat-chip text-xs"><i class="bi bi-diagram-3"></i> فرعي</span>
-                    @else<span class="cat-chip text-xs"><i class="bi bi-diagram-3"></i> مستوى {{ $level }}</span>
+                    @if($level === 1)<span class="cat-chip text-xs"><i class="bi bi-diagram-3"></i> {{ __('shop.main') }}</span>
+                    @elseif($level === 2)<span class="cat-chip text-xs"><i class="bi bi-diagram-3"></i> {{ __('shop.sub') }}</span>
+                    @else<span class="cat-chip text-xs"><i class="bi bi-diagram-3"></i> {{ __('shop.level') }} {{ $level }}</span>
                     @endif
                     
                     @if(!is_null($count) && $count > 0)
-                        <span class="cat-chip text-xs"><i class="bi bi-box-seam"></i> {{ $count }} منتج</span>
+                        <span class="cat-chip text-xs"><i class="bi bi-box-seam"></i> {{ __('shop.products_count', ['count' => $count]) }}</span>
                     @endif
                 </div>
             </div>

@@ -263,18 +263,87 @@ html.dark .glass-nav{
 .glass-item{
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
   font-weight:600; font-size:11px; color:#6b7280; transition: transform .18s ease, color .18s ease;
+  position: relative;
+  z-index: 2;
 }
-.glass-item .icon{ font-size:20px; line-height:1; }
+.glass-item .icon{ font-size:20px; line-height:1; transition: transform .28s cubic-bezier(.22,.61,.36,1); }
+.glass-item .glass-label {
+  transition: opacity .24s ease, transform .24s ease;
+  opacity: .84;
+  transform: none;
+}
 .glass-item:active{ transform: translateY(1px) scale(.98); }
 .glass-item.active{ color:#6d0e16; }
+.glass-item.active .icon { transform: none; }
+.glass-item.active .glass-label {
+  opacity: 1;
+  transform: none;
+}
 html.dark .glass-item{ color:#cbd5e1; } 
 html.dark .glass-item.active{ color:#f0b0ad; }
+
+.glass-indicator {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 20%;
+  border-radius: 18px;
+  background: transparent;
+  box-shadow: none;
+  transform: translateX(calc(var(--glass-index, 0) * 100%));
+  transition: transform .34s cubic-bezier(.22,.61,.36,1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+html.dark .glass-indicator {
+  background: transparent;
+  box-shadow: none;
+}
+
+.glass-items.no-animate .glass-indicator,
+.glass-items.no-animate .glass-item .icon,
+.glass-items.no-animate .glass-item .glass-label {
+  transition: none !important;
+}
 </style>
 
     <style>
         html, body { margin: 0 !important; padding: 0 !important; }
-        body { font-family: "Tajawal", "Cairo", sans-serif; background-color: #f7f7f7; color: #1a1a1a; scroll-behavior: smooth; }
+        html {
+          scroll-behavior: auto;
+          scrollbar-gutter: stable;
+        }
+        @media (hover: hover) and (pointer: fine) {
+          html {
+            scroll-behavior: smooth;
+          }
+        }
+        body { font-family: "Tajawal", "Cairo", sans-serif; background-color: #f7f7f7; color: #1a1a1a; }
         .dark body { background-color: #0a0a0a !important; color: #ffffff !important; }
+
+        html::-webkit-scrollbar {
+          width: 12px;
+        }
+        html::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        html::-webkit-scrollbar-thumb {
+          background: linear-gradient(180deg, rgba(109,14,22,0.78), rgba(205,137,133,0.62));
+          border-radius: 999px;
+          border: 3px solid transparent;
+          background-clip: content-box;
+          transition: opacity .25s ease, background-color .25s ease;
+        }
+        html::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(180deg, rgba(109,14,22,0.95), rgba(205,137,133,0.82));
+          background-clip: content-box;
+        }
+        html.dark::-webkit-scrollbar-thumb {
+          background: linear-gradient(180deg, rgba(240,176,173,0.85), rgba(109,14,22,0.7));
+          background-clip: content-box;
+        }
 
         body > .sticky.top-0.z-40 {
           top: 0 !important;
@@ -315,6 +384,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
           border-bottom-left-radius: 30px;
           border-bottom-right-radius: 30px;
         }
+
     </style>
 <style>
   [x-cloak] { display: none !important; }
@@ -806,8 +876,8 @@ html.dark .glass-item.active{ color:#f0b0ad; }
         100% { background-position: -200% 0; }
       }
       @keyframes pageContentFadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; }
+        to { opacity: 1; }
       }
       .page-content-shell {
         position: relative;
@@ -915,6 +985,9 @@ html.dark .glass-item.active{ color:#f0b0ad; }
         .page-shell-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; }
         .page-shell-card { min-height: 210px; border-radius: 20px; }
         .page-shell-thumb { height: 120px; }
+        html.app-shell-ready .page-content-shell {
+          animation: none;
+        }
       }
     </style>
 
@@ -1024,7 +1097,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                 >
                     <form action="{{ route('products.search') }}" method="GET" class="w-full md:w-[480px] lg:w-[640px]" @submit.prevent="if (highlightedIndex !== -1) selectHighlighted(); else $el.submit()">
                         <div class="flex w-full bg-white rounded-full overflow-hidden dark:bg-gray-800 dark:border dark:border-gray-700">
-                            <input type="text" name="query" placeholder="ابحث عن منتجات أو علامات تجارية" class="flex-1 px-4 py-2 text-sm text-gray-700 placeholder-gray-500 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400 dark:bg-transparent"
+                            <input type="text" name="query" placeholder="{{ __('header.search_placeholder') }}" class="flex-1 px-4 py-2 text-sm text-gray-700 placeholder-gray-500 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400 dark:bg-transparent"
                                 x-model="query" @input.debounce.300ms="search" @keydown.down.prevent="moveHighlight('down')" @keydown.up.prevent="moveHighlight('up')"
                                 @keydown.enter.prevent="if (highlightedIndex > -1) { selectHighlighted() } else { $el.closest('form').submit() }" @focus="onFocus(); searchFocused = true" @blur="searchFocused = false" autocomplete="off">
                     <button type="submit" class="px-4 bg-white text-[#6d0e16] hover:text-[#6d0e16] dark:bg-transparent"><i class="bi bi-search text-lg"></i></button>
@@ -1033,8 +1106,8 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                     <template x-teleport="body">
                         <div x-show="showResults" x-transition class="search-popup" x-cloak
                             x-init="$watch('showResults', (value) => { if (value) { $nextTick(() => { let rect = $refs.searchContainerDesktop.getBoundingClientRect(); $el.style.top = `${rect.bottom + 4}px`; $el.style.left = `${rect.left}px`; $el.style.width = `${rect.width}px`; }); } })">
-                            <div x-show="loading" class="p-4 text-center text-gray-500 dark:text-gray-300">جاري البحث...</div>
-                            <template x-if="!loading && results.length === 0 && query.length >= minChars"><div class="p-4 text-center text-gray-500 dark:text-gray-300">لا توجد منتجات مطابقة.</div></template>
+                            <div x-show="loading" class="p-4 text-center text-gray-500 dark:text-gray-300">{{ __('layout.searching') }}</div>
+                            <template x-if="!loading && results.length === 0 && query.length >= minChars"><div class="p-4 text-center text-gray-500 dark:text-gray-300">{{ __('layout.no_products_matching') }}</div></template>
                             <template x-for="(result, index) in results" :key="index">
                                 <div>
                                     <template x-if="result.type === 'header'">
@@ -1072,15 +1145,15 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                 </div>
                 <div class="hidden md:flex items-center gap-4">
                     @if($showDashboardLink)
-                        <a href="{{ url('/admin/dashboard') }}" class="inline-flex items-center gap-2 rounded-full px-3 py-2 bg-white/10 hover:bg:white/20 transition" title="لوحة التحكم">
-                            <i class="bi bi-speedometer2 text-xl"></i><span class="hidden lg:inline">لوحة التحكم</span>
+                        <a href="{{ url('/admin/dashboard') }}" class="inline-flex items-center gap-2 rounded-full px-3 py-2 bg-white/10 hover:bg:white/20 transition" title="{{ __('layout.dashboard') }}">
+                            <i class="bi bi-speedometer2 text-xl"></i><span class="hidden lg:inline">{{ __('layout.dashboard') }}</span>
                         </a>
                     @endif
                     {{-- Language Switcher Desktop --}}
                     <div x-data="{ langOpen: false }" class="relative" @click.away="langOpen = false">
                         <button @click="langOpen = !langOpen"
                             class="flex items-center gap-1.5 rounded-full px-3 py-1.5 bg-white/15 hover:bg-white/25 transition text-sm font-semibold"
-                            title="تغيير اللغة">
+                            title="{{ __('layout.change_language') }}">
                             @if($locale === 'ar')
                               <img src="{{ request()->root() }}/flags/iq.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="Arabic"><span>ع</span>
                             @elseif($locale === 'en')
@@ -1101,11 +1174,11 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                             </a>
                           </div>
                     </div>
-                    <button @click="toggleTheme" class="rounded-full p-2 bg-white/10 hover:bg.white/20 transition" title="تبديل الوضع">
+                    <button @click="toggleTheme" class="rounded-full p-2 bg-white/10 hover:bg.white/20 transition" title="{{ __('layout.toggle_theme') }}">
                         <i x-show="!isDark" class="bi bi-moon text-xl"></i><i x-show="isDark" class="bi bi-sun text-xl"></i>
                     </button>
                     @auth
-                    <a href="{{ route('profile.show') }}" class="hover:opacity-80 transition relative group" title="حسابي"><i class="bi bi-person text-xl"></i></a>
+                    <a href="{{ route('profile.show') }}" class="hover:opacity-80 transition relative group" title="{{ __('layout.my_account') }}"><i class="bi bi-person text-xl"></i></a>
                     @else
                     <a href="{{ route('login') }}" class="hover:underline transition text-sm">{{ __('layout.login_register') }}</a>
                     @endauth
@@ -1119,16 +1192,16 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                     </a>
                     @auth
                     <div x-data="userNotificationsComponent('{{ route('user.notifications.index') }}', '{{ route('user.notifications.markAsRead') }}')" x-init="fetchNotifications(); setInterval(() => fetchNotifications(), 60000)" class="relative" x-ref="notificationContainerDesktop">
-                        <button @click="dropdownOpen = !dropdownOpen" class="relative" title="الإشعارات">
+                        <button @click="dropdownOpen = !dropdownOpen" class="relative" title="{{ __('layout.notifications') }}">
                             <i class="bi bi-bell text-2xl"></i>
                             <span x-show="unreadCount > 0" x-text="unreadCount" class="badge" style="display: none;"></span>
                         </button>
                         <template x-teleport="body">
                            <div x-show="dropdownOpen" @click.away="dropdownOpen = false" class="text-right notification-popup w-80" style="display: none;"
                                 x-init="$watch('dropdownOpen', (value) => { if (value) { $nextTick(() => { let rect = $refs.notificationContainerDesktop.getBoundingClientRect(); $el.style.top = `${rect.bottom + 8}px`; $el.style.left = `${rect.left}px`; }); } })">
-                                <div class="px-4 py-2 border-b font-bold">الإشعارات</div>
+                                <div class="px-4 py-2 border-b font-bold">{{ __('layout.notifications') }}</div>
                                 <div class="py-1 max-h-96 overflow-y-auto">
-                                    <template x-if="notifications.length === 0"><p class="text-center text-gray-500 py-4">لا توجد إشعارات.</p></template>
+                                    <template x-if="notifications.length === 0"><p class="text-center text-gray-500 py-4">{{ __('layout.no_notifications') }}</p></template>
                                     <template x-for="notification in notifications" :key="notification.id">
                                         <a @click.prevent="markAsRead(notification)" :href="notification.data?.url || '#'" class="flex items-start px-4 py-3" :class="{ 'bg-gray-50 dark:bg-gray-900/40': !notification.read_at }">
                                             <i class="bi ml-3 mt-1" :class="notification.data?.icon || 'bi-info-circle'"></i>
@@ -1159,7 +1232,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                   <div x-data="{ langOpen: false }" class="relative" @click.away="langOpen = false">
                       <button @click="langOpen = !langOpen"
                           class="flex items-center gap-1 p-2 hover:bg-white/10 rounded-full text-sm font-bold"
-                          title="تغيير اللغة">
+                          title="{{ __('layout.change_language') }}">
                           @if($locale === 'ar')
                             <img src="{{ request()->root() }}/flags/iq.svg" class="w-6 h-4 object-cover rounded-sm shadow-sm" alt="Arabic">
                           @elseif($locale === 'en')
@@ -1181,16 +1254,16 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                   </div>
                   @auth
                   <div class="relative" x-data="userNotificationsComponent('{{ route('user.notifications.index') }}', '{{ route('user.notifications.markAsRead') }}')" x-init="fetchNotifications(); setInterval(() => fetchNotifications(), 60000)" x-ref="notificationContainerMobile">
-                    <button @click="dropdownOpen = !dropdownOpen" class="relative p-2 hover:bg-white/10 rounded-full" title="الإشعارات">
+                    <button @click="dropdownOpen = !dropdownOpen" class="relative p-2 hover:bg-white/10 rounded-full" title="{{ __('layout.notifications') }}">
                       <i class="bi bi-bell text-lg"></i>
                       <span x-show="unreadCount > 0" x-text="unreadCount" class="badge" style="display:none;"></span>
                     </button>
                     <template x-teleport="body">
                         <div x-show="dropdownOpen" @click.away="dropdownOpen = false" class="text-right notification-popup w-72 sm:w-80" style="display:none;"
                              x-init="$watch('dropdownOpen', (value) => { if (value) { $nextTick(() => { let rect = $refs.notificationContainerMobile.getBoundingClientRect(); $el.style.top = `${rect.bottom + 8}px`; $el.style.left = `${rect.left}px`; }); } })">
-                          <div class="px-4 py-2 border-b font-bold">الإشعارات</div>
+                          <div class="px-4 py-2 border-b font-bold">{{ __('layout.notifications') }}</div>
                           <div class="py-1 max-h-96 overflow-y-auto">
-                            <template x-if="notifications.length === 0"><p class="text-center text-gray-500 py-4">لا توجد إشعارات.</p></template>
+                            <template x-if="notifications.length === 0"><p class="text-center text-gray-500 py-4">{{ __('layout.no_notifications') }}</p></template>
                             <template x-for="notification in notifications" :key="notification.id">
                               <a @click.prevent="markAsRead(notification)" :href="notification.data?.url || '#'" class="flex items-start px-4 py-3" :class="{ 'bg-gray-50 dark:bg-gray-900/40': !notification.read_at }">
                                 <i class="bi ml-3 mt-1" :class="notification.data?.icon || 'bi-info-circle'"></i>
@@ -1202,7 +1275,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                     </template>
                   </div>
                   @endauth
-                  <button @click="toggleTheme" class="p-2 hover:bg-white/10 rounded-full" title="تبديل الوضع">
+                  <button @click="toggleTheme" class="p-2 hover:bg-white/10 rounded-full" title="{{ __('layout.toggle_theme') }}">
                     <i class="bi text-lg" :class="isDark ? 'bi-sun-fill' : 'bi-moon-fill'"></i>
                   </button>
                 </div>
@@ -1211,7 +1284,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
               <div x-data="liveSearch('{{ route('products.liveSearch') }}')" @click.away="showResults = false" class="w-full relative" x-ref="searchContainerMobile">
                 <form action="{{ route('products.search') }}" method="GET" @submit.prevent="if (highlightedIndex !== -1) selectHighlighted(); else $el.submit()">
                   <div class="flex w-full bg-white rounded-full overflow-hidden dark:bg-gray-800 dark:border dark:border-gray-700">
-                    <input type="text" name="query" placeholder="ابحث عن منتجات أو علامات تجارية" class="flex-1 px-4 py-2 text-sm text-gray-700 placeholder-gray-500 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400 dark:bg-transparent"
+                    <input type="text" name="query" placeholder="{{ __('header.search_placeholder') }}" class="flex-1 px-4 py-2 text-sm text-gray-700 placeholder-gray-500 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400 dark:bg-transparent"
                         x-model="query" @input.debounce.300ms="search" @keydown.down.prevent="moveHighlight('down')" @keydown.up.prevent="moveHighlight('up')"
                         @keydown.enter.prevent="if (highlightedIndex > -1) { selectHighlighted() } else { $el.closest('form').submit() }" 
                         @focus="onFocus(); searchFocused = true" @blur="searchFocused = false" autocomplete="off">
@@ -1221,8 +1294,8 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                 <template x-teleport="body">
                     <div x-show="showResults" x-transition class="search-popup" x-cloak
                          x-init="$watch('showResults', (value) => { if (value) { $nextTick(() => { let rect = $refs.searchContainerMobile.getBoundingClientRect(); $el.style.top = `${rect.bottom + 4}px`; $el.style.left = `${rect.left}px`; $el.style.width = `${rect.width}px`; }); } })">
-                        <div x-show="loading" class="p-4 text-center text-gray-500 dark:text-gray-300">جاري البحث...</div>
-                        <template x-if="!loading && results.length === 0 && query.length >= minChars"><div class="p-4 text-center text-gray-500 dark:text-gray-300">لا توجد منتجات مطابقة.</div></template>
+                        <div x-show="loading" class="p-4 text-center text-gray-500 dark:text-gray-300">{{ __('layout.searching') }}</div>
+                        <template x-if="!loading && results.length === 0 && query.length >= minChars"><div class="p-4 text-center text-gray-500 dark:text-gray-300">{{ __('layout.no_products_matching') }}</div></template>
                         <template x-for="(result, index) in results" :key="index">
                             <div>
                                 <template x-if="result.type === 'header'">
@@ -1536,7 +1609,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
             class="relative group font-medium hover:text-[#f3e5e3] transition-colors duration-300 py-1 px-4 flex items-center gap-1 {{ request()->routeIs('categories.*') ? 'active-link' : '' }}"
             aria-haspopup="true" :aria-expanded="open.toString()">
         {{-- ✅ [تعديل] تغيير كلمة البراندات إلى الفئات --}}
-        <i class="bi bi-tags-fill"></i> الفئات
+        <i class="bi bi-tags-fill"></i> {{ __('layout.categories_nav') }}
     </button>
 
     {{-- القائمة المنسدلة --}}
@@ -1609,7 +1682,7 @@ html.dark .glass-item.active{ color:#f0b0ad; }
                 @empty
                     <div class="text-center p-8 text-sm text-gray-500">
                         {{-- ✅ [تعديل] تغيير كلمة البراندات إلى الفئات --}}
-                        لا توجد فئات لعرضها حالياً.
+                        {{ __('layout.no_categories') }}
                     </div>
                 @endforelse
             </div>
@@ -1690,7 +1763,7 @@ function brandMenuV4(){
           <div class="flex h-full flex-col overflow-y-auto shadow-xl sidebar-glass">
             <div class="px-4 sm:px-6 py-4 border-b sidebar-header">
               <div class="flex items-center justify-between">
-                <h2 class="text-xl font-bold text-[#6d0e16] dark:text-[#f0b0ad]" id="sidebar-title"><i class="bi bi-grid-3x3-gap"></i> تصفح الأقسام</h2>
+                <h2 class="text-xl font-bold text-[#6d0e16] dark:text-[#f0b0ad]" id="sidebar-title"><i class="bi bi-grid-3x3-gap"></i> {{ __('layout.browse_sections') }}</h2>
                 <button type="button" class="rounded-md text-gray-400 hover:text-red-500" @click="sidebarOpen = false"><i class="bi bi-x-lg text-xl"></i></button>
               </div>
             </div>
@@ -1706,7 +1779,7 @@ function brandMenuV4(){
                         </div>
                         <div class="category-details">
                           <h3 class="category-name">{{ app()->getLocale() === 'en' && !empty($category->name_en) ? $category->name_en : $category->name_ar }}</h3>
-                          <div class="category-meta"><span class="meta-item"><i class="bi bi-diagram-3"></i> رئيسي</span><span class="meta-item"><i class="bi bi-box-seam"></i> {{ $category->total_products_count ?? 0 }} منتج</span></div>
+                          <div class="category-meta"><span class="meta-item"><i class="bi bi-diagram-3"></i> {{ __('layout.main_category') }}</span><span class="meta-item"><i class="bi bi-box-seam"></i> {{ $category->total_products_count ?? 0 }} {{ __('layout.product_unit') }}</span></div>
                         </div>
                       </a>
                       @if($category->children->isNotEmpty())<button class="expand-btn" @click="open = !open"><i class="bi bi-chevron-down" :class="{'rotate-180': open}"></i></button>@endif
@@ -1724,7 +1797,7 @@ function brandMenuV4(){
                                   </div>
                                   <div class="subcategory-details">
                                     <h4 class="subcategory-name">{{ app()->getLocale() === 'en' && !empty($child->name_en) ? $child->name_en : $child->name_ar }}</h4>
-                                    <div class="category-meta"><span class="meta-item"><i class="bi bi-box-seam"></i> {{ $child->total_products_count ?? 0 }} منتج</span></div>
+                                    <div class="category-meta"><span class="meta-item"><i class="bi bi-box-seam"></i> {{ $child->total_products_count ?? 0 }} {{ __('layout.product_unit') }}</span></div>
                                   </div>
                                 </a>
                                 @if($child->children->isNotEmpty())<button class="expand-btn" @click="open = !open"><i class="bi bi-chevron-down" :class="{'rotate-180': open}"></i></button>@endif
@@ -1742,7 +1815,7 @@ function brandMenuV4(){
                                             </div>
                                             <div class="subcategory-details">
                                               <h5 class="sub-subcategory-name">{{ app()->getLocale() === 'en' && !empty($grand->name_en) ? $grand->name_en : $grand->name_ar }}</h5>
-                                              <div class="category-meta"><span class="meta-item"><i class="bi bi-box-seam"></i> {{ $grand->total_products_count ?? 0 }} منتج</span></div>
+                                              <div class="category-meta"><span class="meta-item"><i class="bi bi-box-seam"></i> {{ $grand->total_products_count ?? 0 }} {{ __('layout.product_unit') }}</span></div>
                                             </div>
                                           </a>
                                         </div>
@@ -1758,7 +1831,7 @@ function brandMenuV4(){
                     @endif
                   </div>
                 @empty
-                  <div class="text-center py-6 text-gray-500">لا يوجد أقسام لعرضها حالياً.</div>
+                  <div class="text-center py-6 text-gray-500">{{ __('layout.no_sections') }}</div>
                 @endforelse
               </div>
             </div>
@@ -1801,7 +1874,7 @@ function brandMenuV4(){
         <span class="text-xl font-bold text-[#6d0e16]">{{ __('layout.tofof') }}</span>
       </a>
       <p class="leading-relaxed text-sm text-[#6B7280] dark:text-gray-300">
-        علامة متخصصة في الساعات والإكسسوارات الرجالية والنسائية، نقدم تصاميم أنيقة وجودة مميزة تضيف لمسة فخامة إلى إطلالتك اليومية.
+        {{ __('layout.footer_description') }}
       </p>
       <div class="flex gap-4 text-[#6d0e16] text-2xl mt-4 justify-center md:justify-start">
         <a href="https://www.facebook.com/p/%D8%B7%D9%81%D9%88%D9%81-%D9%84%D9%84%D8%B3%D8%A7%D8%B9%D8%A7%D8%AA-100091444293851/" target="_blank" rel="noopener noreferrer" class="hover:text-[#6d0e16] transition"><i class="bi bi-facebook"></i></a>
@@ -1810,40 +1883,40 @@ function brandMenuV4(){
       </div>
     </div>
     <div>
-      <h3 class="text-lg font-semibold text-[#6d0e16] mb-4">حول طفوف</h3>
+      <h3 class="text-lg font-semibold text-[#6d0e16] mb-4">{{ __('layout.about_tofof') }}</h3>
       <ul class="space-y-2">
-        <li><a href="{{ route('about.us') }}" class="hover:text-[#6d0e16]">من نحن</a></li>
-        <li><a href="{{ route('privacy.policy') }}" class="hover:text-[#6d0e16]">سياسة الخصوصية</a></li>
-        @if (Route::has('terms')) <li><a href="{{ route('terms') }}" class="hover:text-[#6d0e16]">الشروط والأحكام</a></li> @endif
+        <li><a href="{{ route('about.us') }}" class="hover:text-[#6d0e16]">{{ __('layout.about_us') }}</a></li>
+        <li><a href="{{ route('privacy.policy') }}" class="hover:text-[#6d0e16]">{{ __('layout.privacy_policy') }}</a></li>
+        @if (Route::has('terms')) <li><a href="{{ route('terms') }}" class="hover:text-[#6d0e16]">{{ __('layout.terms_conditions') }}</a></li> @endif
       </ul>
     </div>
     <div>
-      <h3 class="text-lg font-semibold text-[#6d0e16] mb-4">خدماتنا</h3>
+      <h3 class="text-lg font-semibold text-[#6d0e16] mb-4">{{ __('layout.our_services') }}</h3>
       <ul class="space-y-2">
-        <li><a href="{{ Route::has('payment.delivery') ? route('payment.delivery') : url('/payment-delivery') }}" class="hover:text-[#6d0e16]">التوصيل والدفع</a></li>
-        <li><a href="{{ route('faq') }}" class="hover:text-[#6d0e16]">الأسئلة الشائعة</a></li>
-        @if (Route::has('contact.us')) <li><a href="{{ route('contact.us') }}" class="hover:text-[#6d0e16]">التواصل معنا</a></li> @endif
-        <li><a href="{{ route('blog.index') }}" class="hover:text-[#6d0e16]">المدونة</a></li>
-        <li><a href="{{ route('return.policy') }}" class="hover:text-[#6d0e16]">سياسة الاستبدال والإرجاع</a></li>
+        <li><a href="{{ Route::has('payment.delivery') ? route('payment.delivery') : url('/payment-delivery') }}" class="hover:text-[#6d0e16]">{{ __('layout.payment_delivery') }}</a></li>
+        <li><a href="{{ route('faq') }}" class="hover:text-[#6d0e16]">{{ __('layout.faq') }}</a></li>
+        @if (Route::has('contact.us')) <li><a href="{{ route('contact.us') }}" class="hover:text-[#6d0e16]">{{ __('layout.contact_us') }}</a></li> @endif
+        <li><a href="{{ route('blog.index') }}" class="hover:text-[#6d0e16]">{{ __('layout.blog') }}</a></li>
+        <li><a href="{{ route('return.policy') }}" class="hover:text-[#6d0e16]">{{ __('layout.return_policy') }}</a></li>
       </ul>
     </div>
     <div>
-      <h3 class="text-lg font-semibold text-[#6d0e16] mb-4">الدعم</h3>
+      <h3 class="text-lg font-semibold text-[#6d0e16] mb-4">{{ __('layout.support') }}</h3>
 <ul class="space-y-2">
     <li><a href="{{ route('profile.show') }}" class="hover:text-[#6d0e16]">{{ __('layout.my_account') }}</a></li>
 
     @if (Route::has('orders.index'))
-        <li><a href="{{ route('orders.index') }}" class="hover:text-[#6d0e16]">طلباتي</a></li>
+        <li><a href="{{ route('orders.index') }}" class="hover:text-[#6d0e16]">{{ __('layout.my_orders') }}</a></li>
     @endif
 
     <li><a href="{{ route('wishlist') }}" class="hover:text-[#6d0e16]">{{ __('layout.wishlist') }}</a></li>
 
     @if (Route::has('track.order'))
-        <li><a href="{{ route('track.order') }}" class="hover:text-[#6d0e16]">تتبع الطلب</a></li>
+        <li><a href="{{ route('track.order') }}" class="hover:text-[#6d0e16]">{{ __('layout.track_order') }}</a></li>
     @endif
 
     @if (Route::has('page.contact-us'))
-        <li><a href="{{ route('page.contact-us') }}" class="hover:text-[#6d0e16]">اتصل بنا</a></li>
+        <li><a href="{{ route('page.contact-us') }}" class="hover:text-[#6d0e16]">{{ __('layout.contact_us') }}</a></li>
     @endif
 
     <li>
@@ -1851,7 +1924,7 @@ function brandMenuV4(){
            x-data
            @click.prevent="window.dispatchEvent(new CustomEvent('open-request-modal'))"
            class="hover:text-[#6d0e16]">
-            طلب منتج غير متوفر
+            {{ __('layout.request_product') }}
         </a>
     </li>
 </ul>
@@ -1872,7 +1945,7 @@ function brandMenuV4(){
         </a>
         <span class="footer-divider">|</span>
         <div>
-          &copy; {{ date('Y') }} جميع الحقوق محفوظة لـ <a href="{{ route('homepage') }}" class="font-bold text-[#6d0e16] hover:text-[#6d0e16]">Tofof</a>
+          &copy; {{ date('Y') }} {{ __('layout.copyright') }} <a href="{{ route('homepage') }}" class="font-bold text-[#6d0e16] hover:text-[#6d0e16]">Tofof</a>
         </div>
       </div>
 
@@ -1888,7 +1961,7 @@ function brandMenuV4(){
             </svg>
           </span>
           <span class="text-wrap text-right mr-1">
-            <span class="mini text-gray-300">متوفر على</span>
+            <span class="mini text-gray-300">{{ __('layout.available_on') }}</span>
             <span class="label text-white">Google Play</span>
           </span>
         </button>
@@ -1897,7 +1970,7 @@ function brandMenuV4(){
         <button type="button" class="pwa-install-btn store-badge-btn bg-black hover:bg-gray-900 border border-gray-700 transition shadow-lg" aria-label="تثبيت التطبيق على ايفون">
           <span class="store-icon"><i class="bi bi-apple text-white" style="font-size: 1.8rem; line-height: 1;"></i></span>
           <span class="text-wrap text-right mr-1">
-            <span class="mini text-gray-300">متوفر على</span>
+            <span class="mini text-gray-300">{{ __('layout.available_on') }}</span>
             <span class="label text-white">App Store</span>
           </span>
         </button>
@@ -1906,7 +1979,7 @@ function brandMenuV4(){
         <button type="button" class="pwa-install-btn store-badge-btn bg-black hover:bg-gray-900 border border-gray-700 transition shadow-lg" aria-label="تثبيت التطبيق على ويندوز">
           <span class="store-icon"><i class="bi bi-windows text-[#00a4ef]" style="font-size: 1.7rem; line-height: 1;"></i></span>
           <span class="text-wrap text-right mr-1">
-            <span class="mini text-gray-300">متوفر لـ</span>
+            <span class="mini text-gray-300">{{ __('layout.available_for') }}</span>
             <span class="label text-white">Windows</span>
           </span>
         </button>
@@ -1919,24 +1992,25 @@ function brandMenuV4(){
   <div class="glass-nav-wrap">
     <nav class="glass-nav" role="navigation" aria-label="التنقل السفلي">
       <div class="glass-items">
-        <a href="{{ route('homepage') }}" class="glass-item {{ request()->routeIs('homepage') ? 'active' : '' }}">
-          <i class="bi bi-house-door-fill icon"></i><span class="mt-0.5">{{ __('layout.home') }}</span>
+        <a href="{{ route('homepage') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('homepage') ? 'active' : '' }}">
+          <i class="bi bi-house-door-fill icon"></i><span class="glass-label mt-0.5">{{ __('layout.home') }}</span>
         </a>
-        <a href="{{ route('shop') }}" class="glass-item {{ request()->routeIs('shop') ? 'active' : '' }}">
-          <i class="bi bi-grid-fill icon"></i><span class="mt-0.5">{{ __('layout.shop') }}</span>
+        <a href="{{ route('shop') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('shop') ? 'active' : '' }}">
+          <i class="bi bi-grid-fill icon"></i><span class="glass-label mt-0.5">{{ __('layout.shop') }}</span>
         </a>
 
-        <a href="{{ route('cart.index') }}" class="glass-item {{ request()->routeIs('cart.index') ? 'active' : '' }} relative">
-          <i class="bi bi-cart2 icon"></i><span class="mt-0.5">{{ __('layout.cart') }}</span>
+        <a href="{{ route('cart.index') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('cart.index') ? 'active' : '' }} relative">
+          <i class="bi bi-cart2 icon"></i><span class="glass-label mt-0.5">{{ __('layout.cart') }}</span>
           <span x-show="cartCount > 0" x-text="cartCount" class="badge badge-cart" :class="{'animate-ping-once': isCartUpdated}" style="display:none; top: 2px; right: 15px;"></span>
         </a>
 
-        <a href="{{ route('categories.index') }}" class="glass-item {{ request()->routeIs('categories.index') ? 'active' : '' }}">
-          <i class="bi bi-grid-3x3-gap-fill icon"></i><span class="mt-0.5">{{ __('layout.categories') }}</span>
+        <a href="{{ route('categories.index') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('categories.index') ? 'active' : '' }}">
+          <i class="bi bi-grid-3x3-gap-fill icon"></i><span class="glass-label mt-0.5">{{ __('layout.categories') }}</span>
         </a>
-        <a href="{{ route('profile.show') }}" class="glass-item {{ request()->routeIs('profile.show') ? 'active' : '' }}">
-          <i class="bi bi-person-fill icon"></i><span class="mt-0.5">{{ __('layout.my_account') }}</span>
+        <a href="{{ route('profile.show') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('profile.*', 'login', 'register') ? 'active' : '' }}">
+          <i class="bi bi-person-fill icon"></i><span class="glass-label mt-0.5">{{ __('layout.my_account') }}</span>
         </a>
+        <span class="glass-indicator" aria-hidden="true"></span>
       </div>
     </nav>
   </div>
@@ -1998,6 +2072,35 @@ function brandMenuV4(){
 (function () {
   const storageKey = 'tofof-page-loading';
   const prefetchedUrls = new Set();
+  let fastNavigating = false;
+
+  function setupMobileFooterNavAnimation() {
+    const container = document.querySelector('.footer-mobile .glass-items');
+    if (!container) return;
+
+    const items = Array.from(container.querySelectorAll('.glass-item'));
+    if (!items.length) return;
+
+    function setActive(item, withAnimation = true) {
+      items.forEach((el) => el.classList.toggle('active', el === item));
+
+      const idx = items.indexOf(item);
+      if (idx >= 0) container.style.setProperty('--glass-index', String(idx));
+
+      if (!withAnimation) {
+        container.classList.add('no-animate');
+        requestAnimationFrame(() => container.classList.remove('no-animate'));
+      }
+    }
+
+    const initial = items.find((el) => el.classList.contains('active')) || items[0];
+    setActive(initial, false);
+
+    items.forEach((item) => {
+      item.addEventListener('touchstart', () => setActive(item), { passive: true });
+      item.addEventListener('click', () => setActive(item));
+    });
+  }
 
   function sameOriginUrl(url) {
     try {
@@ -2012,6 +2115,10 @@ function brandMenuV4(){
     if (!link || event.defaultPrevented) return false;
     if (link.hasAttribute('download') || link.getAttribute('target') === '_blank') return false;
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+
+    // If the actual clicked element is an interactive control nested inside the link
+    // (e.g. add-to-cart / wishlist buttons), do not trigger the loading transition.
+    if (event.target.closest('button, input, select, textarea, [role="button"]')) return false;
 
     const rawHref = link.getAttribute('href') || '';
     if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:') || rawHref.startsWith('javascript:')) return false;
@@ -2065,6 +2172,26 @@ function brandMenuV4(){
   document.addEventListener('click', (event) => {
     const link = event.target.closest('a[href]');
     if (!shouldHandleLink(link, event)) return;
+
+    // Fast path for mobile bottom navigation: show skeleton instantly,
+    // then force navigation in the same click cycle.
+    if (link.hasAttribute('data-fast-nav')) {
+      const navItems = link.closest('.glass-items');
+      if (navItems) {
+        const allItems = Array.from(navItems.querySelectorAll('.glass-item'));
+        allItems.forEach((el) => el.classList.toggle('active', el === link));
+        const activeIndex = allItems.indexOf(link);
+        if (activeIndex >= 0) navItems.style.setProperty('--glass-index', String(activeIndex));
+      }
+
+      event.preventDefault();
+      if (fastNavigating) return;
+      fastNavigating = true;
+      activateLoading();
+      window.location.assign(link.href);
+      return;
+    }
+
     activateLoading();
   }, true);
 
@@ -2089,6 +2216,22 @@ function brandMenuV4(){
     if (!parsed || parsed.origin !== window.location.origin) return;
     prefetchLink(link);
   }, { passive: true, capture: true });
+
+  // On mobile footer links, start loading state as soon as the finger touches.
+  document.addEventListener('touchstart', (event) => {
+    const link = event.target.closest('a[data-fast-nav][href]');
+    if (!link) return;
+    if (!sameOriginUrl(link.href)) return;
+    activateLoading();
+  }, { passive: true, capture: true });
+
+  // Warm up footer destinations early for instant-feel navigation.
+  document.addEventListener('DOMContentLoaded', () => {
+    setupMobileFooterNavAnimation();
+
+    const fastLinks = document.querySelectorAll('a[data-fast-nav][href]');
+    fastLinks.forEach((link) => prefetchLink(link));
+  });
 
   window.addEventListener('pageshow', deactivateLoading);
   window.addEventListener('load', deactivateLoading);

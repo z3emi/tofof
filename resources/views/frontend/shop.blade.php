@@ -1,10 +1,10 @@
-@php
+﻿@php
     $favoriteProductIds = $favoriteProductIds ?? [];
 @endphp
 
 @extends('layouts.app')
 
-@section('title', $pageTitle ?? 'المتجر')
+@section('title', $pageTitle ?? __('shop.title'))
 
 @push('styles')
 <style>
@@ -414,9 +414,9 @@
         <div class="search-hero">
             <div class="search-hero-content">
                 <h1 class="search-hero-title">
-                    نتائج البحث عن: <span>"{{ e($searchTerm) }}"</span>
+                    {{ __('shop.search_results_for') }} <span>"{{ e($searchTerm) }}"</span>
                     @if($currentCategory)
-                        في قسم "{{ $currentCategory->name_ar }}"
+                        {{ __('shop.in_section') }} "{{ $currentCategory->name_translated }}"
                     @endif
                 </h1>
             </div>
@@ -425,11 +425,11 @@
         <div class="category-hero" style="--bg-image: url('{{ $currentCategory->image ? asset('storage/' . $currentCategory->image) : 'https://placehold.co/1200x300/f3e5e3/be6661?text=Tofof' }}')">
             <div class="category-hero-content">
                 @if ($currentCategory->image)
-                    <img src="{{ asset('storage/' . $currentCategory->image) }}" alt="{{ $currentCategory->name_ar }}" class="category-hero-image">
+                    <img src="{{ asset('storage/' . $currentCategory->image) }}" alt="{{ $currentCategory->name_translated }}" class="category-hero-image">
                 @endif
                 <div class="category-hero-text">
-                    <p class="category-hero-subtitle">أنت تتصفح قسم</p>
-                    <h1 class="category-hero-title">{{ $currentCategory->name_ar }}</h1>
+                    <p class="category-hero-subtitle">{{ __('shop.browsing_section') }}</p>
+                    <h1 class="category-hero-title">{{ $currentCategory->name_translated }}</h1>
                 </div>
             </div>
         </div>
@@ -444,7 +444,7 @@
                 $from = ($products->currentPage()-1)*$products->perPage()+1;
                 $to    = min($products->currentPage()*$products->perPage(), $products->total());
             @endphp
-            عرض {{ $from }}–{{ $to }} من {{ $products->total() }} منتج
+            {{ __('shop.showing_range', ['from'=>$from, 'to'=>$to, 'total'=>$products->total()]) }}
         </div>
         <form method="GET">
             @foreach(request()->except('sort') as $k=>$v)
@@ -453,14 +453,14 @@
                 @else <input type="hidden" name="{{ $k }}" value="{{ $v }}"> @endif
             @endforeach
             @php $sort = request('sort'); @endphp
-            <label class="toolbar-label">الترتيب:</label>
+            <label class="toolbar-label">{{ __('shop.sort_by') }}</label>
             <div class="sort-select-wrap">
                 <select name="sort" class="sort-select" onchange="this.form.submit()">
-                    <option value="" {{ $sort===''||$sort===null ? 'selected' : '' }}>الأحدث</option>
-                    <option value="price_asc"  {{ $sort==='price_asc'  ? 'selected' : '' }}>السعر: من الأقل للأعلى</option>
-                    <option value="price_desc" {{ $sort==='price_desc' ? 'selected' : '' }}>السعر: من الأعلى للأقل</option>
-                    <option value="rating_desc"{{ $sort==='rating_desc'? 'selected' : '' }}>الأعلى تقييماً</option>
-                    <option value="bestseller" {{ $sort==='bestseller' ? 'selected' : '' }}>الأكثر مبيعاً</option>
+                    <option value="" {{ $sort===''||$sort===null ? 'selected' : '' }}>{{ __('shop.newest') }}</option>
+                    <option value="price_asc"  {{ $sort==='price_asc'  ? 'selected' : '' }}>{{ __('shop.price_low_to_high') }}</option>
+                    <option value="price_desc" {{ $sort==='price_desc' ? 'selected' : '' }}>{{ __('shop.price_high_to_low') }}</option>
+                    <option value="rating_desc"{{ $sort==='rating_desc'? 'selected' : '' }}>{{ __('shop.highest_rated') }}</option>
+                    <option value="bestseller" {{ $sort==='bestseller' ? 'selected' : '' }}>{{ __('shop.best_selling') }}</option>
                 </select>
                 <i class="bi bi-chevron-down sort-select-icon"></i>
             </div>
@@ -472,7 +472,7 @@
     <div class="lg:hidden mb-6">
         <button @click="mobileFiltersOpen = true"
                 class="mobile-filter-trigger w-full bg-white p-3 rounded-lg shadow-md border border-gray-200 flex justify-between items-center">
-            <span class="font-semibold text-brand-dark"><i class="bi bi-funnel-fill mr-2"></i> عرض الفلاتر</span>
+            <span class="font-semibold text-brand-dark"><i class="bi bi-funnel-fill mr-2"></i> {{ __('shop.show_filters') }}</span>
             <i class="bi bi-chevron-down"></i>
         </button>
     </div>
@@ -491,10 +491,10 @@
                  class="mobile-filter-sheet fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl border-t max-h-[85vh] overflow-y-auto">
                 <header class="sticky top-0 z-10 bg-white/90 backdrop-blur border-b px-4 py-3 flex items-center justify-between">
                     <button @click="mobileFiltersOpen=false" class="text-gray-500 text-2xl leading-none">&times;</button>
-                    <h3 class="text-base font-bold">الفلاتر</h3>
+                    <h3 class="text-base font-bold">{{ __('shop.filters') }}</h3>
                     <button form="filter-form-mobile"
                             class="text-sm font-semibold px-3 py-1.5 rounded-full bg-[var(--primary-color)] text-white hover:opacity-90">
-                        تطبيق
+                        {{ __('common.apply') }}
                     </button>
                 </header>
                 <div class="p-4">
@@ -516,7 +516,7 @@
                         <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-100 dark:border-gray-800">
                             <h2 class="text-xl font-extrabold text-[#6d0e16] dark:text-[#f0b0ad] flex items-center gap-2">
                                 <i class="bi bi-tags"></i>
-                                العلامات التجارية المطابقة
+                                {{ __('shop.matching_brands') }}
                             </h2>
                         </div>
                         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -525,13 +525,13 @@
                                    class="group flex flex-col items-center p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-[#6d0e16]/30 transition-all duration-300">
                                     <div class="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 mb-3 flex items-center justify-center">
                                         @if($brand->image)
-                                            <img src="{{ asset('storage/' . $brand->image) }}" alt="{{ $brand->name_ar }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                            <img src="{{ asset('storage/' . $brand->image) }}" alt="{{ $brand->name_translated }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                         @else
                                             <i class="bi bi-tag text-2xl text-[#6d0e16]/40"></i>
                                         @endif
                                     </div>
                                     <span class="text-sm font-bold text-gray-800 dark:text-gray-200 text-center group-hover:text-[#6d0e16] transition-colors line-clamp-1">
-                                        {{ $brand->name_ar }}
+                                        {{ $brand->name_translated }}
                                     </span>
                                 </a>
                             @endforeach
@@ -545,7 +545,7 @@
                         <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-100 dark:border-gray-800">
                             <h2 class="text-xl font-extrabold text-[#6d0e16] dark:text-[#f0b0ad] flex items-center gap-2">
                                 <i class="bi bi-grid"></i>
-                                الأقسام المطابقة
+                                {{ __('shop.matching_sections') }}
                             </h2>
                         </div>
                         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -554,13 +554,13 @@
                                    class="group flex flex-col items-center p-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-[#6d0e16]/30 transition-all duration-300">
                                     <div class="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 mb-3 flex items-center justify-center">
                                         @if($cat->image)
-                                            <img src="{{ asset('storage/' . $cat->image) }}" alt="{{ $cat->name_ar }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                            <img src="{{ asset('storage/' . $cat->image) }}" alt="{{ $cat->name_translated }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                         @else
                                             <i class="bi bi-grid text-2xl text-[#6d0e16]/40"></i>
                                         @endif
                                     </div>
                                     <span class="text-sm font-bold text-gray-800 dark:text-gray-200 text-center group-hover:text-[#6d0e16] transition-colors line-clamp-1">
-                                        {{ $cat->name_ar }}
+                                        {{ $cat->name_translated }}
                                     </span>
                                 </a>
                             @endforeach
@@ -572,7 +572,7 @@
                     <div class="flex items-center justify-between mb-6 pb-2 border-b border-gray-100 dark:border-gray-800">
                         <h2 class="text-xl font-extrabold text-[#6d0e16] dark:text-[#f0b0ad] flex items-center gap-2">
                             <i class="bi bi-box-seam"></i>
-                            المنتجات
+                            {{ __('shop.products') }}
                         </h2>
                     </div>
                 @endif
@@ -618,7 +618,7 @@
     @if(!$isAvailable)
         <div class="absolute inset-0 bg-black/60 z-10 flex items-center justify-center pointer-events-none">
             <span class="text-white font-bold tracking-wider text-sm border border-white/50 rounded-full px-3 py-1">
-                منتهي الكمية
+                {{ __('common.out_of_stock') }}
             </span>
         </div>
     @endif
@@ -663,7 +663,7 @@
                                     $avg = round((float) ($product->average_rating ?? 0), 1);
                                     $count = (int) ($product->reviews_count ?? 0);
                                 @endphp
-                                <div class="flex items-center justify-center gap-2" title="تقييم {{ $avg }} من 5">
+                                <div class="flex items-center justify-center gap-2" title="{{ __('common.rating') }} {{ $avg }}">
                                     <div class="flex">
                                         @for($i=1;$i<=5;$i++)
                                             @php $full=$i<=floor($avg); $half=!$full && ($i-$avg)<=0.5; @endphp
@@ -676,10 +676,10 @@
                                 </div>
                                 <div class="flex items-baseline justify-center gap-2">
                                     @if($product->isOnSale())
-                                        <div class="price">{{ number_format($product->sale_price,0) }} د.ع</div>
-                                        <div class="old">{{ number_format($product->price,0) }} د.ع</div>
+                                        <div class="price">{{ number_format($product->sale_price,0) }} {{ __('common.currency') }}</div>
+                                        <div class="old">{{ number_format($product->price,0) }} {{ __('common.currency') }}</div>
                                     @else
-                                        <div class="price">{{ number_format($product->price,0) }} د.ع</div>
+                                        <div class="price">{{ number_format($product->price,0) }} {{ __('common.currency') }}</div>
                                     @endif
                                 </div>
                                 <div class="product-actions">
@@ -691,16 +691,16 @@
                                     </button>
                                     @endauth
                                     @if ($isAvailable)
-                                    <button @click.prevent.stop="loadingAdd=true; fetch('{{ route('cart.store') }}',{method:'POST',headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({product_id:{{ $product->id }},quantity:1})}).then(r=>r.json()).then(d=>{ if(d.success){ added=true; window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}})); setTimeout(()=>added=false,1800) } else { alert(d.message||'حدث خطأ ما.') } }).finally(()=>loadingAdd=false)"
+                                        <button @click.prevent.stop="loadingAdd=true; fetch('{{ route('cart.store') }}',{method:'POST',headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({product_id:{{ $product->id }},quantity:1})}).then(r=>r.json()).then(d=>{ if(d.success){ added=true; window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}})); setTimeout(()=>added=false,1800) } else { alert(d.message||'{{ __('common.connection_error') }}') } }).finally(()=>loadingAdd=false)"
                                             @touchend.stop
                                             class="btn-primary">
-                                        <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> أضف للسلة</span>
+                                        <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
                                         <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
-                                        <span x-show="added"><i class="bi bi-check-lg"></i> تمت الإضافة</span>
+                                        <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
                                     </button>
                                     @else
                                     <button class="btn-primary bg-gray-400 hover:bg-gray-400 cursor-not-allowed w-full" disabled>
-                                        منتهي الكمية
+                                        {{ __('common.out_of_stock') }}
                                     </button>
                                     @endif
                                 </div>
@@ -710,9 +710,9 @@
                 @empty
                     <div class="no-products-message col-span-full text-center py-12 rounded-2xl">
                         @if($searchTerm)
-                            لا توجد منتجات مطابقة لعبارة البحث: <strong>"{{ e($searchTerm) }}"</strong>.
+                            {{ __('shop.no_results_for_term') }} <strong>"{{ e($searchTerm) }}"</strong>.
                         @else
-                            لا توجد منتجات مطابقة حالياً.
+                            {{ __('shop.no_results_currently') }}
                         @endif
                     </div>
                 @endforelse
@@ -782,15 +782,15 @@
     <div class="flex items-start gap-4">
       <div class="text-3xl">🛍️</div>
       <div class="flex-1">
-        <h3 class="text-lg font-extrabold text-gray-900 dark:text-gray-100">لم تجد المنتج الذي تبحث عنه؟</h3>
+        <h3 class="text-lg font-extrabold text-gray-900 dark:text-gray-100">{{ __('shop.cant_find_product') }}</h3>
         <p class="text-gray-600 dark:text-gray-300 mt-1">
-          اطلب المنتج الآن - وسنقوم بتوفيره لك بأفضل سعر وأعلى جودة.
+          {{ __('shop.request_product_desc') }}
         </p>
         <button
           class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-white"
           style="background: var(--primary-color);"
           @click="$dispatch('open-request-modal')">
-          <i class="bi bi-plus-circle"></i> طلب منتج غير متوفر
+          <i class="bi bi-plus-circle"></i> {{ __('shop.request_product') }}
         </button>
       </div>
     </div>

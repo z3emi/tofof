@@ -40,6 +40,13 @@ class Category extends Model
         return $this->belongsToMany(DiscountCode::class, 'category_discount_code');
     }
 
+    public function getNameTranslatedAttribute(): string
+    {
+        $locale = app()->getLocale();
+        $value = $this->getAttribute('name_' . $locale);
+        return $value ?: $this->name_ar;
+    }
+
     public function getTotalProductsCountAttribute()
     {
         $count = $this->products_count;

@@ -37,7 +37,7 @@ $countries = array_map(function ($country) use ($isArabic) {
 @endphp
 
 @extends('layouts.app')
-@section('title', 'تسجيل الدخول')
+@section('title', __('auth_pages.login.title'))
 
 @push('styles')
 <style>
@@ -397,10 +397,10 @@ html:not(.dark) .auth-foot a{color:#202737;}
       <!-- ترويسة الكارت -->
       <div class="auth-card-header">
         <div class="auth-logo-ring">
-          <img src="{{ asset('logo.png') }}" alt="طفوف">
+          <img src="{{ asset('logo.png') }}" alt="Tofof">
         </div>
-        <h2>تسجيل الدخول</h2>
-        <p>أهلاً بعودتك</p>
+        <h2>{{ __('auth_pages.login.heading') }}</h2>
+        <p>{{ __('auth_pages.login.subtitle') }}</p>
       </div>
 
       <!-- النموذج -->
@@ -410,7 +410,7 @@ html:not(.dark) .auth-foot a{color:#202737;}
 
           {{-- رقم الهاتف --}}
           <div class="mb-5 relative">
-            <label class="auth-label">رقم الهاتف</label>
+            <label class="auth-label">{{ __('auth_pages.login.phone_label') }}</label>
             <div class="phone-input-group">
               <button type="button" @click="countryMenuOpen = !countryMenuOpen" class="country-code-btn">
                 <img :src="'{{ request()->root() }}/flags/' + selectedCountry.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="selectedCountry.name + ' flag'">
@@ -424,7 +424,7 @@ html:not(.dark) .auth-foot a{color:#202737;}
                 @input="localNumber = ($event.target.value || '').replace(/\D+/g, '')"
                 :maxlength="selectedCountry.code === '+964' ? 10 : 15"
                      required autocomplete="tel" autofocus
-                     placeholder="7701234567">
+                     placeholder="{{ __('auth_pages.login.phone_placeholder') }}">
             </div>
             <input type="hidden" name="phone_number" :value="selectedCountry.code.replace('+','') + localNumber">
 
@@ -456,12 +456,12 @@ html:not(.dark) .auth-foot a{color:#202737;}
 
           {{-- كلمة المرور --}}
           <div class="mb-5">
-            <label class="auth-label" for="password">كلمة المرور</label>
+            <label class="auth-label" for="password">{{ __('auth_pages.login.password_label') }}</label>
             <div class="password-wrapper">
               <input :type="showPassword ? 'text' : 'password'"
                      id="password" name="password"
                      class="auth-field pe-12 @error('password') error @enderror"
-                     required placeholder="أدخل كلمة المرور">
+                     required placeholder="{{ __('auth_pages.login.password_placeholder') }}">
               <span class="password-toggle" @click="showPassword = !showPassword">
                 <i class="bi text-xl" :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
               </span>
@@ -477,40 +477,98 @@ html:not(.dark) .auth-foot a{color:#202737;}
           <div class="flex items-center justify-between mb-6 auth-help">
             <label class="flex items-center gap-2 cursor-pointer text-sm">
               <input id="remember" type="checkbox" name="remember" class="w-4 h-4 rounded">
-              تذكرني
+              {{ __('auth_pages.login.remember_me') }}
             </label>
             @if (! env('OTP_DISABLED', false))
               <a href="{{ route('password.reset.phone.form') }}"
                  class="text-sm font-semibold hover:underline" style="color:var(--c-primary)">
-                نسيت كلمة السر؟
+                {{ __('auth_pages.login.forgot_password') }}
               </a>
             @else
-              <span class="text-sm text-gray-500">تواصل معنا عبر الواتساب</span>
+              <span class="text-sm text-gray-500">{{ __('auth_pages.login.contact_whatsapp_inline') }}</span>
             @endif
           </div>
 
           {{-- زر الدخول --}}
           <button type="submit" class="auth-btn-primary mb-4">
             <i class="bi bi-box-arrow-in-right icon-inline"></i>
-            تسجيل الدخول
+            {{ __('auth_pages.login.submit') }}
           </button>
 
-          <p class="auth-foot">ليس لديك حساب؟ <a href="{{ route('register') }}">إنشاء حساب</a></p>
+          <p class="auth-foot">{{ __('auth_pages.login.no_account') }} <a href="{{ route('register') }}">{{ __('auth_pages.login.create_account') }}</a></p>
         </form>
       </div>
     </div>
 
     {{-- واتساب --}}
     <div class="text-center">
-      <p class="text-sm text-gray-500 mb-2">بحاجة لمساعدة؟</p>
+      <p class="text-sm text-gray-500 mb-2">{{ __('auth_pages.login.need_help') }}</p>
       <a href="https://wa.me/9647744969024" target="_blank"
          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white shadow transition hover:-translate-y-0.5"
          style="background:#25d366">
         <i class="bi bi-whatsapp text-lg icon-inline"></i>
-        تواصل معنا عبر واتساب
+        {{ __('auth_pages.login.whatsapp_contact') }}
       </a>
     </div>
 
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const phoneInput = document.getElementById('local_phone_number');
+  if (!phoneInput) return;
+
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+  if (!isMobile) return;
+
+  function focusPhoneInput() {
+    try {
+      phoneInput.focus({ preventScroll: true });
+    } catch (_) {
+      phoneInput.focus();
+    }
+
+    const valueLength = (phoneInput.value || '').length;
+    try {
+      phoneInput.setSelectionRange(valueLength, valueLength);
+    } catch (_) {}
+
+    phoneInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  requestAnimationFrame(focusPhoneInput);
+
+  [120, 320, 700, 1100].forEach(function (delay) {
+    setTimeout(function () {
+      if (document.activeElement !== phoneInput) {
+        focusPhoneInput();
+      }
+    }, delay);
+  });
+
+  window.addEventListener('pageshow', function () {
+    if (document.activeElement !== phoneInput) {
+      focusPhoneInput();
+    }
+  }, { once: true });
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && document.activeElement !== phoneInput) {
+      focusPhoneInput();
+    }
+  }, { once: true });
+
+  const focusOnFirstTouch = function () {
+    if (document.activeElement !== phoneInput) {
+      focusPhoneInput();
+    }
+  };
+
+  document.addEventListener('touchstart', focusOnFirstTouch, { once: true, passive: true });
+  document.addEventListener('click', focusOnFirstTouch, { once: true });
+});
+</script>
+@endpush

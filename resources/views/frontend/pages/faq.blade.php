@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'الأسئلة الشائعة - طفوف')
+@section('title', __('pages.faq_title'))
 
 @push('styles')
 <style>
@@ -100,43 +100,43 @@
   <div class="content-wrapper max-w-5xl mx-auto brand-card p-10 rounded-lg shadow-md leading-relaxed">
 
     <!-- العنوان -->
-    <h1 class="text-4xl font-bold mb-8 text-center p-4 rounded-lg" style="background-color:#6d0e16; color:#f7f7f7;">الأسئلة الشائعة</h1>
+    <h1 class="text-4xl font-bold mb-8 text-center p-4 rounded-lg" style="background-color:#6d0e16; color:#f7f7f7;">{{ __('pages.faq_title') }}</h1>
 
     <!-- مقدمة -->
     <p class="text-xl mb-10 text-center">
-      هنا جمعنا أكثر الأسئلة التي توصلنا، مع إجابات سريعة وواضحة لتسهيل تجربتك معنا.
+      {{ __('pages.faq_intro') }}
     </p>
 
     <!-- قائمة الأسئلة (شبكة) -->
     <div class="grid md:grid-cols-2 gap-6 mb-12">
       
       <div class="feature p-6">
-        <h2 class="text-xl font-bold mb-3 brand-primary">⌚️ هل المنتجات أصلية؟</h2>
+        <h2 class="text-xl font-bold mb-3 brand-primary">{{ __('pages.faq_q1') }}</h2>
         <div class="divider mb-3"></div>
-        <p>أكيد! كل منتجات طفوف أصلية 100% ومأخوذة من مصادرها الرسمية، وبضمان كامل ضد التقليد.</p>
+        <p>{{ __('pages.faq_a1') }}</p>
       </div>
 
       <div class="feature p-6">
-        <h2 class="text-xl font-bold mb-3 brand-primary">📦 توصلون الطلبات لكل المحافظات؟</h2>
+        <h2 class="text-xl font-bold mb-3 brand-primary">{{ __('pages.faq_q2') }}</h2>
         <div class="divider mb-3"></div>
-        <p>إي نعم، نوصل لكل محافظات العراق خلال 24 ساعة فقط وبكفاءة عالية.</p>
+        <p>{{ __('pages.faq_a2') }}</p>
       </div>
 
       <div class="feature p-6">
-        <h2 class="text-xl font-bold mb-3 brand-primary">📌 توصل ويّا الطلب دليل وضمان؟</h2>
+        <h2 class="text-xl font-bold mb-3 brand-primary">{{ __('pages.faq_q3') }}</h2>
         <div class="divider mb-3"></div>
-        <p>أكيد. كل منتج نرسل ويّاه بطاقة ضمان وشهادة أصالة، حتى تضمن القيمة الحقيقية لما اشتريته.</p>
+        <p>{{ __('pages.faq_a3') }}</p>
       </div>
 
       <div class="feature p-6">
-        <h2 class="text-xl font-bold mb-3 brand-primary">💳 شلون أكدر أدفع؟</h2>
+        <h2 class="text-xl font-bold mb-3 brand-primary">{{ __('pages.faq_q4') }}</h2>
         <div class="divider mb-3"></div>
-        <p class="mb-3">نوفر لك عدة طرق آمنة وسهلة:</p>
+        <p class="mb-3">{{ __('pages.payment_methods_list') }}</p>
         <ul class="pretty-list space-y-1">
-          <li>كاش عند الاستلام</li>
-          <li>زين كاش</li>
-          <li>ماستر كارد / فيزا</li>
-          <li>بطاقة مسبقة الدفع</li>
+          <li>{{ __('pages.payment_options') }}</li>
+          <li>{{ __('pages.faq_zaincash') }}</li>
+          <li>{{ __('pages.faq_mastercard') }}</li>
+          <li>{{ __('pages.faq_prepaid') }}</li>
         </ul>
       </div>
 
@@ -144,9 +144,9 @@
 
     <!-- الخاتمة -->
     <div class="text-center pt-8 border-t" style="border-color: rgba(0,0,0,0.1);">
-      <p class="text-lg">إذا عندك أي سؤال ثاني ما موجود هنا؟</p>
+      <p class="text-lg">{{ __('pages.faq_contact_cta') }}</p>
       <div class="mt-4">
-        <a href="{{ route('page.contact-us') }}" class="link-brand">تواصل ويّانا مباشرة</a>
+        <a href="{{ route('page.contact-us') }}" class="link-brand">{{ __('pages.faq_contact_link') }}</a>
       </div>
     </div>
 

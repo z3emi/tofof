@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'إتمام عملية الشراء')
+@section('title', __('checkout.title'))
 
 @push('styles')
     <style>
@@ -91,14 +91,14 @@
 <div class="min-h-screen bg-gray-50/50 dark:bg-[#0b0f14]">
     <div class="container mx-auto px-4 py-12">
         <div class="text-center mb-10">
-            <h1 class="text-3xl md:text-4xl font-bold text-brand-text dark:text-gray-100">إتمام الشراء</h1>
-            <p class="text-gray-500 mt-2 dark:text-gray-400">أكمل معلوماتك لتأكيد الطلب.</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-brand-text dark:text-gray-100">{{ __('checkout.page_heading') }}</h1>
+            <p class="text-gray-500 mt-2 dark:text-gray-400">{{ __('checkout.page_subheading') }}</p>
         </div>
 
         {{-- عرض الأخطاء --}}
         @if ($errors->any())
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-8 max-w-4xl mx-auto dark:bg-opacity-10 dark:text-red-300" role="alert">
-                <strong class="font-bold">يرجى تصحيح الأخطاء التالية:</strong>
+                <strong class="font-bold">{{ __('checkout.fix_errors') }}</strong>
                 <ul class="mt-2 list-disc list-inside">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -123,13 +123,13 @@
             <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
                 <div class="flex items-center gap-4 mb-5">
                     <span class="step-badge bg-brand-primary">1</span>
-                    <h2 class="text-xl font-bold text-brand-text dark:text-gray-100">معلومات الشحن</h2>
+                    <h2 class="text-xl font-bold text-brand-text dark:text-gray-100">{{ __('checkout.shipping_info') }}</h2>
                 </div>
                 
                 <div class="space-y-4" x-data="{ selectedAddressId: {{ $selectedSavedAddressId ?? 'null' }} }">
                     @if($addresses->isNotEmpty())
                     <div id="shipping_address_section" class="mb-4 {{ $giftOrderSelected ? 'hidden' : '' }}">
-                        <h3 class="text-md font-semibold text-gray-800 mb-2 dark:text-gray-100">اختر من عناوينك المحفوظة:</h3>
+                        <h3 class="text-md font-semibold text-gray-800 mb-2 dark:text-gray-100">{{ __('checkout.choose_saved_address') }}</h3>
                         <div class="space-y-3" id="saved_addresses_list">
                             @foreach($addresses as $address)
                             <label class="address-card block border rounded-lg p-4 cursor-pointer transition hover:border-brand-primary dark:border-gray-800 dark:hover:border-brand-primary" :class="selectedAddressId == {{ $address->id }} ? 'selected' : ''">
@@ -150,43 +150,43 @@
                     @endif
 
                     <div id="shipping_address_empty_state" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 dark:bg-opacity-10 {{ $addresses->isEmpty() && ! $giftOrderSelected ? '' : 'hidden' }}">
-                        <p class="text-yellow-800 dark:text-yellow-200">لم تقم بإضافة أي عنوان بعد. يرجى إضافة عنوان للمتابعة.</p>
+                        <p class="text-yellow-800 dark:text-yellow-200">{{ __('checkout.no_address_yet') }}</p>
                     </div>
 
                     <a href="{{ route('profile.addresses.create') }}" id="shipping_address_actions" class="w-full text-left border rounded-lg p-4 flex items-center gap-3 text-brand-primary font-semibold hover:bg-gray-50 transition dark:border-gray-800 dark:hover:bg-gray-800/50 {{ $giftOrderSelected ? 'hidden' : '' }}">
                         <i class="bi bi-plus-circle-fill"></i>
-                        <span>إضافة عنوان شحن جديد</span>
+                        <span>{{ __('checkout.add_new_address') }}</span>
                     </a>
 
                     <div class="mt-6 border rounded-lg p-4 bg-gray-50/70 dark:bg-gray-800/40 dark:border-gray-800">
                         <label class="flex items-center gap-3 cursor-pointer">
                             <input type="checkbox" name="is_gift" id="is_gift" value="1" class="h-4 w-4 text-brand-primary focus:ring-brand-primary" {{ old('is_gift') ? 'checked' : '' }}>
                             <div>
-                                <div class="font-semibold text-gray-800 dark:text-gray-100">هذا الطلب هدية</div>
-                                <div class="text-sm text-gray-600 dark:text-gray-400">عند التفعيل سيتم اعتماد عنوان مستلم الهدية، ولن يكون عنوانك المحفوظ مطلوبًا.</div>
+                                <div class="font-semibold text-gray-800 dark:text-gray-100">{{ __('checkout.this_is_gift') }}</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">{{ __('checkout.gift_notice') }}</div>
                             </div>
                         </label>
 
                         <div id="gift_fields" class="mt-4 space-y-3 {{ old('is_gift') ? '' : 'hidden' }}">
                             <div>
-                                <label for="gift_recipient_name" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">اسم مستلم الهدية</label>
-                                <input type="text" id="gift_recipient_name" name="gift_recipient_name" value="{{ old('gift_recipient_name') }}" class="w-full rounded-md border-gray-300 focus:border-brand-primary focus:ring-brand-primary dark:border-gray-700" placeholder="ادخل اسم المستلم">
+                                <label for="gift_recipient_name" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">{{ __('checkout.gift_recipient_name') }}</label>
+                                <input type="text" id="gift_recipient_name" name="gift_recipient_name" value="{{ old('gift_recipient_name') }}" class="w-full rounded-md border-gray-300 focus:border-brand-primary focus:ring-brand-primary dark:border-gray-700" placeholder="{{ __('checkout.gift_recipient_name_ph') }}">
                             </div>
                             <div>
-                                <label for="gift_recipient_phone" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">رقم هاتف مستلم الهدية</label>
-                                <input type="text" id="gift_recipient_phone" name="gift_recipient_phone" value="{{ old('gift_recipient_phone') }}" class="w-full rounded-md border-gray-300 focus:border-brand-primary focus:ring-brand-primary dark:border-gray-700" placeholder="مثال: 0770xxxxxxx">
+                                <label for="gift_recipient_phone" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">{{ __('checkout.gift_recipient_phone') }}</label>
+                                <input type="text" id="gift_recipient_phone" name="gift_recipient_phone" value="{{ old('gift_recipient_phone') }}" class="w-full rounded-md border-gray-300 focus:border-brand-primary focus:ring-brand-primary dark:border-gray-700" placeholder="{{ __('checkout.gift_recipient_phone_ph') }}">
                             </div>
                             <div>
-                                <label for="gift_recipient_address_details" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">عنوان مستلم الهدية</label>
-                                <textarea id="gift_recipient_address_details" name="gift_recipient_address_details" rows="3" class="w-full rounded-md border-gray-300 focus:border-brand-primary focus:ring-brand-primary dark:border-gray-700" placeholder="اكتب الموقع/العنوان الذي سيتم التوصيل إليه">{{ old('gift_recipient_address_details') }}</textarea>
+                                <label for="gift_recipient_address_details" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">{{ __('checkout.gift_recipient_address') }}</label>
+                                <textarea id="gift_recipient_address_details" name="gift_recipient_address_details" rows="3" class="w-full rounded-md border-gray-300 focus:border-brand-primary focus:ring-brand-primary dark:border-gray-700" placeholder="{{ __('checkout.gift_recipient_address_ph') }}">{{ old('gift_recipient_address_details') }}</textarea>
                             </div>
                             <div id="gift_address_preview" class="rounded-lg border border-brand-primary/30 bg-brand-primary/5 px-4 py-3 {{ $giftOrderSelected && old('gift_recipient_address_details') ? '' : 'hidden' }}">
-                                <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">عنوان التوصيل المعتمد</div>
+                                <div class="text-sm font-semibold text-gray-800 dark:text-gray-100">{{ __('checkout.confirmed_delivery_address') }}</div>
                                 <p id="gift_address_preview_text" class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ old('gift_recipient_address_details') }}</p>
                             </div>
                             <div>
-                                <label for="gift_message" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">رسالة الهدية (اختياري)</label>
-                                <textarea id="gift_message" name="gift_message" rows="2" class="w-full rounded-md border-gray-300 focus:border-brand-primary focus:ring-brand-primary dark:border-gray-700" placeholder="اكتب رسالة لطيفة إن رغبت">{{ old('gift_message') }}</textarea>
+                                <label for="gift_message" class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">{{ __('checkout.gift_message') }}</label>
+                                <textarea id="gift_message" name="gift_message" rows="2" class="w-full rounded-md border-gray-300 focus:border-brand-primary focus:ring-brand-primary dark:border-gray-700" placeholder="{{ __('checkout.gift_message_ph') }}">{{ old('gift_message') }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -196,14 +196,14 @@
             <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
                 <div class="flex items-center gap-4 mb-5">
                     <span class="step-badge bg-brand-primary">2</span>
-                    <h2 class="text-xl font-bold text-brand-text dark:text-gray-100">طريقة الدفع</h2>
+                    <h2 class="text-xl font-bold text-brand-text dark:text-gray-100">{{ __('checkout.payment_method') }}</h2>
                 </div>
                 <div class="bg-gray-50 p-4 rounded-md border hover:border-brand-primary transition dark:bg-gray-800 dark:border-gray-800">
                     <label for="cash" class="flex items-center cursor-pointer">
                         <input id="cash" name="payment_method" type="radio"
                                class="h-4 w-4 text-brand-primary focus:ring-brand-primary"
                                value="cash_on_delivery" checked required>
-                        <span class="ml-3 font-medium text-gray-800 dark:text-gray-100">الدفع عند الاستلام</span>
+                        <span class="ml-3 font-medium text-gray-800 dark:text-gray-100">{{ __('checkout.cash_on_delivery') }}</span>
                         <i class="bi bi-cash-coin text-xl text-green-600 ml-auto"></i>
                     </label>
                 </div>
@@ -213,16 +213,16 @@
         {{-- العمود الأيمن: ملخص الطلب + استخدام المحفظة --}}
         <div class="lg:w-5/12 xl:w-1/3">
             <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-24 dark:bg-gray-900 dark:border-gray-800">
-                <h2 class="text-xl font-bold text-brand-text mb-4 border-b pb-4 dark:text-gray-100 dark:border-gray-800">ملخص الطلب</h2>
+                <h2 class="text-xl font-bold text-brand-text mb-4 border-b pb-4 dark:text-gray-100 dark:border-gray-800">{{ __('common.order_summary') }}</h2>
                 
                 <div class="space-y-3 mb-4 max-h-64 overflow-y-auto pr-2">
                     @foreach($cartItems as $item)
                         <div class="flex justify-between items-center text-sm">
                             <div class="flex items-center gap-3">
-                                <img src="{{ $item['product']->firstImage ? asset('storage/' . $item['product']->firstImage->image_path) : 'https://placehold.co/60x60' }}" alt="{{ $item['product']->name_ar }}" class="w-12 h-12 rounded-md object-cover">
+                                <img src="{{ $item['product']->firstImage ? asset('storage/' . $item['product']->firstImage->image_path) : 'https://placehold.co/60x60' }}" alt="{{ $item['product']->name_translated }}" class="w-12 h-12 rounded-md object-cover">
                                 <div>
-                                    <p class="text-gray-800 font-semibold dark:text-gray-100">{{ $item['product']->name_ar }}</p>
-                                    <p class="text-gray-500 dark:text-gray-400">الكمية: {{ $item['quantity'] }}</p>
+                                    <p class="text-gray-800 font-semibold dark:text-gray-100">{{ $item['product']->name_translated }}</p>
+                                    <p class="text-gray-500 dark:text-gray-400">{{ __('checkout.quantity_colon') }} {{ $item['quantity'] }}</p>
                                     @if(!empty($item['selected_options']))
                                         <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                             @foreach($item['selected_options'] as $label => $value)
@@ -232,16 +232,16 @@
                                     @endif
                                 </div>
                             </div>
-                            <span class="font-medium text-gray-800 dark:text-gray-100">{{ number_format($item['price'] * $item['quantity']) }} د.ع</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-100">{{ number_format($item['price'] * $item['quantity']) }} {{ __('checkout.currency') }}</span>
                         </div>
                     @endforeach
                 </div>
                 
                 <div class="space-y-2 border-t pt-4 dark:border-gray-800">
-                    <div class="flex justify-between font-semibold text-gray-800 dark:text-gray-100"><span>المجموع الفرعي</span><span>{{ number_format($subtotal) }} د.ع</span></div>
-                    <div class="flex justify-between text-green-600"><span>الخصم</span><span>- {{ number_format($discountValue) }} د.ع</span></div>
+                    <div class="flex justify-between font-semibold text-gray-800 dark:text-gray-100"><span>{{ __('checkout.subtotal') }}</span><span>{{ number_format($subtotal) }} {{ __('checkout.currency') }}</span></div>
+                    <div class="flex justify-between text-green-600"><span>{{ __('checkout.discount') }}</span><span>- {{ number_format($discountValue) }} {{ __('checkout.currency') }}</span></div>
                     @if($isShippingEnabled)
-                    <div class="flex justify-between text-gray-500 dark:text-gray-400"><span>الشحن</span><span>{{ $shippingCost > 0 ? number_format($shippingCost) . ' د.ع' : ($isFreeShippingEnabled ? 'مجاني' : number_format($baseShippingCost) . ' د.ع') }}</span></div>
+                    <div class="flex justify-between text-gray-500 dark:text-gray-400"><span>{{ __('checkout.shipping') }}</span><span>{{ $shippingCost > 0 ? number_format($shippingCost) . ' ' . __('checkout.currency') : ($isFreeShippingEnabled ? __('checkout.free') : number_format($baseShippingCost) . ' ' . __('checkout.currency')) }}</span></div>
                     @endif
 
                     {{-- استخدام المحفظة --}}
@@ -249,33 +249,33 @@
                         <label class="flex items-center gap-3 cursor-pointer">
                             <input type="checkbox" name="use_wallet" id="use_wallet" value="1" class="h-4 w-4 text-brand-primary focus:ring-brand-primary">
                             <div>
-                                <div class="font-semibold text-gray-800 dark:text-gray-100">استخدام رصيد المحفظة</div>
-                                <div class="text-sm text-gray-600 dark:text-gray-400">رصيدك الحالي: <span id="wallet_balance_text">{{ number_format($walletBalance ?? 0) }}</span> د.ع</div>
+                                <div class="font-semibold text-gray-800 dark:text-gray-100">{{ __('checkout.use_wallet') }}</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">{{ __('checkout.current_balance') }} <span id="wallet_balance_text">{{ number_format($walletBalance ?? 0) }}</span> {{ __('checkout.currency') }}</div>
                             </div>
                         </label>
 
                         <div id="wallet_calc" class="mt-2 text-sm hidden">
-                            <div class="flex justify-between text-gray-800 dark:text-gray-100"><span>سيُخصم من المحفظة</span><span id="wallet_used_text">0</span></div>
-                            <div class="flex justify-between text-gray-800 dark:text-gray-100"><span>المتبقي عند الاستلام</span><span id="cod_due_text">0</span></div>
+                            <div class="flex justify-between text-gray-800 dark:text-gray-100"><span>{{ __('checkout.wallet_deduct') }}</span><span id="wallet_used_text">0</span></div>
+                            <div class="flex justify-between text-gray-800 dark:text-gray-100"><span>{{ __('checkout.remaining_on_delivery') }}</span><span id="cod_due_text">0</span></div>
                         </div>
                     </div>
 
                     <div class="flex justify-between font-bold text-xl text-brand-dark border-t pt-2 mt-2 dark:text-gray-100 dark:border-gray-800">
-                        <span>الإجمالي</span>
-                        <span id="final_total_text">{{ number_format($finalTotal) }} د.ع</span>
+                        <span>{{ __('checkout.total') }}</span>
+                        <span id="final_total_text">{{ number_format($finalTotal) }} {{ __('checkout.currency') }}</span>
                     </div>
                 </div>
 
                 <div class="mt-6">
                     <button id="checkout_submit_button" class="w-full bg-brand-dark text-white font-bold py-3 px-4 rounded-md hover:bg-brand-primary transition duration-300 text-lg {{ $addresses->isEmpty() && ! $giftOrderSelected ? 'opacity-60 cursor-not-allowed' : '' }}" type="submit" @if($addresses->isEmpty() && ! $giftOrderSelected) disabled @endif>
                         <i class="bi bi-shield-check"></i>
-                        تأكيد الطلب الآن
+                        {{ __('checkout.confirm_order') }}
                     </button>
                     <p id="checkout_submit_hint" class="text-xs text-center mt-2 {{ $giftOrderSelected ? 'text-gray-500 dark:text-gray-400' : ($addresses->isEmpty() ? 'text-red-500' : 'hidden') }}">
                         @if($giftOrderSelected)
-                            سيتم اعتماد عنوان الهدية للتوصيل.
+                            {{ __('checkout.gift_address_will_be_used') }}
                         @elseif($addresses->isEmpty())
-                            يجب إضافة عنوان أولاً لتتمكن من تأكيد الطلب.
+                            {{ __('checkout.must_add_address') }}
                         @endif
                     </p>
                 </div>
@@ -355,13 +355,13 @@
                 }
 
                 if (isGift) {
-                    checkoutSubmitHint.textContent = 'سيتم اعتماد عنوان الهدية للتوصيل.';
+                    checkoutSubmitHint.textContent = '{{ __('checkout.gift_address_will_be_used') }}';
                     checkoutSubmitHint.className = 'text-xs text-center mt-2 text-gray-500 dark:text-gray-400';
                     return;
                 }
 
                 if (!hasSavedAddresses()) {
-                    checkoutSubmitHint.textContent = 'يجب إضافة عنوان أولاً لتتمكن من تأكيد الطلب.';
+                    checkoutSubmitHint.textContent = '{{ __('checkout.must_add_address') }}';
                     checkoutSubmitHint.className = 'text-red-500 text-xs text-center mt-2';
                     return;
                 }
@@ -444,8 +444,8 @@
                 if (useWallet.checked) {
                     const willUse = Math.min(walletBalance, finalTotal);
                     const codDue  = Math.max(0, finalTotal - willUse);
-                    walletUsedText.textContent = format(willUse) + ' د.ع';
-                    codDueText.textContent     = format(codDue) + ' د.ع';
+                    walletUsedText.textContent = format(willUse) + ' {{ __('checkout.currency') }}';
+                    codDueText.textContent     = format(codDue) + ' {{ __('checkout.currency') }}';
                     walletCalcBox.classList.remove('hidden');
                 } else {
                     walletCalcBox.classList.add('hidden');

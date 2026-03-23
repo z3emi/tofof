@@ -1,5 +1,5 @@
 @extends('frontend.profile.layout')
-@section('title', 'قائمة المفضلة')
+@section('title', __('profile.wishlist_title'))
 
 @push('styles')
 <style>
@@ -130,17 +130,17 @@ html.dark .shop-card{ border-color:var(--border); box-shadow: 0 10px 26px rgba(0
 <div class="surface">
   <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4 md:mb-6 page-head">
     <div>
-      <h2 class="text-xl md:text-2xl"><br>قائمة المفضلة</h2>
-      <p class="text-sm mt-1">كل المنتجات التي أحببتِها في مكان واحد</p>
+      <h2 class="text-xl md:text-2xl"><br>{{ __('profile.wishlist_title') }}</h2>
+      <p class="text-sm mt-1">{{ __('profile.wishlist_subheading') }}</p>
     </div>
   </div>
 
   @if ($favorites->isEmpty())
     <div class="empty-state">
       <i class="bi bi-heart icon"></i>
-      <p class="mt-3">لا توجد عناصر في المفضلة بعد.</p>
+      <p class="mt-3">{{ __('profile.no_favorites') }}</p>
       <a href="{{ route('shop') }}" class="btn-brand mt-3">
-        <i class="bi bi-bag-plus"></i> تصفح المتجر
+        <i class="bi bi-bag-plus"></i> {{ __('profile.browse_store') }}
       </a>
     </div>
   @else
@@ -203,7 +203,7 @@ html.dark .shop-card{ border-color:var(--border); box-shadow: 0 10px 26px rgba(0
             @endif
 
             @if($isOut)
-              <div class="shop-out-badge">منتهي الكمية</div>
+              <div class="shop-out-badge">{{ __('common.out_of_stock') }}</div>
             @elseif($product->isOnSale())
               @php $discountPercentage = round((($product->price - $product->sale_price) / $product->price) * 100); @endphp
               <div class="shop-sale-badge">-{{ $discountPercentage }}%</div>
@@ -225,7 +225,7 @@ html.dark .shop-card{ border-color:var(--border); box-shadow: 0 10px 26px rgba(0
               "
               class="shop-wish"
               :disabled="loadingFav"
-              title="إزالة من المفضلة"
+              title="{{ __('common.remove_from_wishlist') }}"
             >
               <i class="bi bi-heart-fill text-xl" style="color:#D4AF37;"></i>
             </button>
@@ -237,16 +237,16 @@ html.dark .shop-card{ border-color:var(--border); box-shadow: 0 10px 26px rgba(0
 
             <div class="shop-price">
               @if($product->isOnSale() && !$isOut)
-                <span class="current">{{ number_format($product->sale_price, 0) }} د.ع</span>
-                <span class="old">{{ number_format($product->price, 0) }} د.ع</span>
+                <span class="current">{{ number_format($product->sale_price, 0) }} {{ __('common.currency') }}</span>
+                <span class="old">{{ number_format($product->price, 0) }} {{ __('common.currency') }}</span>
               @else
-                <span class="current">{{ number_format($product->price, 0) }} د.ع</span>
+                <span class="current">{{ number_format($product->price, 0) }} {{ __('common.currency') }}</span>
               @endif
             </div>
 
             @if($isOut)
               <button class="shop-add" style="background:#9CA3AF;" disabled>
-                <i class="bi bi-x-circle"></i> منتهي الكمية
+                <i class="bi bi-x-circle"></i> {{ __('common.out_of_stock') }}
               </button>
             @else
               <button
@@ -261,15 +261,15 @@ html.dark .shop-card{ border-color:var(--border); box-shadow: 0 10px 26px rgba(0
                       added = true;
                       window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cartCount: data.cartCount } }));
                       setTimeout(() => added = false, 2000);
-                    } else { alert(data.message || 'حدث خطأ ما.'); }
+                    } else { alert(data.message || '{{ __('common.connection_error') }}'); }
                   }).finally(() => loadingAdd = false);
                 "
                 class="shop-add"
                 :disabled="loadingAdd || added"
               >
-                <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> أضف للسلة</span>
+                <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
                 <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
-                <span x-show="added"><i class="bi bi-check-lg"></i> تمت الإضافة</span>
+                <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
               </button>
             @endif
           </div>

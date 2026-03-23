@@ -1,5 +1,5 @@
 @extends('frontend.profile.layout')
-@section('title', 'تفاصيل الطلب #' . $order->id)
+@section('title', __('profile.order_details_title') . ' #' . $order->id)
 
 @push('styles')
 <style>
@@ -94,28 +94,28 @@
   {{-- الرأس --}}
   <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3 head mb-4 md:mb-6">
     <div>
-      <h2 class="text-xl md:text-2xl">تفاصيل الطلب</h2>
-      <p class="text-xs md:text-sm">رقم الطلب: <span class="font-mono">#{{ $order->id }}</span></p>
+      <h2 class="text-xl md:text-2xl">{{ __('profile.order_details_title') }}</h2>
+      <p class="text-xs md:text-sm">{{ __('profile.order_id_label') }} <span class="font-mono">#{{ $order->id }}</span></p>
     </div>
     <a href="{{ route('profile.orders') }}" class="link-back">
-      <i class="bi bi-arrow-right"></i> العودة إلى الطلبات
+      <i class="bi bi-arrow-right"></i> {{ __('profile.back_to_orders') }}
     </a>
   </div>
 
   {{-- حالة الطلب --}}
   @if($order->status == 'cancelled')
     <div class="summary-panel mb-5 text-center">
-      <span class="pill pill-gray"><i class="bi bi-x-circle-fill"></i> هذا الطلب تم إلغاؤه</span>
+      <span class="pill pill-gray"><i class="bi bi-x-circle-fill"></i> {{ __('profile.order_cancelled_msg') }}</span>
     </div>
   @elseif($order->status == 'returned')
     <div class="summary-panel mb-5 text-center">
-      <span class="pill pill-danger"><i class="bi bi-arrow-return-left"></i> هذا الطلب مرتجع</span>
+      <span class="pill pill-danger"><i class="bi bi-arrow-return-left"></i> {{ __('profile.order_returned_msg') }}</span>
     </div>
   @else
     <div class="order-tracker" style="--p: {{ $progress }};">
       <div class="progress-rail"></div>
       <div class="progress-bar"></div>
-      @foreach(['قيد الانتظار','قيد التجهيز','تم الشحن','تم التوصيل'] as $index => $label)
+      @foreach([__('profile.tracker_pending'), __('profile.tracker_processing'), __('profile.tracker_shipped'), __('profile.tracker_delivered')] as $index => $label)
         @php
           $stateClass = ($currentStatusIndex !== false && $currentStatusIndex > $index) ? 'completed'
                        : (($currentStatusIndex !== false && $currentStatusIndex == $index) ? 'active' : 'pending');
@@ -131,18 +131,18 @@
   @endif
 
   {{-- المنتجات --}}
-  <h3 class="text-lg md:text-xl font-extrabold text-[var(--text)] mb-2 md:mb-3">المنتجات</h3>
+  <h3 class="text-lg md:text-xl font-extrabold text-[var(--text)] mb-2 md:mb-3">{{ __('profile.products_section') }}</h3>
   <div class="space-y-2 md:space-y-3">
     @foreach($order->items as $item)
       <div class="product-item">
         <img
           src="{{ $item->product?->firstImage ? asset('storage/' . $item->product->firstImage->image_path) : 'https://placehold.co/80x80/f9f5f1/cd8985?text=Img' }}"
-          alt="{{ $item->product->name_translated ?? 'منتج' }}"
+          alt="{{ $item->product->name_translated ?? __('profile.deleted_product') }}"
           class="product-image"
         >
         <div class="flex-grow min-w-0">
-          <div class="product-name text-sm md:text-base truncate">{{ $item->product->name_translated ?? 'منتج محذوف' }}</div>
-          <div class="product-meta">الكمية: {{ $item->quantity }}</div>
+          <div class="product-name text-sm md:text-base truncate">{{ $item->product->name_translated ?? __('profile.deleted_product') }}</div>
+          <div class="product-meta">{{ __('profile.quantity_label') }} {{ $item->quantity }}</div>
           @if(!empty($item->option_selections))
             <div class="product-meta mt-1">
               @foreach($item->option_selections as $label => $value)
@@ -153,10 +153,10 @@
         </div>
         <div class="text-left">
           <div class="text-[var(--brand-dark)] font-extrabold text-sm md:text-base">
-            {{ number_format($item->price * $item->quantity, 0) }} د.ع
+            {{ number_format($item->price * $item->quantity, 0) }} {{ __('profile.currency') }}
           </div>
           <div class="text-[#9ca3af] text-xs">
-            ({{ number_format($item->price, 0) }} د.ع للقطعة)
+            ({{ number_format($item->price, 0) }} {{ __('profile.currency') }} {{ __('profile.per_unit') }})
           </div>
         </div>
       </div>
@@ -166,46 +166,46 @@
   {{-- الملخص --}}
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-5 md:mt-7">
     <div class="summary-panel">
-      <h3 class="text-lg md:text-xl font-extrabold text-[var(--text)] mb-2 md:mb-3">ملخص الدفع</h3>
+      <h3 class="text-lg md:text-xl font-extrabold text-[var(--text)] mb-2 md:mb-3">{{ __('profile.payment_summary') }}</h3>
       
       {{-- ✅ [تصحيح] تم تحديث منطق عرض الملخص بالكامل --}}
-      <div class="row-line"><span class="row-muted">المجموع الفرعي:</span><span class="row-strong">{{ number_format($recalculatedSubtotal, 0) }} د.ع</span></div>
+      <div class="row-line"><span class="row-muted">{{ __('profile.subtotal_label') }}</span><span class="row-strong">{{ number_format($recalculatedSubtotal, 0) }} {{ __('profile.currency') }}</span></div>
       
       @if($order->discount_amount > 0)
-      <div class="row-line" style="color:#166534"><span>الخصم:</span><span class="row-strong" style="color:#166534">-{{ number_format($order->discount_amount, 0) }} د.ع</span></div>
+      <div class="row-line" style="color:#166534"><span>{{ __('profile.discount_label') }}</span><span class="row-strong" style="color:#166534">-{{ number_format($order->discount_amount, 0) }} {{ __('profile.currency') }}</span></div>
       @endif
 
       @if($order->shipping_cost > 0 || \App\Models\Setting::isShippingEnabled())
-      <div class="row-line"><span class="row-muted">الشحن:</span><span class="row-strong">{{ $order->shipping_cost > 0 ? number_format($order->shipping_cost, 0) . ' د.ع' : 'مجاني' }}</span></div>
+      <div class="row-line"><span class="row-muted">{{ __('profile.shipping_label') }}</span><span class="row-strong">{{ $order->shipping_cost > 0 ? number_format($order->shipping_cost, 0) . ' ' . __('profile.currency') : __('profile.free_shipping') }}</span></div>
       @endif
 
       @if(isset($walletPaidAmount) && $walletPaidAmount > 0)
       <div class="row-line" style="color: #059669;">
-        <span class="font-semibold">مدفوع من المحفظة:</span>
-        <span class="row-strong" style="color: #059669;">-{{ number_format($walletPaidAmount, 0) }} د.ع</span>
+        <span class="font-semibold">{{ __('profile.wallet_paid') }}</span>
+        <span class="row-strong" style="color: #059669;">-{{ number_format($walletPaidAmount, 0) }} {{ __('profile.currency') }}</span>
       </div>
       @endif
 
       <div class="row-line" style="border-top:2px solid var(--hair); margin-top:.5rem; padding-top:.75rem;">
-        <span class="row-strong text-lg">المبلغ النهائي عند الاستلام:</span>
-        <span class="row-strong text-lg" style="color: var(--brand)">{{ number_format($finalAmountDue, 0) }} د.ع</span>
+        <span class="row-strong text-lg">{{ __('profile.final_amount') }}</span>
+        <span class="row-strong text-lg" style="color: var(--brand)">{{ number_format($finalAmountDue, 0) }} {{ __('profile.currency') }}</span>
       </div>
     </div>
 
     <div class="summary-panel">
-      <h3 class="text-lg md:text-xl font-extrabold text-[var(--text)] mb-2 md:mb-3">{{ $order->is_gift ? 'عنوان التوصيل المعتمد' : 'عنوان الشحن' }}</h3>
+      <h3 class="text-lg md:text-xl font-extrabold text-[var(--text)] mb-2 md:mb-3">{{ $order->is_gift ? __('profile.gift_shipping_address') : __('profile.shipping_address') }}</h3>
       <div class="space-y-2 text-sm">
         @if($order->is_gift)
-        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">العنوان:</span><span class="row-strong">{{ $order->gift_recipient_address_details ?: $order->address_details }}</span></div>
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">{{ __('profile.address_label') }}</span><span class="row-strong">{{ $order->gift_recipient_address_details ?: $order->address_details }}</span></div>
         @if($order->gift_recipient_name)
-        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">المستلم:</span><span class="row-strong">{{ $order->gift_recipient_name }}</span></div>
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">{{ __('profile.recipient_label') }}</span><span class="row-strong">{{ $order->gift_recipient_name }}</span></div>
         @endif
         @else
-        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">المحافظة:</span><span class="row-strong">{{ $order->governorate }}</span></div>
-        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">المدينة:</span><span class="row-strong">{{ $order->city }}</span></div>
-        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">تفاصيل العنوان:</span><span class="row-strong">{{ $order->address_details }}</span></div>
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">{{ __('profile.governorate_label') }}</span><span class="row-strong">{{ $order->governorate }}</span></div>
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">{{ __('profile.city_label') }}</span><span class="row-strong">{{ $order->city }}</span></div>
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">{{ __('profile.address_details_label') }}</span><span class="row-strong">{{ $order->address_details }}</span></div>
         @if($order->nearest_landmark)
-        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">أقرب نقطة دالة:</span><span class="row-strong">{{ $order->nearest_landmark }}</span></div>
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">{{ __('profile.nearest_landmark') }}</span><span class="row-strong">{{ $order->nearest_landmark }}</span></div>
         @endif
         @endif
       </div>
@@ -213,14 +213,14 @@
 
     @if($order->is_gift)
     <div class="summary-panel md:col-span-2">
-      <h3 class="text-lg md:text-xl font-extrabold text-[var(--text)] mb-2 md:mb-3">بيانات الهدية</h3>
+      <h3 class="text-lg md:text-xl font-extrabold text-[var(--text)] mb-2 md:mb-3">{{ __('profile.gift_data') }}</h3>
       <div class="space-y-2 text-sm">
-        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">نوع الطلب:</span><span class="row-strong">هدية</span></div>
-        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">اسم المستلم:</span><span class="row-strong">{{ $order->gift_recipient_name }}</span></div>
-        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">هاتف المستلم:</span><span class="row-strong">{{ $order->gift_recipient_phone }}</span></div>
-        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">عنوان المستلم:</span><span class="row-strong">{{ $order->gift_recipient_address_details }}</span></div>
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">{{ __('profile.order_type_label') }}</span><span class="row-strong">{{ __('profile.gift_type') }}</span></div>
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">{{ __('profile.recipient_name_label') }}</span><span class="row-strong">{{ $order->gift_recipient_name }}</span></div>
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">{{ __('profile.recipient_phone_label') }}</span><span class="row-strong">{{ $order->gift_recipient_phone }}</span></div>
+        <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">{{ __('profile.recipient_addr_label') }}</span><span class="row-strong">{{ $order->gift_recipient_address_details }}</span></div>
         @if($order->gift_message)
-          <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">الرسالة:</span><span class="row-strong">{{ $order->gift_message }}</span></div>
+          <div class="row-line" style="padding:.2rem 0;border:none"><span class="row-muted">{{ __('profile.gift_message_label') }}</span><span class="row-strong">{{ $order->gift_message }}</span></div>
         @endif
       </div>
     </div>

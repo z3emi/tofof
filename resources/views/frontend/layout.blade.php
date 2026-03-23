@@ -13,12 +13,12 @@
             {{-- الشعار --}}
             <a href="{{ route('home') }}" class="text-2xl flex items-center gap-2 hover:opacity-90 transition">
                 <img src="{{ asset('logo.png') }}" alt="logo" class="w-8 h-8">
-                <span class="text-white text-2xl font-bold">الريان</span>
+                <span class="text-white text-2xl font-bold">{{ __('header.brand_name') }}</span>
             </a>
             {{-- شريط البحث --}}
             <form action="{{ route('shop') }}" method="GET" class="flex-1 mx-6 hidden md:flex max-w-2xl">
                 <div class="flex w-full bg-white rounded-full overflow-hidden shadow-sm">
-                    <input type="text" name="q" placeholder="ابحث عن منتجات أو علامات تجارية"
+                    <input type="text" name="q" placeholder="{{ __('header.search_placeholder') }}"
                         class="flex-1 px-4 py-2 text-sm text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#6d0e16]">
                     <button type="submit" class="px-4 bg-white text-[#6d0e16] hover:text-[#6d0e16] transition">
                         <i class="bi bi-search text-lg"></i>
@@ -40,8 +40,8 @@
                     <div x-show="langMenuOpen" @click.away="langMenuOpen = false"
                         class="absolute right-0 mt-2 w-40 bg-white text-[#6d0e16] border border-[#6d0e16]/20 rounded-md shadow-lg py-2 text-sm z-50"
                         x-transition>
-                        <a href="{{ route('language.switch', ['locale' => 'ar', 'from' => request()->fullUrl()]) }}" class="block px-4 py-2 hover:bg-[#F0F2F5]">العربية</a>
-                        <a href="{{ route('language.switch', ['locale' => 'en', 'from' => request()->fullUrl()]) }}" class="block px-4 py-2 hover:bg-[#F0F2F5]">English</a>
+                        <a href="{{ route('language.switch', ['locale' => 'ar', 'from' => request()->fullUrl()]) }}" class="block px-4 py-2 hover:bg-[#F0F2F5]">{{ __('header.arabic') }}</a>
+                        <a href="{{ route('language.switch', ['locale' => 'en', 'from' => request()->fullUrl()]) }}" class="block px-4 py-2 hover:bg-[#F0F2F5]">{{ __('header.english') }}</a>
                     </div>
                 </div>
                 {{-- تسجيل الدخول أو الحساب --}}
@@ -49,21 +49,21 @@
                 <div class="relative">
                     <button @click="userMenuOpen = !userMenuOpen" class="hover:opacity-80 transition flex items-center gap-1">
                         <i class="bi bi-person-circle text-xl"></i>
-                        <span class="text-sm hidden sm:inline">حسابي</span>
+                        <span class="text-sm hidden sm:inline">{{ __('header.my_account') }}</span>
                     </button>
                     <div x-show="userMenuOpen" @click.away="userMenuOpen = false"
                         class="absolute right-0 mt-2 w-48 bg-white text-[#6d0e16] border border-[#6d0e16]/20 rounded-md shadow-lg py-2 text-sm z-50"
                         x-transition>
-                        <a href="{{ route('profile.show') }}" class="block px-4 py-2 hover:bg-[#F0F2F5]">الملف الشخصي</a>
+                        <a href="{{ route('profile.show') }}" class="block px-4 py-2 hover:bg-[#F0F2F5]">{{ __('header.profile') }}</a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="w-full text-right px-4 py-2 hover:bg-[#F0F2F5]">تسجيل الخروج</button>
+                            <button type="submit" class="w-full text-right px-4 py-2 hover:bg-[#F0F2F5]">{{ __('header.logout') }}</button>
                         </form>
                     </div>
                 </div>
                 @else
                 <a href="{{ route('login') }}" class="hover:underline hover:text-[#F0F2F5] transition text-sm">
-                    تسجيل الدخول أو الاشتراك
+                    {{ __('header.login_or_register') }}
                 </a>
                 @endauth
                 {{-- السلة --}}
@@ -81,7 +81,7 @@
                 <div class="relative">
                     <a href="https://cosmele.com/categories" class="hover:opacity-80 transition flex items-center gap-1">
                         <i class="bi bi-grid text-xl"></i>
-                        <span class="text-sm hidden sm:inline">الاقسام</span>
+                        <span class="text-sm hidden sm:inline">{{ __('header.sections') }}</span>
                     </a>
                 </div>
             </div>

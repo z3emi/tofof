@@ -41,7 +41,7 @@
             </button>
             @endauth
         </div>
-        <p class="text-brand-primary font-bold text-xl mb-4">{{ number_format($product->price) }} د.ع</p>
+        <p class="text-brand-primary font-bold text-xl mb-4">{{ number_format($product->price) }} {{ __('common.currency') }}</p>
         <button 
             @click.prevent="
                 loadingAdd = true;
@@ -57,7 +57,7 @@
                         window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cartCount: data.cartCount } }));
                         setTimeout(() => added = false, 2000);
                     } else {
-                        alert(data.message || 'حدث خطأ ما.');
+                        alert(data.message || '{{ __('common.connection_error') }}');
                     }
                 })
                 .finally(() => loadingAdd = false);
@@ -65,9 +65,9 @@
             class="btn-primary w-full py-2 rounded-lg flex justify-center items-center gap-2 transition-all"
             :disabled="loadingAdd || added"
         >
-            <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> أضف للسلة</span>
+            <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
             <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
-            <span x-show="added"><i class="bi bi-check-lg"></i> تمت الإضافة</span>
+            <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
         </button>
     </div>
 </div>

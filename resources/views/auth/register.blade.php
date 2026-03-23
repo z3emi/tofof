@@ -37,7 +37,7 @@ $countries = array_map(function ($country) use ($isArabic) {
 @endphp
 
 @extends('layouts.app')
-@section('title', 'إنشاء حساب جديد')
+@section('title', __('auth_pages.register.title'))
 
 @push('styles')
 <style>
@@ -402,10 +402,10 @@ html:not(.dark) .reg-foot a{color:#202737;}
       <!-- ترويسة الكارت -->
       <div class="register-card-header">
         <div class="register-logo-ring">
-          <img src="{{ asset('logo.png') }}" alt="طفوف">
+          <img src="{{ asset('logo.png') }}" alt="Tofof">
         </div>
-        <h2>إنشاء حساب</h2>
-        <p>إنشاء حساب جديد</p>
+        <h2>{{ __('auth_pages.register.heading') }}</h2>
+        <p>{{ __('auth_pages.register.subtitle') }}</p>
       </div>
 
       <!-- النموذج -->
@@ -415,12 +415,12 @@ html:not(.dark) .reg-foot a{color:#202737;}
 
           <!-- الاسم الكامل -->
           <div class="mb-5">
-            <label class="r-label" for="name">الاسم الكامل</label>
+               <label class="r-label" for="name">{{ __('auth_pages.register.full_name_label') }}</label>
             <input id="name" type="text"
                    class="r-field @error('name') error @enderror"
                    name="name" value="{{ old('name') }}"
                    required autocomplete="name" autofocus
-                   placeholder="أدخل اسمك الكامل">
+                 placeholder="{{ __('auth_pages.register.full_name_placeholder') }}">
             @error('name')
               <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
                 <i class="bi bi-exclamation-circle"></i>{{ $message }}
@@ -430,7 +430,7 @@ html:not(.dark) .reg-foot a{color:#202737;}
 
           <!-- رقم الهاتف -->
           <div class="mb-5 relative">
-            <label class="r-label" for="local_phone_number">رقم الهاتف</label>
+            <label class="r-label" for="local_phone_number">{{ __('auth_pages.register.phone_label') }}</label>
             <div class="phone-input-group">
               <button type="button" class="country-code-btn" @click="toggleCountryMenu()">
                 <img :src="'{{ request()->root() }}/flags/' + selectedCountry.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="selectedCountry.name + ' flag'">
@@ -441,14 +441,14 @@ html:not(.dark) .reg-foot a{color:#202737;}
                      class="phone-input"
                      name="local_phone_number" x-model="localPhone"
                      required autocomplete="tel"
-                     :placeholder="selectedCountry.code === '+964' ? '7712345678' : 'رقم الهاتف'"
+                     :placeholder="selectedCountry.code === '+964' ? '7712345678' : '{{ __('auth_pages.register.phone_placeholder') }}'"
                      :maxlength="selectedCountry.code === '+964' ? 10 : 15">
             </div>
             <input type="hidden" name="phone_number" :value="selectedCountry.code.replace('+','') + localPhone">
 
             <p class="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
               <i class="bi bi-whatsapp text-green-500"></i>
-              سيتم إرسال رمز تحقق عبر واتساب لتفعيل حسابك.
+              {{ __('auth_pages.register.otp_notice') }}
             </p>
 
             <div x-show="countryMenuOpen"
@@ -477,12 +477,12 @@ html:not(.dark) .reg-foot a{color:#202737;}
 
           <!-- كلمة المرور -->
           <div class="mb-5">
-            <label class="r-label" for="password">كلمة المرور</label>
+            <label class="r-label" for="password">{{ __('auth_pages.register.password_label') }}</label>
             <div class="password-wrapper">
               <input :type="showPassword ? 'text' : 'password'" id="password"
                      class="r-field pe-12 @error('password') error @enderror"
                      name="password" required autocomplete="new-password"
-                     placeholder="أدخل كلمة المرور">
+                     placeholder="{{ __('auth_pages.register.password_placeholder') }}">
               <span class="password-toggle" @click="showPassword = !showPassword">
                 <i class="bi text-xl icon-inline" :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
               </span>
@@ -496,12 +496,12 @@ html:not(.dark) .reg-foot a{color:#202737;}
 
           <!-- تأكيد كلمة المرور -->
           <div class="mb-5">
-            <label class="r-label" for="password-confirm">تأكيد كلمة المرور</label>
+            <label class="r-label" for="password-confirm">{{ __('auth_pages.register.password_confirm_label') }}</label>
             <div class="password-wrapper">
               <input :type="showConfirmPassword ? 'text' : 'password'" id="password-confirm"
                      class="r-field pe-12"
                      name="password_confirmation" required autocomplete="new-password"
-                     placeholder="أعد كتابة كلمة المرور">
+                     placeholder="{{ __('auth_pages.register.password_confirm_placeholder') }}">
               <span class="password-toggle" @click="showConfirmPassword = !showConfirmPassword">
                 <i class="bi text-xl icon-inline" :class="showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
               </span>
@@ -511,13 +511,13 @@ html:not(.dark) .reg-foot a{color:#202737;}
           <!-- رمز الدعوة -->
           <div class="mb-6">
             <div class="flex items-center justify-between mb-1.5">
-              <label class="r-label mb-0" for="referral_code">رمز الدعوة</label>
-              <span class="referral-chip"><i class="bi bi-gift text-xs"></i> اختياري</span>
+              <label class="r-label mb-0" for="referral_code">{{ __('auth_pages.register.referral_label') }}</label>
+              <span class="referral-chip"><i class="bi bi-gift text-xs"></i> {{ __('auth_pages.register.optional') }}</span>
             </div>
             <input id="referral_code" type="text"
                    class="r-field r-field-referral @error('referral_code') error @enderror"
                    name="referral_code" value="{{ old('referral_code') }}"
-                   autocomplete="off" placeholder="أدخل رمز الدعوة إن وجد">
+                   autocomplete="off" placeholder="{{ __('auth_pages.register.referral_placeholder') }}">
             @error('referral_code')
               <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
                 <i class="bi bi-exclamation-circle"></i>{{ $message }}
@@ -528,22 +528,22 @@ html:not(.dark) .reg-foot a{color:#202737;}
           <!-- زر إنشاء الحساب -->
           <button type="submit" class="reg-btn-primary mb-4">
             <i class="bi bi-person-check icon-inline"></i>
-            إنشاء حساب
+            {{ __('auth_pages.register.submit') }}
           </button>
 
-          <p class="reg-foot">لديك حساب بالفعل? <a href="{{ route('login') }}">تسجيل دخول</a></p>
+          <p class="reg-foot">{{ __('auth_pages.register.have_account') }} <a href="{{ route('login') }}">{{ __('auth_pages.register.login') }}</a></p>
         </form>
       </div>
     </div>
 
     <!-- واتساب -->
     <div class="text-center">
-      <p class="text-sm text-gray-500 mb-2">بحاجة لمساعدة؟</p>
+      <p class="text-sm text-gray-500 mb-2">{{ __('auth_pages.register.need_help') }}</p>
       <a href="https://wa.me/9647744969024" target="_blank"
          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white shadow transition hover:-translate-y-0.5"
          style="background:#25d366">
         <i class="bi bi-whatsapp text-lg icon-inline"></i>
-        تواصل معنا عبر واتساب
+        {{ __('auth_pages.register.whatsapp_contact') }}
       </a>
     </div>
 

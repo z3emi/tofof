@@ -131,7 +131,7 @@
                     class="filter-title">
                 <span class="flex items-center gap-3">
                     <i class="bi bi-tags-fill text-lg"></i>
-                    <span>الفئات</span>
+                    <span>{{ __('shop.filters') }}</span>
                 </span>
                 <i class="bi bi-chevron-down transform transition-transform duration-300" :class="{ 'rotate-180': open }"></i>
             </button>
@@ -172,7 +172,7 @@
                         :class="{'active': !selectedBrand}"
                         @click="selectedBrand = null">
                     <div class="cat-thumb"><div class="ph">All</div></div>
-                    <div class="cat-texts"><div class="cat-name">الكل</div></div>
+                    <div class="cat-texts"><div class="cat-name">{{ __('shop.all') }}</div></div>
                 </button>
 
                 {{-- ✅ نعرض براندات الجذر فقط؛ الأطفال داخل _filter_brand_item --}}
@@ -183,7 +183,7 @@
                         'level' => 1
                     ])
                 @empty
-                    <div class="text-sm text-gray-500">لا توجد براندات متاحة.</div>
+                    <div class="text-sm text-gray-500">{{ __('shop.no_brands_available') }}</div>
                 @endforelse
             </div>
         </div>
@@ -197,7 +197,7 @@
                     class="filter-title">
                 <span class="flex items-center gap-3">
                     <i class="bi bi-tag-fill text-lg"></i>
-                    <span>البراندات</span>
+                    <span>{{ __('shop.matching_sections') }}</span>
                 </span>
                 <i class="bi bi-chevron-down transform transition-transform duration-300" :class="{ 'rotate-180': open }"></i>
             </button>
@@ -236,10 +236,10 @@
                    @class(['filter-category-item','active' => !$currentCategory])>
                     <div class="cat-thumb"><div class="ph">All</div></div>
                     <div class="cat-texts">
-                        <div class="cat-name">الكل</div>
+                        <div class="cat-name">{{ __('shop.all') }}</div>
                         @isset($all_products_count)
                             <div class="cat-meta">
-                                <span class="cat-chip"><i class="bi bi-box-seam"></i> {{ $all_products_count }} منتج</span>
+                                <span class="cat-chip"><i class="bi bi-box-seam"></i> {{ __('shop.products_count', ['count' => $all_products_count]) }}</span>
                             </div>
                         @endisset
                     </div>
@@ -253,7 +253,7 @@
                         'level' => 1
                     ])
                 @empty
-                    <div class="text-sm text-gray-500">لا توجد فئات متاحة.</div>
+                    <div class="text-sm text-gray-500">{{ __('shop.no_categories_available') }}</div>
                 @endforelse
             </div>
         </div>
@@ -267,7 +267,7 @@
                     class="filter-title">
                 <span class="flex items-center gap-3">
                      <i class="bi bi-currency-dollar text-lg"></i>
-                    <span>السعر</span>
+                    <span>{{ __('shop.price') }}</span>
                 </span>
                 <i class="bi bi-chevron-down transform transition-transform duration-300" :class="{ 'rotate-180': open }"></i>
             </button>
@@ -289,11 +289,11 @@
                 </div>
                 <div class="price-inputs">
                     <div class="price-field">
-                        <label class="price-field-label" for="filter-min-price">من</label>
+                        <label class="price-field-label" for="filter-min-price">{{ __('shop.from') }}</label>
                         <input id="filter-min-price" type="number" min="0" :max="maxPrice - 1000" step="1000" inputmode="numeric" class="price-input" x-model.number="minPrice" @blur="normalizeMinPrice()">
                     </div>
                     <div class="price-field">
-                        <label class="price-field-label" for="filter-max-price">إلى</label>
+                        <label class="price-field-label" for="filter-max-price">{{ __('shop.to') }}</label>
                         <input id="filter-max-price" type="number" :min="minPrice + 1000" :max="maxLimit" step="1000" inputmode="numeric" class="price-input" x-model.number="maxPrice" @blur="normalizeMaxPrice()">
                     </div>
                 </div>
@@ -309,7 +309,7 @@
                     class="filter-title">
                 <span class="flex items-center gap-3">
                     <i class="bi bi-star-fill text-lg"></i>
-                    <span>العروض</span>
+                    <span>{{ __('shop.offers') }}</span>
                 </span>
                 <i class="bi bi-chevron-down transform transition-transform duration-300" :class="{ 'rotate-180': open }"></i>
             </button>
@@ -326,7 +326,7 @@
                  <label class="inline-flex items-center gap-3 cursor-pointer group">
                     <input type="checkbox" name="on_sale" value="true" class="sale-checkbox" {{ request('on_sale') ? 'checked' : '' }}>
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-brand-primary dark:group-hover:text-rose-300 transition-colors">
-                        عرض المنتجات المخفضة فقط
+                        {{ __('shop.sale_only') }}
                     </span>
                 </label>
             </div>
@@ -334,10 +334,10 @@
 
         {{-- الأزرار --}}
         <div class="space-y-3 pt-4">
-            <button type="submit" class="filter-submit-btn">تطبيق الفلتر</button>
+            <button type="submit" class="filter-submit-btn">{{ __('shop.apply_filter') }}</button>
             @if(request()->hasAny(['brand','category','min_price','max_price','on_sale']))
                 <a href="{{ route('shop', request()->except(['brand','category','min_price','max_price','on_sale', 'page'])) }}" class="filter-clear-btn">
-                    <i class="bi bi-eraser"></i> مسح الفلتر
+                    <i class="bi bi-eraser"></i> {{ __('shop.clear_filter') }}
                 </a>
             @endif
         </div>
@@ -420,7 +420,7 @@
                     this.maxPrice = value;
                     this.updateThumbs();
                 },
-                formatPrice(price){ return new Intl.NumberFormat('en-US').format(price) + ' د.ع'; }
+                formatPrice(price){ return new Intl.NumberFormat('en-US').format(price) + ' ' + @json(__('common.currency')); }
             }))
         })
     </script>

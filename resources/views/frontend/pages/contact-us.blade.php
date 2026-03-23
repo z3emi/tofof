@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'اتصل بنا – طفوف')
+@section('title', __('pages.contact_page_title'))
 
 @push('styles')
 <style>
@@ -130,7 +130,7 @@
   <div class="content-wrapper max-w-5xl mx-auto brand-card p-6 md:p-10 rounded-lg shadow-md leading-relaxed">
 
     <!-- العنوان -->
-    <h1 class="text-4xl font-bold mb-8 text-center p-4 rounded-lg" style="background-color:#6d0e16; color:#f7f7f7;">اتصل بنا</h1>
+    <h1 class="text-4xl font-bold mb-8 text-center p-4 rounded-lg" style="background-color:#6d0e16; color:#f7f7f7;">{{ __('pages.contact_title') }}</h1>
 
     {{-- رسائل النجاح --}}
     @if (session('success'))
@@ -142,7 +142,7 @@
     {{-- رسائل الأخطاء --}}
     @if ($errors->any())
         <div class="max-w-2xl mx-auto mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md text-sm">
-            <p class="font-semibold mb-1">يرجى تصحيح الأخطاء التالية:</p>
+            <p class="font-semibold mb-1">{{ __('pages.contact_fix_errors') }}</p>
             <ul class="list-disc list-inside text-right">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -152,50 +152,50 @@
     @endif
 
     <p class="text-xl mb-10 text-center max-w-2xl mx-auto">
-      إذا عندك أي سؤال، استفسار، أو تحتاج مساعدة، فريق طفوف دايمًا قريب منك 📬
+      {{ __('pages.contact_intro') }}
     </p>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
         
         <div class="feature p-6">
-            <h2 class="text-2xl font-bold mb-4 brand-primary">📬 طرق التواصل الرسمية</h2>
+            <h2 class="text-2xl font-bold mb-4 brand-primary">{{ __('pages.contact_official_ways') }}</h2>
             <div class="divider mb-4"></div>
             <ul class="space-y-4">
                 
                 <li class="flex items-center">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" class="w-6 h-6 ml-3">
                     <a href="https://wa.me/9647744969024" target="_blank" class="link-brand">
-                        راسـلـنـا واتـسـاب
+                        {{ __('pages.contact_whatsapp') }}
                     </a>
                 </li>
                 
                 <li class="flex items-center">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram" class="w-6 h-6 ml-3">
                     <a href="https://www.instagram.com/tofof_watches" target="_blank" class="link-brand">
-                        تـابـعـنـا إنـسـتـغـرام
+                        {{ __('pages.contact_instagram') }}
                     </a>
                 </li>
                 
                 <li class="flex items-center">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" class="w-6 h-6 ml-3">
                     <a href="https://www.facebook.com/p/%D8%B7%D9%81%D9%88%D9%81-%D9%84%D9%84%D8%B3%D8%A7%D8%B9%D8%A7%D8%AA-100091444293851/" target="_blank" class="link-brand">
-                        صـفـحـة فـيـسـبـوك
+                        {{ __('pages.contact_facebook') }}
                     </a>
                 </li>
             </ul>
         </div>
 
         <div class="feature p-6">
-            <h2 class="text-2xl font-bold mb-4 brand-primary">🕒 ساعات الدعم</h2>
+            <h2 class="text-2xl font-bold mb-4 brand-primary">{{ __('pages.contact_support_hours') }}</h2>
             <div class="divider mb-4"></div>
             <div class="flex items-start">
                 <div class="p-3 bg-red-50 rounded-full ml-4">
                   <svg class="w-8 h-8 brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
                 <div>
-                    <h3 class="text-xl font-bold mb-1">الرد على الرسائل</h3>
-                    <p class="text-lg">متوفرين 24/7</p>
-                    <p class="text-sm opacity-70">(يشمل أيام العطل الرسمية)</p>
+                    <h3 class="text-xl font-bold mb-1">{{ __('pages.contact_reply_title') }}</h3>
+                    <p class="text-lg">{{ __('pages.contact_available') }}</p>
+                    <p class="text-sm opacity-70">{{ __('pages.contact_includes_hols') }}</p>
                 </div>
             </div>
         </div>
@@ -204,7 +204,7 @@
 
     <div class="mt-10 text-center border-t pt-8" style="border-color: rgba(0,0,0,0.1);">
         <p class="text-lg opacity-80">
-            💡 <strong>ملاحظة:</strong> دائمًا نحب نسمع منك، سواء كان اقتراح أو ملاحظة – كل مداخلة منك تساعدنا نكون أفضل 🤍
+            <strong>{{ __('pages.contact_note') }}</strong> {{ __('pages.contact_note_text') }}
         </p>
     </div>
 

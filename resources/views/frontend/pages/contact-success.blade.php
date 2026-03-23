@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'تم استلام رسالتك – طفوف')
+@section('title', __('pages.contact_success_msg'))
 
 @push('styles')
 <style>
@@ -48,12 +48,12 @@
     <div class="content-wrapper max-w-xl mx-auto card bg-white border border-[#eadbcd] rounded-lg shadow-md p-8 text-center">
 
         <h1 class="text-3xl md:text-4xl font-bold brand-primary mb-4">
-            تم استلام رسالتك 🤍
+            {{ __('pages.contact_success_msg') }}
         </h1>
 
         <p class="text-lg brand-muted mb-6">
-            شكرًا لأنك تواصلت ويانا 💌  
-            استلمنا رسالتك بنجاح، وراح يراجعها فريق الدعم ويتواصل معك خلال أقرب وقت ممكن.
+            {{ __('pages.contact_success_thanks') }}
+            {{ __('pages.contact_success_body') }}
         </p>
 
         @if (session('success'))
@@ -66,13 +66,13 @@
             <a href="{{ route('homepage') }}"
                class="inline-flex justify-center px-6 py-2 rounded-md text-white text-base font-medium"
                style="background-color:#be6661;">
-                العودة إلى الرئيسية
+                {{ __('pages.contact_back_home') }}
             </a>
 
             <a href="{{ route('page.contact-us') }}"
                class="inline-flex justify-center px-6 py-2 rounded-md border text-base font-medium"
                style="border-color:#be6661; color:#be6661;">
-                إرسال رسالة جديدة
+                {{ __('pages.contact_send_new') }}
             </a>
         </div>
     </div>

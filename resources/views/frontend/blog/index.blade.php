@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'المدونة')
+@section('title', __('blog.title'))
 
 @push('styles')
 <style>
@@ -72,8 +72,8 @@
 <div class="blog-wrap bg-gray-50/50 dark:bg-gray-900">
     <div class="hero-soft dark:bg-[#0f172a]">
         <div class="container mx-auto px-4 py-10 text-center">
-            <h1 class="text-4xl font-extrabold text-brand-dark tracking-tight">مدونة طفوف</h1>
-            <p class="text-gray-600 mt-2 dark:text-gray-300">نصائح، إرشادات، وكل ما هو جديد في عالم الجمال والعناية</p>
+            <h1 class="text-4xl font-extrabold text-brand-dark tracking-tight">{{ __('blog.hero_title') }}</h1>
+            <p class="text-gray-600 mt-2 dark:text-gray-300">{{ __('blog.hero_subtitle') }}</p>
         </div>
     </div>
 
@@ -99,13 +99,13 @@
                                     {{ $post->excerpt }}
                                 </p>
                                 <div class="text-xs text-gray-400 dark:text-gray-400">
-                                    <span>بواسطة {{ $post->author->name }}</span> &bull;
+                                    <span>{{ __('blog.by') }} {{ $post->author->name }}</span> &bull;
                                     <span>{{ $post->published_at->format('d M, Y') }}</span>
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <p class="col-span-full text-center text-gray-500 dark:text-gray-400">لا توجد مقالات لعرضها حاليًا.</p>
+                        <p class="col-span-full text-center text-gray-500 dark:text-gray-400">{{ __('blog.no_posts') }}</p>
                     @endforelse
                 </div>
 
@@ -118,7 +118,7 @@
             <!-- Sidebar -->
             <aside class="lg:col-span-1 space-y-8">
                 <div class="card bg-white p-6 rounded-lg shadow-md border border-[#ebe8e6]">
-                    <h3 class="text-lg font-bold text-brand-dark border-b pb-2 mb-4 dark:border-gray-700">الأقسام</h3>
+                    <h3 class="text-lg font-bold text-brand-dark border-b pb-2 mb-4 dark:border-gray-700">{{ __('blog.categories') }}</h3>
                     <ul class="space-y-2">
                         @foreach($categories as $category)
                         <li>
@@ -134,7 +134,7 @@
                 </div>
 
                 <div class="card bg-white p-6 rounded-lg shadow-md border border-[#ebe8e6]">
-                    <h3 class="text-lg font-bold text-brand-dark border-b pb-2 mb-4 dark:border-gray-700">أحدث المقالات</h3>
+                    <h3 class="text-lg font-bold text-brand-dark border-b pb-2 mb-4 dark:border-gray-700">{{ __('blog.latest_posts') }}</h3>
                     <ul class="space-y-4">
                         @foreach($recentPosts as $recentPost)
                         <li>

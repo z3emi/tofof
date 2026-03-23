@@ -1,6 +1,6 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
-@section('title', 'تصفح الفئات والبراندات')
+@section('title', __('pages.categories_title'))
 
 @push('styles')
 <style>
@@ -221,13 +221,13 @@
         <div class="mb-12 text-center max-w-3xl mx-auto">
              <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider"
                   style="background:rgba(109, 14, 22, 0.08);color:#6d0e16;border:1px solid rgba(109, 14, 22, 0.15)">
-                <i class="bi bi-stars"></i> اكتشف عالمنا
+                <i class="bi bi-stars"></i> {{ __('pages.discover') }}
             </div>
             <h1 class="text-3xl md:text-5xl font-extrabold mt-4" style="color:#1a1a1a">
-                <span class="dark:text-white">تصفح حسب</span> <span style="color:#6d0e16">الفئات والبراندات</span>
+                <span class="dark:text-white">{{ __('pages.categories_browse') }}</span> <span style="color:#6d0e16">{{ __('pages.categories_and_brands') }}</span>
             </h1>
             <p class="mt-4 text-lg opacity-80" style="color:#4b5563">
-                <span class="dark:text-gray-400">كل ما تبحث عنه من منتجات، مُنظم حسب الفئة ليسهل عليك رحلة التسوق.</span>
+                <span class="dark:text-gray-400">{{ __('pages.categories_intro') }}</span>
             </p>
         </div>
         
@@ -242,13 +242,13 @@
                         <a href="{{ route('shop', ['brand' => $fia->slug]) }}" class="category-link">
                             <div class="category-icon">
                                 @php $img = $fia->image ?: $fia->icon; @endphp
-                                @if($img) <img src="{{ asset('storage/' . $img) }}" alt="{{ $fia->name_ar }}" class="icon-image">
+                                @if($img) <img src="{{ asset('storage/' . $img) }}" alt="{{ $fia->name_translated }}" class="icon-image">
                                 @else <div class="icon-placeholder">🏷️</div> @endif
                             </div>
                             <div class="category-details">
-                                <h3 class="category-name">{{ $fia->name_ar }}</h3>
+                                <h3 class="category-name">{{ $fia->name_translated }}</h3>
                                 <div class="category-meta">
-                                    <span class="meta-item"><i class="bi bi-grid-3x3-gap-fill"></i> فئة رئيسية</span>
+                                    <span class="meta-item"><i class="bi bi-grid-3x3-gap-fill"></i> {{ __('pages.main_category') }}</span>
                                 </div>
                             </div>
                         </a>
@@ -272,11 +272,11 @@
                                             <div class="subcategory-indicator"></div>
                                             <a href="{{ route('shop', ['brand' => $subFia->slug]) }}" class="subcategory-link">
                                                 <div class="subcategory-icon">
-                                                    @if($subFia->image) <img src="{{ asset('storage/' . $subFia->image) }}" alt="{{ $subFia->name_ar }}" class="icon-image">
+                                                    @if($subFia->image) <img src="{{ asset('storage/' . $subFia->image) }}" alt="{{ $subFia->name_translated }}" class="icon-image">
                                                     @else <div class="icon-placeholder">🏷️</div> @endif
                                                 </div>
                                                 <div class="subcategory-details">
-                                                    <h4 class="subcategory-name">{{ $subFia->name_ar }}</h4>
+                                                    <h4 class="subcategory-name">{{ $subFia->name_translated }}</h4>
                                                 </div>
                                             </a>
                                             @if($hasBrands)
@@ -295,11 +295,11 @@
                                                             <div class="sub-subcategory-card">
                                                                 <a href="{{ route('shop', ['category' => $brand->slug]) }}" class="sub-subcategory-link">
                                                                     <div class="sub-subcategory-icon">
-                                                                        @if($brand->image) <img src="{{ asset('storage/' . $brand->image) }}" alt="{{ $brand->name_ar }}" class="icon-image">
+                                                                        @if($brand->image) <img src="{{ asset('storage/' . $brand->image) }}" alt="{{ $brand->name_translated }}" class="icon-image">
                                                                         @else <div class="icon-placeholder">🧴</div> @endif
                                                                     </div>
                                                                     <div class="sub-subcategory-details">
-                                                                        <h5 class="sub-subcategory-name">{{ $brand->name_ar }}</h5>
+                                                                        <h5 class="sub-subcategory-name">{{ $brand->name_translated }}</h5>
                                                                     </div>
                                                                 </a>
                                                             </div>
@@ -316,7 +316,7 @@
                 </div>
             @empty
                 <div class="text-center py-6" style="color:#7a6e6e">
-                    لا توجد فئات لعرضها حالياً.
+                    {{ __('pages.no_categories') }}
                 </div>
             @endforelse
         </div>

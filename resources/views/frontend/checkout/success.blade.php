@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'تم استلام طلبك بنجاح')
+@section('title', __('checkout.success_title'))
 
 @push('styles')
 <style>
@@ -128,41 +128,41 @@
         <i class="bi bi-patch-check-fill text-4xl" style="color:var(--ok)"></i>
       </div>
 
-      <h1 class="text-2xl md:text-3xl font-extrabold mb-2" style="color:var(--text)">شكراً لك، طلبك قيد التنفيذ!</h1>
+      <h1 class="text-2xl md:text-3xl font-extrabold mb-2" style="color:var(--text)">{{ __('checkout.thank_you') }}</h1>
 
       {{-- Display the success message from the controller --}}
       @if(session('success'))
         <p class="text-sm md:text-base muted mb-6">{{ session('success') }}</p>
       @else
-        <p class="text-sm md:text-base muted mb-6">تم استلام طلبك بنجاح. سنتصل بك قريباً لتأكيد التفاصيل.</p>
+        <p class="text-sm md:text-base muted mb-6">{{ __('checkout.order_received') }}</p>
       @endif
 
       {{-- Order ID Section (if provided) --}}
       @if(isset($order))
       <div class="order-box py-4 px-5 my-6">
-        <p class="text-xs muted mb-1">رقم الطلب الخاص بك هو:</p>
+        <p class="text-xs muted mb-1">{{ __('checkout.your_order_number') }}</p>
         <p class="text-2xl font-mono font-extrabold tracking-wider">{{ $order->id }}</p>
       </div>
       @endif
 
       {{-- What's next --}}
       <div class="info text-right my-8 p-4">
-        <h3 class="font-extrabold" style="color:var(--blue)">ماذا سيحدث الآن؟</h3>
+        <h3 class="font-extrabold" style="color:var(--blue)">{{ __('checkout.whats_next') }}</h3>
         <ul class="list-disc list-inside text-sm mt-2 space-y-1" style="color:var(--blue)">
-          <li>ستصلك مكالمة هاتفية من فريقنا خلال 24 ساعة لتأكيد الطلب.</li>
-          <li>سيتم تجهيز وشحن طلبك بعد التأكيد.</li>
-          <li>يمكنك تتبع حالة الطلب من صفحة "طلباتي".</li>
+          <li>{{ __('checkout.next_step_1') }}</li>
+          <li>{{ __('checkout.next_step_2') }}</li>
+          <li>{{ __('checkout.next_step_3') }}</li>
         </ul>
       </div>
 
       {{-- Actions (routes kept as provided) --}}
       <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
         <a href="{{ route('shop') }}" class="btn btn-brand w-full sm:w-auto">
-          <i class="bi bi-arrow-left"></i> متابعة التسوق
+          <i class="bi bi-arrow-left"></i> {{ __('checkout.continue_shopping') }}
         </a>
         {{-- أبقيته كما هو، لو عندك مسار لطلبات المستخدم بدّله لاحقاً --}}
         <a href="{{ route('profile.orders') }}" class="btn btn-ghost w-full sm:w-auto">
-          عرض طلباتي
+          {{ __('checkout.view_my_orders') }}
         </a>
       </div>
 

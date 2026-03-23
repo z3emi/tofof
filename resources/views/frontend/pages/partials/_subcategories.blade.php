@@ -3,17 +3,17 @@
     <a href="{{ route('shop', ['category' => $subcategory->slug]) }}" class="cat-info no-underline">
       @php $img = $subcategory->image ? asset('storage/' . $subcategory->image) : null; @endphp
       @if($img)
-        <img src="{{ $img }}" alt="{{ $subcategory->name_ar }}" class="cat-thumb">
+        <img src="{{ $img }}" alt="{{ $subcategory->name_translated }}" class="cat-thumb">
       @else
         <div class="thumb-fallback">🧴</div>
       @endif
       <div class="min-w-0">
-        <h6 class="cat-title truncate">{{ $subcategory->name_ar }}</h6>
+        <h6 class="cat-title truncate">{{ $subcategory->name_translated }}</h6>
         <div class="chips">
           @if($level == 2)
-            <span class="chip chip-kind chip-kind--sub"><i class="bi bi-diagram-3"></i> قسم فرعي</span>
+            <span class="chip chip-kind chip-kind--sub"><i class="bi bi-diagram-3"></i> {{ __('shop.sub') }}</span>
           @endif
-          <span class="chip chip-count"><i class="bi bi-box-seam"></i> {{ $subcategory->total_products_count }} منتج</span>
+          <span class="chip chip-count"><i class="bi bi-box-seam"></i> {{ __('shop.products_count', ['count' => $subcategory->total_products_count]) }}</span>
         </div>
       </div>
     </a>

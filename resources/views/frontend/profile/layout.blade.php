@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', $title ?? 'حسابي الشخصي')
+@section('title', $title ?? __('profile.my_account'))
 
 @section('content')
 @php
@@ -27,7 +27,7 @@
     $avatarSrc = $u?->avatar_url ?? asset('storage/avatars/default.jpg');
 @endphp
 
-<div class="container mx-auto px-4 py-4">
+<div class="container mx-auto px-4 pt-2 pb-4 md:pt-4">
     <div class="flex flex-col gap-6">
         <div class="flex flex-col md:flex-row gap-6">
 
@@ -42,35 +42,35 @@
                             <a href="{{ route('profile.show') }}"
                                class="menu-item {{ request()->routeIs('profile.show') ? 'is-active' : '' }}">
                                 <i class="bi bi-person-fill"></i>
-                                <span>ملفي الشخصي</span>
+                                <span>{{ __('profile.my_profile') }}</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('profile.orders') }}"
                                class="menu-item {{ request()->routeIs('profile.orders*') ? 'is-active' : '' }}">
                                 <i class="bi bi-box-seam"></i>
-                                <span>طلباتي</span>
+                                <span>{{ __('profile.my_orders') }}</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('profile.addresses.index') }}"
                                class="menu-item {{ request()->routeIs('profile.addresses*') ? 'is-active' : '' }}">
                                 <i class="bi bi-geo-alt-fill"></i>
-                                <span>عناوين الشحن</span>
+                                <span>{{ __('profile.shipping_addresses') }}</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('wallet.index') }}"
                                class="menu-item {{ request()->routeIs('wallet.*') ? 'is-active' : '' }}">
                                 <i class="bi bi-wallet2"></i>
-                                <span>المحفظة</span>
+                                <span>{{ __('profile.wallet') }}</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('wishlist') }}"
                                class="menu-item {{ request()->routeIs('wishlist') ? 'is-active' : '' }}">
                                 <i class="bi bi-heart-fill"></i>
-                                <span>المفضلة</span>
+                                <span>{{ __('profile.wishlist') }}</span>
                             </a>
                         </li>
                     </ul>
@@ -80,7 +80,7 @@
                            class="menu-item danger"
                            onclick="event.preventDefault(); document.getElementById('logout-form-desktop').submit();">
                             <i class="bi bi-box-arrow-right"></i>
-                            <span>تسجيل الخروج</span>
+                            <span>{{ __('profile.logout') }}</span>
                         </a>
                         <form id="logout-form-desktop" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
                     </div>
@@ -88,7 +88,7 @@
             </aside>
 
             {{-- المحتوى الرئيسي: يظهر دائمًا على الديسكتوب، وعلى الموبايل يظهر فقط إن كان edit=1 --}}
-            <main class="w-full md:w-3/4 bg-white rounded-lg shadow-sm border p-4 md:p-6 {{ $showListOnMobile ? 'profile-main--mobile-hidden' : '' }}"
+            <main class="w-full md:w-3/4 bg-white rounded-lg shadow-sm border p-4 md:p-6 {{ $showListOnMobile ? 'profile-main--mobile-hidden' : '' }}">
                 @yield('profile-content')
             </main>
         </div>
@@ -106,7 +106,7 @@
                         <div class="font-extrabold text-[#4a3f3f] truncate">{{ $u?->name }}</div>
                         <a href="{{ route('profile.show', ['edit' => 1]) }}"
                            class="text-sm text-[#6b7280] ltr hover:text-[{{$brandDark}}] transition"
-                           title="تعديل الملف">
+                           title="{{ __('profile.edit_profile_btn') }}">
                            {{ $u?->phone_number }}
                         </a>
                     </div>
@@ -115,20 +115,20 @@
                 <div class="grid grid-cols-3 gap-2 mt-3">
                     <div class="stat">
                         <b>{{ number_format($ordersCount) }}</b>
-                        <small>الطلبات</small>
+                        <small>{{ __('profile.orders_stat') }}</small>
                     </div>
                     <div class="stat">
                         <b>{{ $tierLabel }}</b>
-                        <small>الفئة</small>
+                        <small>{{ __('profile.tier_stat') }}</small>
                     </div>
                     <div class="stat">
-                        <b>{{ $wallet }} د.ع</b>
-                        <small>الرصيد</small>
+                        <b>{{ $wallet }} {{ __('profile.currency') }}</b>
+                        <small>{{ __('profile.balance_stat') }}</small>
                     </div>
                 </div>
 
                 <a href="{{ route('profile.show', ['edit' => 1]) }}" class="btn-brand block text-center mt-3">
-                    تعديل الملف
+                    {{ __('profile.edit_profile_btn') }}
                 </a>
             </div>
             {{-- ===== /بطاقة المعلومات المختصرة ===== --}}
@@ -137,25 +137,25 @@
             <div class="bg-white border rounded-2xl overflow-hidden shadow-sm" style="border-color:#eadbcd">
                 <a href="{{ route('profile.addresses.index') }}" class="app-item border-b">
                     <span class="app-icon"><i class="bi bi-geo-alt"></i></span>
-                    <div class="flex-1"><div class="app-title">عناويني</div></div>
+                    <div class="flex-1"><div class="app-title">{{ __('profile.my_addresses') }}</div></div>
                     <i class="bi bi-chevron-left text-gray-400"></i>
                 </a>
 
                 <a href="{{ route('profile.orders') }}" class="app-item border-b">
                     <span class="app-icon"><i class="bi bi-box-seam"></i></span>
-                    <div class="flex-1"><div class="app-title">طلباتي</div></div>
+                    <div class="flex-1"><div class="app-title">{{ __('profile.my_orders') }}</div></div>
                     <i class="bi bi-chevron-left text-gray-400"></i>
                 </a>
 
                 <a href="{{ route('wallet.index') }}" class="app-item border-b">
                     <span class="app-icon"><i class="bi bi-wallet2"></i></span>
-                    <div class="flex-1"><div class="app-title">المحفظة</div></div>
+                    <div class="flex-1"><div class="app-title">{{ __('profile.wallet') }}</div></div>
                     <i class="bi bi-chevron-left text-gray-400"></i>
                 </a>
 
                 <a href="{{ route('wishlist') }}" class="app-item border-b">
                     <span class="app-icon" style="color:{{$brandDark}}"><i class="bi bi-heart-fill"></i></span>
-                    <div class="flex-1"><div class="app-title">المفضلة</div></div>
+                    <div class="flex-1"><div class="app-title">{{ __('profile.wishlist') }}</div></div>
                     <i class="bi bi-chevron-left text-gray-400"></i>
                 </a>
 
@@ -165,7 +165,7 @@
                         <span class="app-icon !bg-red-100 !text-red-600">
                             <i class="bi bi-box-arrow-right"></i>
                         </span>
-                        <span class="flex-1 app-title">تسجيل الخروج</span>
+                        <span class="flex-1 app-title">{{ __('profile.logout') }}</span>
                         <i class="bi bi-chevron-left text-gray-400"></i>
                     </button>
                 </form>

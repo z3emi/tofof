@@ -1,6 +1,6 @@
 @extends('frontend.profile.layout')
 
-@section('title', 'محفظتي')
+@section('title', __('wallet.title'))
 
 @push('styles')
 <style>
@@ -242,41 +242,41 @@
 
     <section class="wallet-hero">
       <div class="wallet-topline">
-        <span class="wallet-chip"><i class="bi bi-wallet2"></i> محفظتي</span>
-        <span class="wallet-chip"><i class="bi bi-shield-check"></i> آمن ومحدّث</span>
+        <span class="wallet-chip"><i class="bi bi-wallet2"></i> {{ __('wallet.badge_wallet') }}</span>
+        <span class="wallet-chip"><i class="bi bi-shield-check"></i> {{ __('wallet.badge_secure') }}</span>
       </div>
-      <div class="wallet-balance">{{ number_format($balance, 0) }} د.ع</div>
-      <div class="wallet-note">يمكن استخدام الرصيد تلقائيًا أثناء إنشاء الطلبات المؤهلة.</div>
+      <div class="wallet-balance">{{ number_format($balance, 0) }} {{ __('wallet.currency') }}</div>
+      <div class="wallet-note">{{ __('wallet.note') }}</div>
     </section>
 
     <section class="wallet-stats">
       <div class="stat-card">
         <div class="stat-head">
-          <span>إجمالي الإضافات</span>
+          <span>{{ __('wallet.total_credits') }}</span>
           <i class="bi bi-arrow-down-left"></i>
         </div>
-        <div class="stat-value is-credit">{{ number_format($creditsTotal, 0) }} د.ع</div>
+        <div class="stat-value is-credit">{{ number_format($creditsTotal, 0) }} {{ __('wallet.currency') }}</div>
       </div>
 
       <div class="stat-card">
         <div class="stat-head">
-          <span>إجمالي الخصومات</span>
+          <span>{{ __('wallet.total_debits') }}</span>
           <i class="bi bi-arrow-up-right"></i>
         </div>
-        <div class="stat-value is-debit">{{ number_format($debitsTotal, 0) }} د.ع</div>
+        <div class="stat-value is-debit">{{ number_format($debitsTotal, 0) }} {{ __('wallet.currency') }}</div>
       </div>
     </section>
 
     <section class="wallet-panel">
       <div class="wallet-panel-head">
         <div>
-          <div class="wallet-panel-title">سجل العمليات</div>
-          <div class="wallet-panel-sub">آخر العمليات المسجلة على محفظتك</div>
+          <div class="wallet-panel-title">{{ __('wallet.transactions_title') }}</div>
+          <div class="wallet-panel-sub">{{ __('wallet.transactions_subtitle') }}</div>
         </div>
       </div>
 
       @if($transactions->isEmpty())
-        <div class="empty-wallet">لا توجد حركات في المحفظة حتى الآن.</div>
+        <div class="empty-wallet">{{ __('wallet.empty') }}</div>
       @else
         <div class="tx-card-list md:hidden">
           @foreach($transactions as $tx)
@@ -285,27 +285,27 @@
             <div class="tx-card-top">
               <span class="tx-type {{ $isCredit ? 'credit' : 'debit' }}">
                 <i class="bi {{ $isCredit ? 'bi-arrow-down-left' : 'bi-arrow-up-right' }}"></i>
-                {{ $isCredit ? 'إيداع' : 'سحب' }}
+                {{ $isCredit ? __('wallet.credit') : __('wallet.debit') }}
               </span>
               <span class="tx-amount {{ $isCredit ? 'credit' : 'debit' }}">
-                {{ number_format($tx->amount, 0) }} د.ع
+                {{ number_format($tx->amount, 0) }} {{ __('wallet.currency') }}
               </span>
             </div>
 
             <div class="tx-card-row">
-              <span class="tx-label">التاريخ</span>
+              <span class="tx-label">{{ __('wallet.date') }}</span>
               <span class="tx-value">
                 {{ optional($tx->created_at)->timezone(config('app.timezone','Asia/Baghdad'))->format('Y-m-d H:i') }}
               </span>
             </div>
 
             <div class="tx-card-row">
-              <span class="tx-label">الوصف</span>
+              <span class="tx-label">{{ __('wallet.description') }}</span>
               <span class="tx-value">{{ $tx->description ?: '—' }}</span>
             </div>
 
             <div class="tx-card-row">
-              <span class="tx-label">رقم الطلب</span>
+              <span class="tx-label">{{ __('wallet.order_number') }}</span>
               <span class="tx-value">
                 @php $orderRef = $tx->order_id ?? $tx->related_order_id; @endphp
                 @if(!empty($orderRef))
@@ -327,11 +327,11 @@
           <table class="wallet-table">
             <thead>
               <tr>
-                <th>التاريخ</th>
-                <th>النوع</th>
-                <th>القيمة</th>
-                <th>الوصف</th>
-                <th>رقم الطلب</th>
+                <th>{{ __('wallet.date') }}</th>
+                <th>{{ __('wallet.type') }}</th>
+                <th>{{ __('wallet.amount') }}</th>
+                <th>{{ __('wallet.description') }}</th>
+                <th>{{ __('wallet.order_number') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -344,12 +344,12 @@
                 <td>
                   <span class="tx-type {{ $isCredit ? 'credit' : 'debit' }}">
                     <i class="bi {{ $isCredit ? 'bi-arrow-down-left' : 'bi-arrow-up-right' }}"></i>
-                    {{ $isCredit ? 'إيداع' : 'سحب' }}
+                    {{ $isCredit ? __('wallet.credit') : __('wallet.debit') }}
                   </span>
                 </td>
                 <td>
                   <span class="tx-amount {{ $isCredit ? 'credit' : 'debit' }}">
-                    {{ number_format($tx->amount, 0) }} د.ع
+                    {{ number_format($tx->amount, 0) }} {{ __('wallet.currency') }}
                   </span>
                 </td>
                 <td>{{ $tx->description ?: '—' }}</td>

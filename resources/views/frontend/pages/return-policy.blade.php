@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'سياسة الاستبدال والإرجاع - طفوف')
+@section('title', __('pages.return_title'))
 
 @push('styles')
 <style>
@@ -111,11 +111,11 @@
   <div class="content-wrapper max-w-5xl mx-auto brand-card p-10 rounded-lg shadow-md leading-relaxed">
 
     <!-- العنوان -->
-    <h1 class="text-4xl font-bold mb-8 text-center p-4 rounded-lg" style="background-color:#6d0e16; color:#f7f7f7;">سياسة الاستبدال والإرجاع</h1>
+    <h1 class="text-4xl font-bold mb-8 text-center p-4 rounded-lg" style="background-color:#6d0e16; color:#f7f7f7;">{{ __('pages.return_title') }}</h1>
 
     <!-- مقدمة -->
     <p class="text-lg mb-8 rtl:text-right">
-      في <strong>طفوف</strong>، نحرص أن تكون تجربتك آمنة ومريحة، ولهذا لدينا سياسة استبدال واضحة وسهلة لضمان رضاك التام.
+      {{ __('pages.return_intro') }}
     </p>
 
     <!-- الأقسام المتعددة -->
@@ -123,57 +123,57 @@
       
       <!-- حالات الإرجاع -->
       <div class="feature p-6">
-        <h2 class="text-xl font-bold mb-3 brand-primary">يحق لك ترجع أو تبدل المنتج إذا:</h2>
+        <h2 class="text-xl font-bold mb-3 brand-primary">{{ __('pages.return_cases_title') }}</h2>
         <div class="divider mb-3"></div>
         <ul class="pretty-list space-y-1">
-          <li>وصلك الطلب تالفاً أو مكسوراً أثناء الشحن.</li>
-          <li>استلمت الطلب مختلفاً عن الذي طلبته تماماً.</li>
+          <li>{{ __('pages.return_cases_1') }}</li>
+          <li>{{ __('pages.return_cases_2') }}</li>
         </ul>
       </div>
 
       <!-- المهلة -->
       <div class="feature p-6">
-        <h2 class="text-xl font-bold mb-3 brand-primary">مهلة تقديم الطلب:</h2>
+        <h2 class="text-xl font-bold mb-3 brand-primary">{{ __('pages.return_period_title') }}</h2>
         <div class="divider mb-3"></div>
-        <p class="text-xl font-bold text-center py-4">خـلال ٤٨ سـاعـة</p>
-        <p class="text-sm text-center text-gray-500">من وقت استلام الطلب الفعلي.</p>
+        <p class="text-xl font-bold text-center py-4">{{ __('pages.return_period_value') }}</p>
+        <p class="text-sm text-center text-gray-500">{{ __('pages.return_period_note') }}</p>
       </div>
 
       <!-- الشروط -->
       <div class="feature p-6">
-        <h2 class="text-xl font-bold mb-3 brand-primary">شروط قبول الإرجاع:</h2>
+        <h2 class="text-xl font-bold mb-3 brand-primary">{{ __('pages.return_conditions_title') }}</h2>
         <div class="divider mb-3"></div>
         <ul class="pretty-list space-y-1">
-          <li>المنتج غير مستخدم وبنفس حالته الأصلية.</li>
-          <li>يكون بالتغليف الأصلي والكرتون مع الملصقات.</li>
-          <li>إرفاق صورة أو فيديو يوضح الخلل أو المشكلة.</li>
+          <li>{{ __('pages.return_conditions_1') }}</li>
+          <li>{{ __('pages.return_conditions_2') }}</li>
+          <li>{{ __('pages.return_conditions_3') }}</li>
         </ul>
       </div>
 
       <!-- لا تشمل السياسة -->
       <div class="feature p-6">
-        <h2 class="text-xl font-bold mb-3 brand-primary">لا تشمل سياسة الإرجاع:</h2>
+        <h2 class="text-xl font-bold mb-3 brand-primary">{{ __('pages.return_excludes_title') }}</h2>
         <div class="divider mb-3"></div>
         <ul class="pretty-list space-y-1">
-          <li>المنتجات المفتوحة أو المجربة.</li>
-          <li>المنتجات المستخدمة جزئيًا أو بغير شكلها الأصلي.</li>
-          <li>تغيير الرأي أو عدم ملاءمة المنتج للذوق الشخصي.</li>
+          <li>{{ __('pages.return_excludes_1') }}</li>
+          <li>{{ __('pages.return_excludes_2') }}</li>
+          <li>{{ __('pages.return_excludes_3') }}</li>
         </ul>
       </div>
     </div>
 
     <!-- ملاحظات مهمة -->
     <div class="note p-6 mb-10">
-      <h2 class="text-2xl font-semibold mb-3"><i class="bi bi-info-circle-fill mr-2"></i> ملاحظات مهمة:</h2>
-      <p class="text-lg">نتعامل مع كل حالة بشفافية وعدالة لضمان راحتك ورضاك الكامل في طفوف.</p>
+      <h2 class="text-2xl font-semibold mb-3"><i class="bi bi-info-circle-fill mr-2"></i> {{ __('pages.return_notes_title') }}</h2>
+      <p class="text-lg">{{ __('pages.return_notes_text') }}</p>
     </div>
 
     <!-- الخاتمة -->
     <div class="text-center pt-6 border-t" style="border-color: rgba(0,0,0,0.1);">
-      <p class="text-xl mb-4">ثقتكم هي رصيدنا الحقيقي.</p>
+      <p class="text-xl mb-4">{{ __('pages.return_outro') }}</p>
       <p>
-        لأي استفسار إضافي، يسعدنا دائماً 
-        <a href="{{ route('page.contact-us') }}" class="link-brand">التواصل معكم</a>.
+        {{ __('pages.return_contact_cta') }} 
+        <a href="{{ route('page.contact-us') }}" class="link-brand">{{ __('pages.return_contact_link') }}</a>.
       </p>
     </div>
 

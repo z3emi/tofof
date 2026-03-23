@@ -1,32 +1,43 @@
 @php
-// قائمة الدول
-$countries = [
-  ['name' => 'العراق', 'code' => '+964', 'flag' => 'iq'],
-  ['name' => 'مصر', 'code' => '+20', 'flag' => 'eg'],
-  ['name' => 'السعودية', 'code' => '+966', 'flag' => 'sa'],
-  ['name' => 'الإمارات', 'code' => '+971', 'flag' => 'ae'],
-  ['name' => 'تركيا', 'code' => '+90', 'flag' => 'tr'],
-  ['name' => 'الأردن', 'code' => '+962', 'flag' => 'jo'],
-  ['name' => 'سوريا', 'code' => '+963', 'flag' => 'sy'],
-  ['name' => 'لبنان', 'code' => '+961', 'flag' => 'lb'],
-  ['name' => 'فلسطين', 'code' => '+970', 'flag' => 'ps'],
-  ['name' => 'قطر', 'code' => '+974', 'flag' => 'qa'],
-  ['name' => 'البحرين', 'code' => '+973', 'flag' => 'bh'],
-  ['name' => 'الكويت', 'code' => '+965', 'flag' => 'kw'],
-  ['name' => 'عُمان', 'code' => '+968', 'flag' => 'om'],
-  ['name' => 'اليمن', 'code' => '+967', 'flag' => 'ye'],
-  ['name' => 'الجزائر', 'code' => '+213', 'flag' => 'dz'],
-  ['name' => 'تونس', 'code' => '+216', 'flag' => 'tn'],
-  ['name' => 'المغرب', 'code' => '+212', 'flag' => 'ma'],
-  ['name' => 'ليبيا', 'code' => '+218', 'flag' => 'ly'],
-  ['name' => 'السودان', 'code' => '+249', 'flag' => 'sd'],
-  ['name' => 'موريتانيا', 'code' => '+222', 'flag' => 'mr'],
-  ['name' => 'الصومال', 'code' => '+252', 'flag' => 'so'],
+// Country list localized by current locale
+$locale = app()->getLocale();
+$isArabic = $locale === 'ar';
+
+$countriesRaw = [
+  ['ar' => 'العراق', 'en' => 'Iraq', 'code' => '+964', 'flag' => 'iq'],
+  ['ar' => 'مصر', 'en' => 'Egypt', 'code' => '+20', 'flag' => 'eg'],
+  ['ar' => 'السعودية', 'en' => 'Saudi Arabia', 'code' => '+966', 'flag' => 'sa'],
+  ['ar' => 'الإمارات', 'en' => 'United Arab Emirates', 'code' => '+971', 'flag' => 'ae'],
+  ['ar' => 'تركيا', 'en' => 'Turkey', 'code' => '+90', 'flag' => 'tr'],
+  ['ar' => 'الأردن', 'en' => 'Jordan', 'code' => '+962', 'flag' => 'jo'],
+  ['ar' => 'سوريا', 'en' => 'Syria', 'code' => '+963', 'flag' => 'sy'],
+  ['ar' => 'لبنان', 'en' => 'Lebanon', 'code' => '+961', 'flag' => 'lb'],
+  ['ar' => 'فلسطين', 'en' => 'Palestine', 'code' => '+970', 'flag' => 'ps'],
+  ['ar' => 'قطر', 'en' => 'Qatar', 'code' => '+974', 'flag' => 'qa'],
+  ['ar' => 'البحرين', 'en' => 'Bahrain', 'code' => '+973', 'flag' => 'bh'],
+  ['ar' => 'الكويت', 'en' => 'Kuwait', 'code' => '+965', 'flag' => 'kw'],
+  ['ar' => 'عُمان', 'en' => 'Oman', 'code' => '+968', 'flag' => 'om'],
+  ['ar' => 'اليمن', 'en' => 'Yemen', 'code' => '+967', 'flag' => 'ye'],
+  ['ar' => 'الجزائر', 'en' => 'Algeria', 'code' => '+213', 'flag' => 'dz'],
+  ['ar' => 'تونس', 'en' => 'Tunisia', 'code' => '+216', 'flag' => 'tn'],
+  ['ar' => 'المغرب', 'en' => 'Morocco', 'code' => '+212', 'flag' => 'ma'],
+  ['ar' => 'ليبيا', 'en' => 'Libya', 'code' => '+218', 'flag' => 'ly'],
+  ['ar' => 'السودان', 'en' => 'Sudan', 'code' => '+249', 'flag' => 'sd'],
+  ['ar' => 'موريتانيا', 'en' => 'Mauritania', 'code' => '+222', 'flag' => 'mr'],
+  ['ar' => 'الصومال', 'en' => 'Somalia', 'code' => '+252', 'flag' => 'so'],
 ];
+
+$countries = array_map(function ($country) use ($isArabic) {
+  return [
+    'name' => $isArabic ? $country['ar'] : $country['en'],
+    'code' => $country['code'],
+    'flag' => $country['flag'],
+  ];
+}, $countriesRaw);
 @endphp
 
 @extends('layouts.app')
-@section('title', 'إعادة تعيين كلمة المرور')
+@section('title', __('auth_pages.reset_phone.title'))
 
 @push('styles')
 <style>
@@ -138,8 +149,8 @@ html:not(.dark) .auth-alert{border-color:#fecaca;background:#fef2f2;color:#b91c1
          @click.away="countryMenuOpen=false">
 
       <div class="auth-card-header">
-        <h2>إعادة تعيين كلمة المرور</h2>
-        <p>أدخل رقم هاتفك المسجل لإرسال رمز التحقق</p>
+        <h2>{{ __('auth_pages.reset_phone.heading') }}</h2>
+        <p>{{ __('auth_pages.reset_phone.subtitle') }}</p>
       </div>
 
       <div class="p-6 md:p-8 auth-form">
@@ -157,7 +168,7 @@ html:not(.dark) .auth-alert{border-color:#fecaca;background:#fef2f2;color:#b91c1
           @csrf
 
           <div class="mb-6 relative">
-            <label for="local_phone_number" class="auth-label">رقم الهاتف</label>
+            <label for="local_phone_number" class="auth-label">{{ __('auth_pages.reset_phone.phone_label') }}</label>
             <div class="phone-input-group">
               <button type="button" class="country-code-btn" @click="toggleCountryMenu()">
                 <img :src="'{{ request()->root() }}/flags/' + selectedCountry.flag + '.svg'" class="flag w-6 h-4 object-contain rounded-sm shadow-sm" :alt="selectedCountry.name + ' flag'">
@@ -167,17 +178,17 @@ html:not(.dark) .auth-alert{border-color:#fecaca;background:#fef2f2;color:#b91c1
 
               <input id="local_phone_number" type="tel" class="phone-input"
                      name="local_phone_number" x-model="localPhone" required autocomplete="tel" autofocus
-                     :placeholder="selectedCountry.code === '+964' ? 'مثال: 7712345678' : 'أدخل رقم الهاتف'"
+                :placeholder="selectedCountry.code === '+964' ? '{{ __('auth_pages.reset_phone.phone_placeholder_iraq') }}' : '{{ __('auth_pages.reset_phone.phone_placeholder_general') }}'"
                      :maxlength="selectedCountry.code === '+964' ? 10 : 15"
                      :pattern="selectedCountry.code === '+964' ? '7[0-9]{9}' : null"
-                     title="للرقم العراقي، أدخل 10 أرقام تبدأ بالرقم 7.">
+                title="{{ __('auth_pages.reset_phone.phone_title_iraq') }}">
             </div>
 
             <input type="hidden" name="phone_number" :value="selectedCountry.code.replace('+','') + localPhone">
 
-            <p class="auth-note">سيتم إرسال رمز تحقق عبر واتساب إلى هذا الرقم.</p>
+            <p class="auth-note">{{ __('auth_pages.reset_phone.otp_notice') }}</p>
             <p x-show="selectedCountry.code === '+964'" class="auth-note" style="display:none;">
-              ملاحظة: أدخل الرقم المكوّن من 10 أرقام بدون الصفر في البداية (مثال: 7712345678).
+              {{ __('auth_pages.reset_phone.iraq_note') }}
             </p>
 
             <div x-show="countryMenuOpen" class="country-list"
@@ -206,21 +217,21 @@ html:not(.dark) .auth-alert{border-color:#fecaca;background:#fef2f2;color:#b91c1
 
           <button type="submit" class="auth-btn-primary">
             <i class="bi bi-shield-lock"></i>
-            إرسال رمز التحقق
+            {{ __('auth_pages.reset_phone.submit') }}
           </button>
 
-          <p class="auth-foot">تذكرت كلمة المرور؟ <a href="{{ route('login') }}">تسجيل الدخول</a></p>
+          <p class="auth-foot">{{ __('auth_pages.reset_phone.remembered_password') }} <a href="{{ route('login') }}">{{ __('auth_pages.reset_phone.login') }}</a></p>
         </form>
       </div>
     </div>
 
     <div class="text-center">
-      <p class="text-sm text-gray-500 mb-2">بحاجة إلى مساعدة؟</p>
+      <p class="text-sm text-gray-500 mb-2">{{ __('auth_pages.reset_phone.need_help') }}</p>
       <a href="https://wa.me/9647744969024" target="_blank"
          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white shadow transition hover:-translate-y-0.5"
          style="background:#25d366">
         <i class="bi bi-whatsapp text-lg"></i>
-        تواصل معنا عبر واتساب
+        {{ __('auth_pages.reset_phone.whatsapp_contact') }}
       </a>
     </div>
 

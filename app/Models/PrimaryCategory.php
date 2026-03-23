@@ -51,6 +51,13 @@ class PrimaryCategory extends Model
      *
      * @return \Illuminate\Support\Collection
      */
+    public function getNameTranslatedAttribute(): string
+    {
+        $locale = app()->getLocale();
+        $value = $this->getAttribute('name_' . $locale);
+        return $value ?: $this->name_ar;
+    }
+
     public function descendantsAndSelf()
     {
         $collection = collect([$this]);

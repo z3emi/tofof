@@ -89,7 +89,7 @@
                     <p class="text-brand-primary font-semibold">{{ $post->category->name }}</p>
                     <h1 class="text-3xl md:text-4xl font-bold text-brand-dark mt-2">{{ $post->title }}</h1>
                     <div class="text-sm text-gray-500 mt-4">
-                        <span>بواسطة {{ $post->author->name }}</span> &bull;
+                        <span>{{ __('blog.by') }} {{ $post->author->name }}</span> &bull;
                         <span>{{ $post->published_at->format('d M, Y') }}</span>
                     </div>
                 </div>
@@ -108,7 +108,7 @@
             <!-- Sidebar -->
             <aside class="lg:col-span-1 space-y-8">
                 <div class="card bg-white p-6 rounded-lg shadow-md border border-[#ebe8e6]">
-                    <h3 class="text-lg font-bold text-brand-dark border-b pb-2 mb-4 dark:border-gray-700">الأقسام</h3>
+                    <h3 class="text-lg font-bold text-brand-dark border-b pb-2 mb-4 dark:border-gray-700">{{ __('blog.categories') }}</h3>
                     <ul class="space-y-2">
                         @foreach($categories as $category)
                         <li>
@@ -123,7 +123,7 @@
                     </ul>
                 </div>
                 <div class="card bg-white p-6 rounded-lg shadow-md border border-[#ebe8e6]">
-                    <h3 class="text-lg font-bold text-brand-dark border-b pb-2 mb-4 dark:border-gray-700">أحدث المقالات</h3>
+                    <h3 class="text-lg font-bold text-brand-dark border-b pb-2 mb-4 dark:border-gray-700">{{ __('blog.latest_posts') }}</h3>
                     <ul class="space-y-4">
                         @foreach($recentPosts as $recentPost)
                         <li>

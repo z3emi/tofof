@@ -85,7 +85,7 @@
 </style>
 @endpush
 
-@section('title', 'عربة التسوق')
+@section('title', __('cart.title'))
 
 @section('content')
 <div class="bg-gray-50 min-h-screen"
@@ -94,19 +94,19 @@
 >
     <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between mb-8">
-            <h1 class="text-2xl sm:text-3xl font-bold text-brand-text">سلة التسوق (<span x-text="Object.keys(cartItems).length"></span>)</h1>
+            <h1 class="text-2xl sm:text-3xl font-bold text-brand-text">{{ __('cart.title') }} (<span x-text="Object.keys(cartItems).length"></span>)</h1>
             <a href="{{ route('shop') }}" class="text-sm text-gray-500 hover:text-brand-primary">
-                <i class="bi bi-arrow-left-short"></i> متابعة التسوق
+              <i class="bi bi-arrow-left-short"></i> {{ __('common.continue_shopping') }}
             </a>
         </div>
 
         <template x-if="Object.keys(cartItems).length === 0">
             <div class="text-center bg-white p-10 rounded-lg shadow-md">
                 <i class="bi bi-cart-x text-6xl text-gray-300 mb-4"></i>
-                <h2 class="text-xl sm:text-2xl font-semibold text-gray-700 mb-2">عربة التسوق الخاصة بك فارغة</h2>
-                <p class="text-gray-500 mb-6">يبدو أنك لم تقم بإضافة أي منتجات بعد.</p>
+                <h2 class="text-xl sm:text-2xl font-semibold text-gray-700 mb-2">{{ __('cart.cart_empty_title') }}</h2>
+                <p class="text-gray-500 mb-6">{{ __('cart.cart_empty_desc') }}</p>
                 <a href="{{ route('shop') }}" class="inline-block bg-brand-primary text-white font-bold py-3 px-6 rounded-md hover:bg-brand-dark transition duration-300">
-                    العودة إلى المتجر
+                  {{ __('common.back_to_store') }}
                 </a>
             </div>
         </template>
@@ -119,12 +119,12 @@
                         <template x-for="item in Object.values(cartItems)" :key="item.row_id">
                             <div class="bg-white rounded-lg shadow-sm p-4 flex gap-4">
                                 <a :href="`/product/${item.product.slug}`" class="w-24 h-24 flex-shrink-0">
-                                    <img :src="item.product.first_image ? `/storage/${item.product.first_image.image_path}` : 'https://placehold.co/150x150?text=No+Image'" :alt="item.product.name_ar" class="w-full h-full object-cover rounded-md">
+                                    <img :src="item.product.first_image ? `/storage/${item.product.first_image.image_path}` : 'https://placehold.co/150x150?text=No+Image'" :alt="'{{ app()->getLocale() }}' === 'en' && item.product.name_en ? item.product.name_en : item.product.name_ar" class="w-full h-full object-cover rounded-md">
                                 </a>
                                 <div class="flex flex-col flex-grow w-full">
                                     <div class="flex justify-between items-start">
                                         <div>
-                                            <a :href="`/product/${item.product.slug}`" class="font-bold text-lg text-brand-text hover:text-brand-primary" x-text="item.product.name_ar"></a>
+                                            <a :href="`/product/${item.product.slug}`" class="font-bold text-lg text-brand-text hover:text-brand-primary" x-text="'{{ app()->getLocale() }}' === 'en' && item.product.name_en ? item.product.name_en : item.product.name_ar"></a>
                                             <p class="text-sm text-gray-500">SKU: <span x-text="item.product.sku || 'N/A'"></span></p>
 
                                             <template x-if="item.selected_options && Object.keys(item.selected_options).length">
@@ -140,17 +140,17 @@
 
                                             <template x-if="isOut(item)">
                                               <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold mt-2" style="background:#9CA3AF; color:#fff;">
-                                                <i class="bi bi-x-circle"></i> منتهي الكمية
+                                                <i class="bi bi-x-circle"></i> {{ __('common.out_of_stock') }}
                                               </span>
                                             </template>
 
                                             <template x-if="!isOut(item) && isOnSale(item.product)">
                                               <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold mt-2 ml-2" style="background:#6d0e16; color:#ffe4e6; border: 1px solid #cd8985;">
-                                                <i class="bi bi-tag"></i> خصم
+                                                <i class="bi bi-tag"></i> {{ __('common.discount') }}
                                               </span>
                                             </template>
                                         </div>
-                                        <button @click="removeItem(item.row_id)" class="text-gray-400 hover:text-red-500 transition" title="إزالة المنتج">
+                                        <button @click="removeItem(item.row_id)" class="text-gray-400 hover:text-red-500 transition" title="{{ __('cart.remove_product') }}">
                                             <i class="bi bi-x-lg"></i>
                                         </button>
                                     </div>
@@ -169,12 +169,12 @@
                                         </div>
 
                                         <div class="text-right">
-                                          <p class="font-bold text-lg text-brand-dark" x-text="`${formatPrice(itemLineTotal(item))} د.ع`"></p>
+                                          <p class="font-bold text-lg text-brand-dark" x-text="`${formatPrice(itemLineTotal(item))} {{ __('common.currency') }}`"></p>
                                           <template x-if="isOnSale(item.product)">
                                             <p class="text-sm text-gray-500">
-                                              <span class="font-semibold" x-text="`${formatPrice(effectivePrice(item.product))} د.ع`"></span>
-                                              <span class="line-through ml-2" x-text="`${formatPrice(item.product.price)} د.ع`"></span>
-                                              <span class="ml-1">لكل قطعة</span>
+                                              <span class="font-semibold" x-text="`${formatPrice(effectivePrice(item.product))} {{ __('common.currency') }}`"></span>
+                                              <span class="line-through ml-2" x-text="`${formatPrice(item.product.price)} {{ __('common.currency') }}`"></span>
+                                              <span class="ml-1">{{ __('cart.per_piece') }}</span>
                                             </p>
                                           </template>
                                         </div>
@@ -188,24 +188,24 @@
                 {{-- ملخص --}}
                 <div class="lg:w-5/12 xl:w-1/3">
                     <div class="bg-white p-6 rounded-lg shadow-sm sticky top-24">
-                        <h2 class="text-xl font-bold mb-4">ملخص الطلب</h2>
+                        <h2 class="text-xl font-bold mb-4">{{ __('common.order_summary') }}</h2>
                         
                         <div class="space-y-3 text-gray-700">
-                            <div class="flex justify-between"><span>الإجمالي</span><span class="font-semibold" x-text="`${formatPrice(subtotal)} د.ع`"></span></div>
-                            <div class="flex justify-between"><span>الخصم</span><span class="font-semibold text-green-600" x-text="`- ${formatPrice(discount)} د.ع`"></span></div>
+                          <div class="flex justify-between"><span>{{ __('cart.subtotal') }}</span><span class="font-semibold" x-text="`${formatPrice(subtotal)} {{ __('common.currency') }}`"></span></div>
+                          <div class="flex justify-between"><span>{{ __('cart.discount_label') }}</span><span class="font-semibold text-green-600" x-text="`- ${formatPrice(discount)} {{ __('common.currency') }}`"></span></div>
                             @if($isShippingEnabled)
-                            <div class="flex justify-between"><span>الشحن</span><span class="font-semibold" x-text="shippingCost > 0 ? `${formatPrice(shippingCost)} د.ع` : 'مجاني'"></span></div>
+                          <div class="flex justify-between"><span>{{ __('cart.shipping_label') }}</span><span class="font-semibold" x-text="shippingCost > 0 ? `${formatPrice(shippingCost)} {{ __('common.currency') }}` : '{{ __('common.free_shipping') }}'"></span></div>
                             @endif
                         </div>
 
-                        <div class="flex justify-between font-bold text-xl border-t mt-4 pt-4"><span>المجموع</span><span x-text="`${formatPrice(subtotal - discount + shippingCost)} د.ع`"></span></div>
+                        <div class="flex justify-between font-bold text-xl border-t mt-4 pt-4"><span>{{ __('cart.total_label') }}</span><span x-text="`${formatPrice(subtotal - discount + shippingCost)} {{ __('common.currency') }}`"></span></div>
 
                         @if($isShippingEnabled && $isFreeShippingEnabled)
                         <div class="mt-4 text-center">
                             {{-- ✅ [تعديل] تحديث حد الشحن المجاني هنا --}}
                             <div x-show="subtotal < freeShippingThreshold" style="display: none;">
                                 <p class="text-sm text-gray-600 mb-2">
-                                    باقي <strong class="text-brand-primary" x-text="formatPrice(Math.max(0, freeShippingThreshold - subtotal))"></strong> د.ع للحصول على شحن مجاني
+                                    {{ __('cart.remaining_free_ship') }} <strong class="text-brand-primary" x-text="formatPrice(Math.max(0, freeShippingThreshold - subtotal))"></strong> {{ __('cart.remaining_free_ship_2') }}
                                 </p>
                                 <div class="w-full bg-gray-200 rounded-full h-2.5">
                                     <div class="bg-green-500 h-2.5 rounded-full" :style="`width: ${freeShippingThreshold > 0 ? Math.min(100, (subtotal / freeShippingThreshold) * 100) : 100}%`"></div>
@@ -213,7 +213,7 @@
                             </div>
                             {{-- ✅ [تعديل] تحديث حد الشحن المجاني هنا --}}
                             <div x-show="subtotal >= freeShippingThreshold" class="text-green-600 font-semibold p-2 bg-green-50 rounded-md" style="display: none;">
-                                <p>🎉 لقد حصلت على شحن مجاني!</p>
+                                <p>{{ __('cart.got_free_shipping') }}</p>
                             </div>
                         </div>
                         @endif
@@ -222,25 +222,25 @@
                             <a href="{{ route('checkout.index') }}" class="block text-center w-full bg-brand-dark text-white font-bold py-3 px-4 rounded-md hover:bg-brand-primary transition duration-300"
                                :class="{'opacity-60 pointer-events-none': anyOutOfStock()}"
                                :aria-disabled="anyOutOfStock()">
-                                إتمام عملية الشراء
+                                {{ __('cart.proceed_to_checkout') }}
                             </a>
 
                             <p class="mt-2 text-sm" x-show="anyOutOfStock()" style="color:#ef4444; display:none;">
-                              توجد منتجات <strong>منتهية الكمية</strong> في السلة. احذفها أو عدّل الكمية للمتاح للمتابعة.
+                                {{ __('cart.out_of_stock_warning') }} <strong>{{ __('cart.out_of_stock_warning_2') }}</strong> {{ __('cart.out_of_stock_warning_3') }}
                             </p>
                         </div>
                         
                         <div class="mt-4">
                             <template x-if="discount <= 0">
                                 <form @submit.prevent="applyDiscount" class="flex gap-2">
-                                    <input type="text" x-model="discountCode" placeholder="إضافة كوبون" class="flex-1 border rounded-md px-3 py-2 text-right focus:ring-2 focus:ring-brand-primary">
-                                    <button type="submit" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition">تطبيق</button>
+                                  <input type="text" x-model="discountCode" placeholder="{{ __('cart.add_coupon') }}" class="flex-1 border rounded-md px-3 py-2 text-right focus:ring-2 focus:ring-brand-primary">
+                                  <button type="submit" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition">{{ __('common.apply') }}</button>
                                 </form>
                             </template>
                             <template x-if="discount > 0">
                                 <div class="bg-green-100 text-green-800 p-2 rounded text-sm flex justify-between items-center">
-                                    <span>تم تطبيق كود: <strong x-text="discountCode"></strong></span>
-                                    <button @click="removeDiscount" class="text-red-600 hover:text-red-800 font-bold" title="إزالة الكوبون">&times;</button>
+                                  <span>{{ __('cart.coupon_applied') }} <strong x-text="discountCode"></strong></span>
+                                  <button @click="removeDiscount" class="text-red-600 hover:text-red-800 font-bold" title="{{ __('cart.remove_coupon') }}">&times;</button>
                                 </div>
                             </template>
                             <p x-show="feedbackMessage" :class="{ 'text-green-600': feedbackType === 'success', 'text-red-600': feedbackType === 'error' }" class="text-sm mt-2" x-text="feedbackMessage"></p>
@@ -265,7 +265,7 @@
       freeShippingThreshold: {{ (int)$freeShippingThreshold }},
       isFreeShippingEnabled: {{ $isFreeShippingEnabled ? 'true' : 'false' }},
       discountCode: "{{ session('discount_code', '') }}",
-      feedbackMessage: "{{ session('discount_error') ?: (session('discount_code') ? 'تم تطبيق كود الخصم: ' . session('discount_code') : '') }}",
+      feedbackMessage: "{{ session('discount_error') ?: (session('discount_code') ? __('cart.coupon_applied') . ' ' . session('discount_code') : '') }}",
       feedbackType: "{{ session('discount_error') ? 'error' : (session('discount_code') ? 'success' : '') }}",
 
       getMax(item) {
@@ -317,7 +317,7 @@
         this.updateCartOnServer(rowId, newQuantity);
       },
       removeItem(rowId) {
-        if (!confirm("هل أنت متأكد من إزالة هذا المنتج؟")) return;
+        if (!confirm("{{ __('cart.confirm_remove') }}")) return;
         fetch("{{ route('cart.destroy') }}", {
           method: "POST",
           headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}", "Content-Type": "application/json", "Accept": "application/json" },
@@ -385,7 +385,7 @@
           }
         })
         .catch(() => {
-          this.feedbackMessage = "حدث خطأ في الاتصال.";
+          this.feedbackMessage = "{{ __('common.connection_error') }}";
           this.feedbackType = "error";
         });
       },

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'عن طفوف – من نحن')
+@section('title', __('pages.about_page_title'))
 
 @push('styles')
 <style>
@@ -121,45 +121,45 @@
   <div class="content-wrapper max-w-5xl mx-auto brand-card p-10 rounded-lg shadow-md leading-relaxed">
 
     <!-- العنوان -->
-    <h1 class="text-4xl font-bold mb-8 text-center p-4 rounded-lg" style="background-color:#6d0e16; color:#f7f7f7;">من نحن</h1>
+    <h1 class="text-4xl font-bold mb-8 text-center p-4 rounded-lg" style="background-color:#6d0e16; color:#f7f7f7;">{{ __('pages.about_title') }}</h1>
 
     <!-- المقدمة -->
     <p class="text-lg brand-muted mb-6 rtl:text-right">
-      متجر عراقي متخصص بالساعات الاصلية والنادرة والفاخرة – ساعات ، محافظ، ونظارات شمسية أصلية 100% من أشهر الماركات العالمية، وبضمان رسمي موثوق.
+      {{ __('pages.about_intro') }}
     </p>
 
     <!-- الرؤية -->
     <div class="mb-8">
-      <h2 class="text-2xl font-semibold mb-3">انطلقنا برؤية واضحة</h2>
+      <h2 class="text-2xl font-semibold mb-3">{{ __('pages.about_vision_heading') }}</h2>
       <div class="divider mb-4" style="height: 2px; opacity: 0.2;"></div>
       <p class="text-lg">
-      أن الساعة ليست مجرّد قطعة … بل تعبير كامل عن الشخصية يبدأ من الثقة وينتهي بالرضا الحقيقي.
+      {{ __('pages.about_vision_text') }}
       </p>
     </div>
 
     <!-- ليش طفوف؟ -->
     <div class="mb-10">
-      <h2 class="text-2xl font-semibold mb-4">ليش طفوف أفضل اختيار؟</h2>
+      <h2 class="text-2xl font-semibold mb-4">{{ __('pages.about_why_heading') }}</h2>
 
       <div class="grid md:grid-cols-2 gap-4">
         <div class="feature p-5">
-          <h3 class="text-xl font-semibold mb-2">ساعات أصلية 100% ومضمونة</h3>
+          <h3 class="text-xl font-semibold mb-2">{{ __('pages.about_feature_1_title') }}</h3>
           <p>
-            نوفّر الساعات من مصادرها الرسمية فقط، مع ضمان شامل للجودة.
+            {{ __('pages.about_feature_1_desc') }}
           </p>
         </div>
 
         <div class="feature p-5">
-          <h3 class="text-xl font-semibold mb-2">معلومات وتفاصيل المنتج مع كل طلب</h3>
+          <h3 class="text-xl font-semibold mb-2">{{ __('pages.about_feature_2_title') }}</h3>
           <p>
-            كل منتج يحتوى على كامل المرفقات و دليل مفصل عن الماركة والمواصفات حتى تضمن أفضل اختيار.
+            {{ __('pages.about_feature_2_desc') }}
           </p>
         </div>
 
         <div class="feature p-5 md:col-span-2">
-          <h3 class="text-xl font-semibold mb-2">توصيل سريع خلال 24 ساعة</h3>
+          <h3 class="text-xl font-semibold mb-2">{{ __('pages.about_feature_3_title') }}</h3>
           <p>
-            توصيل لكل محافظات العراق خلال يوم واحد فقط، مع خيارات دفع مرنة.
+            {{ __('pages.about_feature_3_desc') }}
           </p>
         </div>
       </div>
@@ -167,20 +167,20 @@
 
     <!-- طرق الطلب -->
     <div class="note p-6 mb-10">
-      <h2 class="text-2xl font-semibold mb-3">عدة طرق للطلب</h2>
+      <h2 class="text-2xl font-semibold mb-3">{{ __('pages.about_order_ways') }}</h2>
       <ul class="pretty-list space-y-2 text-lg rtl:pr-6">
-        <li>من خلال المتجر.</li>
-        <li>من خلال صفحات التواصل الاجتماعي.</li>
+        <li>{{ __('pages.about_order_via_store') }}</li>
+        <li>{{ __('pages.about_order_via_social') }}</li>
         <li>
-          عبر الرقم المباشر:
-          <a href="https://wa.me/9647744969024" class="link-brand">واتساب مباشر</a>
+          {{ __('pages.about_direct_number') }}
+          <a href="https://wa.me/9647744969024" class="link-brand">{{ __('pages.about_whatsapp') }}</a>
         </li>
       </ul>
     </div>
 
     <!-- الخاتمة -->
     <p class="text-xl text-center">
-      مع <span class="font-bold" style="color:#6d0e16;">Tofof</span>… الستايل صار أسهل، أذكى، وأكثر ثقة.
+      {{ __('pages.about_with') }} <span class="font-bold" style="color:#6d0e16;">Tofof</span>…
     </p>
 
   </div>

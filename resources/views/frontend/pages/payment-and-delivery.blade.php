@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'طرق الدفع والتوصيل')
+@section('title', __('pages.payment_title'))
 
 @push('styles')
 <style>
@@ -119,11 +119,11 @@
   <div class="content-wrapper max-w-5xl mx-auto brand-card p-10 rounded-lg shadow-md leading-relaxed">
 
     <!-- العنوان -->
-    <h1 class="text-4xl font-bold mb-8 text-center p-4 rounded-lg" style="background-color:#6d0e16; color:#f7f7f7;">طرق الدفع والتوصيل</h1>
+    <h1 class="text-4xl font-bold mb-8 text-center p-4 rounded-lg" style="background-color:#6d0e16; color:#f7f7f7;">{{ __('pages.payment_title') }}</h1>
 
     <!-- مقدمة -->
     <p class="text-lg mb-8 rtl:text-right">
-      نوفّر طرق دفع وتوصيل مرنة وسريعة حتى نضمن راحتك وثقتك في كل تجربة تسوق معنا.
+      {{ __('pages.payment_intro') }}
     </p>
 
     <!-- الأقسام المتعددة -->
@@ -131,24 +131,24 @@
       
       <!-- طرق الدفع -->
       <div class="feature p-6">
-        <h2 class="text-xl font-bold mb-3">🧾 طرق الدفع</h2>
+        <h2 class="text-xl font-bold mb-3">🧾 {{ __('pages.payment_methods_heading') }}</h2>
         <div class="divider mb-3" style="height: 2px; opacity: 0.2;"></div>
-        <p class="mb-4">اختر الطريقة التي تناسبك:</p>
+        <p class="mb-4">{{ __('pages.payment_choose') }}</p>
         <ul class="pretty-list space-y-2">
-          <li><i class="bi bi-cash mr-2"></i> الدفع عند الاستلام (كاش)</li>
-          <li><i class="bi bi-wallet2 mr-2"></i> زين كاش</li>
-          <li><i class="bi bi-credit-card mr-2"></i> بطاقة ماستر كارد</li>
+          <li><i class="bi bi-cash mr-2"></i> {{ __('pages.payment_cash') }}</li>
+          <li><i class="bi bi-wallet2 mr-2"></i> {{ __('pages.payment_zaincash') }}</li>
+          <li><i class="bi bi-credit-card mr-2"></i> {{ __('pages.payment_mastercard') }}</li>
         </ul>
-        <p class="mt-4 font-bold" style="color:#6d0e16;">كل الطرق آمنة وسهلة ✨</p>
+        <p class="mt-4 font-bold" style="color:#6d0e16;">{{ __('pages.payment_all_safe') }}</p>
       </div>
 
       <!-- التوصيل -->
       <div class="feature p-6">
-        <h2 class="text-xl font-bold mb-3">🚚 التوصيل</h2>
+        <h2 class="text-xl font-bold mb-3">🚚 {{ __('pages.delivery_heading') }}</h2>
         <div class="divider mb-3" style="height: 2px; opacity: 0.2;"></div>
-        <h3 class="font-bold text-lg mb-2">📦 مدة التوصيل:</h3>
+        <h3 class="font-bold text-lg mb-2">📦 {{ __('pages.delivery_duration_heading') }}</h3>
         <p>
-          تصلك الطلبية خلال 24-48 ساعة فقط لكل محافظات العراق.
+          {{ __('pages.payment_delivery_note') }}
         </p>
       </div>
 
@@ -156,22 +156,22 @@
 
     <!-- ملاحظات مهمة -->
     <div class="note p-6 mb-10">
-      <h2 class="text-2xl font-semibold mb-3"><i class="bi bi-pin-angle-fill mr-2"></i> ملاحظات مهمّة:</h2>
+      <h2 class="text-2xl font-semibold mb-3"><i class="bi bi-pin-angle-fill mr-2"></i> {{ __('pages.payment_important_notes') }}</h2>
       <ul class="pretty-list space-y-2 text-lg rtl:pr-6">
-        <li>كل الطلبات تُغلّف بعناية عالية لتصلك في أبهى صورة.</li>
-        <li>نوفّر متابعة مباشرة لحالة الطلب لضمان وصوله إليك في الوقت المحدد.</li>
+        <li>{{ __('pages.payment_note_1') }}</li>
+        <li>{{ __('pages.payment_note_2') }}</li>
       </ul>
     </div>
 
     <!-- الخاتمة -->
     <div class="text-center pt-6 border-t" style="border-color: rgba(0,0,0,0.1);">
-      <p class="text-xl mb-4">رضاكم هو أولويتنا القصوى.</p>
+      <p class="text-xl mb-4">{{ __('pages.payment_note_3') }}</p>
       <p>
-        إذا كان لديك أي استفسار حول سياسة الدفع أو التوصيل، لا تتردد في 
-        <a href="{{ route('page.contact-us') }}" class="link-brand">التواصل معنا</a>.
+        {{ __('pages.payment_contact_cta') }} 
+        <a href="{{ route('page.contact-us') }}" class="link-brand">{{ __('pages.payment_contact_link') }}</a>.
       </p>
     </div>
 
   </div>
 </div>
-@endsection
+@endsection

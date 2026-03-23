@@ -3,7 +3,7 @@
 @php
     $slug   = $category->slug ?? null;
     $id     = $category->id   ?? null;
-    $name   = $category->name_ar ?? $category->name ?? 'قسم';
+    $name   = $category->name_translated ?? $category->name ?? __('shop.category_fallback');
     $img    = $category->image
                 ? asset('storage/' . $category->image)
                 : ((isset($category->icon) && $category->icon) ? asset('storage/' . $category->icon) : null);
@@ -47,13 +47,13 @@
                     {{-- ✅ [تصحيح] تم إضافة كلمة "رئيسي" وتصغير حجم الخط لجميع العناصر --}}
                     @if($level === 1)
                     @elseif($level === 2)
-                        <span class="cat-chip text-xs"><i class="bi bi-diagram-3"></i> فرعي</span>
+                        <span class="cat-chip text-xs"><i class="bi bi-diagram-3"></i> {{ __('shop.sub') }}</span>
                     @else
-                        <span class="cat-chip text-xs"><i class="bi bi-diagram-3"></i> مستوى {{ $level }}</span>
+                        <span class="cat-chip text-xs"><i class="bi bi-diagram-3"></i> {{ __('shop.level') }} {{ $level }}</span>
                     @endif
 
                     @if(!is_null($count) && $count > 0)
-                        <span class="cat-chip text-xs"><i class="bi bi-box-seam"></i> {{ $count }} منتج</span>
+                        <span class="cat-chip text-xs"><i class="bi bi-box-seam"></i> {{ __('shop.products_count', ['count' => $count]) }}</span>
                     @endif
                 </div>
             </div>
