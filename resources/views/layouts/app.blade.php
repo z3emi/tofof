@@ -307,6 +307,29 @@ html.dark .glass-indicator {
 .glass-items.no-animate .glass-item .glass-label {
   transition: none !important;
 }
+
+/* ===== معالجة RTL للـ Footer Mobile ===== */
+html[dir="rtl"] .glass-nav::before {
+  right: auto;
+  left: -80px;
+}
+
+html[dir="rtl"] .glass-nav::after {
+  left: auto;
+  right: -90px;
+}
+
+html[dir="rtl"] .glass-indicator {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  transform: translateX(calc(var(--glass-index, 0) * -100%));
+}
+
+@media (max-width: 767px) {
+  html[dir="rtl"] .glass-item .glass-label {
+    direction: rtl;
+  }
+}
 </style>
 
     <style>
@@ -372,6 +395,12 @@ html.dark .glass-indicator {
         .footer-mobile a:hover .icon { transform: none; }
 
         .badge, .dark .badge, .dark .badge-cart { position: absolute; top: -5px; right: -5px; background-color: #d59e06 !important; color: #fff !important; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10; }
+
+        /* ===== معالجة RTL للـ Footer Mobile Underline ===== */
+        html[dir="rtl"] .footer-mobile a::after {
+          left: auto;
+          right: 0;
+        }
 
         .mobile-nav-item.active { background: linear-gradient(to top, rgba(190, 102, 97, 0.1), transparent); }
         

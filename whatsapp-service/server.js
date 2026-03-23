@@ -24,6 +24,21 @@ const state = {
 
 let client = null;
 let isInitializing = false;
+let reinitTimer = null;
+
+function scheduleInitialize(reason, delayMs = 1500) {
+  if (reinitTimer) {
+    clearTimeout(reinitTimer);
+    reinitTimer = null;
+  }
+
+  reinitTimer = setTimeout(() => {
+    reinitTimer = null;
+    initializeClient().catch((error) => {
+      console.error('[WA] Scheduled init error:', reason, error.message || error);
+    });
+  }, delayMs);
+}
 
 function normalizePhone(rawPhone) {
   const raw = String(rawPhone || '').trim();
@@ -70,6 +85,12 @@ function authMiddleware(req, res, next) {
 
 async function initializeClient() {
   if (isInitializing) {
+    console.log('[WA] initializeClient skipped: already initializing.');
+    return;
+  }
+
+  if (client) {
+    console.log('[WA] initializeClient skipped: client already exists.');
     return;
   }
 
@@ -152,28 +173,34 @@ async function initializeClient() {
       state.phone = null;
       state.qr = null;
 
+      const activeClient = client;
+      client = null;
+
       try {
-        if (client) {
-          await client.destroy();
+        if (activeClient) {
+          await activeClient.destroy();
         }
       } catch (error) {
         console.error('[WA] Destroy error:', error.message);
         state.lastError = String(error.message || error);
       }
 
-      client = null;
-      setTimeout(() => {
-        initializeClient().catch((e) => console.error('[WA] Re-init error:', e.message));
-      }, 1500);
+      scheduleInitialize('disconnected', 2000);
     });
 
     console.log('[WA] Calling client.initialize()...');
     await client.initialize();
     console.log('[WA] client.initialize() completed.');
   } catch (error) {
-    console.error('[WA] initializeClient error:', error.message || error);
+    const message = String(error.message || error);
+    console.error('[WA] initializeClient error:', message);
     state.status = 'error';
-    state.lastError = String(error.message || error);
+    state.lastError = message;
+
+    if (message.includes('browser is already running')) {
+      state.status = 'disconnected';
+      scheduleInitialize('browser-lock-retry', 3000);
+    }
   } finally {
     isInitializing = false;
   }
@@ -223,15 +250,18 @@ app.post('/api/send', async (req, res) => {
 });
 
 app.post('/api/logout', async (_, res) => {
+  if (reinitTimer) {
+    clearTimeout(reinitTimer);
+    reinitTimer = null;
+  }
+
   if (!client) {
     state.status = 'logged_out';
     state.phone = null;
     state.qr = null;
     state.lastError = null;
 
-    setTimeout(() => {
-      initializeClient().catch((e) => console.error('[WA] Re-init after empty logout:', e.message));
-    }, 1000);
+    scheduleInitialize('empty-logout', 1500);
 
     return res.json({ success: true, message: 'Already logged out' });
   }
@@ -261,9 +291,7 @@ app.post('/api/logout', async (_, res) => {
   state.qr = null;
   state.lastError = destroyError || logoutError;
 
-  setTimeout(() => {
-    initializeClient().catch((e) => console.error('[WA] Re-init after logout:', e.message));
-  }, 1000);
+  scheduleInitialize('logout', 2000);
 
   if (destroyError) {
     return res.status(500).json({
@@ -282,6 +310,7 @@ app.post('/api/logout', async (_, res) => {
 
 app.listen(PORT, () => {
   console.log(`WhatsApp service running on port ${PORT}`);
+  scheduleInitialize('startup', 100);
   initializeClient().catch((error) => {
     console.error('[WA] Startup init error:', error.message || error);
     state.status = 'error';

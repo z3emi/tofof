@@ -1,0 +1,72 @@
+TOFOF SERVER OPERATIONS COMMANDS
+================================
+
+Production path:
+/home/tofofstore.com/public_html
+
+WhatsApp service path:
+/home/tofofstore.com/public_html/whatsapp-service
+
+1) Start services
+-----------------
+cd /home/tofofstore.com/public_html
+pm2 start tofof-whatsapp-service
+
+2) Restart services
+-------------------
+cd /home/tofofstore.com/public_html
+pm2 restart tofof-whatsapp-service --update-env
+
+3) Stop services
+----------------
+cd /home/tofofstore.com/public_html
+pm2 stop tofof-whatsapp-service
+
+4) Check status
+---------------
+cd /home/tofofstore.com/public_html
+pm2 status
+pm2 show tofof-whatsapp-service
+
+5) Live logs
+------------
+cd /home/tofofstore.com/public_html
+pm2 logs tofof-whatsapp-service --lines 100
+
+6) Install Chrome for Puppeteer (required for QR)
+-------------------------------------------------
+cd /home/tofofstore.com/public_html/whatsapp-service
+npm run install:chrome
+
+If npm script fails, run direct installer:
+node ./node_modules/puppeteer/lib/cjs/puppeteer/node/cli.js browsers install chrome
+
+Then restart service:
+cd /home/tofofstore.com/public_html
+pm2 restart tofof-whatsapp-service --update-env
+
+7) Full reset of WhatsApp session (force new QR)
+-------------------------------------------------
+cd /home/tofofstore.com/public_html
+pm2 stop tofof-whatsapp-service
+pkill -f ".wwebjs_auth/session-tofof-main" || true
+pkill -f "chrome.*whatsapp" || true
+rm -rf /home/tofofstore.com/public_html/whatsapp-service/.wwebjs_auth
+rm -rf /root/.cache/puppeteer
+cd /home/tofofstore.com/public_html/whatsapp-service
+npm run install:chrome
+cd /home/tofofstore.com/public_html
+pm2 start tofof-whatsapp-service
+pm2 flush tofof-whatsapp-service
+pm2 logs tofof-whatsapp-service --lines 120
+
+8) Laravel cache refresh (optional after deployment)
+-----------------------------------------------------
+cd /home/tofofstore.com/public_html
+php artisan optimize:clear
+
+9) Quick health check API
+-------------------------
+curl -H "X-API-Key: tofof@@12345" http://127.0.0.1:3001/api/status
+
+Expected: JSON with status/phone/hasQr fields.
