@@ -8,11 +8,15 @@ use App\Models\Category; // الأقسام القديمة
 use App\Models\ProductImage;
 use App\Models\PrimaryCategory; // 👈 الفئة الجديدة (النسخة الثانية)
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Log;
 use App\Traits\HandlesImageUploads;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProductsExport;
+use Throwable;
 
 class ProductController extends Controller
 {
@@ -150,7 +154,7 @@ class ProductController extends Controller
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $imageFile) {
                     $path = $this->uploadAndConvertImage($imageFile, 'products');
-                    $product->images()->create(['image_path' => $path]);
+                    $this->createProductImageWithRepair($product, $path);
                 }
             }
 
@@ -235,7 +239,7 @@ class ProductController extends Controller
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $imageFile) {
                     $path = $this->uploadAndConvertImage($imageFile, 'products');
-                    $product->images()->create(['image_path' => $path]);
+                    $this->createProductImageWithRepair($product, $path);
                 }
             }
 
@@ -535,6 +539,66 @@ class ProductController extends Controller
                     Storage::disk('public')->delete($image->image_path);
                 }
             }
+        }
+    }
+
+    private function createProductImageWithRepair(Product $product, string $path): void
+    {
+        try {
+            $product->images()->create(['image_path' => $path]);
+        } catch (Throwable $e) {
+            if (! $this->isMissingDefaultIdError($e)) {
+                throw $e;
+            }
+
+            Log::warning('Product image insert failed with missing default id; attempting schema repair.', [
+                'database' => DB::getDatabaseName(),
+                'id_column' => DB::selectOne("SHOW COLUMNS FROM `product_images` WHERE Field = 'id'"),
+                'error' => $e->getMessage(),
+            ]);
+
+            $this->repairProductImagesIdColumn();
+            $product->images()->create(['image_path' => $path]);
+        }
+    }
+
+    private function isMissingDefaultIdError(Throwable $e): bool
+    {
+        $errorInfo = property_exists($e, 'errorInfo') ? (array) $e->errorInfo : [];
+        $code = (int) ($errorInfo[1] ?? 0);
+        $message = strtolower((string) ($errorInfo[2] ?? $e->getMessage()));
+
+        return ($code === 1364 || str_contains($message, 'doesn\'t have a default value'))
+            && (str_contains($message, 'field') || str_contains($message, 'column'))
+            && str_contains($message, 'id')
+            && str_contains($message, 'default value');
+    }
+
+    private function repairProductImagesIdColumn(): void
+    {
+        if (! Schema::hasTable('product_images') || ! Schema::hasColumn('product_images', 'id')) {
+            return;
+        }
+
+        $idColumn = DB::selectOne("SHOW COLUMNS FROM `product_images` WHERE Field = 'id'");
+
+        if (! $idColumn) {
+            return;
+        }
+
+        if (($idColumn->Key ?? '') !== 'PRI') {
+            $primaryKey = DB::selectOne("SHOW INDEX FROM `product_images` WHERE Key_name = 'PRIMARY'");
+
+            if (! $primaryKey) {
+                DB::statement('ALTER TABLE `product_images` ADD PRIMARY KEY (`id`)');
+            }
+        }
+
+        $extra = strtolower((string) ($idColumn->Extra ?? ''));
+        if (! str_contains($extra, 'auto_increment')) {
+            $nextId = ((int) DB::table('product_images')->max('id')) + 1;
+            DB::statement('ALTER TABLE `product_images` MODIFY `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT');
+            DB::statement('ALTER TABLE `product_images` AUTO_INCREMENT = ' . max($nextId, 1));
         }
     }
 }

@@ -554,6 +554,18 @@
 .pulse-arrow-left { left: 5px; }
 .pulse-arrow-right { right: 5px; }
 
+/* تعطيل snap للشريط المتحرك تلقائيا حتى لا يثبت مكانه */
+.section-cats .overflow-x-auto.js-auto-bounce {
+    scroll-snap-type: none !important;
+    scroll-behavior: auto !important;
+}
+.section-cats .overflow-x-auto.js-auto-bounce .flex > a {
+    scroll-snap-align: none !important;
+}
+.section-cats .auto-bounce-track {
+    will-change: transform;
+}
+
 </style>
 @endpush
 
@@ -724,26 +736,102 @@
 @if($primaryCategories2->count())
 <section class="pt-2 pb-6 md:pt-4 md:pb-12 section-cats relative overflow-hidden"
          x-data="{
-              el:null, canGoLeft:false, canGoRight:true, step:320,
+              el:null, track:null, canGoLeft:false, canGoRight:true, step:320,
+              autoDir:1, autoTimer:null, autoPaused:false, resumeTimer:null,
+              autoTickMs:26, autoStepPx:2, manualPauseMs:5000,
+              autoOffset:0, autoMax:0,
               isRTL() { return getComputedStyle(this.el).direction === 'rtl'; },
+              calcBounds() {
+                  if (!this.el || !this.track) return;
+                  const max = Math.max(0, this.track.scrollWidth - this.el.clientWidth);
+                  this.autoMax = max;
+                  if (this.autoOffset > max) this.autoOffset = max;
+              },
+              applyOffset() {
+                  if (!this.track) return;
+                  const sign = this.isRTL() ? 1 : -1;
+                  this.track.style.transform = `translate3d(${sign * this.autoOffset}px,0,0)`;
+              },
               getNorm() {
-                  const el = this.el, max = el.scrollWidth - el.clientWidth;
-                  const sl = el.scrollLeft;
-                  return !this.isRTL() ? sl : (sl < 0 ? -sl : max - sl);
+                  return this.autoOffset;
+              },
+              setNorm(target) {
+                  const max = this.autoMax;
+                  const next = Math.max(0, Math.min(max, target));
+                  this.autoOffset = next;
+                  this.applyOffset();
+              },
+              pauseAutoScroll() {
+                  this.autoPaused = true;
+                  if (this.resumeTimer) {
+                      clearTimeout(this.resumeTimer);
+                      this.resumeTimer = null;
+                  }
+              },
+              resumeAutoScroll() {
+                  if (this.resumeTimer) {
+                      clearTimeout(this.resumeTimer);
+                      this.resumeTimer = null;
+                  }
+                  this.autoPaused = false;
+              },
+              pauseAutoTemporarily(ms = this.manualPauseMs) {
+                  this.pauseAutoScroll();
+                  this.resumeTimer = setTimeout(() => this.resumeAutoScroll(), ms);
+              },
+              startAutoScroll() {
+                  if (this.autoTimer || !this.el) return;
+                  this.autoTimer = setInterval(() => {
+                      if (!this.el || this.autoPaused) return;
+                      const max = this.autoMax;
+                      if (max <= 0) return;
+
+                      const cur = this.getNorm();
+                      let next = cur + (this.autoDir * this.autoStepPx);
+
+                      if (next >= max) {
+                          next = max;
+                          this.autoDir = -1;
+                      } else if (next <= 0) {
+                          next = 0;
+                          this.autoDir = 1;
+                      }
+
+                      this.setNorm(next);
+                      this.updateButtons();
+                  }, this.autoTickMs);
               },
               init(){
                   this.el = this.$refs.catScroll; if(!this.el) return;
+                  this.track = this.$refs.catTrack; if(!this.track) return;
                   this.$nextTick(()=>{
-                      const card=this.el.querySelector('.flex > a');
+                      const card=this.track.querySelector('a');
                       this.step = card ? Math.max(240, Math.floor(card.getBoundingClientRect().width+10)) : 300;
+                      this.calcBounds();
+                      this.applyOffset();
                       this.updateButtons();
                   });
-                  this.el.addEventListener('scroll', ()=>this.updateButtons(), {passive:true});
-                  window.addEventListener('resize', ()=>this.updateButtons());
+
+                  this.el.addEventListener('scroll', () => {
+                      this.pauseAutoTemporarily();
+                  }, {passive:true});
+
+                  this.el.addEventListener('pointerdown', () => this.pauseAutoTemporarily(), {passive:true});
+                  this.el.addEventListener('touchstart', () => this.pauseAutoTemporarily(), {passive:true});
+                  this.el.addEventListener('wheel', () => this.pauseAutoTemporarily(), {passive:true});
+                  this.el.addEventListener('mouseenter', () => this.pauseAutoTemporarily(5000));
+                  this.el.addEventListener('mouseleave', () => this.pauseAutoTemporarily(5000));
+
+                  window.addEventListener('resize', () => {
+                      this.calcBounds();
+                      this.applyOffset();
+                      this.updateButtons();
+                  });
+                  this.startAutoScroll();
               },
               updateButtons(){
                   if(!this.el) return;
-                  const max = this.el.scrollWidth - this.el.clientWidth;
+                  const max = this.autoMax;
                   const pos = this.getNorm();
                   const isRtl = this.isRTL();
                   if (isRtl) {
@@ -757,15 +845,15 @@
                   }
               },
               go(dir){
-                  const max = this.el.scrollWidth - this.el.clientWidth;
+                  this.pauseAutoTemporarily();
+                  const max = this.autoMax;
                   const isRtl = this.isRTL();
                   const cur = this.getNorm();
                   // في RTL: عكس الاتجاه (prev يصير next والعكس)
                   const actualDir = isRtl ? (dir === 'prev' ? 'next' : 'prev') : dir;
+                  this.autoDir = actualDir === 'prev' ? -1 : 1;
                   const target = Math.max(0, Math.min(max, cur + (actualDir === 'prev' ? -this.step : this.step)));
-                  const sl = this.el.scrollLeft;
-                  const final = !isRtl ? target : (sl < 0 ? -target : max - target);
-                  this.el.scrollTo({ left: final, behavior: 'smooth' });
+                  this.setNorm(target);
                   setTimeout(() => this.updateButtons(), 250);
               },
          }"
@@ -812,9 +900,9 @@
 
             {{-- الشريط القابل للتمرير --}}
 {{-- تم حذف "px-16" من هنا --}}
-<div class="overflow-x-auto no-scrollbar" x-ref="catScroll" style="height: 180px;">
+<div class="overflow-x-auto no-scrollbar js-auto-bounce" x-ref="catScroll" style="height: 180px;">
     {{-- تم إضافة "pr-16" هنا لإضافة فراغ في نهاية القائمة فقط --}}
-    <div class="flex flex-row gap-[5px] md:gap-8 items-start w-max py-2 mx-auto">
+    <div class="flex flex-row gap-[5px] md:gap-8 items-start w-max py-2 auto-bounce-track" x-ref="catTrack">
         {{-- العربي: canPrev يرجع لليمين، canNext يتقدم لليسار --}}
         <div class="pulse-arrow pulse-arrow-left" x-show="canGoLeft" x-cloak><i class="bi bi-chevron-left"></i></div>
         <div class="pulse-arrow pulse-arrow-right" x-show="canGoRight" x-cloak><i class="bi bi-chevron-right"></i></div>
@@ -1134,31 +1222,112 @@
 {{-- Brands Section (Using Category model) --}}
 <section class="pt-2 pb-6 md:pt-4 md:pb-12 section-cats relative overflow-hidden"
          x-data="{
-             el:null, showLeftButton:true, showRightButton:true, isMobile: false,
+             el:null, track:null, showLeftButton:true, showRightButton:true, isMobile: false,
+             autoDir:1, autoTimer:null, autoPaused:false, resumeTimer:null,
+             autoTickMs:26, autoStepPx:2, manualPauseMs:5000,
+             autoOffset:0, autoMax:0,
              
              init(){
                  this.isMobile = window.innerWidth < 768;
                  this.el = this.$refs.catScroll; if(!this.el) return;
+                 this.track = this.$refs.catTrack; if(!this.track) return;
                  
-                 this.$nextTick(() => this.updateButtons());
-                 window.addEventListener('load', () => this.updateButtons());
-                 
-                 this.el.addEventListener('scroll', () => this.updateButtons(), {passive:true});
-                 window.addEventListener('resize', () => {
-                     this.isMobile = window.innerWidth < 768;
+                 this.$nextTick(() => {
+                     this.calcBounds();
+                     this.applyOffset();
                      this.updateButtons();
                  });
+                 window.addEventListener('load', () => {
+                     this.calcBounds();
+                     this.applyOffset();
+                     this.updateButtons();
+                 });
+                 
+                 this.el.addEventListener('scroll', () => {
+                     this.pauseAutoTemporarily();
+                 }, {passive:true});
+
+                 this.el.addEventListener('pointerdown', () => this.pauseAutoTemporarily(), {passive:true});
+                 this.el.addEventListener('touchstart', () => this.pauseAutoTemporarily(), {passive:true});
+                 this.el.addEventListener('wheel', () => this.pauseAutoTemporarily(), {passive:true});
+                 this.el.addEventListener('mouseenter', () => this.pauseAutoTemporarily(5000));
+                 this.el.addEventListener('mouseleave', () => this.pauseAutoTemporarily(5000));
+
+                 window.addEventListener('resize', () => {
+                     this.isMobile = window.innerWidth < 768;
+                     this.calcBounds();
+                     this.applyOffset();
+                     this.updateButtons();
+                 });
+
+                 this.startAutoScroll();
              },
              
 
              isRTL() { return getComputedStyle(this.el).direction === 'rtl'; },
+             calcBounds() {
+                 if (!this.el || !this.track) return;
+                 const max = Math.max(0, this.track.scrollWidth - this.el.clientWidth);
+                 this.autoMax = max;
+                 if (this.autoOffset > max) this.autoOffset = max;
+             },
+             applyOffset() {
+                 if (!this.track) return;
+                 const sign = this.isRTL() ? 1 : -1;
+                 this.track.style.transform = `translate3d(${sign * this.autoOffset}px,0,0)`;
+             },
              getNorm() {
-                 const el = this.el, max = el.scrollWidth - el.clientWidth;
-                 return !this.isRTL() ? el.scrollLeft : (el.scrollLeft < 0 ? -el.scrollLeft : max - el.scrollLeft);
+                 return this.autoOffset;
+             },
+             setNorm(target) {
+                 const max = this.autoMax;
+                 const next = Math.max(0, Math.min(max, target));
+                 this.autoOffset = next;
+                 this.applyOffset();
+             },
+             pauseAutoScroll() {
+                 this.autoPaused = true;
+                 if (this.resumeTimer) {
+                     clearTimeout(this.resumeTimer);
+                     this.resumeTimer = null;
+                 }
+             },
+             resumeAutoScroll() {
+                 if (this.resumeTimer) {
+                     clearTimeout(this.resumeTimer);
+                     this.resumeTimer = null;
+                 }
+                 this.autoPaused = false;
+             },
+             pauseAutoTemporarily(ms = this.manualPauseMs) {
+                 this.pauseAutoScroll();
+                 this.resumeTimer = setTimeout(() => this.resumeAutoScroll(), ms);
+             },
+             startAutoScroll() {
+                 if (this.autoTimer || !this.el) return;
+                 this.autoTimer = setInterval(() => {
+                     if (!this.el || this.autoPaused) return;
+                     const max = this.autoMax;
+                     if (max <= 0) return;
+
+                     const cur = this.getNorm();
+                     let next = cur + (this.autoDir * this.autoStepPx);
+
+                     if (next >= max) {
+                         next = max;
+                         this.autoDir = -1;
+                     } else if (next <= 0) {
+                         next = 0;
+                         this.autoDir = 1;
+                     }
+
+                     this.setNorm(next);
+                     this.updateButtons();
+                 }, this.autoTickMs);
              },
              updateButtons() {
                  if (!this.el) return;
-                 const max = this.el.scrollWidth - this.el.clientWidth;
+                 const max = this.autoMax;
                  const pos = this.getNorm();
                  const isRtl = this.isRTL();
                  if (isRtl) {
@@ -1173,16 +1342,16 @@
              },
 
              go(dir) {
+                 this.pauseAutoTemporarily();
                  const el = this.el;
-                 const max = el.scrollWidth - el.clientWidth;
+                 const max = this.autoMax;
                  const isRtl = this.isRTL();
                  const cur = this.getNorm();
                  // في RTL: عكس الاتجاه (prev يصير next والعكس)
                  const actualDir = isRtl ? (dir === 'prev' ? 'next' : 'prev') : dir;
+                 this.autoDir = actualDir === 'prev' ? -1 : 1;
                  const target = Math.max(0, Math.min(max, cur + (actualDir === 'prev' ? -320 : 320)));
-                 const sl = el.scrollLeft;
-                 const final = !isRtl ? target : (sl < 0 ? -target : max - target);
-                 el.scrollTo({ left: final, behavior: 'smooth' });
+                 this.setNorm(target);
                  setTimeout(() => this.updateButtons(), 250);
              },
          }"
@@ -1191,9 +1360,9 @@
     {{-- Header --}}
 
     
-    <div class="overflow-x-auto no-scrollbar" x-ref="catScroll" style="height: 180px;">
+    <div class="overflow-x-auto no-scrollbar js-auto-bounce" x-ref="catScroll" style="height: 180px;">
         {{-- تم استخدام !important هنا للتغلب على أي كود آخر --}}
-        <div class="flex flex-row gap-[2px] md:gap-8 items-start w-max py-2">
+        <div class="flex flex-row gap-[2px] md:gap-8 items-start w-max py-2 auto-bounce-track" x-ref="catTrack">
             {{-- الأسهم النابضة: تتبع نفس منطق الأزرار (showLeft لليسار و showRight لليمين) --}}
             <div class="pulse-arrow pulse-arrow-left" x-show="showLeftButton" x-cloak><i class="bi bi-chevron-left"></i></div>
             <div class="pulse-arrow pulse-arrow-right" x-show="showRightButton" x-cloak><i class="bi bi-chevron-right"></i></div>
