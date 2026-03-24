@@ -219,7 +219,7 @@ footer.footer-mobile {
 
 /* ترك مساحة أسفل الصفحة للـnav */
 @media (max-width: 767px){
-  body{ padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important; }
+  body{ padding-bottom: calc(84px + env(safe-area-inset-bottom)) !important; }
 }
 
 /* wrap داخل الفوتر */
@@ -580,7 +580,7 @@ html[dir="rtl"] .glass-indicator {
       padding: 0.5rem 0.68rem;
     }
     .footer-bottom-bar {
-      padding-bottom: 5.9rem;
+      padding-bottom: 0.75rem;
     }
     .footer-payment-row {
       flex-wrap: wrap;
@@ -600,6 +600,12 @@ html[dir="rtl"] .glass-indicator {
   html.dark .ios-install-card {
     background: #111827;
     border-color: #374151;
+  }
+  /* ===== إخفاء الفوتر الرئيسي عند فتح التطبيق كـ PWA ===== */
+  @media (display-mode: standalone) {
+    footer:not(.footer-mobile) {
+      display: none !important;
+    }
   }
 </style>
     {{-- STYLES FOR CATEGORIES COMPONENT --}}
@@ -708,28 +714,6 @@ html[dir="rtl"] .glass-indicator {
     transition: none !important;
   }
 </style>
-
-@if (request()->routeIs(['faq',
-'about.us',
-'order.method',
-'payment.delivery',
-'order.method',
-'privacy.policy',
-'return.policy',
-'verify.otp',
-'passwords.*','profile.*', 'wallet.*', 'profile.wishlist.*', 'categories.*', 'wishlist', 'login', 'password', 'register', 'password.reset.with.otp', 'password.reset.with.otp.form', 'password.reset.phone.form']))
-<style>
-  @media (max-width: 768px){
-    header .container.mx-auto.md\:hidden form { display: none !important; }
-    header .container.mx-auto.md\:hidden {
-      padding-top: .0rem !important;
-      padding-bottom: .0rem !important;
-      gap: .20rem !important;
-      min-height: 48px !important;
-    }
-  }
-</style>
-@endif
 
 @php
     $hideDesktopFooterOnRoutes = ['passwords.*','verify.otp','profile.*', 'password.reset.phone.form', 'password.reset.with.otp.form', 'password.reset.with.otp', 'wallet.*', 'passwords.*', 'login', 'register', 'checkout.*', 'cart.*', 'orders.*', 'profile.addresses.*', 'profile.orders*', 'categories.index', 'wishlist'];
@@ -928,62 +912,76 @@ html[dir="rtl"] .glass-indicator {
         background: rgba(10, 10, 10, 0.9);
       }
       .page-transition-shell {
-        width: min(1120px, calc(100% - 2rem));
+        width: min(1280px, calc(100% - 2rem));
         margin: 1rem auto 0;
         padding-bottom: 6rem;
       }
-      .page-shell-block,
-      .page-shell-line,
-      .page-shell-card,
-      .page-shell-thumb {
+      .home-shell-skeleton,
+      .home-shell-line,
+      .home-shell-card,
+      .home-shell-image,
+      .home-shell-chip {
         background: linear-gradient(90deg, #8a8a8a 0%, #696969 18%, #9a9a9a 36%, #696969 54%, #8a8a8a 100%);
         background-size: 220% 100%;
         animation: pageShellShimmer 1.25s linear infinite;
       }
-      .dark .page-shell-block,
-      .dark .page-shell-line,
-      .dark .page-shell-card,
-      .dark .page-shell-thumb {
+      .dark .home-shell-skeleton,
+      .dark .home-shell-line,
+      .dark .home-shell-card,
+      .dark .home-shell-image,
+      .dark .home-shell-chip {
         background: linear-gradient(90deg, #4a4a4a 0%, #3a3a3a 18%, #5a5a5a 36%, #3a3a3a 54%, #4a4a4a 100%);
         background-size: 220% 100%;
       }
-      .page-shell-header {
-        display: grid;
-        grid-template-columns: minmax(0, 2.4fr) minmax(280px, 1fr);
-        gap: 1rem;
-        margin-bottom: 1.25rem;
+      .home-shell-skeleton {
+        width: 100%;
+        aspect-ratio: 21 / 8;
+        max-height: 280px;
+        border-radius: 14px;
+        margin-bottom: 2rem;
       }
-      .page-shell-block {
-        height: 112px;
-        border-radius: 28px;
-        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.05);
+      .home-shell-section {
+        margin-bottom: 2rem;
       }
-      .page-shell-lines {
-        display: grid;
-        gap: 0.75rem;
-        margin-bottom: 1.25rem;
-      }
-      .page-shell-line {
+      .home-shell-line {
         height: 16px;
         border-radius: 999px;
       }
-      .page-shell-line.is-short { width: 42%; }
-      .page-shell-line.is-mid { width: 68%; }
-      .page-shell-grid {
+      .home-shell-line.is-title {
+        width: 32%;
+        margin-bottom: 1rem;
+      }
+      .home-shell-categories {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 0.9rem;
+      }
+      .home-shell-chip {
+        aspect-ratio: 1 / 1;
+        border-radius: 14px;
+      }
+      .home-shell-products {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 1rem;
       }
-      .page-shell-card {
-        border-radius: 24px;
-        padding: 1rem;
-        min-height: 250px;
-        box-shadow: 0 18px 34px rgba(15, 23, 42, 0.06);
+      .home-shell-card {
+        border-radius: 14px;
+        padding: 10px;
+        min-height: 248px;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
       }
-      .page-shell-thumb {
-        height: 148px;
-        border-radius: 18px;
-        margin-bottom: 0.9rem;
+      .home-shell-image {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 12px;
+        margin-bottom: 0.7rem;
+      }
+      .home-shell-card .home-shell-line {
+        margin-bottom: 0.55rem;
+      }
+      .home-shell-card .home-shell-line.is-short {
+        width: 56%;
       }
       html.app-shell-loading,
       html.app-shell-loading body {
@@ -1002,7 +1000,8 @@ html[dir="rtl"] .glass-indicator {
         animation: pageContentFadeIn .24s ease;
       }
       @media (max-width: 1024px) {
-        .page-shell-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .home-shell-categories { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .home-shell-products { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       }
       @media (max-width: 768px) {
         .page-transition-shell {
@@ -1010,10 +1009,14 @@ html[dir="rtl"] .glass-indicator {
           margin-top: 0.75rem;
           padding-bottom: 1rem;
         }
-        .page-shell-header { grid-template-columns: 1fr; }
-        .page-shell-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; }
-        .page-shell-card { min-height: 210px; border-radius: 20px; }
-        .page-shell-thumb { height: 120px; }
+        .home-shell-skeleton {
+          aspect-ratio: 16 / 7;
+          max-height: 170px;
+        }
+        .home-shell-line.is-title { width: 52%; }
+        .home-shell-categories { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .home-shell-products { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; }
+        .home-shell-card { min-height: 210px; }
         html.app-shell-ready .page-content-shell {
           animation: none;
         }
@@ -1034,7 +1037,7 @@ html[dir="rtl"] .glass-indicator {
 </head>
 
 <body
-    class="relative flex flex-col min-h-screen pb-40 md:pb-0 bg-[#f7f7f7] text-gray-900 dark:bg-[#0A0A0A] dark:text-white transition-colors duration-300"
+  class="relative flex flex-col min-h-screen pb-0 bg-[#f7f7f7] text-gray-900 dark:bg-[#0A0A0A] dark:text-white transition-colors duration-300"
     x-data="{
         wishlistCount: {{ auth()->check() ? auth()->user()->favorites()->count() : 0 }},
         cartCount: {{ count(session('cart', [])) }},
@@ -1044,6 +1047,7 @@ html[dir="rtl"] .glass-indicator {
         isDark: document.documentElement.classList.contains('dark'),
         sidebarOpen: false,
         searchFocused: false,
+        mobileSearchOpen: false,
 
         toggleTheme() {
             this.isDark = !this.isDark;
@@ -1112,7 +1116,7 @@ html[dir="rtl"] .glass-indicator {
                 <button @click="show = false" class="absolute top-1/2 left-4 -translate-y-1/2 text-xl z-20 hover:opacity-75 transition-opacity">&times;</button>
             </div>
         @endif
-        <header id="mobileHeader" class="bg-[#6d0e16] py-3 border-b border-white/20 dark:border-white/15 shadow-md dark:shadow-black/40">
+        <header id="mobileHeader" class="bg-[#6d0e16] py-3 border-b border-white/20 dark:border-white/15 shadow-md dark:shadow-black/40 relative overflow-visible">
             <div class="container mx-auto hidden md:flex items-center justify-between px-4 md:px-8 text-white font-semibold">
                 <a href="{{ route('homepage') }}" class="text-xl sm:text-2xl flex items-center gap-2 hover:opacity-90 transition">
                     <img src="{{ asset('logo.png') }}" alt="logo" class="w-10 h-10">
@@ -1203,8 +1207,8 @@ html[dir="rtl"] .glass-indicator {
                             </a>
                           </div>
                     </div>
-                    <button @click="toggleTheme" class="rounded-full p-2 bg-white/10 hover:bg.white/20 transition" title="{{ __('layout.toggle_theme') }}">
-                        <i x-show="!isDark" class="bi bi-moon text-xl"></i><i x-show="isDark" class="bi bi-sun text-xl"></i>
+                    <button @click="toggleTheme" class="rounded-full w-10 h-10 inline-flex items-center justify-center bg-white/10 hover:bg.white/20 transition" title="{{ __('layout.toggle_theme') }}">
+                      <i class="bi bi-moon-fill text-xl" :class="isDark ? 'bi-sun-fill' : 'bi-moon-fill'"></i>
                     </button>
                     @auth
                     <a href="{{ route('profile.show') }}" class="hover:opacity-80 transition relative group" title="{{ __('layout.my_account') }}"><i class="bi bi-person text-xl"></i></a>
@@ -1246,12 +1250,21 @@ html[dir="rtl"] .glass-indicator {
             </div>
 
             {{-- Mobile Header --}}
-            <div class="container mx-auto md:hidden flex flex-col gap-3 px-4 text-white">
-              <div class="flex w-full items-center justify-between">
+            <div class="container mx-auto md:hidden flex flex-col px-4 text-white">
+              <div class="flex w-full items-center justify-between min-h-[42px]">
                 <a href="{{ route('homepage') }}" class="flex items-center gap-2 text-lg font-bold">
                   <img src="{{ asset('logo.png') }}" alt="logo" class="w-8 h-8"> Tofof
                 </a>
                 <div class="flex items-center gap-2">
+                  <button
+                    @click="mobileSearchOpen = !mobileSearchOpen; if (mobileSearchOpen) { $nextTick(() => document.getElementById('mobileSearchInput')?.focus()); } else { searchFocused = false; }"
+                    class="w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full"
+                    :aria-expanded="mobileSearchOpen"
+                    aria-controls="mobileSearchPanel"
+                    title="{{ __('header.search_placeholder') }}"
+                  >
+                    <i class="bi" :class="mobileSearchOpen ? 'bi-x-lg' : 'bi-search'"></i>
+                  </button>
 
                   <a href="{{ route('wishlist') }}" class="relative p-2 hover:bg-white/10 rounded-full" title="{{ __('layout.wishlist') }}">
                     <i class="bi bi-heart text-lg"></i>
@@ -1304,62 +1317,75 @@ html[dir="rtl"] .glass-indicator {
                     </template>
                   </div>
                   @endauth
-                  <button @click="toggleTheme" class="p-2 hover:bg-white/10 rounded-full" title="{{ __('layout.toggle_theme') }}">
-                    <i class="bi text-lg" :class="isDark ? 'bi-sun-fill' : 'bi-moon-fill'"></i>
+                  <button @click="toggleTheme" class="w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.toggle_theme') }}">
+                    <i class="bi bi-moon-fill text-lg" :class="isDark ? 'bi-sun-fill' : 'bi-moon-fill'"></i>
                   </button>
                 </div>
               </div>
 
-              <div x-data="liveSearch('{{ route('products.liveSearch') }}')" @click.away="showResults = false" class="w-full relative" x-ref="searchContainerMobile">
-                <form action="{{ route('products.search') }}" method="GET" @submit.prevent="if (highlightedIndex !== -1) selectHighlighted(); else $el.submit()">
-                  <div class="flex w-full bg-white rounded-full overflow-hidden dark:bg-gray-800 dark:border dark:border-gray-700">
-                    <input type="text" name="query" placeholder="{{ __('header.search_placeholder') }}" class="flex-1 px-4 py-2 text-sm text-gray-700 placeholder-gray-500 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400 dark:bg-transparent"
-                        x-model="query" @input.debounce.300ms="search" @keydown.down.prevent="moveHighlight('down')" @keydown.up.prevent="moveHighlight('up')"
-                        @keydown.enter.prevent="if (highlightedIndex > -1) { selectHighlighted() } else { $el.closest('form').submit() }" 
-                        @focus="onFocus(); searchFocused = true" @blur="searchFocused = false" autocomplete="off">
+                <div
+                id="mobileSearchPanel"
+                x-cloak
+                x-show="mobileSearchOpen"
+                x-transition:enter="transform transition ease-out duration-250"
+                x-transition:enter-start="-translate-y-4 opacity-0"
+                x-transition:enter-end="translate-y-0 opacity-100"
+                x-transition:leave="transform transition ease-in duration-220"
+                x-transition:leave-start="translate-y-0 opacity-100"
+                x-transition:leave-end="-translate-y-4 opacity-0"
+                class="absolute left-0 right-0 top-full z-[85] px-4 pt-2"
+                >
+                <div x-data="liveSearch('{{ route('products.liveSearch') }}')" @click.away="showResults = false; mobileSearchOpen = false; searchFocused = false" class="w-full relative" x-ref="searchContainerMobile">
+                  <form action="{{ route('products.search') }}" method="GET" @submit.prevent="if (highlightedIndex !== -1) selectHighlighted(); else $el.submit()">
+                  <div class="flex w-full bg-white rounded-2xl overflow-hidden dark:bg-gray-800 dark:border dark:border-gray-700 shadow-lg">
+                    <input id="mobileSearchInput" type="text" name="query" placeholder="{{ __('header.search_placeholder') }}" class="flex-1 px-4 py-2.5 text-sm text-gray-700 placeholder-gray-500 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400 dark:bg-transparent"
+                      x-model="query" @input.debounce.300ms="search" @keydown.down.prevent="moveHighlight('down')" @keydown.up.prevent="moveHighlight('up')"
+                      @keydown.enter.prevent="if (highlightedIndex > -1) { selectHighlighted() } else { $el.closest('form').submit() }"
+                      @focus="onFocus(); searchFocused = true" @blur="searchFocused = false" autocomplete="off">
                     <button type="submit" class="px-4 bg-white text-[#6d0e16] hover:text-[#6d0e16] dark:bg-transparent"><i class="bi bi-search"></i></button>
                   </div>
-                </form>
-                <template x-teleport="body">
+                  </form>
+                  <template x-teleport="body">
                     <div x-show="showResults" x-transition class="search-popup" x-cloak
-                         x-init="$watch('showResults', (value) => { if (value) { $nextTick(() => { let rect = $refs.searchContainerMobile.getBoundingClientRect(); $el.style.top = `${rect.bottom + 4}px`; $el.style.left = `${rect.left}px`; $el.style.width = `${rect.width}px`; }); } })">
-                        <div x-show="loading" class="p-4 text-center text-gray-500 dark:text-gray-300">{{ __('layout.searching') }}</div>
-                        <template x-if="!loading && results.length === 0 && query.length >= minChars"><div class="p-4 text-center text-gray-500 dark:text-gray-300">{{ __('layout.no_products_matching') }}</div></template>
-                        <template x-for="(result, index) in results" :key="index">
-                            <div>
-                                <template x-if="result.type === 'header'">
-                                    <div class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-500 bg-gray-50/50 dark:bg-gray-900/50 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
-                                        <span x-text="result.label"></span>
-                                    </div>
-                                </template>
-                                <template x-if="result.type !== 'header'">
-                                    <a :href="result.url" class="search-result-item" :class="{ 'highlighted': index === highlightedIndex }" @mouseenter="highlightedIndex = index">
-                                        <template x-if="result.type === 'product'">
-                                            <img :src="result.image" alt="" class="search-result-img">
-                                        </template>
-                                        <template x-if="result.type === 'brand'">
-                                            <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 mr-3">
-                                                <i class="bi bi-tag text-lg text-[#6d0e16]"></i>
-                                            </div>
-                                        </template>
-                                        <template x-if="result.type === 'category'">
-                                            <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 mr-3">
-                                                <i class="bi bi-grid text-lg text-[#6d0e16]"></i>
-                                            </div>
-                                        </template>
-                                        <div class="flex flex-col">
-                                            <span class="text-gray-800 dark:text-gray-200 font-semibold" x-text="result.name"></span>
-                                            <template x-if="result.type === 'product'">
-                                                <small class="text-gray-500 dark:text-gray-400" x-text="result.category || ''"></small>
-                                            </template>
-                                        </div>
-                                    </a>
-                                </template>
+                       x-init="$watch('showResults', (value) => { if (value) { $nextTick(() => { let rect = $refs.searchContainerMobile.getBoundingClientRect(); $el.style.top = `${rect.bottom + 4}px`; $el.style.left = `${rect.left}px`; $el.style.width = `${rect.width}px`; }); } })">
+                      <div x-show="loading" class="p-4 text-center text-gray-500 dark:text-gray-300">{{ __('layout.searching') }}</div>
+                      <template x-if="!loading && results.length === 0 && query.length >= minChars"><div class="p-4 text-center text-gray-500 dark:text-gray-300">{{ __('layout.no_products_matching') }}</div></template>
+                      <template x-for="(result, index) in results" :key="index">
+                        <div>
+                          <template x-if="result.type === 'header'">
+                            <div class="px-4 py-2 text-xs font-bold uppercase tracking-wider text-gray-500 bg-gray-50/50 dark:bg-gray-900/50 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+                              <span x-text="result.label"></span>
                             </div>
-                        </template>
+                          </template>
+                          <template x-if="result.type !== 'header'">
+                            <a :href="result.url" class="search-result-item" :class="{ 'highlighted': index === highlightedIndex }" @mouseenter="highlightedIndex = index">
+                              <template x-if="result.type === 'product'">
+                                <img :src="result.image" alt="" class="search-result-img">
+                              </template>
+                              <template x-if="result.type === 'brand'">
+                                <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 mr-3">
+                                  <i class="bi bi-tag text-lg text-[#6d0e16]"></i>
+                                </div>
+                              </template>
+                              <template x-if="result.type === 'category'">
+                                <div class="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 mr-3">
+                                  <i class="bi bi-grid text-lg text-[#6d0e16]"></i>
+                                </div>
+                              </template>
+                              <div class="flex flex-col">
+                                <span class="text-gray-800 dark:text-gray-200 font-semibold" x-text="result.name"></span>
+                                <template x-if="result.type === 'product'">
+                                  <small class="text-gray-500 dark:text-gray-400" x-text="result.category || ''"></small>
+                                </template>
+                              </div>
+                            </a>
+                          </template>
+                        </div>
+                      </template>
                     </div>
-                </template>
-              </div>
+                  </template>
+                </div>
+                </div>
             </div>
         </header>
 
@@ -1872,23 +1898,29 @@ function brandMenuV4(){
     <main id="pageContent" class="flex-grow page-content-shell">
         <div id="pageTransitionOverlay" aria-hidden="true">
           <div class="page-transition-shell">
-            <div class="page-shell-header">
-              <div class="page-shell-block"></div>
-              <div class="page-shell-block"></div>
+            <div class="home-shell-skeleton"></div>
+
+            <div class="home-shell-section">
+              <div class="home-shell-line is-title"></div>
+              <div class="home-shell-categories">
+                @for($homeShellCategoryIndex = 0; $homeShellCategoryIndex < 6; $homeShellCategoryIndex++)
+                  <div class="home-shell-chip"></div>
+                @endfor
+              </div>
             </div>
-            <div class="page-shell-lines">
-              <div class="page-shell-line is-short"></div>
-              <div class="page-shell-line is-mid"></div>
-            </div>
-            <div class="page-shell-grid">
-              @for($pageShellIndex = 0; $pageShellIndex < 8; $pageShellIndex++)
-                <div class="page-shell-card">
-                  <div class="page-shell-thumb"></div>
-                  <div class="page-shell-line"></div>
-                  <div class="page-shell-line is-mid"></div>
-                  <div class="page-shell-line is-short"></div>
+
+            <div class="home-shell-section">
+              <div class="home-shell-line is-title"></div>
+              <div class="home-shell-products">
+                @for($homeShellProductIndex = 0; $homeShellProductIndex < 10; $homeShellProductIndex++)
+                <div class="home-shell-card">
+                  <div class="home-shell-image"></div>
+                  <div class="home-shell-line"></div>
+                  <div class="home-shell-line"></div>
+                  <div class="home-shell-line is-short"></div>
                 </div>
-              @endfor
+                @endfor
+              </div>
             </div>
           </div>
         </div>
@@ -2017,10 +2049,19 @@ function brandMenuV4(){
   </div>
 </footer>
 
-<footer class="fixed bottom-0 left-0 right-0 footer-mobile z-40 md:hidden" x-show="!searchFocused" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="translate-y-0" x-transition:leave-end="translate-y-full">
+@php
+  $mobileNavIndex = request()->routeIs('homepage')
+      ? 0
+      : (request()->routeIs('shop')
+          ? 1
+          : (request()->routeIs('cart.index')
+              ? 2
+              : (request()->routeIs('categories.index') ? 3 : 4)));
+@endphp
+<footer class="fixed bottom-0 left-0 right-0 footer-mobile z-40 md:hidden" x-show="!searchFocused && !mobileSearchOpen">
   <div class="glass-nav-wrap">
     <nav class="glass-nav" role="navigation" aria-label="التنقل السفلي">
-      <div class="glass-items">
+      <div class="glass-items" style="--glass-index: {{ $mobileNavIndex }};">
         <a href="{{ route('homepage') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('homepage') ? 'active' : '' }}">
           <i class="bi bi-house-door-fill icon"></i><span class="glass-label mt-0.5">{{ __('layout.home') }}</span>
         </a>
@@ -2102,6 +2143,22 @@ function brandMenuV4(){
   const storageKey = 'tofof-page-loading';
   const prefetchedUrls = new Set();
   let fastNavigating = false;
+  let loadingFallbackId = null;
+  let touchCancelId = null;
+
+  function clearLoadingFallback() {
+    if (loadingFallbackId !== null) {
+      window.clearTimeout(loadingFallbackId);
+      loadingFallbackId = null;
+    }
+  }
+
+  function clearTouchCancel() {
+    if (touchCancelId !== null) {
+      window.clearTimeout(touchCancelId);
+      touchCancelId = null;
+    }
+  }
 
   function setupMobileFooterNavAnimation() {
     const container = document.querySelector('.footer-mobile .glass-items');
@@ -2169,12 +2226,23 @@ function brandMenuV4(){
     return !!sameOriginUrl(action);
   }
 
-  function activateLoading() {
+  function activateLoading(fallbackMs = 6000) {
     document.documentElement.classList.add('app-shell-loading');
     try { sessionStorage.setItem(storageKey, '1'); } catch (e) {}
+
+    clearLoadingFallback();
+    loadingFallbackId = window.setTimeout(() => {
+      if (document.visibilityState === 'visible') {
+        fastNavigating = false;
+        deactivateLoading();
+      }
+    }, fallbackMs);
   }
 
   function deactivateLoading() {
+    clearLoadingFallback();
+    clearTouchCancel();
+    fastNavigating = false;
     document.documentElement.classList.remove('app-shell-loading');
     document.documentElement.classList.add('app-shell-ready');
     window.setTimeout(() => {
@@ -2201,6 +2269,8 @@ function brandMenuV4(){
   document.addEventListener('click', (event) => {
     const link = event.target.closest('a[href]');
     if (!shouldHandleLink(link, event)) return;
+
+    clearTouchCancel();
 
     // Fast path for mobile bottom navigation: show skeleton instantly,
     // then force navigation in the same click cycle.
@@ -2252,6 +2322,19 @@ function brandMenuV4(){
     if (!link) return;
     if (!sameOriginUrl(link.href)) return;
     activateLoading();
+
+    clearTouchCancel();
+    touchCancelId = window.setTimeout(() => {
+      if (!fastNavigating && document.visibilityState === 'visible') {
+        deactivateLoading();
+      }
+    }, 220);
+  }, { passive: true, capture: true });
+
+  document.addEventListener('touchcancel', () => {
+    if (!fastNavigating && document.visibilityState === 'visible') {
+      deactivateLoading();
+    }
   }, { passive: true, capture: true });
 
   // Warm up footer destinations early for instant-feel navigation.
@@ -2264,6 +2347,16 @@ function brandMenuV4(){
 
   window.addEventListener('pageshow', deactivateLoading);
   window.addEventListener('load', deactivateLoading);
+  window.addEventListener('focus', () => {
+    if (!fastNavigating && document.visibilityState === 'visible') {
+      deactivateLoading();
+    }
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && !fastNavigating) {
+      deactivateLoading();
+    }
+  });
 })();
 </script>
 

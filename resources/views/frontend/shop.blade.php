@@ -13,8 +13,8 @@
         --secondary-color:#D4AF37; --dark-color:#111827; --light-color:#FFFFFF;
     }
     /* === تصحيح الانزياح الأفقي (اليسار) === */
-    body, html {
-        overflow-x: hidden; 
+    html, body {
+        overflow-x: clip; /* clip على الاثنين بدون hidden حتى لا يصير scroll context منفصل لـ body */
         width: 100%;
     }
     /* ===================================== */
@@ -28,7 +28,18 @@
       .filter-dock{position:sticky; top:7rem;}
     }
     @media(max-width:1023px){ .layout{display:block} }
-
+    /* ===== فلتر ثابت مع سكرول داخلي صريح (يمنع ازدواجية السكرول) ===== */
+    @media(min-width:1024px){
+      .filter-dock{
+        max-height: calc(100vh - 9rem);
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(109,14,22,.25) transparent;
+      }
+      .filter-dock::-webkit-scrollbar{ width: 4px; }
+      .filter-dock::-webkit-scrollbar-track{ background: transparent; }
+      .filter-dock::-webkit-scrollbar-thumb{ background: rgba(109,14,22,.25); border-radius:99px; }
+    }
     /* Dock Card (Desktop Filters Container) */
     .dock-card{
         border:1px solid rgba(109, 14, 22, 0.2); background:#fff; border-radius:18px;
@@ -488,7 +499,7 @@
                  x-transition:leave="transition ease-in duration-200"
                  x-transition:leave-start="translate-y-0"
                  x-transition:leave-end="translate-y-full"
-                 class="mobile-filter-sheet fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl border-t max-h-[85vh] overflow-y-auto">
+                 class="mobile-filter-sheet fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl border-t max-h-[85vh] overflow-y-auto" style="overscroll-behavior: contain; -webkit-overflow-scrolling: touch;">
                 <header class="sticky top-0 z-10 bg-white/90 backdrop-blur border-b px-4 py-3 flex items-center justify-between">
                     <button @click="mobileFiltersOpen=false" class="text-gray-500 text-2xl leading-none">&times;</button>
                     <h3 class="text-base font-bold">{{ __('shop.filters') }}</h3>

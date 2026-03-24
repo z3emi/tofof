@@ -433,7 +433,7 @@
                         @if(!$userHasReviewed)
                         <div class="border rounded-lg p-4 mb-6">
                             <h4 class="font-semibold mb-3" style="color:var(--text)">{{ __('product.rate_product') }}</h4>
-                            <form id="review-form" method="POST" action="{{ url('/products/'.$product->id.'/reviews') }}" x-data="{ rating: 5 }">
+                            <form id="review-form" method="POST" action="{{ url('/products/'.$product->id.'/reviews') }}" data-no-transition="true" x-data="{ rating: 5 }">
                                 @csrf
                                 <label class="block mb-1" style="color:var(--text)">{{ __('product.your_rating') }}</label>
                                 <div class="flex items-center gap-1 mb-2">
