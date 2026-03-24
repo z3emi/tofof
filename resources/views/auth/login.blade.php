@@ -351,7 +351,17 @@ html:not(.dark) .auth-scope .country-list a:hover{background:#eef2f8 !important;
 html:not(.dark) .auth-foot a{color:#202737;}
 
 @media (max-width: 640px){
+  .auth-scope { min-height: auto !important; align-items: flex-start !important; padding-top: 32px !important; padding-bottom: 24px !important; }
+  .auth-card-header{padding:1.2rem 1.2rem 0.2rem !important;}
+  .auth-card-header h2{font-size:1.6rem !important;}
+  .auth-card-header p{font-size:0.8rem !important; margin-top:0.1rem !important;}
+  .auth-form{padding:0.5rem 1.2rem 1.5rem !important;}
+  .auth-scope .phone-input-group, .auth-scope .auth-field{height: 46px !important;}
+  .auth-scope .phone-input{height: 46px !important;}
+  .auth-btn-primary{padding: 0.6rem 1rem !important;}
+  .auth-label{margin-bottom: 0.2rem !important;}
   .auth-scope .country-code-btn{
+    height: 46px !important;
     font-size:.76rem !important;
     gap:.25rem !important;
     padding:.4rem .6rem !important;
@@ -373,11 +383,11 @@ html:not(.dark) .auth-foot a{color:#202737;}
 @endpush
 
 @section('content')
-<div class="auth-scope flex items-center justify-center py-10 px-4" dir="rtl">
+<div class="auth-scope flex items-center justify-center py-4 sm:py-10 px-4" dir="rtl">
   <div class="w-full max-w-md auth-shell">
 
     <!-- الكارت الرئيسي -->
-    <div class="auth-card mb-6"
+    <div class="auth-card mb-4 sm:mb-6"
          x-data="{
            showPassword:false,
            countryMenuOpen:false,
@@ -404,12 +414,12 @@ html:not(.dark) .auth-foot a{color:#202737;}
       </div>
 
       <!-- النموذج -->
-      <div class="p-6 md:p-8 auth-form">
+      <div class="p-4 sm:p-6 md:p-8 auth-form">
         <form method="POST" action="{{ route('login') }}">
           @csrf
 
           {{-- رقم الهاتف --}}
-          <div class="mb-5 relative">
+          <div class="mb-3 sm:mb-5 relative">
             <label class="auth-label">{{ __('auth_pages.login.phone_label') }}</label>
             <div class="phone-input-group">
               <button type="button" @click="countryMenuOpen = !countryMenuOpen" class="country-code-btn">
@@ -455,7 +465,7 @@ html:not(.dark) .auth-foot a{color:#202737;}
           </div>
 
           {{-- كلمة المرور --}}
-          <div class="mb-5">
+          <div class="mb-3 sm:mb-5">
             <label class="auth-label" for="password">{{ __('auth_pages.login.password_label') }}</label>
             <div class="password-wrapper">
               <input :type="showPassword ? 'text' : 'password'"
@@ -474,7 +484,7 @@ html:not(.dark) .auth-foot a{color:#202737;}
           </div>
 
           {{-- تذكرني + نسيت كلمة السر --}}
-          <div class="flex items-center justify-between mb-6 auth-help">
+          <div class="flex items-center justify-between mb-4 sm:mb-6 auth-help">
             <label class="flex items-center gap-2 cursor-pointer text-sm">
               <input id="remember" type="checkbox" name="remember" class="w-4 h-4 rounded">
               {{ __('auth_pages.login.remember_me') }}

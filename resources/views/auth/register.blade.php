@@ -352,7 +352,18 @@ html:not(.dark) .register-scope .country-list a{color:#1f2533 !important;border-
 html:not(.dark) .reg-foot a{color:#202737;}
 
 @media (max-width: 640px){
+  .register-scope { min-height: auto !important; align-items: flex-start !important; padding-top: 12px !important; padding-bottom: 24px !important; }
+  .register-card-header{padding:1.2rem 1.2rem 0.2rem !important;}
+  .register-card-header h2{font-size:1.6rem !important;}
+  .register-card-header p{font-size:0.8rem !important; margin-top:0.1rem !important;}
+  .register-form{padding:0.5rem 1.2rem 1.5rem !important;}
+  .register-scope .phone-input-group, .register-scope .r-field, .register-scope .r-field-referral{height: 46px !important;}
+  .register-scope .phone-input{height: 46px !important;}
+  .reg-btn-primary{padding: 0.6rem 1rem !important;}
+  .r-label{margin-bottom: 0.2rem !important;}
   .register-scope .country-code-btn{
+    height: 46px !important;
+    min-width:110px !important;
     font-size:.76rem !important;
     gap:.25rem !important;
     padding:.4rem .6rem !important;
@@ -374,11 +385,11 @@ html:not(.dark) .reg-foot a{color:#202737;}
 @endpush
 
 @section('content')
-<div class="register-scope flex items-center justify-center py-10 px-4" dir="rtl">
+<div class="register-scope flex items-center justify-center py-4 sm:py-10 px-4" dir="rtl">
   <div class="w-full max-w-md register-shell">
 
     <!-- الكارت الرئيسي -->
-    <div class="register-card mb-6"
+    <div class="register-card mb-4 sm:mb-6"
          x-data="{
            countryMenuOpen:false,
            countries: {{ json_encode($countries) }},
@@ -409,12 +420,12 @@ html:not(.dark) .reg-foot a{color:#202737;}
       </div>
 
       <!-- النموذج -->
-      <div class="p-6 md:p-8 register-form">
+      <div class="p-4 sm:p-6 md:p-8 register-form">
         <form method="POST" action="{{ route('register') }}">
           @csrf
 
           <!-- الاسم الكامل -->
-          <div class="mb-5">
+          <div class="mb-3 sm:mb-5">
                <label class="r-label" for="name">{{ __('auth_pages.register.full_name_label') }}</label>
             <input id="name" type="text"
                    class="r-field @error('name') error @enderror"
@@ -429,7 +440,7 @@ html:not(.dark) .reg-foot a{color:#202737;}
           </div>
 
           <!-- رقم الهاتف -->
-          <div class="mb-5 relative">
+          <div class="mb-3 sm:mb-5 relative">
             <label class="r-label" for="local_phone_number">{{ __('auth_pages.register.phone_label') }}</label>
             <div class="phone-input-group">
               <button type="button" class="country-code-btn" @click="toggleCountryMenu()">
@@ -476,7 +487,7 @@ html:not(.dark) .reg-foot a{color:#202737;}
           </div>
 
           <!-- كلمة المرور -->
-          <div class="mb-5">
+          <div class="mb-3 sm:mb-5">
             <label class="r-label" for="password">{{ __('auth_pages.register.password_label') }}</label>
             <div class="password-wrapper">
               <input :type="showPassword ? 'text' : 'password'" id="password"
@@ -495,7 +506,7 @@ html:not(.dark) .reg-foot a{color:#202737;}
           </div>
 
           <!-- تأكيد كلمة المرور -->
-          <div class="mb-5">
+          <div class="mb-3 sm:mb-5">
             <label class="r-label" for="password-confirm">{{ __('auth_pages.register.password_confirm_label') }}</label>
             <div class="password-wrapper">
               <input :type="showConfirmPassword ? 'text' : 'password'" id="password-confirm"
@@ -509,7 +520,7 @@ html:not(.dark) .reg-foot a{color:#202737;}
           </div>
 
           <!-- رمز الدعوة -->
-          <div class="mb-6">
+          <div class="mb-4 sm:mb-6">
             <div class="flex items-center justify-between mb-1.5">
               <label class="r-label mb-0" for="referral_code">{{ __('auth_pages.register.referral_label') }}</label>
               <span class="referral-chip"><i class="bi bi-gift text-xs"></i> {{ __('auth_pages.register.optional') }}</span>

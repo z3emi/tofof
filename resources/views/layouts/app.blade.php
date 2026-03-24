@@ -907,6 +907,7 @@ html[dir="rtl"] .glass-indicator {
         transition: opacity .22s ease, visibility .22s ease;
         background: rgba(247, 247, 247, 0.92);
         backdrop-filter: blur(3px);
+        overflow: hidden;
       }
       .dark #pageTransitionOverlay {
         background: rgba(10, 10, 10, 0.9);
@@ -2048,6 +2049,9 @@ function brandMenuV4(){
     </div>
   </div>
 </footer>
+
+<!-- عنصر تفريغ المساحة أسفل الصفحة لضمان عدم تغطية الفوتر العائم لأي محتوى (خصوصاً داخل التطبيق/PWA) -->
+<div class="h-[120px] w-full md:hidden bg-transparent pointer-events-none" aria-hidden="true"></div>
 
 @php
   $mobileNavIndex = request()->routeIs('homepage')
