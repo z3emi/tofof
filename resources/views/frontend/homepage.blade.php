@@ -1,4 +1,4 @@
-﻿@php
+@php
     // ترتيب الأقسام تنازلياً حسب عدد المنتجات
     $sortedCategories = $categories;
 
@@ -738,41 +738,16 @@
          x-data="{
               el:null, track:null, canGoLeft:false, canGoRight:true, step:320,
               autoDir:1, autoTimer:null, autoPaused:false, resumeTimer:null,
-              autoTickMs:26, autoStepPx:2, manualPauseMs:5000,
-              autoOffset:0, autoMax:0,
+              autoTickMs:16, autoStepPx:1, manualPauseMs:5000, ticks:0,
+              
               isRTL() { return getComputedStyle(this.el).direction === 'rtl'; },
-              calcBounds() {
-                  if (!this.el || !this.track) return;
-                  const max = Math.max(0, this.track.scrollWidth - this.el.clientWidth);
-                  this.autoMax = max;
-                  if (this.autoOffset > max) this.autoOffset = max;
-              },
-              applyOffset() {
-                  if (!this.track) return;
-                  const sign = this.isRTL() ? 1 : -1;
-                  this.track.style.transform = `translate3d(${sign * this.autoOffset}px,0,0)`;
-              },
-              getNorm() {
-                  return this.autoOffset;
-              },
-              setNorm(target) {
-                  const max = this.autoMax;
-                  const next = Math.max(0, Math.min(max, target));
-                  this.autoOffset = next;
-                  this.applyOffset();
-              },
+              
               pauseAutoScroll() {
                   this.autoPaused = true;
-                  if (this.resumeTimer) {
-                      clearTimeout(this.resumeTimer);
-                      this.resumeTimer = null;
-                  }
+                  if (this.resumeTimer) { clearTimeout(this.resumeTimer); this.resumeTimer = null; }
               },
               resumeAutoScroll() {
-                  if (this.resumeTimer) {
-                      clearTimeout(this.resumeTimer);
-                      this.resumeTimer = null;
-                  }
+                  if (this.resumeTimer) { clearTimeout(this.resumeTimer); this.resumeTimer = null; }
                   this.autoPaused = false;
               },
               pauseAutoTemporarily(ms = this.manualPauseMs) {
@@ -783,79 +758,64 @@
                   if (this.autoTimer || !this.el) return;
                   this.autoTimer = setInterval(() => {
                       if (!this.el || this.autoPaused) return;
-                      const max = this.autoMax;
-                      if (max <= 0) return;
 
-                      const cur = this.getNorm();
-                      let next = cur + (this.autoDir * this.autoStepPx);
-
-                      if (next >= max) {
-                          next = max;
-                          this.autoDir = -1;
-                      } else if (next <= 0) {
-                          next = 0;
-                          this.autoDir = 1;
+                      let prev = this.el.scrollLeft;
+                      let applyStep = (this.isRTL() ? -1 : 1) * this.autoDir * this.autoStepPx;
+                      this.el.scrollLeft += applyStep;
+                      
+                      if (Math.abs(this.el.scrollLeft - prev) < 0.5) {
+                          this.autoDir *= -1;
                       }
-
-                      this.setNorm(next);
-                      this.updateButtons();
+                      
+                      if (this.ticks % 10 === 0) this.updateButtons();
+                      this.ticks++;
                   }, this.autoTickMs);
+              },
+              updateButtons() {
+                  if (!this.el || !this.track) return;
+                  const elRect = this.el.getBoundingClientRect();
+                  const trackRect = this.track.getBoundingClientRect();
+                  this.canGoLeft = Math.round(trackRect.left) < Math.round(elRect.left) - 2;
+                  this.canGoRight = Math.round(trackRect.right) > Math.round(elRect.right) + 2;
+              },
+              goLeft() {
+                  this.pauseAutoTemporarily();
+                  this.el.scrollBy({ left: -this.step, behavior: 'smooth' });
+                  setTimeout(() => this.updateButtons(), 400);
+              },
+              goRight() {
+                  this.pauseAutoTemporarily();
+                  this.el.scrollBy({ left: this.step, behavior: 'smooth' });
+                  setTimeout(() => this.updateButtons(), 400);
               },
               init(){
                   this.el = this.$refs.catScroll; if(!this.el) return;
                   this.track = this.$refs.catTrack; if(!this.track) return;
+                  this.track.style.transform = ''; // clear any old css transforms
+                  
                   this.$nextTick(()=>{
                       const card=this.track.querySelector('a');
                       this.step = card ? Math.max(240, Math.floor(card.getBoundingClientRect().width+10)) : 300;
-                      this.calcBounds();
-                      this.applyOffset();
                       this.updateButtons();
                   });
 
-                  this.el.addEventListener('scroll', () => {
-                      this.pauseAutoTemporarily();
-                  }, {passive:true});
-
+                  this.el.addEventListener('scroll', () => { this.updateButtons(); }, {passive:true});
                   this.el.addEventListener('pointerdown', () => this.pauseAutoTemporarily(), {passive:true});
                   this.el.addEventListener('touchstart', () => this.pauseAutoTemporarily(), {passive:true});
+                  this.el.addEventListener('touchmove', () => this.pauseAutoTemporarily(), {passive:true});
                   this.el.addEventListener('wheel', () => this.pauseAutoTemporarily(), {passive:true});
-                  this.el.addEventListener('mouseenter', () => this.pauseAutoTemporarily(5000));
-                  this.el.addEventListener('mouseleave', () => this.pauseAutoTemporarily(5000));
+                  this.el.addEventListener('mouseenter', () => this.pauseAutoTemporarily());
+                  this.el.addEventListener('mousemove', () => this.pauseAutoTemporarily());
+                  this.el.addEventListener('mouseleave', () => this.pauseAutoTemporarily());
 
-                  window.addEventListener('resize', () => {
-                      this.calcBounds();
-                      this.applyOffset();
+                  window.addEventListener('resize', () => { this.updateButtons(); });
+                  
+                  // Initialize buttons and let browser set the correct scroll position first
+                  setTimeout(() => {
                       this.updateButtons();
-                  });
-                  this.startAutoScroll();
-              },
-              updateButtons(){
-                  if(!this.el) return;
-                  const max = this.autoMax;
-                  const pos = this.getNorm();
-                  const isRtl = this.isRTL();
-                  if (isRtl) {
-                      // في العربية: اليسار يروح للخلف، اليمين يروح للأمام
-                      this.canGoLeft = pos > 5;  // الزر الأيسر يمكن الضغط لو في فراغ في البداية
-                      this.canGoRight = pos < max - 5;  // الزر الأيمين يمكن الضغط لو في فراغ في النهاية
-                  } else {
-                      // في الإنجليزية: اليسار يروح للخلف، اليمين يروح للأمام
-                      this.canGoLeft = pos > 5;
-                      this.canGoRight = pos < max - 5;
-                  }
-              },
-              go(dir){
-                  this.pauseAutoTemporarily();
-                  const max = this.autoMax;
-                  const isRtl = this.isRTL();
-                  const cur = this.getNorm();
-                  // في RTL: عكس الاتجاه (prev يصير next والعكس)
-                  const actualDir = isRtl ? (dir === 'prev' ? 'next' : 'prev') : dir;
-                  this.autoDir = actualDir === 'prev' ? -1 : 1;
-                  const target = Math.max(0, Math.min(max, cur + (actualDir === 'prev' ? -this.step : this.step)));
-                  this.setNorm(target);
-                  setTimeout(() => this.updateButtons(), 250);
-              },
+                      this.startAutoScroll();
+                  }, 100);
+              }
          }"
          x-init="init()">
 
@@ -877,7 +837,7 @@
                 :class="{'brand-nav-active': canGoLeft, 'brand-nav-disabled': !canGoLeft}"
                 :disabled="!canGoLeft"
                 type="button" aria-label="{{ __('common.prev') }}"
-                @click="go('prev')">
+                @click="goLeft()">
                 <i class="bi bi-chevron-left text-2xl"></i>
             </button>
 
@@ -887,7 +847,7 @@
                 :class="{'brand-nav-active': canGoRight, 'brand-nav-disabled': !canGoRight}"
                 :disabled="!canGoRight"
                 type="button" aria-label="{{ __('common.next') }}"
-                @click="go('next')">
+                @click="goRight()">
                 <i class="bi bi-chevron-right text-2xl"></i>
             </button>
 
@@ -991,18 +951,13 @@
             border-color: rgba(234, 219, 205, 0.9);
         }
 
-        .brand-nav-active::before {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
         .brand-nav-active:hover {
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.8);
             box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
-            transform: scale(1.08);
         }
 
         .brand-nav-active:active {
-            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.9);
         }
 
         /* حالة الزر المعطل (لا يوجد تنقل) */
@@ -1222,81 +1177,18 @@
 {{-- Brands Section (Using Category model) --}}
 <section class="pt-2 pb-6 md:pt-4 md:pb-12 section-cats relative overflow-hidden"
          x-data="{
-             el:null, track:null, showLeftButton:true, showRightButton:true, isMobile: false,
+             el:null, track:null, showLeftButton:true, showRightButton:true, isMobile: false, step: 320,
              autoDir:1, autoTimer:null, autoPaused:false, resumeTimer:null,
-             autoTickMs:26, autoStepPx:2, manualPauseMs:5000,
-             autoOffset:0, autoMax:0,
+             autoTickMs:16, autoStepPx:1, manualPauseMs:5000, ticks:0,
              
-             init(){
-                 this.isMobile = window.innerWidth < 768;
-                 this.el = this.$refs.catScroll; if(!this.el) return;
-                 this.track = this.$refs.catTrack; if(!this.track) return;
-                 
-                 this.$nextTick(() => {
-                     this.calcBounds();
-                     this.applyOffset();
-                     this.updateButtons();
-                 });
-                 window.addEventListener('load', () => {
-                     this.calcBounds();
-                     this.applyOffset();
-                     this.updateButtons();
-                 });
-                 
-                 this.el.addEventListener('scroll', () => {
-                     this.pauseAutoTemporarily();
-                 }, {passive:true});
-
-                 this.el.addEventListener('pointerdown', () => this.pauseAutoTemporarily(), {passive:true});
-                 this.el.addEventListener('touchstart', () => this.pauseAutoTemporarily(), {passive:true});
-                 this.el.addEventListener('wheel', () => this.pauseAutoTemporarily(), {passive:true});
-                 this.el.addEventListener('mouseenter', () => this.pauseAutoTemporarily(5000));
-                 this.el.addEventListener('mouseleave', () => this.pauseAutoTemporarily(5000));
-
-                 window.addEventListener('resize', () => {
-                     this.isMobile = window.innerWidth < 768;
-                     this.calcBounds();
-                     this.applyOffset();
-                     this.updateButtons();
-                 });
-
-                 this.startAutoScroll();
-             },
-             
-
              isRTL() { return getComputedStyle(this.el).direction === 'rtl'; },
-             calcBounds() {
-                 if (!this.el || !this.track) return;
-                 const max = Math.max(0, this.track.scrollWidth - this.el.clientWidth);
-                 this.autoMax = max;
-                 if (this.autoOffset > max) this.autoOffset = max;
-             },
-             applyOffset() {
-                 if (!this.track) return;
-                 const sign = this.isRTL() ? 1 : -1;
-                 this.track.style.transform = `translate3d(${sign * this.autoOffset}px,0,0)`;
-             },
-             getNorm() {
-                 return this.autoOffset;
-             },
-             setNorm(target) {
-                 const max = this.autoMax;
-                 const next = Math.max(0, Math.min(max, target));
-                 this.autoOffset = next;
-                 this.applyOffset();
-             },
+             
              pauseAutoScroll() {
                  this.autoPaused = true;
-                 if (this.resumeTimer) {
-                     clearTimeout(this.resumeTimer);
-                     this.resumeTimer = null;
-                 }
+                 if (this.resumeTimer) { clearTimeout(this.resumeTimer); this.resumeTimer = null; }
              },
              resumeAutoScroll() {
-                 if (this.resumeTimer) {
-                     clearTimeout(this.resumeTimer);
-                     this.resumeTimer = null;
-                 }
+                 if (this.resumeTimer) { clearTimeout(this.resumeTimer); this.resumeTimer = null; }
                  this.autoPaused = false;
              },
              pauseAutoTemporarily(ms = this.manualPauseMs) {
@@ -1307,53 +1199,67 @@
                  if (this.autoTimer || !this.el) return;
                  this.autoTimer = setInterval(() => {
                      if (!this.el || this.autoPaused) return;
-                     const max = this.autoMax;
-                     if (max <= 0) return;
 
-                     const cur = this.getNorm();
-                     let next = cur + (this.autoDir * this.autoStepPx);
-
-                     if (next >= max) {
-                         next = max;
-                         this.autoDir = -1;
-                     } else if (next <= 0) {
-                         next = 0;
-                         this.autoDir = 1;
+                     let prev = this.el.scrollLeft;
+                     let applyStep = (this.isRTL() ? -1 : 1) * this.autoDir * this.autoStepPx;
+                     this.el.scrollLeft += applyStep;
+                     
+                     if (Math.abs(this.el.scrollLeft - prev) < 0.5) {
+                         this.autoDir *= -1;
                      }
-
-                     this.setNorm(next);
-                     this.updateButtons();
+                     
+                     if (this.ticks % 10 === 0) this.updateButtons();
+                     this.ticks++;
                  }, this.autoTickMs);
              },
              updateButtons() {
-                 if (!this.el) return;
-                 const max = this.autoMax;
-                 const pos = this.getNorm();
-                 const isRtl = this.isRTL();
-                 if (isRtl) {
-                     // في العربية: اليسار يروح للخلف، اليمين يروح للأمام
-                     this.showLeftButton = pos > 5;   // الزر الأيسر يمكن الضغط لو في فراغ في البداية
-                     this.showRightButton = pos < max - 5;  // الزر الأيمين يمكن الضغط لو في فراغ في النهاية
-                 } else {
-                     // في الإنجليزية: اليسار يروح للخلف، اليمين يروح للأمام
-                     this.showLeftButton = pos > 5;
-                     this.showRightButton = pos < max - 5;
-                 }
+                 if (!this.el || !this.track) return;
+                 const elRect = this.el.getBoundingClientRect();
+                 const trackRect = this.track.getBoundingClientRect();
+                 this.showLeftButton = Math.round(trackRect.left) < Math.round(elRect.left) - 2;
+                 this.showRightButton = Math.round(trackRect.right) > Math.round(elRect.right) + 2;
              },
-
-             go(dir) {
+             goLeft() {
                  this.pauseAutoTemporarily();
-                 const el = this.el;
-                 const max = this.autoMax;
-                 const isRtl = this.isRTL();
-                 const cur = this.getNorm();
-                 // في RTL: عكس الاتجاه (prev يصير next والعكس)
-                 const actualDir = isRtl ? (dir === 'prev' ? 'next' : 'prev') : dir;
-                 this.autoDir = actualDir === 'prev' ? -1 : 1;
-                 const target = Math.max(0, Math.min(max, cur + (actualDir === 'prev' ? -320 : 320)));
-                 this.setNorm(target);
-                 setTimeout(() => this.updateButtons(), 250);
+                 this.el.scrollBy({ left: -this.step, behavior: 'smooth' });
+                 setTimeout(() => this.updateButtons(), 400);
              },
+             goRight() {
+                 this.pauseAutoTemporarily();
+                 this.el.scrollBy({ left: this.step, behavior: 'smooth' });
+                 setTimeout(() => this.updateButtons(), 400);
+             },
+             init(){
+                 this.isMobile = window.innerWidth < 768;
+                 this.el = this.$refs.catScroll; if(!this.el) return;
+                 this.track = this.$refs.catTrack; if(!this.track) return;
+                 this.track.style.transform = '';
+                 
+                 this.$nextTick(() => {
+                     const card = this.track.querySelector('a');
+                     if (card) this.step = Math.max(240, Math.floor(card.getBoundingClientRect().width + 10));
+                     this.updateButtons();
+                 });
+                 
+                 this.el.addEventListener('scroll', () => { this.updateButtons(); }, {passive:true});
+                 this.el.addEventListener('pointerdown', () => this.pauseAutoTemporarily(), {passive:true});
+                 this.el.addEventListener('touchstart', () => this.pauseAutoTemporarily(), {passive:true});
+                 this.el.addEventListener('touchmove', () => this.pauseAutoTemporarily(), {passive:true});
+                 this.el.addEventListener('wheel', () => { this.pauseAutoTemporarily(); }, {passive:true});
+                 this.el.addEventListener('mouseenter', () => this.pauseAutoTemporarily());
+                 this.el.addEventListener('mousemove', () => this.pauseAutoTemporarily());
+                 this.el.addEventListener('mouseleave', () => this.pauseAutoTemporarily());
+
+                 window.addEventListener('resize', () => {
+                     this.isMobile = window.innerWidth < 768;
+                     this.updateButtons();
+                 });
+
+                 setTimeout(() => {
+                     this.updateButtons();
+                     this.startAutoScroll();
+                 }, 100);
+             }
          }"
          x-init="init()">
 
@@ -1404,7 +1310,7 @@
             x-show="!isMobile"
             x-transition
             aria-label="{{ __('common.prev') }}"
-            @click="go('prev')">
+            @click="goLeft()">
         <i class="bi bi-chevron-left text-base md:text-lg"></i>
     </button>
     {{-- الزر الأيمن: يتقدم/للأمام (next) --}}
@@ -1414,7 +1320,7 @@
             x-show="!isMobile"
             x-transition
             aria-label="{{ __('common.next') }}"
-            @click="go('next')">
+            @click="goRight()">
         <i class="bi bi-chevron-right text-base md:text-lg"></i>
     </button>
     
@@ -1462,18 +1368,13 @@
             border-color: rgba(234, 219, 205, 0.9);
         }
 
-        .cat-nav-active::after {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
         .cat-nav-active:hover {
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.8);
             box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
-            transform: scale(1.08);
         }
 
         .cat-nav-active:active {
-            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.9);
         }
 
         /* حالة الزر المعطل (لا يوجد تنقل) */

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use App\Models\Setting;
 use ZipArchive;
 use RecursiveIteratorIterator;
@@ -461,12 +462,11 @@ class BackupController extends Controller
                     // Restore DB
                     $this->restoreDatabase($sqlFile);
 
-                    // Restore storage if exists
-                    $sourceStorage = $tempDir . '/storage';
-                    if (is_dir($sourceStorage)) {
-                        $targetStorage = storage_path('app/public');
-                        $this->copyDirectory($sourceStorage, $targetStorage);
-                    }
+                    // Restore storage from common backup layouts.
+                    $this->restorePublicStorageFromExtractedBackup($tempDir);
+
+                    // Normalize media paths in DB to avoid duplicated URL prefixes like /storage/storage/...
+                    $this->normalizeRestoredMediaPaths();
 
                     $this->removeDirectory($tempDir);
                 } else {
@@ -474,6 +474,7 @@ class BackupController extends Controller
                 }
             } else {
                 $this->restoreDatabase($filePath);
+                $this->normalizeRestoredMediaPaths();
             }
 
             return redirect()->route('admin.backups.index')->with('success', 'تم استعادة النسخة الاحتياطية بنجاح.');
@@ -587,6 +588,128 @@ class BackupController extends Controller
                 copy("$source/$file", "$target/$file");
             }
         }
+    }
+
+    private function restorePublicStorageFromExtractedBackup(string $tempDir): void
+    {
+        $targetStorage = storage_path('app/public');
+
+        // Support different zip internal layouts from old/manual backups.
+        $candidates = [
+            $tempDir . '/storage/app/public',
+            $tempDir . '/public/storage',
+            $tempDir . '/app/public',
+            $tempDir . '/storage',
+        ];
+
+        foreach ($candidates as $candidate) {
+            if ($this->directoryHasEntries($candidate)) {
+                $this->copyDirectory($candidate, $targetStorage);
+                return;
+            }
+        }
+
+        Log::warning('No storage directory detected in restored zip backup.', [
+            'temp_dir' => $tempDir,
+            'candidates' => $candidates,
+        ]);
+    }
+
+    private function directoryHasEntries(string $dir): bool
+    {
+        if (!is_dir($dir)) {
+            return false;
+        }
+
+        $entries = @scandir($dir);
+        if ($entries === false) {
+            return false;
+        }
+
+        foreach ($entries as $entry) {
+            if ($entry !== '.' && $entry !== '..') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function normalizeRestoredMediaPaths(): void
+    {
+        $targets = [
+            ['table' => 'product_images', 'column' => 'image_path', 'allowExternal' => false],
+            ['table' => 'product_option_combination_images', 'column' => 'image_path', 'allowExternal' => false],
+            ['table' => 'categories', 'column' => 'image', 'allowExternal' => false],
+            ['table' => 'primary_categories', 'column' => 'icon', 'allowExternal' => false],
+            ['table' => 'primary_categories', 'column' => 'image', 'allowExternal' => false],
+            ['table' => 'homepage_slides', 'column' => 'background_image', 'allowExternal' => true],
+            ['table' => 'posts', 'column' => 'image', 'allowExternal' => false],
+            ['table' => 'users', 'column' => 'avatar', 'allowExternal' => true],
+            ['table' => 'managers', 'column' => 'profile_photo_path', 'allowExternal' => true],
+            ['table' => 'managers', 'column' => 'housing_card_path', 'allowExternal' => true],
+            ['table' => 'managers', 'column' => 'nationality_card_path', 'allowExternal' => true],
+        ];
+
+        foreach ($targets as $target) {
+            $table = $target['table'];
+            $column = $target['column'];
+            $allowExternal = (bool) $target['allowExternal'];
+
+            if (!Schema::hasTable($table) || !Schema::hasColumn($table, $column) || !Schema::hasColumn($table, 'id')) {
+                continue;
+            }
+
+            DB::table($table)
+                ->select(['id', $column])
+                ->orderBy('id')
+                ->chunkById(500, function ($rows) use ($table, $column, $allowExternal) {
+                    foreach ($rows as $row) {
+                        $original = $row->{$column};
+                        $normalized = $this->normalizeMediaPathValue($original, $allowExternal);
+
+                        if ($normalized !== $original) {
+                            DB::table($table)
+                                ->where('id', $row->id)
+                                ->update([$column => $normalized]);
+                        }
+                    }
+                });
+        }
+    }
+
+    private function normalizeMediaPathValue($value, bool $allowExternal): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+        if ($normalized === '') {
+            return $normalized;
+        }
+
+        if ($allowExternal && (str_starts_with($normalized, 'http://') || str_starts_with($normalized, 'https://'))) {
+            return $normalized;
+        }
+
+        $normalized = ltrim(str_replace('\\', '/', $normalized), '/');
+
+        $prefixes = [
+            'storage/app/public/',
+            'public/storage/',
+            'app/public/',
+            'public/',
+            'storage/',
+        ];
+
+        foreach ($prefixes as $prefix) {
+            if (str_starts_with($normalized, $prefix)) {
+                $normalized = substr($normalized, strlen($prefix));
+            }
+        }
+
+        return ltrim($normalized, '/');
     }
 
     public function settings()
