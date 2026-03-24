@@ -157,8 +157,11 @@ class HomepageSlideController extends Controller
         $data = $request->validate([
             'section' => ['required', Rule::in(array_keys(HomepageSlide::sections()))],
             'title' => ['nullable', 'string', 'max:255'],
+            'title_en' => ['nullable', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:1000'],
+            'subtitle_en' => ['nullable', 'string', 'max:1000'],
             'button_text' => ['nullable', 'string', 'max:255'],
+            'button_text_en' => ['nullable', 'string', 'max:255'],
             'button_url' => ['nullable', 'string', 'max:255'],
             'background_image' => [Rule::requiredIf(! $request->route('homepageSlide')), 'nullable', 'image', 'mimes:jpeg,png,jpg,webp'],
             'alt_text' => ['nullable', 'string', 'max:255'],
