@@ -686,6 +686,17 @@ html[dir="rtl"] .glass-indicator {
 
 {{-- Live Search styles --}}
 <style>
+  /* ===== Blur Backdrop البحث — فقط خلف المحتوى وليس الهيدر ===== */
+  .search-blur-backdrop {
+    backdrop-filter: blur(16px) saturate(1.5);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+    background: rgba(0, 0, 0, 0.25);
+    /* z-30 أقل من header (z-40) → الهيدر يبقى صافياً */
+  }
+  html.dark .search-blur-backdrop {
+    background: rgba(0, 0, 0, 0.45);
+  }
+
   .search-result-item {
     display:flex; align-items:center; gap:1rem;
     padding:.75rem 1rem; text-decoration:none;
@@ -1897,6 +1908,22 @@ function brandMenuV4(){
     </div>
 
     <main id="pageContent" class="flex-grow page-content-shell">
+
+        {{-- ===== Blur Backdrop للبحث (موبايل) ===== --}}
+        <div
+          x-show="mobileSearchOpen"
+          x-transition:enter="transition ease-out duration-200"
+          x-transition:enter-start="opacity-0"
+          x-transition:enter-end="opacity-100"
+          x-transition:leave="transition ease-in duration-150"
+          x-transition:leave-start="opacity-100"
+          x-transition:leave-end="opacity-0"
+          @click="mobileSearchOpen = false; searchFocused = false"
+          class="md:hidden fixed inset-0 z-30 search-blur-backdrop"
+          style="display:none;"
+          aria-hidden="true"
+        ></div>
+
         <div id="pageTransitionOverlay" aria-hidden="true">
           <div class="page-transition-shell">
             <div class="home-shell-skeleton"></div>
@@ -2142,227 +2169,201 @@ function brandMenuV4(){
       })();
     </script>
 
+{{-- ===== Skeleton Loader ===== --}}
+<div id="tofof-skeleton" aria-hidden="true" style="display:none;">
+  {{-- هيدر فعلي ، بيقى ظاهر جهة الز فوق السكلتون --}}
+  <div class="sk-body">
+    <div class="sk-banner"></div>
+    <div class="sk-grid">
+      <div class="sk-card"></div>
+      <div class="sk-card"></div>
+      <div class="sk-card"></div>
+      <div class="sk-card"></div>
+      <div class="sk-card"></div>
+      <div class="sk-card"></div>
+    </div>
+    <div class="sk-list">
+      <div class="sk-row"></div>
+      <div class="sk-row"></div>
+      <div class="sk-row"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ===== Skeleton أمام الهيدر وخلف الفوتر ===== */
+  #tofof-skeleton {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: var(--sk-bg, #f3f4f6);
+    overflow: hidden;
+  }
+  html.dark #tofof-skeleton { --sk-bg: #111827; --sk-card: #1f2937; --sk-shine: rgba(255,255,255,0.04); }
+
+  .sk-body {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+  }
+
+  /* شيمر مشترك */
+  .sk-banner, .sk-card, .sk-row {
+    background: linear-gradient(
+      90deg,
+      var(--sk-card, #e5e7eb) 25%,
+      var(--sk-shine, rgba(255,255,255,0.7)) 50%,
+      var(--sk-card, #e5e7eb) 75%
+    );
+    background-size: 300% 100%;
+    border-radius: 10px;
+    animation: skShimmer 1.6s ease-in-out infinite;
+  }
+
+  .sk-banner  { height: 160px; border-radius: 14px; }
+
+  .sk-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .sk-card    { height: 128px; border-radius: 12px; }
+
+  .sk-list    { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .sk-row     { height: 48px; border-radius: 10px; }
+
+  @keyframes skShimmer {
+    0%   { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+  }
+
+  /* تأخير بسيط لكل عنصر */
+  .sk-card:nth-child(2)  { animation-delay: 0.10s; }
+  .sk-card:nth-child(3)  { animation-delay: 0.20s; }
+  .sk-card:nth-child(4)  { animation-delay: 0.05s; }
+  .sk-card:nth-child(5)  { animation-delay: 0.15s; }
+  .sk-card:nth-child(6)  { animation-delay: 0.25s; }
+  .sk-row:nth-child(2)   { animation-delay: 0.12s; }
+  .sk-row:nth-child(3)   { animation-delay: 0.24s; }
+</style>
+
 <script>
 (function () {
-  const storageKey = 'tofof-page-loading';
-  const prefetchedUrls = new Set();
-  let fastNavigating = false;
-  let loadingFallbackId = null;
-  let touchCancelId = null;
+  /* =====================================================
+     نظام التنقل السريع للفوتر - مع تحميل مسبق
+     ===================================================== */
 
-  function clearLoadingFallback() {
-    if (loadingFallbackId !== null) {
-      window.clearTimeout(loadingFallbackId);
-      loadingFallbackId = null;
-    }
+  const NAV_ITEMS = [
+    '{{ route("homepage") }}',
+    '{{ route("shop") }}',
+    '{{ route("cart.index") }}',
+    '{{ route("categories.index") }}',
+    '{{ route("profile.show") }}'
+  ];
+
+  // مؤشر الصفحة الحالية
+  const currentPath = window.location.pathname;
+  let currentIndex = 0;
+  NAV_ITEMS.forEach((url, i) => {
+    try {
+      const p = new URL(url, window.location.origin).pathname;
+      if (currentPath === p || currentPath.startsWith(p + '/')) {
+        currentIndex = i;
+      }
+    } catch(e) {}
+  });
+  // صفحات Auth → تحديد "حسابي" (index 4)
+  const authPaths = ['/login', '/register', '/password', '/verify-otp', '/otp', '/whatsapp/verify'];
+  if (authPaths.some(p => currentPath === p || currentPath.startsWith(p + '/'))) {
+    currentIndex = 4;
   }
 
-  function clearTouchCancel() {
-    if (touchCancelId !== null) {
-      window.clearTimeout(touchCancelId);
-      touchCancelId = null;
-    }
+  // ===== تحميل مسبق لكل صفحات الفوتر =====
+  function prefetchFooterPages() {
+    NAV_ITEMS.forEach(url => {
+      try {
+        const parsed = new URL(url, window.location.origin);
+        if (parsed.pathname === window.location.pathname) return;
+        if (document.querySelector(`link[rel="prefetch"][href="${url}"]`)) return;
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.as = 'document';
+        link.href = url;
+        document.head.appendChild(link);
+      } catch(e) {}
+    });
   }
 
-  function setupMobileFooterNavAnimation() {
+  // ===== إعداد أزرار الفوتر =====
+  function setupFooterNav() {
     const container = document.querySelector('.footer-mobile .glass-items');
     if (!container) return;
 
     const items = Array.from(container.querySelectorAll('.glass-item'));
-    if (!items.length) return;
 
-    function setActive(item, withAnimation = true) {
-      items.forEach((el) => el.classList.toggle('active', el === item));
-
-      const idx = items.indexOf(item);
-      if (idx >= 0) container.style.setProperty('--glass-index', String(idx));
-
-      if (!withAnimation) {
-        container.classList.add('no-animate');
-        requestAnimationFrame(() => container.classList.remove('no-animate'));
+    // تعيين الـ active الصحيح
+    items.forEach((item, idx) => {
+      if (idx === currentIndex) {
+        item.classList.add('active');
+        container.style.setProperty('--glass-index', String(idx));
+      } else {
+        item.classList.remove('active');
       }
-    }
+    });
 
-    const initial = items.find((el) => el.classList.contains('active')) || items[0];
-    setActive(initial, false);
+    items.forEach((item, idx) => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (idx === currentIndex) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+        // تحديث الـ UI فوراً
+        items.forEach(el => el.classList.toggle('active', el === item));
+        container.style.setProperty('--glass-index', String(idx));
 
-    items.forEach((item) => {
-      item.addEventListener('touchstart', () => setActive(item), { passive: true });
-      item.addEventListener('click', () => setActive(item));
+        // إظهار الـ skeleton ثم الانتقال
+        const sk = document.getElementById('tofof-skeleton');
+        if (sk) {
+          sk.style.display = 'block';
+          setTimeout(() => window.location.assign(NAV_ITEMS[idx]), 300);
+        } else {
+          window.location.assign(NAV_ITEMS[idx]);
+        }
+      });
     });
   }
 
-  function sameOriginUrl(url) {
-    try {
-      const parsed = new URL(url, window.location.href);
-      return parsed.origin === window.location.origin ? parsed : null;
-    } catch (e) {
-      return null;
-    }
+  // ===== التحميل المسبق للروابط العادية عند التمرير عليها =====
+  function setupGeneralPrefetch() {
+    document.addEventListener('pointerover', (e) => {
+      const link = e.target.closest('a[href]');
+      if (!link || link.closest('.footer-mobile')) return;
+      const href = link.href;
+      if (!href || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+      if (document.querySelector(`link[rel="prefetch"][href="${href}"]`)) return;
+      try {
+        const parsed = new URL(href);
+        if (parsed.origin !== window.location.origin) return;
+        if (parsed.pathname === window.location.pathname) return;
+        const pf = document.createElement('link');
+        pf.rel = 'prefetch'; pf.as = 'document'; pf.href = href;
+        document.head.appendChild(pf);
+      } catch(e) {}
+    }, { passive: true });
   }
 
-  function shouldHandleLink(link, event) {
-    if (!link || event.defaultPrevented) return false;
-    if (link.hasAttribute('download') || link.getAttribute('target') === '_blank') return false;
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
-
-    // If the actual clicked element is an interactive control nested inside the link
-    // (e.g. add-to-cart / wishlist buttons), do not trigger the loading transition.
-    if (event.target.closest('button, input, select, textarea, [role="button"]')) return false;
-
-    const rawHref = link.getAttribute('href') || '';
-    if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:') || rawHref.startsWith('javascript:')) return false;
-    if (link.hasAttribute('data-no-transition')) return false;
-
-    const parsed = sameOriginUrl(link.href);
-    if (!parsed) return false;
-    if (parsed.pathname === window.location.pathname && parsed.search === window.location.search && parsed.hash) return false;
-
-    return true;
-  }
-
-  function shouldHandleForm(form, event) {
-    if (!form || event.defaultPrevented) return false;
-    if ((form.getAttribute('target') || '').toLowerCase() === '_blank') return false;
-    if (form.hasAttribute('data-no-transition')) return false;
-
-    const action = form.getAttribute('action') || window.location.href;
-    return !!sameOriginUrl(action);
-  }
-
-  function activateLoading(fallbackMs = 6000) {
-    document.documentElement.classList.add('app-shell-loading');
-    try { sessionStorage.setItem(storageKey, '1'); } catch (e) {}
-
-    clearLoadingFallback();
-    loadingFallbackId = window.setTimeout(() => {
-      if (document.visibilityState === 'visible') {
-        fastNavigating = false;
-        deactivateLoading();
-      }
-    }, fallbackMs);
-  }
-
-  function deactivateLoading() {
-    clearLoadingFallback();
-    clearTouchCancel();
-    fastNavigating = false;
-    document.documentElement.classList.remove('app-shell-loading');
-    document.documentElement.classList.add('app-shell-ready');
-    window.setTimeout(() => {
-      document.documentElement.classList.remove('app-shell-ready');
-    }, 320);
-    try { sessionStorage.removeItem(storageKey); } catch (e) {}
-  }
-
-  function prefetchLink(link) {
-    const parsed = sameOriginUrl(link?.href);
-    if (!parsed) return;
-
-    const url = parsed.toString();
-    if (prefetchedUrls.has(url)) return;
-    prefetchedUrls.add(url);
-
-    const prefetchTag = document.createElement('link');
-    prefetchTag.rel = 'prefetch';
-    prefetchTag.as = 'document';
-    prefetchTag.href = url;
-    document.head.appendChild(prefetchTag);
-  }
-
-  document.addEventListener('click', (event) => {
-    const link = event.target.closest('a[href]');
-    if (!shouldHandleLink(link, event)) return;
-
-    clearTouchCancel();
-
-    // Fast path for mobile bottom navigation: show skeleton instantly,
-    // then force navigation in the same click cycle.
-    if (link.hasAttribute('data-fast-nav')) {
-      const navItems = link.closest('.glass-items');
-      if (navItems) {
-        const allItems = Array.from(navItems.querySelectorAll('.glass-item'));
-        allItems.forEach((el) => el.classList.toggle('active', el === link));
-        const activeIndex = allItems.indexOf(link);
-        if (activeIndex >= 0) navItems.style.setProperty('--glass-index', String(activeIndex));
-      }
-
-      event.preventDefault();
-      if (fastNavigating) return;
-      fastNavigating = true;
-      activateLoading();
-      window.location.assign(link.href);
-      return;
-    }
-
-    activateLoading();
-  }, true);
-
-  document.addEventListener('submit', (event) => {
-    const form = event.target;
-    if (!(form instanceof HTMLFormElement) || !shouldHandleForm(form, event)) return;
-    activateLoading();
-  }, true);
-
-  document.addEventListener('pointerenter', (event) => {
-    const link = event.target.closest('a[href]');
-    if (!link) return;
-    const parsed = sameOriginUrl(link.href);
-    if (!parsed || parsed.origin !== window.location.origin) return;
-    prefetchLink(link);
-  }, true);
-
-  document.addEventListener('touchstart', (event) => {
-    const link = event.target.closest('a[href]');
-    if (!link) return;
-    const parsed = sameOriginUrl(link.href);
-    if (!parsed || parsed.origin !== window.location.origin) return;
-    prefetchLink(link);
-  }, { passive: true, capture: true });
-
-  // On mobile footer links, start loading state as soon as the finger touches.
-  document.addEventListener('touchstart', (event) => {
-    const link = event.target.closest('a[data-fast-nav][href]');
-    if (!link) return;
-    if (!sameOriginUrl(link.href)) return;
-    activateLoading();
-
-    clearTouchCancel();
-    touchCancelId = window.setTimeout(() => {
-      if (!fastNavigating && document.visibilityState === 'visible') {
-        deactivateLoading();
-      }
-    }, 220);
-  }, { passive: true, capture: true });
-
-  document.addEventListener('touchcancel', () => {
-    if (!fastNavigating && document.visibilityState === 'visible') {
-      deactivateLoading();
-    }
-  }, { passive: true, capture: true });
-
-  // Warm up footer destinations early for instant-feel navigation.
   document.addEventListener('DOMContentLoaded', () => {
-    setupMobileFooterNavAnimation();
-
-    const fastLinks = document.querySelectorAll('a[data-fast-nav][href]');
-    fastLinks.forEach((link) => prefetchLink(link));
+    prefetchFooterPages();
+    setupFooterNav();
+    setupGeneralPrefetch();
   });
 
-  window.addEventListener('pageshow', deactivateLoading);
-  window.addEventListener('load', deactivateLoading);
-  window.addEventListener('focus', () => {
-    if (!fastNavigating && document.visibilityState === 'visible') {
-      deactivateLoading();
-    }
-  });
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && !fastNavigating) {
-      deactivateLoading();
-    }
-  });
 })();
 </script>
+
 
 <script>
 document.addEventListener('alpine:init', () => {

@@ -2,7 +2,7 @@
 
 @section('title', __('profile.edit_profile_title'))
 
-@push('styles')
+@section('profile-content')
 <style>
   /* ========= Theme Variables ========= */
   :root{
@@ -131,9 +131,6 @@
   html.dark .bg-white{ background-color: var(--surface) !important; }
   html.dark [style*="#eadbcd"], html.dark .border{ border-color: var(--border) !important; }
 </style>
-@endpush
-
-@section('profile-content')
 @php
   $user   = auth()->user();
   $avatar = $user->avatar_url;

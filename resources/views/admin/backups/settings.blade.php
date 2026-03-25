@@ -18,7 +18,7 @@
                             <input class="form-check-input" type="checkbox" role="switch" id="backup_daily_enabled" name="backup_daily_enabled" @checked(old('backup_daily_enabled', $settings['backup_daily_enabled'] ?? 'off') == 'on')>
                             <label class="form-check-label" for="backup_daily_enabled">تفعيل النسخ الاحتياطي اليومي التلقائي</label>
                         </div>
-                        <small class="form-text text-muted">يتطلب إعداد Cron Job على الخادم ليعمل.</small>
+                        <small class="form-text text-muted">يعمل تلقائياً من داخل الموقع بدون Cron. يتم التنفيذ عند أول زيارة بعد الوقت المحدد يومياً.</small>
                     </div>
 
                     {{-- Daily Backup Time --}}
@@ -53,8 +53,8 @@
 
                     {{-- Automated Backup (Web Cron) --}}
                     <div class="mb-4">
-                        <h5 class="fw-bold"><i class="bi bi-clock-history me-2"></i>أتمتة النسخ الاحتياطي (خيار بديل لـ Cron Job)</h5>
-                        <p class="text-muted small">إذا كنت لا تستطيع الوصول إلى جدولة المهام (Crontab) في سيرفرك، يمكنك استخدام هذا الرابط لتشغيل النسخ الاحتياطي تلقائياً عبر خدمة خارجية (مثل <a href="https://cron-job.org" target="_blank">cron-job.org</a>).</p>
+                        <h5 class="fw-bold"><i class="bi bi-clock-history me-2"></i>رابط تشغيل خارجي (اختياري)</h5>
+                        <p class="text-muted small">لا تحتاج هذا الخيار للتشغيل التلقائي الداخلي. استخدمه فقط إذا أردت إجبار تشغيل الجدولة من خدمة خارجية.</p>
                         
                         <label for="cron_token" class="form-label">رمز الأمان للمزامنة (Cron Token)</label>
                         <div class="input-group mb-3">

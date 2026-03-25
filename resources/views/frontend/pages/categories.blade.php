@@ -1,8 +1,8 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', __('pages.categories_title'))
 
-@push('styles')
+@section('content')
 <style>
   :root {
     --brand: #6d0e16;
@@ -162,9 +162,7 @@
     background: linear-gradient(180deg, #0a0a0a 0%, #0f172a 100%);
   }
 </style>
-@endpush
 
-@section('content')
 @php
     // ✅ [تصحيح] هذا هو المنطق الجديد الذي يدمج البراندات داخل الفئات
     use App\Models\PrimaryCategory; // هذه هي "الفئات"

@@ -531,54 +531,24 @@ document.addEventListener('DOMContentLoaded', function () {
   const phoneInput = document.getElementById('local_phone_number');
   if (!phoneInput) return;
 
-  const isMobile = window.matchMedia('(max-width: 768px)').matches;
-  if (!isMobile) return;
-
   function focusPhoneInput() {
+    try { phoneInput.focus({ preventScroll: true }); } catch (_) { phoneInput.focus(); }
     try {
-      phoneInput.focus({ preventScroll: true });
-    } catch (_) {
-      phoneInput.focus();
-    }
-
-    const valueLength = (phoneInput.value || '').length;
-    try {
-      phoneInput.setSelectionRange(valueLength, valueLength);
+      const len = (phoneInput.value || '').length;
+      phoneInput.setSelectionRange(len, len);
     } catch (_) {}
-
-    phoneInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
-  requestAnimationFrame(focusPhoneInput);
+  // محاولة فورية + retries
+  focusPhoneInput();
+  [50, 200, 500].forEach(d => setTimeout(() => {
+    if (document.activeElement !== phoneInput) focusPhoneInput();
+  }, d));
 
-  [120, 320, 700, 1100].forEach(function (delay) {
-    setTimeout(function () {
-      if (document.activeElement !== phoneInput) {
-        focusPhoneInput();
-      }
-    }, delay);
-  });
-
-  window.addEventListener('pageshow', function () {
-    if (document.activeElement !== phoneInput) {
-      focusPhoneInput();
-    }
-  }, { once: true });
-
-  document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState === 'visible' && document.activeElement !== phoneInput) {
-      focusPhoneInput();
-    }
-  }, { once: true });
-
-  const focusOnFirstTouch = function () {
-    if (document.activeElement !== phoneInput) {
-      focusPhoneInput();
-    }
-  };
-
-  document.addEventListener('touchstart', focusOnFirstTouch, { once: true, passive: true });
-  document.addEventListener('click', focusOnFirstTouch, { once: true });
+  // fallback: أول لمس أو كليك على الصفحة
+  const onInteract = () => { if (document.activeElement !== phoneInput) focusPhoneInput(); };
+  document.addEventListener('touchstart', onInteract, { once: true, passive: true });
+  document.addEventListener('click',      onInteract, { once: true });
 });
 </script>
 @endpush

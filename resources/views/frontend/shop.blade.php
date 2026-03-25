@@ -1,4 +1,4 @@
-﻿@php
+@php
     $favoriteProductIds = $favoriteProductIds ?? [];
 @endphp
 
@@ -6,7 +6,7 @@
 
 @section('title', $pageTitle ?? __('shop.title'))
 
-@push('styles')
+@section('content')
 <style>
     :root{
         --primary-color:#6d0e16; --primary-hover:#5a0b12;
@@ -382,9 +382,7 @@
         border-color: #4b5563;
     }
 </style>
-@endpush
 
-@section('content')
 <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12"
       x-data="{ mobileFiltersOpen:false }"
       x-effect="document.body.classList.toggle('overflow-hidden', mobileFiltersOpen)">

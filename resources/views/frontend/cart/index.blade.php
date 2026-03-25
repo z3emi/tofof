@@ -1,5 +1,8 @@
 @extends('layouts.app')
-@push('styles')
+
+@section('title', __('cart.title'))
+
+@section('content')
 <style>
   /* ===== هوية بصرية موحدة لصفحة السلة ===== */
   .bg-gray-50 { background: #f8f4f4 !important; }
@@ -83,11 +86,7 @@
   /* أيقونات */
   .dark i.bi { color: currentColor; }
 </style>
-@endpush
 
-@section('title', __('cart.title'))
-
-@section('content')
 <div class="bg-gray-50 min-h-screen"
     x-data="cartState()"
     x-init="recalculateTotal()"
