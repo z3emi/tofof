@@ -23,7 +23,7 @@
     </a>
 </div>
 
-@foreach($sections as $sectionKey => $sectionLabel)
+@foreach(\App\Models\HomepageSlide::sections() as $sectionKey => $sectionLabel)
     @php
         $sectionSlides = $slides->get($sectionKey, collect());
         $badgeClass = $sectionBadgeClasses[$sectionKey] ?? 'bg-secondary-subtle text-secondary';

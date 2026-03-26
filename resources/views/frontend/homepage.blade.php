@@ -174,7 +174,12 @@
     }
 
     /* ---------- Promo Slider (Generalized for all sliders) ---------- */
-    .home-scope .promo-slider{ position:relative; overflow:hidden; border-radius:16px; margin: 1.5rem 0; background:var(--surface); transition: background 0.3s ease; }
+    .home-scope .promo-slider{ position:relative; overflow:hidden; border-radius:16px; margin: 0.75rem auto; background:var(--surface); transition: background 0.3s ease; }
+    @media (min-width: 1024px) {
+        .home-scope .promo-slider {
+            max-width: 1300px; /* تم تكبير عرض السلايدر في الكمبيوتر ليكون أوسع وأبرز */
+        }
+    }
     .home-scope .slider-wrapper{ position:relative; width:100%; height:100%; }
     .home-scope .slider-container{ display:flex; transition:transform .5s ease; height:100%; }
     .home-scope .slide{
@@ -194,6 +199,36 @@
         min-height: clamp(92px, 18vw, 170px);
         height: clamp(92px, 18vw, 170px);
         max-height: 170px;
+    }
+
+    /* ستايل خاص بالسلايدر الرئيسي (Hero) لتوحيد الأبعاد في الهاتف والكمبيوتر بنفس النسبة */
+    .hero-slider .slide {
+        width: 100%;
+        aspect-ratio: 1920 / 700;
+        position: relative;
+        overflow: hidden;
+    }
+    /* ستايل خاص بالسلايدرات الترويجية (أقل ارتفاعاً وأصغر عرضاً) */
+    .promo-primary-slider .slide {
+        width: 100%;
+        aspect-ratio: 1920 / 540;
+        position: relative;
+        overflow: hidden;
+    }
+    .hero-slider .slide-bg, .promo-primary-slider .slide-bg {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        .hero-slider .slide {
+            aspect-ratio: 1920 / 700;
+        }
+        .promo-primary-slider .slide {
+            aspect-ratio: 1920 / 540;
+        }
     }
     .home-scope .slide-bg{ 
         position:relative; /* جعل الصورة هي المحرك للارتفاع */
@@ -527,7 +562,7 @@
 .section-cats .flex.flex-col.items-center {
   width: 140px;
   min-width: 140px;
-  min-height: 200px;
+  min-height: auto;
   height: auto;
   display: flex;
   flex-direction: column;
@@ -538,7 +573,7 @@
   .section-cats .flex.flex-col.items-center {
     width: auto !important;
     min-width: 65px !important;
-    min-height: 120px !important;
+    min-height: auto !important;
   }
 }
 
@@ -623,7 +658,7 @@
 {{-- Header Image Slider (Matching Second Slider Style) --}}
 @if(($heroSlides ?? collect())->isNotEmpty())
 <section class="container mx-auto px-4 mt-4">
-    <div class="promo-slider"
+    <div class="promo-slider hero-slider"
         x-data="{
             currentSlide: 0,
             slides: {{ $heroSlides->count() }},
@@ -697,8 +732,8 @@
                         <img src="{{ $slide->image_path ?? $slide->background_image_url }}"
                              class="slide-bg"
                                 alt="{{ $slide->alt_text ?: ($slide->title ?: __('home.slider_image')) }}"
-                             width="1974"
-                             height="1316">
+                             width="1920"
+                             height="700">
                         @if(!empty($slide->show_overlay))
                             @php
                                 $sRgb = hexToRgb($slide->overlay_color ?? '#000000');
@@ -781,7 +816,7 @@
 @endphp
 
 @if($primaryCategories2->count())
-<section class="pt-2 pb-6 lg:pt-4 lg:pb-12 section-cats relative overflow-hidden"
+<section class="pt-2 pb-0 lg:pt-4 lg:pb-0 section-cats relative overflow-hidden"
          x-data="{
               el:null, track:null, canGoLeft:false, canGoRight:true, step:320,
               autoDir:1, autoTimer:null, autoPaused:false, resumeTimer:null,
@@ -907,9 +942,9 @@
 
             {{-- الشريط القابل للتمرير --}}
 {{-- تم حذف "px-16" من هنا --}}
-<div class="overflow-x-auto no-scrollbar js-auto-bounce" x-ref="catScroll" style="height: 180px;">
+<div class="overflow-x-auto no-scrollbar js-auto-bounce" x-ref="catScroll">
     {{-- تم إضافة "pr-16" هنا لإضافة فراغ في نهاية القائمة فقط --}}
-    <div class="flex flex-row gap-[5px] md:gap-8 items-start w-max py-2 auto-bounce-track" x-ref="catTrack">
+    <div class="flex flex-row gap-[5px] md:gap-8 items-start w-max py-1 auto-bounce-track" x-ref="catTrack">
         {{-- العربي: canPrev يرجع لليمين، canNext يتقدم لليسار --}}
         <div class="pulse-arrow pulse-arrow-left" x-show="canGoLeft" x-cloak><i class="bi bi-chevron-left"></i></div>
         <div class="pulse-arrow pulse-arrow-right" x-show="canGoRight" x-cloak><i class="bi bi-chevron-right"></i></div>
@@ -943,7 +978,7 @@
                     </div>
                 @endif
             </div>
-            <h3 class="category-name mt-2 md:mt-4 text-base font-semibold group-hover:text-[#c32126]">{{ $pc->name_translated }}</h3>
+            <h3 class="category-name mt-1 md:mt-2 text-base font-semibold group-hover:text-[#c32126]">{{ $pc->name_translated }}</h3>
         </a>
     @endif
 @endforeach
@@ -1072,7 +1107,7 @@
 @if(($promoPrimarySlides ?? collect())->isNotEmpty())
 <section class="container mx-auto px-4">
 
-    <div class="promo-slider shrinked"
+    <div class="promo-slider promo-primary-slider"
        x-data="{
         currentSlide: 0,
         slides: 3, /* default; will auto-detect */
@@ -1161,8 +1196,8 @@
               <img src="{{ $slide->background_image_url }}"
                    class="slide-bg"
                     alt="{{ $slide->alt_text ?: ($slide->title ?: __('home.slider_image')) }}"
-                   width="1974"
-                   height="1316">
+                   width="1920"
+                   height="540">
               @if($slide->show_overlay)
                 @php
                     $spRgb = hexToRgb($slide->overlay_color ?? "#000000");
@@ -1222,7 +1257,7 @@
 @endif
 
 {{-- Brands Section (Using Category model) --}}
-<section class="pt-2 pb-6 md:pt-4 md:pb-12 section-cats relative overflow-hidden"
+<section class="pt-2 pb-0 md:pt-4 md:pb-0 section-cats relative overflow-hidden"
          x-data="{
              el:null, track:null, showLeftButton:true, showRightButton:true, isMobile: false, step: 320,
              autoDir:1, autoTimer:null, autoPaused:false, resumeTimer:null,
@@ -1313,9 +1348,9 @@
     {{-- Header --}}
 
     
-    <div class="overflow-x-auto no-scrollbar js-auto-bounce" x-ref="catScroll" style="height: 180px;">
+    <div class="overflow-x-auto no-scrollbar js-auto-bounce" x-ref="catScroll">
         {{-- تم استخدام !important هنا للتغلب على أي كود آخر --}}
-        <div class="flex flex-row gap-[2px] md:gap-8 items-start w-max py-2 auto-bounce-track" x-ref="catTrack">
+        <div class="flex flex-row gap-[2px] md:gap-8 items-start w-max py-1 auto-bounce-track" x-ref="catTrack">
             {{-- الأسهم النابضة: تتبع نفس منطق الأزرار (showLeft لليسار و showRight لليمين) --}}
             <div class="pulse-arrow pulse-arrow-left" x-show="showLeftButton" x-cloak><i class="bi bi-chevron-left"></i></div>
             <div class="pulse-arrow pulse-arrow-right" x-show="showRightButton" x-cloak><i class="bi bi-chevron-right"></i></div>
@@ -1342,7 +1377,7 @@
                             </div>
                         @endif
                     </div>
-                    <h3 class="category-name mt-2 md:mt-4 text-base font-semibold group-hover:text-[#c32126]">{{ $category->name_translated }}</h3>
+                    <h3 class="category-name mt-1 md:mt-2 text-base font-semibold group-hover:text-[#c32126]">{{ $category->name_translated }}</h3>
                 </a>
             @endforeach
 
@@ -1487,7 +1522,7 @@
 
 {{-- New Products Section --}}
 @if($newProducts->isNotEmpty())
-<section class="py-12 bg-white relative" dir="rtl">
+<section class="py-6 lg:py-10 bg-white relative" dir="rtl">
     <div class="floating-element floating-3"></div>
     <div class="container mx-auto px-4 relative z-10">
         <div class="flex justify-between items-center mb-6">
@@ -1719,7 +1754,7 @@
 {{-- Promo Slider 2 --}}
 @if(($promoSecondarySlides ?? collect())->isNotEmpty())
 <section class="container mx-auto px-4">
-    <div class="promo-slider shrinked"
+    <div class="promo-slider promo-primary-slider"
          x-data="{
          currentSlide: 0,
          slides: 2, /* default; will auto-detect */
@@ -1811,8 +1846,8 @@
                         <img src="{{ $slide->background_image_url }}"
                              class="slide-bg"
                              alt="{{ $slide->alt_text ?: ($slide->title ?: __('home.slider_image')) }}"
-                             width="1200"
-                             height="800">
+                             width="1920"
+                             height="540">
                         <div class="slide-overlay"></div>
                         <div class="slide-content">
                             @if($slide->title || $slide->title_en)

@@ -11,8 +11,8 @@
                     <div class="col-md-6">
                         <label for="section" class="form-label">نوع السلايدر <span class="text-danger">*</span></label>
                         <select name="section" id="section" class="form-select @error('section') is-invalid @enderror" required>
-                            @foreach($sections as $value => $label)
-                                <option value="{{ $value }}" @selected(old('section', $homepageSlide->section ?? $selectedSection ?? '') === $value)>{{ $label }}</option>
+                            @foreach(\App\Models\HomepageSlide::sections() as $value => $label)
+                                <option value="{{ $value }}" @selected(old('section', optional($homepageSlide)->section ?? $selectedSection ?? '') === $value)>{{ $label }}</option>
                             @endforeach
                         </select>
                         @error('section') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -111,6 +111,27 @@
                 @error('background_image') <div class="invalid-feedback">{{ $message }}</div> @enderror
 
                 <small class="text-muted d-block mt-2">يفضّل صورة أفقية واضحة للهيرو والسلايدرات.</small>
+                <div class="alert alert-info mt-3 py-3 px-3 border-0 shadow-sm" style="background: rgba(13, 202, 240, 0.1); color: #055160; border-radius: 12px; border-right: 4px solid #0dcaf0 !important;">
+                    <div class="d-flex">
+                        <i class="bi bi-aspect-ratio-fill fs-4 me-3 mt-1"></i>
+                        <div>
+                            <div class="fw-bold mb-2" style="font-size: 1rem;">القياسات الموصى بها للأبعاد الجديدة:</div>
+                            <ul class="list-unstyled mb-0" style="font-size: 0.9rem; line-height: 1.6;">
+                                <li class="mb-2">
+                                    <span class="badge bg-info text-white me-1">الهيرو سلايدر (الأول):</span>
+                                    <strong>1920 × 700 بكسل</strong> <small>(نسبة 2.7:1)</small>
+                                </li>
+                                    <li>
+                                        <span class="badge bg-secondary text-white me-1">السلايدرات الترويجية (2 و 3):</span>
+                                        <strong>1920 × 540 بكسل</strong> <small>(نسبة 3.5:1 تقريباً)</small>
+                                    </li>
+                            </ul>
+                            <div class="mt-2 text-muted small">
+                                <i class="bi bi-info-circle"></i> يرجى التأكد من أن الصورة أفقية (عرضية) لضمان عدم قص الأطراف بشكل سيء.
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 @if(!empty($homepageSlide?->background_image_url))
                     <div class="mt-3">
