@@ -316,7 +316,6 @@
         this.updateCartOnServer(rowId, newQuantity);
       },
       removeItem(rowId) {
-        if (!confirm("{{ __('cart.confirm_remove') }}")) return;
         fetch("{{ route('cart.destroy') }}", {
           method: "POST",
           headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}", "Content-Type": "application/json", "Accept": "application/json" },

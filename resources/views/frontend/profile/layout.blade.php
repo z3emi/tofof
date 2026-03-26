@@ -170,6 +170,53 @@
                     </button>
                 </form>
             </div>
+
+            {{-- ===== روابط معلومات طفوف (موبايل فقط) ===== --}}
+            <div class="info-links-card">
+                <div class="info-links-heading">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>حول طفوف</span>
+                </div>
+                <div class="bg-white border rounded-2xl overflow-hidden shadow-sm" style="border-color:#eadbcd">
+                    <a href="{{ route('about.us') }}" class="app-item border-b" data-fast-nav="true">
+                        <span class="app-icon" style="background:#f0f4ff"><i class="bi bi-people-fill" style="color:#3b5bdb"></i></span>
+                        <div class="flex-1"><div class="app-title">من نحن</div></div>
+                        <i class="bi bi-chevron-left text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ route('privacy.policy') }}" class="app-item border-b" data-fast-nav="true">
+                        <span class="app-icon" style="background:#f0fdf4"><i class="bi bi-shield-lock-fill" style="color:#16a34a"></i></span>
+                        <div class="flex-1"><div class="app-title">سياسة الخصوصية</div></div>
+                        <i class="bi bi-chevron-left text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ Route::has('payment.delivery') ? route('payment.delivery') : url('/payment-delivery') }}" class="app-item border-b" data-fast-nav="true">
+                        <span class="app-icon" style="background:#fff7ed"><i class="bi bi-credit-card-2-front-fill" style="color:#ea580c"></i></span>
+                        <div class="flex-1"><div class="app-title">طرق الدفع والتوصيل</div></div>
+                        <i class="bi bi-chevron-left text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ route('faq') }}" class="app-item border-b" data-fast-nav="true">
+                        <span class="app-icon" style="background:#fdf4ff"><i class="bi bi-patch-question-fill" style="color:#9333ea"></i></span>
+                        <div class="flex-1"><div class="app-title">الأسئلة الشائعة</div></div>
+                        <i class="bi bi-chevron-left text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ route('blog.index') }}" class="app-item border-b" data-fast-nav="true">
+                        <span class="app-icon" style="background:#fef9c3"><i class="bi bi-journal-richtext" style="color:#ca8a04"></i></span>
+                        <div class="flex-1"><div class="app-title">المدونة</div></div>
+                        <i class="bi bi-chevron-left text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ route('return.policy') }}" class="app-item" data-fast-nav="true">
+                        <span class="app-icon" style="background:#fff1f2"><i class="bi bi-arrow-repeat" style="color:#e11d48"></i></span>
+                        <div class="flex-1"><div class="app-title">سياسة الاستبدال / الارجاع</div></div>
+                        <i class="bi bi-chevron-left text-gray-400"></i>
+                    </a>
+                </div>
+            </div>
+            {{-- ===== /روابط معلومات طفوف ===== --}}
+
         </section>
         @endif
 
@@ -298,6 +345,23 @@
     @media (max-width: 767px){
         .profile-main--mobile-hidden{ display: none !important; }
     }
+
+    /* ===== روابط معلومات طفوف (موبايل) ===== */
+    .info-links-card{
+        margin-top: .25rem;
+    }
+    .info-links-heading{
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+        font-weight: 700;
+        font-size: .88rem;
+        color: var(--text-soft);
+        padding: .25rem .25rem .6rem;
+        letter-spacing: .02em;
+        text-transform: uppercase;
+    }
+    .info-links-heading i{ font-size: .95rem; color: var(--brand); }
 
     /* شارات الإحصائيات داخل info-card */
     .stat{

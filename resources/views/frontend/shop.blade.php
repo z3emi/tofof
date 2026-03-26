@@ -123,7 +123,7 @@
     .product-title{ font-weight:700; color:#2d2a2a; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.6em; }
     .price{ color:#000; font-weight:800; font-size:1rem; }
     .old{ text-decoration:line-through; color:#dc2626; font-size:.85rem; }
-    .product-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 4px; position: relative; z-index: 2; }
+    .product-actions { display: flex; gap: 8px; padding: 0 10px 10px; position: relative; z-index: 2; }
     .btn-primary{ background:var(--primary-color); color:#fff; border-radius:10px; font-weight:700; transition: .2s; }
     .btn-primary:hover{ background:var(--primary-hover); }
     .product-actions .btn-primary { flex-grow: 1; flex-shrink: 1; min-width: 0; overflow: hidden; height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 .75rem; white-space: nowrap; font-size: 0.9rem; }
@@ -600,121 +600,192 @@
                              touchStartX:0,touchStartY:0,isSwiping:false,gestureDetermined:false,
                              handleTouchStart(e){ this.touchStartX=e.touches[0].clientX; this.touchStartY=e.touches[0].clientY; this.isSwiping=false; this.gestureDetermined=false; },
                              handleTouchMove(e){ if(this.gestureDetermined)return; const dx=Math.abs(e.touches[0].clientX-this.touchStartX); const dy=Math.abs(e.touches[0].clientY-this.touchStartY); if(dx>10||dy>10){ if(dx>dy){ this.isSwiping=true; e.preventDefault(); } this.gestureDetermined=true; } },
-                             handleTouchEnd(e,linkEl){ if(this.isSwiping){ if(this.hasTwoImages){ this.showAlt=!this.showAlt; } } else { const dx=Math.abs(e.changedTouches[0].clientX-this.touchStartX); const dy=Math.abs(e.changedTouches[0].clientY-this.touchStartY); if(dx<10&&dy<10){ window.location.href=linkEl.href; } } }
-                         }"
-                         @mouseover="hasTwoImages ? showAlt=true : null"
-                         @mouseout="hasTwoImages ? showAlt=false : null">
+                             handleTouchEnd(e,linkEl){ if(this.isSwiping){ if(this.hasTwoImages){ this.showAlt=!this.showAlt; } } else { const dx=Math.abs(e.changedTouches[0].clientX-this.touchStartX); const dy=Math.abs(e.changedTouches[0].clientY-this.touchStartY); if(dx<10&&dy<10){ window.location.href=linkEl.href; } } },
+                          toggleWishlist() {
+                              if(this.loadingFav) return;
+                              this.loadingFav=true;
+                              fetch('{{ route('wishlist.toggle.async', $product->id) }}', {
+                                  method:'POST',
+                                  headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','X-Requested-With':'XMLHttpRequest'}
+                              })
+                              .then(r=>r.json())
+                              .then(d=>{
+                                  if(d.success){
+                                      this.isFavorite=!this.isFavorite;
+                                      window.dispatchEvent(new CustomEvent('wishlist-updated',{detail:{count:d.wishlistCount}}))
+                                  } else { alert(d.message || 'Error'); }
+                              })
+                              .catch(()=>alert('{{ __('common.connection_error') }}'))
+                              .finally(()=>this.loadingFav=false);
+                          },
+                          addToCart() {
+                              if(this.loadingAdd) return;
+                              this.loadingAdd=true;
+                              fetch('{{ route('cart.store') }}', {
+                                  method:'POST',
+                                  headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},
+                                  body:JSON.stringify({product_id:{{ $product->id }},quantity:1})
+                              })
+                              .then(r=>r.json())
+                              .then(d=>{
+                                  if(d.success){
+                                      this.added=true;
+                                      window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}}));
+                                      setTimeout(()=>this.added=false,1800);
+                                  } else { alert(d.message || 'Error'); }
+                              })
+                              .catch(()=>alert('{{ __('common.connection_error') }}'))
+                              .finally(()=>this.loadingAdd=false);
+                          }
+                      }"
+                      @mouseover="hasTwoImages ? showAlt=true : null"
+                      @mouseout="hasTwoImages ? showAlt=false : null">
 
-                        <a href="{{ route('product.detail', $product) }}"
-                           class="product-content-link"
-                           @touchstart="handleTouchStart($event)"
-                           @touchmove="handleTouchMove($event)"
-                           @touchend="handleTouchEnd($event, $el)">
+                     <a href="{{ route('product.detail', $product) }}"
+                        class="product-content-link"
+                        @touchstart="handleTouchStart($event)"
+                        @touchmove="handleTouchMove($event)"
+                        @touchend="handleTouchEnd($event, $el)">
 
-                            <div class="product-image-container">
-    @php
-        // حالة التوفر
-        $isAvailable = ($product->stock_qty ?? $product->stock_quantity ?? 0) > 0;
+                         <div class="product-image-container">
+                             {{-- شارة منتهي الكمية + شارة نسبة الخصم --}}
+                             @php
+                                 $isAvailable = ($product->stock_qty ?? $product->stock_quantity ?? 0) > 0;
+                                 $isOnSale = $product->isOnSale();
+                                 $discountPercentage = ($isOnSale && $product->price > 0)
+                                     ? round((($product->price - $product->sale_price) / $product->price) * 100)
+                                     : null;
+                                 $secondImage = optional($product->images->get(1))->image_path;
+                             @endphp
 
-        // حالة الخصم ونسبة الخصم
-        $isOnSale = $product->isOnSale();
-        $discountPercentage = ($isOnSale && $product->price > 0)
-            ? round((($product->price - $product->sale_price) / $product->price) * 100)
-            : null;
-    @endphp
+                             {{-- منتهي الكمية --}}
+                             @if(!$isAvailable)
+                                 <div class="absolute inset-0 bg-black/60 z-10 flex items-center justify-center pointer-events-none">
+                                     <span class="text-white font-bold tracking-wider text-sm border border-white/50 rounded-full px-3 py-1">
+                                         {{ __('common.out_of_stock') }}
+                                     </span>
+                                 </div>
+                             @endif
 
-    {{-- طبقة منتهي الكمية --}}
-    @if(!$isAvailable)
-        <div class="absolute inset-0 bg-black/60 z-10 flex items-center justify-center pointer-events-none">
-            <span class="text-white font-bold tracking-wider text-sm border border-white/50 rounded-full px-3 py-1">
-                {{ __('common.out_of_stock') }}
-            </span>
-        </div>
-    @endif
+                             {{-- شارة نسبة الخصم --}}
+                             @if($isOnSale && $isAvailable && $discountPercentage > 0)
+                                 <div class="product-sale-badge">-{{ $discountPercentage }}%</div>
+                             @endif
 
-    {{-- شارة الخصم (فقط إذا المنتج متوفر وعليه خصم حقيقي) --}}
-    @if($isOnSale && $isAvailable && $discountPercentage > 0)
-        <div class="product-sale-badge">-{{ $discountPercentage }}%</div>
-    @endif
+                             {{-- ✅ سلايد بدون أي شريط جانبي --}}
+                             <div class="product-image-slider">
+                                 {{-- الصورة الأولى --}}
+                                 @if ($product->firstImage)
+                                     <img src="{{ asset('storage/'.$product->firstImage->image_path) }}"
+                                          alt="{{ $product->name_translated }}" loading="lazy" width="600" height="600"
+                                          :style="{
+                                             transform: showAlt && hasTwoImages
+                                                 ? (rtl ? 'translateX(105%)' : 'translateX(-105%)')
+                                                 : 'translateX(0)',
+                                             transition: 'transform 0.35s ease'
+                                          }">
+                                 @else
+                                     <img src="https://placehold.co/600x600?text=No+Image"
+                                          alt="No image" loading="lazy" width="600" height="600"
+                                          :style="{
+                                             transform: showAlt && hasTwoImages
+                                                 ? (rtl ? 'translateX(105%)' : 'translateX(-105%)')
+                                                 : 'translateX(0)',
+                                             transition: 'transform 0.35s ease'
+                                          }">
+                                 @endif
 
-    <div class="product-image-slider"
-         :style="{ transform:`translateX(${showAlt ? (rtl ? '50%' : '-50%') : '0'})` }">
-        @if ($product->firstImage)
-            <img src="{{ asset('storage/'.$product->firstImage->image_path) }}"
-                 alt="{{ $product->name_translated }}" loading="lazy" width="600" height="600">
-        @else
-            <img src="https://placehold.co/600x600?text=No+Image"
-                 alt="No image" loading="lazy" width="600" height="600">
-        @endif
+                                 {{-- الصورة الثانية (تعكس الاتجاه) --}}
+                                 @if ($secondImage)
+                                     <img src="{{ asset('storage/'.$secondImage) }}"
+                                          alt="{{ $product->name_translated }} (alt)" loading="lazy" width="600" height="600"
+                                          :style="{
+                                             transform: showAlt && hasTwoImages
+                                                 ? 'translateX(0)'
+                                                 : (rtl ? 'translateX(-105%)' : 'translateX(105%)'),
+                                             transition: 'transform 0.35s ease'
+                                          }">
+                                 @elseif ($product->firstImage)
+                                     <img src="{{ asset('storage/' . $product->firstImage->image_path) }}"
+                                          alt="{{ $product->name_translated }}" loading="lazy" width="600" height="600"
+                                          :style="{
+                                             transform: showAlt && hasTwoImages
+                                                 ? 'translateX(0)'
+                                                 : (rtl ? 'translateX(-105%)' : 'translateX(105%)'),
+                                             transition: 'transform 0.35s ease'
+                                          }">
+                                 @else
+                                     <img src="https://placehold.co/600x600?text=No+Image"
+                                          alt="No image" loading="lazy" width="600" height="600"
+                                          :style="{
+                                             transform: showAlt && hasTwoImages
+                                                 ? 'translateX(0)'
+                                                 : (rtl ? 'translateX(-105%)' : 'translateX(105%)'),
+                                             transition: 'transform 0.35s ease'
+                                          }">
+                                 @endif
+                             </div>
 
-        @php $secondImage = optional($product->images->get(1))->image_path; @endphp
-        @if ($secondImage)
-            <img src="{{ asset('storage/'.$secondImage) }}"
-                 alt="{{ $product->name_translated }} (alt)" loading="lazy" width="600" height="600">
-        @else
-            <img src="{{ asset('storage/' . optional($product->firstImage)->image_path ?? '') }}"
-                 alt="{{ $product->name_translated }}" loading="lazy" width="600" height="600">
-        @endif
-    </div>
+                             <template x-if="hasTwoImages">
+                                 <div class="product-dots">
+                                     <div class="product-dot" :class="{ 'active': !showAlt }"></div>
+                                     <div class="product-dot" :class="{ 'active': showAlt }"></div>
+                                 </div>
+                             </template>
+                         </div>
 
-    <template x-if="hasTwoImages">
-        <div class="product-dots">
-            <div class="product-dot" :class="{ 'active': !showAlt }"></div>
-            <div class="product-dot" :class="{ 'active': showAlt }"></div>
-        </div>
-    </template>
-</div>
+                         <div class="product-info">
+                             <h3 class="product-title">{{ $product->name_translated }}</h3>
 
-
-                            <div class="product-info">
-                                <h3 class="product-title">{{ $product->name_translated }}</h3>
-                                @php
-                                    $avg = round((float) ($product->average_rating ?? 0), 1);
-                                    $count = (int) ($product->reviews_count ?? 0);
-                                @endphp
-                                <div class="flex items-center justify-center gap-2" title="{{ __('common.rating') }} {{ $avg }}">
-                                    <div class="flex">
-                                        @for($i=1;$i<=5;$i++)
-                                            @php $full=$i<=floor($avg); $half=!$full && ($i-$avg)<=0.5; @endphp
-                                            <i class="bi {{ $full ? 'bi-star-fill' : ($half ? 'bi-star-half' : 'bi-star') }} text-yellow-500 text-sm"></i>
-                                        @endfor
-                                    </div>
-                                    @if($count > 0)
-                                    <span class="text-xs text-gray-500">({{ $count }})</span>
-                                    @endif
-                                </div>
-                                <div class="flex items-baseline justify-center gap-2">
-                                    @if($product->isOnSale())
-                                        <div class="price">{{ number_format($product->sale_price,0) }} {{ __('common.currency') }}</div>
-                                        <div class="old">{{ number_format($product->price,0) }} {{ __('common.currency') }}</div>
-                                    @else
-                                        <div class="price">{{ number_format($product->price,0) }} {{ __('common.currency') }}</div>
-                                    @endif
-                                </div>
-                                <div class="product-actions">
-                                    @auth
-                                    <button @click.prevent.stop="loadingFav=true; fetch('{{ url('/wishlist/toggle-async') }}/{{ $product->id }}',{method:'POST',headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'}}).then(r=>r.json()).then(d=>{ if(d.success){ isFavorite=!isFavorite; window.dispatchEvent(new CustomEvent('wishlist-updated',{detail:{count:d.wishlistCount}})) }}).finally(()=>loadingFav=false)"
-                                            @touchend.stop
-                                            class="btn-fav" :class="{'favorited':isFavorite}">
-                                        <i class="bi" :class="isFavorite ? 'bi-heart-fill' : 'bi-heart'"></i>
-                                    </button>
-                                    @endauth
-                                    @if ($isAvailable)
-                                        <button @click.prevent.stop="loadingAdd=true; fetch('{{ route('cart.store') }}',{method:'POST',headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({product_id:{{ $product->id }},quantity:1})}).then(r=>r.json()).then(d=>{ if(d.success){ added=true; window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}})); setTimeout(()=>added=false,1800) } else { alert(d.message||'{{ __('common.connection_error') }}') } }).finally(()=>loadingAdd=false)"
-                                            @touchend.stop
-                                            class="btn-primary">
-                                        <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
-                                        <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
-                                        <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
-                                    </button>
-                                    @else
-                                    <button class="btn-primary bg-gray-400 hover:bg-gray-400 cursor-not-allowed w-full" disabled>
-                                        {{ __('common.out_of_stock') }}
-                                    </button>
-                                    @endif
-                                </div>
-                            </div>
-                        </a>
+                             @php
+                                 $avg = round((float) ($product->average_rating ?? 0), 1);
+                                 $count = (int) ($product->reviews_count ?? 0);
+                             @endphp
+                             <div class="flex items-center justify-center gap-2" title="{{ __('common.rating') }} {{ $avg }}">
+                                 <div class="flex">
+                                     @for($i=1;$i<=5;$i++)
+                                         @php $full=$i<=floor($avg); $half=!$full && ($i-$avg)<=0.5; @endphp
+                                         <i class="bi {{ $full ? 'bi-star-fill' : ($half ? 'bi-star-half' : 'bi-star') }} text-yellow-500 text-sm"></i>
+                                     @endfor
+                                 </div>
+                                 @if($count > 0)
+                                 <span class="text-xs text-gray-500">({{ $count }})</span>
+                                 @endif
+                             </div>
+                             <div class="flex items-baseline justify-center gap-2">
+                                 @if($product->isOnSale())
+                                     <div class="price">{{ number_format($product->sale_price,0) }} {{ __('common.currency') }}</div>
+                                     <div class="old">{{ number_format($product->price,0) }} {{ __('common.currency') }}</div>
+                                 @else
+                                     <div class="price">{{ number_format($product->price,0) }} {{ __('common.currency') }}</div>
+                                 @endif
+                             </div>
+                         </div>
+                     </a>
+                             <div class="product-actions">
+                                 @auth
+                                 <button @click.stop="toggleWishlist()"
+                                         @touchend.stop
+                                         class="btn-fav"
+                                         :class="{'favorited':isFavorite, 'opacity-50 pointer-events-none': loadingFav}"
+                                         :disabled="loadingFav">
+                                     <i class="bi" :class="isFavorite ? 'bi-heart-fill' : 'bi-heart'"></i>
+                                 </button>
+                                 @endauth
+                                 @if ($isAvailable)
+                                     <button @click.stop="addToCart()"
+                                         @touchend.stop
+                                         class="btn-primary">
+                                     <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
+                                     <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
+                                     <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
+                                 </button>
+                                 @else
+                                 <button class="btn-primary bg-gray-400 hover:bg-gray-400 cursor-not-allowed w-full" disabled>
+                                     {{ __('common.out_of_stock') }}
+                                 </button>
+                                 @endif
+                             </div>
                     </div>
                 @empty
                     <div class="no-products-message col-span-full text-center py-12 rounded-2xl">

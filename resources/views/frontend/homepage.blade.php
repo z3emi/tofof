@@ -177,15 +177,23 @@
     .home-scope .promo-slider{ position:relative; overflow:hidden; border-radius:16px; margin: 1.5rem 0; background:var(--surface); transition: background 0.3s ease; }
     .home-scope .slider-wrapper{ position:relative; width:100%; height:100%; }
     .home-scope .slider-container{ display:flex; transition:transform .5s ease; height:100%; }
-    .home-scope .slide{ position:relative; min-width:100%; height: clamp(200px, 35vw, 400px); display:flex; align-items:center; overflow:hidden; }
-    /* تصغير ارتفاع السلايدر الثاني والثالث فقط */
-    .promo-slider.shrinked .slide {
-        height: clamp(120px, 18vw, 210px) !important;
+    .home-scope .slide{
+        position:relative;
+        min-width:100%;
+        display:flex;
+        align-items:center;
+        overflow:hidden;
+        aspect-ratio: 16 / 6;
+        min-height: 140px;
+        max-height: 320px;
     }
-    @media (max-width: 768px) {
-        .promo-slider.shrinked .slide {
-            height: clamp(90px, 28vw, 140px) !important;
-        }
+    /* توحيد نسبة العرض إلى الارتفاع للسلايدرات الصغيرة أيضاً */
+    .promo-slider.shrinked .slide {
+        /* Keep secondary promo sliders visually compact across viewports */
+        aspect-ratio: auto;
+        min-height: clamp(92px, 18vw, 170px);
+        height: clamp(92px, 18vw, 170px);
+        max-height: 170px;
     }
     .home-scope .slide-bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
     html.dark .home-scope .slide-bg{ opacity: 0.8; }
@@ -211,6 +219,22 @@
             align-self: center !important;
             max-width: 100% !important;
         }
+        /* تصغير نصوص وأزرار السلايدر لتناسب الارتفاع الأقل */
+        .home-scope .slide-content h2 {
+            font-size: clamp(1rem, 1.8vw, 1.9rem) !important;
+            line-height: 1.25;
+            margin-bottom: 0.4rem !important;
+        }
+        .home-scope .slide-content p {
+            font-size: clamp(0.78rem, 1.1vw, 1rem) !important;
+            line-height: 1.45;
+            margin-bottom: 0.6rem !important;
+        }
+        .home-scope .slide-content a {
+            font-size: clamp(0.72rem, 0.95vw, 0.9rem) !important;
+            padding: 0.35rem 0.95rem !important;
+            border-radius: 999px;
+        }
         .btn-hero-primary, .btn-primary {
             display: inline-flex !important;
             justify-content: center !important;
@@ -219,8 +243,24 @@
             margin-right: auto !important;
         }
     @media (max-width: 768px) {
-        .home-scope .slide { height: clamp(160px, 40vw, 220px); }
+        .home-scope .slide-content h2 {
+            font-size: clamp(0.9rem, 4.5vw, 1.2rem) !important;
+        }
+        .home-scope .slide-content p {
+            font-size: clamp(0.7rem, 3.2vw, 0.85rem) !important;
+            margin-bottom: 0.45rem !important;
+        }
+        .home-scope .slide-content a {
+            font-size: clamp(0.66rem, 2.8vw, 0.78rem) !important;
+            padding: 0.28rem 0.75rem !important;
+        }
         .home-scope .slide-content { padding: 1rem; align-items: center !important; text-align: center !important; }
+
+        .promo-slider.shrinked .slide {
+            min-height: clamp(88px, 26vw, 112px);
+            height: clamp(88px, 26vw, 112px);
+            max-height: 112px;
+        }
     }
 
     .home-scope .slider-dots{ position:absolute; bottom:15px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:3; }
@@ -1474,14 +1514,42 @@
                                  this.gestureDetermined=true;
                              }
                          },
-                         handleTouchEnd(e,linkEl){
-                             if(this.isSwiping){
-                                 if(this.hasTwoImages){ this.showAlt=!this.showAlt; }
-                             } else {
-                                 const dx=Math.abs(e.changedTouches[0].clientX-this.touchStartX);
-                                 const dy=Math.abs(e.changedTouches[0].clientY-this.touchStartY);
-                                 if(dx<10&&dy<10){ window.location.href=linkEl.href; }
-                             }
+                         handleTouchEnd(e,linkEl){ if(this.isSwiping){ if(this.hasTwoImages){ this.showAlt=!this.showAlt; } } else { const dx=Math.abs(e.changedTouches[0].clientX-this.touchStartX); const dy=Math.abs(e.changedTouches[0].clientY-this.touchStartY); if(dx<10&&dy<10){ window.location.href=linkEl.href; } } },
+                         toggleWishlist() {
+                             if(this.loadingFav) return;
+                             this.loadingFav=true;
+                             fetch('{{ route('wishlist.toggle.async', $product->id) }}', {
+                                 method:'POST',
+                                 headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','X-Requested-With':'XMLHttpRequest'}
+                             })
+                             .then(r=>r.json())
+                             .then(d=>{
+                                 if(d.success){
+                                     this.isFavorite=!this.isFavorite;
+                                     window.dispatchEvent(new CustomEvent('wishlist-updated',{detail:{count:d.wishlistCount}}))
+                                 } else { alert(d.message || 'Error'); }
+                             })
+                             .catch(()=>alert('{{ __('common.connection_error') }}'))
+                             .finally(()=>this.loadingFav=false);
+                         },
+                         addToCart() {
+                             if(this.loadingAdd) return;
+                             this.loadingAdd=true;
+                             fetch('{{ route('cart.store') }}', {
+                                 method:'POST',
+                                 headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},
+                                 body:JSON.stringify({product_id:{{ $product->id }},quantity:1})
+                             })
+                             .then(r=>r.json())
+                             .then(d=>{
+                                 if(d.success){
+                                     this.added=true;
+                                     window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}}));
+                                     setTimeout(()=>this.added=false,1800);
+                                 } else { alert(d.message || 'Error'); }
+                             })
+                             .catch(()=>alert('{{ __('common.connection_error') }}'))
+                             .finally(()=>this.loadingAdd=false);
                          }
                      }"
                      @mouseover="hasTwoImages ? showAlt=true : null"
@@ -1607,53 +1675,19 @@
                                     <div class="price">{{ number_format($product->price,0) }} {{ __('common.currency') }}</div>
                                 @endif
                             </div>
-
                             <div class="product-actions">
                                 @auth
-                                <button
-                                    @click.prevent.stop="
-                                        loadingFav=true;
-                                        fetch('{{ url('/wishlist/toggle-async') }}/{{ $product->id }}',{
-                                            method:'POST',
-                                            headers:{
-                                                'X-CSRF-TOKEN':'{{ csrf_token() }}',
-                                                'Accept':'application/json'
-                                            }
-                                        }).then(r=>r.json()).then(d=>{
-                                            if(d.success){
-                                                isFavorite=!isFavorite;
-                                                window.dispatchEvent(new CustomEvent('wishlist-updated',{detail:{count:d.wishlistCount}}))
-                                            }
-                                        }).finally(()=>loadingFav=false)"
+                                <button @click.stop="toggleWishlist()"
                                     @touchend.stop
                                     class="btn-fav"
-                                    :class="{'favorited':isFavorite, 'opacity-60 pointer-events-none': loadingFav}"
+                                    :class="{'favorited':isFavorite, 'opacity-50 pointer-events-none': loadingFav}"
                                     :disabled="loadingFav">
                                     <i class="bi" :class="isFavorite ? 'bi-heart-fill' : 'bi-heart'"></i>
                                 </button>
                                 @endauth
 
                                 @if ($isAvailable)
-                                    <button
-                                        @click.prevent.stop="
-                                            loadingAdd=true;
-                                            fetch('{{ route('cart.store') }}',{
-                                                method:'POST',
-                                                headers:{
-                                                    'X-CSRF-TOKEN':'{{ csrf_token() }}',
-                                                    'Accept':'application/json',
-                                                    'Content-Type':'application/json'
-                                                },
-                                                body:JSON.stringify({product_id:{{ $product->id }},quantity:1})
-                                            }).then(r=>r.json()).then(d=>{
-                                                if(d.success){
-                                                    added=true;
-                                                    window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}}));
-                                                    setTimeout(()=>added=false,1800)
-                                                } else {
-                                                    alert(d.message||'{{ __('common.connection_error') }}')
-                                                }
-                                            }).finally(()=>loadingAdd=false)"
+                                    <button @click.stop="addToCart()"
                                         @touchend.stop
                                         class="btn-primary">
                                         <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
@@ -1667,7 +1701,6 @@
                                 @endif
                             </div>
                         </div>
-                    </a>
                 </div>
                 {{-- ===== /Shop-identical Product Card ===== --}}
             @endforeach
@@ -1848,7 +1881,43 @@
                          touchStartX:0,touchStartY:0,isSwiping:false,gestureDetermined:false,
                          handleTouchStart(e){ this.touchStartX=e.touches[0].clientX; this.touchStartY=e.touches[0].clientY; this.isSwiping=false; this.gestureDetermined=false; },
                          handleTouchMove(e){ if(this.gestureDetermined)return; const dx=Math.abs(e.touches[0].clientX-this.touchStartX); const dy=Math.abs(e.touches[0].clientY-this.touchStartY); if(dx>10||dy>10){ if(dx>dy){ this.isSwiping=true; e.preventDefault(); } this.gestureDetermined=true; } },
-                         handleTouchEnd(e,linkEl){ if(this.isSwiping){ if(this.hasTwoImages){ this.showAlt=!this.showAlt; } } else { const dx=Math.abs(e.changedTouches[0].clientX-this.touchStartX); const dy=Math.abs(e.changedTouches[0].clientY-this.touchStartY); if(dx<10&&dy<10){ window.location.href=linkEl.href; } } }
+                         handleTouchEnd(e,linkEl){ if(this.isSwiping){ if(this.hasTwoImages){ this.showAlt=!this.showAlt; } } else { const dx=Math.abs(e.changedTouches[0].clientX-this.touchStartX); const dy=Math.abs(e.changedTouches[0].clientY-this.touchStartY); if(dx<10&&dy<10){ window.location.href=linkEl.href; } } },
+                         toggleWishlist() {
+                             if(this.loadingFav) return;
+                             this.loadingFav=true;
+                             fetch('{{ route('wishlist.toggle.async', $product->id) }}', {
+                                 method:'POST',
+                                 headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','X-Requested-With':'XMLHttpRequest'}
+                             })
+                             .then(r=>r.json())
+                             .then(d=>{
+                                 if(d.success){
+                                     this.isFavorite=!this.isFavorite;
+                                     window.dispatchEvent(new CustomEvent('wishlist-updated',{detail:{count:d.wishlistCount}}))
+                                 } else { alert(d.message || 'Error'); }
+                             })
+                             .catch(()=>alert('{{ __('common.connection_error') }}'))
+                             .finally(()=>this.loadingFav=false);
+                         },
+                         addToCart() {
+                             if(this.loadingAdd) return;
+                             this.loadingAdd=true;
+                             fetch('{{ route('cart.store') }}', {
+                                 method:'POST',
+                                 headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},
+                                 body:JSON.stringify({product_id:{{ $product->id }},quantity:1})
+                             })
+                             .then(r=>r.json())
+                             .then(d=>{
+                                 if(d.success){
+                                     this.added=true;
+                                     window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}}));
+                                     setTimeout(()=>this.added=false,1800);
+                                 } else { alert(d.message || 'Error'); }
+                             })
+                             .catch(()=>alert('{{ __('common.connection_error') }}'))
+                             .finally(()=>this.loadingAdd=false);
+                         }
                      }"
                      @mouseover="hasTwoImages ? showAlt=true : null"
                      @mouseout="hasTwoImages ? showAlt=false : null">
@@ -1975,35 +2044,33 @@
                                 @endif
                             </div>
 
-                            <div class="product-actions">
-                                @auth
-                                <button
-                                        @click.prevent.stop="loadingFav=true; fetch('{{ url('/wishlist/toggle-async') }}/{{ $product->id }}',{method:'POST',headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'}}).then(r=>r.json()).then(d=>{ if(d.success){ isFavorite=!isFavorite; window.dispatchEvent(new CustomEvent('wishlist-updated',{detail:{count:d.wishlistCount}})) }}).finally(()=>loadingFav=false)"
-                                        @touchend.stop
-                                        class="btn-fav"
-                                        :class="{'favorited':isFavorite, 'opacity-60 pointer-events-none': loadingFav}"
-                                        :disabled="loadingFav">
-                                    <i class="bi" :class="isFavorite ? 'bi-heart-fill' : 'bi-heart'"></i>
-                                </button>
-                                @endauth
-
-                                {{-- ✅ [تصحيح] توحيد وإصلاح منطق زر "أضف للسلة" و "منتهي الكمية" --}}
-                                @if ($isAvailable)
-                                    <button @click.prevent.stop="loadingAdd=true; fetch('{{ route('cart.store') }}',{method:'POST',headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({product_id:{{ $product->id }},quantity:1})}).then(r=>r.json()).then(d=>{ if(d.success){ added=true; window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}})); setTimeout(()=>added=false,1800) } else { alert(d.message||'{{ __('common.connection_error') }}') } }).finally(()=>loadingAdd=false)"
-                                            @touchend.stop
-                                            class="btn-primary">
-                                        <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
-                                        <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
-                                        <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
-                                    </button>
-                                @else
-                                    <button class="btn-primary" disabled>
-                                        {{ __('common.out_of_stock') }}
-                                    </button>
-                                @endif
-                            </div>
                         </div>
                     </a>
+                    <div class="product-actions">
+                        @auth
+                        <button @click.stop="toggleWishlist()"
+                            @touchend.stop
+                            class="btn-fav"
+                            :class="{'favorited':isFavorite, 'opacity-50 pointer-events-none': loadingFav}"
+                            :disabled="loadingFav">
+                            <i class="bi" :class="isFavorite ? 'bi-heart-fill' : 'bi-heart'"></i>
+                        </button>
+                        @endauth
+
+                        @if ($isAvailable)
+                            <button @click.stop="addToCart()"
+                                @touchend.stop
+                                class="btn-primary">
+                                <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
+                                <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
+                                <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
+                            </button>
+                        @else
+                            <button class="btn-primary" disabled>
+                                {{ __('common.out_of_stock') }}
+                            </button>
+                        @endif
+                    </div>
                 </div>
                 {{-- ===== /Shop-identical Product Card ===== --}}
             @endforeach
@@ -2037,7 +2104,43 @@
                          touchStartX:0,touchStartY:0,isSwiping:false,gestureDetermined:false,
                          handleTouchStart(e){ this.touchStartX=e.touches[0].clientX; this.touchStartY=e.touches[0].clientY; this.isSwiping=false; this.gestureDetermined=false; },
                          handleTouchMove(e){ if(this.gestureDetermined)return; const dx=Math.abs(e.touches[0].clientX-this.touchStartX); const dy=Math.abs(e.touches[0].clientY-this.touchStartY); if(dx>10||dy>10){ if(dx>dy){ this.isSwiping=true; e.preventDefault(); } this.gestureDetermined=true; } },
-                         handleTouchEnd(e,linkEl){ if(this.isSwiping){ if(this.hasTwoImages){ this.showAlt=!this.showAlt; } } else { const dx=Math.abs(e.changedTouches[0].clientX-this.touchStartX); const dy=Math.abs(e.changedTouches[0].clientY-this.touchStartY); if(dx<10&&dy<10){ window.location.href=linkEl.href; } } }
+                         handleTouchEnd(e,linkEl){ if(this.isSwiping){ if(this.hasTwoImages){ this.showAlt=!this.showAlt; } } else { const dx=Math.abs(e.changedTouches[0].clientX-this.touchStartX); const dy=Math.abs(e.changedTouches[0].clientY-this.touchStartY); if(dx<10&&dy<10){ window.location.href=linkEl.href; } } },
+                         toggleWishlist() {
+                             if(this.loadingFav) return;
+                             this.loadingFav=true;
+                             fetch('{{ route('wishlist.toggle.async', $product->id) }}', {
+                                 method:'POST',
+                                 headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','X-Requested-With':'XMLHttpRequest'}
+                             })
+                             .then(r=>r.json())
+                             .then(d=>{
+                                 if(d.success){
+                                     this.isFavorite=!this.isFavorite;
+                                     window.dispatchEvent(new CustomEvent('wishlist-updated',{detail:{count:d.wishlistCount}}))
+                                 } else { alert(d.message || 'Error'); }
+                             })
+                             .catch(()=>alert('{{ __('common.connection_error') }}'))
+                             .finally(()=>this.loadingFav=false);
+                         },
+                         addToCart() {
+                             if(this.loadingAdd) return;
+                             this.loadingAdd=true;
+                             fetch('{{ route('cart.store') }}', {
+                                 method:'POST',
+                                 headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},
+                                 body:JSON.stringify({product_id:{{ $product->id }},quantity:1})
+                             })
+                             .then(r=>r.json())
+                             .then(d=>{
+                                 if(d.success){
+                                     this.added=true;
+                                     window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}}));
+                                     setTimeout(()=>this.added=false,1800);
+                                 } else { alert(d.message || 'Error'); }
+                             })
+                             .catch(()=>alert('{{ __('common.connection_error') }}'))
+                             .finally(()=>this.loadingAdd=false);
+                         }
                      }"
                      @mouseover="hasTwoImages ? showAlt=true : null"
                      @mouseout="hasTwoImages ? showAlt=false : null">
@@ -2165,21 +2268,19 @@
 
                             <div class="product-actions">
                                 @auth
-                                <button
-                                        @click.prevent.stop="loadingFav=true; fetch('{{ url('/wishlist/toggle-async') }}/{{ $product->id }}',{method:'POST',headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'}}).then(r=>r.json()).then(d=>{ if(d.success){ isFavorite=!isFavorite; window.dispatchEvent(new CustomEvent('wishlist-updated',{detail:{count:d.wishlistCount}})) }}).finally(()=>loadingFav=false)"
-                                        @touchend.stop
-                                        class="btn-fav"
-                                        :class="{'favorited':isFavorite, 'opacity-60 pointer-events-none': loadingFav}"
-                                        :disabled="loadingFav">
+                                <button @click.stop="toggleWishlist()"
+                                    @touchend.stop
+                                    class="btn-fav"
+                                    :class="{'favorited':isFavorite, 'opacity-50 pointer-events-none': loadingFav}"
+                                    :disabled="loadingFav">
                                     <i class="bi" :class="isFavorite ? 'bi-heart-fill' : 'bi-heart'"></i>
                                 </button>
                                 @endauth
 
-                                {{-- ✅ [تصحيح] توحيد وإصلاح منطق زر "أضف للسلة" و "منتهي الكمية" --}}
                                 @if ($isAvailable)
-                                    <button @click.prevent.stop="loadingAdd=true; fetch('{{ route('cart.store') }}',{method:'POST',headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({product_id:{{ $product->id }},quantity:1})}).then(r=>r.json()).then(d=>{ if(d.success){ added=true; window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}})); setTimeout(()=>added=false,1800) } else { alert(d.message||'{{ __('common.connection_error') }}') } }).finally(()=>loadingAdd=false)"
-                                            @touchend.stop
-                                            class="btn-primary">
+                                    <button @click.stop="addToCart()"
+                                        @touchend.stop
+                                        class="btn-primary">
                                         <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
                                         <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
                                         <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>

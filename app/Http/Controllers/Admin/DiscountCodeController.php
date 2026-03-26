@@ -7,6 +7,9 @@ use App\Models\DiscountCode;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\QueryException;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\DiscountCodesExport;
 
@@ -60,16 +63,16 @@ class DiscountCodeController extends Controller
             'products.*'         => 'exists:products,id',
         ]);
 
-        $discountCode = DiscountCode::create([
-            'code'   => $request->code,
-            'type'   => $request->type,
-            'value'  => in_array($request->type, ['fixed','percentage']) ? $request->value : null,
-            'max_discount_amount' => $request->type === 'percentage' ? $request->max_discount_amount : null,
-            'max_uses'           => $request->max_uses,
-            'max_uses_per_user'  => $request->max_uses_per_user,
-            'expires_at'         => $request->expires_at,
-            'is_active'          => true,
-        ]);
+        try {
+            $discountCode = $this->createDiscountCodeFromRequest($request);
+        } catch (QueryException $e) {
+            if (! $this->isMissingIdDefaultError($e)) {
+                throw $e;
+            }
+
+            $this->repairDiscountCodesPrimaryKeyIfNeeded();
+            $discountCode = $this->createDiscountCodeFromRequest($request);
+        }
 
         $discountCode->categories()->sync($request->input('categories', []));
         $discountCode->products()->sync($request->input('products', []));
@@ -175,5 +178,53 @@ class DiscountCodeController extends Controller
         })->toArray();
 
         return Excel::download(new DiscountCodesExport($data), 'discount-codes.xlsx');
+    }
+
+    private function createDiscountCodeFromRequest(Request $request): DiscountCode
+    {
+        return DiscountCode::create([
+            'code'   => $request->code,
+            'type'   => $request->type,
+            'value'  => in_array($request->type, ['fixed', 'percentage']) ? $request->value : null,
+            'max_discount_amount' => $request->type === 'percentage' ? $request->max_discount_amount : null,
+            'max_uses'           => $request->max_uses,
+            'max_uses_per_user'  => $request->max_uses_per_user,
+            'expires_at'         => $request->expires_at,
+            'is_active'          => true,
+        ]);
+    }
+
+    private function isMissingIdDefaultError(QueryException $e): bool
+    {
+        $mysqlErrorCode = $e->errorInfo[1] ?? null;
+        $message = strtolower($e->getMessage());
+
+        return (int) $mysqlErrorCode === 1364
+            && str_contains($message, "field 'id' doesn't have a default value");
+    }
+
+    private function repairDiscountCodesPrimaryKeyIfNeeded(): void
+    {
+        if (! Schema::hasTable('discount_codes') || ! Schema::hasColumn('discount_codes', 'id')) {
+            return;
+        }
+
+        $primaryIndex = DB::select("SHOW INDEX FROM `discount_codes` WHERE Key_name = 'PRIMARY'");
+        if (empty($primaryIndex)) {
+            DB::statement('ALTER TABLE `discount_codes` ADD PRIMARY KEY (`id`)');
+        }
+
+        $columnDefinition = collect(DB::select("SHOW COLUMNS FROM `discount_codes` WHERE Field = ?", ['id']))->first();
+        if (! $columnDefinition) {
+            return;
+        }
+
+        $extra = strtolower((string) ($columnDefinition->Extra ?? ''));
+        if (! str_contains($extra, 'auto_increment')) {
+            DB::statement('ALTER TABLE `discount_codes` MODIFY `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT');
+        }
+
+        $nextId = ((int) DB::table('discount_codes')->max('id')) + 1;
+        DB::statement('ALTER TABLE `discount_codes` AUTO_INCREMENT = ' . max($nextId, 1));
     }
 }

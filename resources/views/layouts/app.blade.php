@@ -895,65 +895,10 @@ html[dir="rtl"] .glass-indicator {
     <!-- End Meta Pixel Code -->
 
     <style>
-      @keyframes pageShellShimmer {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-      }
-      @keyframes pageContentFadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-      }
       .page-content-shell {
         position: relative;
         min-height: 40vh;
         isolation: isolate;
-      }
-      #pageTransitionOverlay {
-        position: absolute;
-        inset: 0;
-        z-index: 20;
-        pointer-events: none;
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity .22s ease, visibility .22s ease;
-        background: rgba(247, 247, 247, 0.92);
-        backdrop-filter: blur(3px);
-        overflow: hidden;
-      }
-      .dark #pageTransitionOverlay {
-        background: rgba(10, 10, 10, 0.9);
-      }
-      .page-transition-shell {
-        width: min(1280px, calc(100% - 2rem));
-        margin: 1rem auto 0;
-        padding-bottom: 6rem;
-      }
-      .home-shell-skeleton,
-      .home-shell-line,
-      .home-shell-card,
-      .home-shell-image,
-      .home-shell-chip {
-        background: linear-gradient(90deg, #8a8a8a 0%, #696969 18%, #9a9a9a 36%, #696969 54%, #8a8a8a 100%);
-        background-size: 220% 100%;
-        animation: pageShellShimmer 1.25s linear infinite;
-      }
-      .dark .home-shell-skeleton,
-      .dark .home-shell-line,
-      .dark .home-shell-card,
-      .dark .home-shell-image,
-      .dark .home-shell-chip {
-        background: linear-gradient(90deg, #4a4a4a 0%, #3a3a3a 18%, #5a5a5a 36%, #3a3a3a 54%, #4a4a4a 100%);
-        background-size: 220% 100%;
-      }
-      .home-shell-skeleton {
-        width: 100%;
-        aspect-ratio: 21 / 8;
-        max-height: 280px;
-        border-radius: 14px;
-        margin-bottom: 2rem;
-      }
-      .home-shell-section {
-        margin-bottom: 2rem;
       }
       .home-shell-line {
         height: 16px;
@@ -995,55 +940,17 @@ html[dir="rtl"] .glass-indicator {
       .home-shell-card .home-shell-line.is-short {
         width: 56%;
       }
-      html.app-shell-loading,
-      html.app-shell-loading body {
-        cursor: progress;
-      }
-      html.app-shell-loading #pageTransitionOverlay {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-      }
-      html.app-shell-loading .page-content-shell {
-        opacity: 0.18;
-        transition: opacity .18s ease;
-      }
-      html.app-shell-ready .page-content-shell {
-        animation: pageContentFadeIn .24s ease;
-      }
       @media (max-width: 1024px) {
         .home-shell-categories { grid-template-columns: repeat(4, minmax(0, 1fr)); }
         .home-shell-products { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       }
       @media (max-width: 768px) {
-        .page-transition-shell {
-          width: calc(100% - 1rem);
-          margin-top: 0.75rem;
-          padding-bottom: 1rem;
-        }
-        .home-shell-skeleton {
-          aspect-ratio: 16 / 7;
-          max-height: 170px;
-        }
         .home-shell-line.is-title { width: 52%; }
         .home-shell-categories { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         .home-shell-products { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.85rem; }
         .home-shell-card { min-height: 210px; }
-        html.app-shell-ready .page-content-shell {
-          animation: none;
-        }
       }
     </style>
-
-    <script>
-      (function () {
-        try {
-          if (sessionStorage.getItem('tofof-page-loading') === '1') {
-            document.documentElement.classList.add('app-shell-loading');
-          }
-        } catch (e) {}
-      })();
-    </script>
 
     @stack("styles")
 </head>
@@ -1924,34 +1831,7 @@ function brandMenuV4(){
           aria-hidden="true"
         ></div>
 
-        <div id="pageTransitionOverlay" aria-hidden="true">
-          <div class="page-transition-shell">
-            <div class="home-shell-skeleton"></div>
 
-            <div class="home-shell-section">
-              <div class="home-shell-line is-title"></div>
-              <div class="home-shell-categories">
-                @for($homeShellCategoryIndex = 0; $homeShellCategoryIndex < 6; $homeShellCategoryIndex++)
-                  <div class="home-shell-chip"></div>
-                @endfor
-              </div>
-            </div>
-
-            <div class="home-shell-section">
-              <div class="home-shell-line is-title"></div>
-              <div class="home-shell-products">
-                @for($homeShellProductIndex = 0; $homeShellProductIndex < 10; $homeShellProductIndex++)
-                <div class="home-shell-card">
-                  <div class="home-shell-image"></div>
-                  <div class="home-shell-line"></div>
-                  <div class="home-shell-line"></div>
-                  <div class="home-shell-line is-short"></div>
-                </div>
-                @endfor
-              </div>
-            </div>
-          </div>
-        </div>
         @yield('content')
     </main>
 
@@ -2169,9 +2049,8 @@ function brandMenuV4(){
       })();
     </script>
 
-{{-- ===== Skeleton Loader ===== --}}
-<div id="tofof-skeleton" aria-hidden="true" style="display:none;">
-  {{-- هيدر فعلي ، بيقى ظاهر جهة الز فوق السكلتون --}}
+{{-- Skeleton Loader (Transitions) --}}
+<div id="tofof-skeleton">
   <div class="sk-body">
     <div class="sk-banner"></div>
     <div class="sk-grid">
@@ -2198,6 +2077,10 @@ function brandMenuV4(){
     z-index: 35;
     background: var(--sk-bg, #f3f4f6);
     overflow: hidden;
+    display: none; /* مخفي افتراضياً */
+  }
+  html.app-shell-loading #tofof-skeleton {
+    display: block; /* يظهر فقط عند التحميل */
   }
   html.dark #tofof-skeleton { --sk-bg: #111827; --sk-card: #1f2937; --sk-shine: rgba(255,255,255,0.04); }
 
@@ -2248,6 +2131,87 @@ function brandMenuV4(){
   .sk-row:nth-child(2)   { animation-delay: 0.12s; }
   .sk-row:nth-child(3)   { animation-delay: 0.24s; }
 </style>
+
+<script>
+(function () {
+  const STORAGE_KEY = 'tofof-page-loading';
+  const root = document.documentElement;
+
+  function clearLoadingState() {
+    root.classList.remove('app-shell-loading');
+    root.classList.add('app-shell-ready');
+    try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    setTimeout(() => root.classList.remove('app-shell-ready'), 320);
+  }
+
+  function activateLoadingState() {
+    root.classList.add('app-shell-loading');
+    try { sessionStorage.setItem(STORAGE_KEY, '1'); } catch (e) {}
+  }
+
+  function isInternalNavigableLink(link, event) {
+    if (!link) return false;
+    if (event.defaultPrevented) return false;
+    if (event.button !== 0) return false;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+    if (link.hasAttribute('download')) return false;
+    if (link.target && link.target.toLowerCase() === '_blank') return false;
+    if (link.dataset.noSkeleton === 'true') return false;
+
+    const href = link.getAttribute('href') || '';
+    if (!href || href.startsWith('#')) return false;
+    if (/^(javascript:|mailto:|tel:)/i.test(href)) return false;
+
+    let url;
+    try {
+      url = new URL(link.href, window.location.href);
+    } catch (e) {
+      return false;
+    }
+
+    if (url.origin !== window.location.origin) return false;
+
+    // Ignore anchor-only moves in the same document.
+    if (
+      url.pathname === window.location.pathname &&
+      url.search === window.location.search &&
+      url.hash &&
+      url.hash !== '#'
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  window.tofofActivateSkeletonTransition = function (targetUrl, options = {}) {
+    activateLoadingState();
+
+    if (!targetUrl) {
+      return;
+    }
+
+    const delay = Number.isFinite(options.delay) ? options.delay : 90;
+    const useReplace = options.replace === true;
+    setTimeout(() => {
+      if (useReplace) {
+        window.location.replace(targetUrl);
+      } else {
+        window.location.assign(targetUrl);
+      }
+    }, Math.max(0, delay));
+  };
+
+  document.addEventListener('click', function (event) {
+    const link = event.target.closest('a[href]');
+    if (!isInternalNavigableLink(link, event)) return;
+    activateLoadingState();
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', clearLoadingState);
+  window.addEventListener('pageshow', clearLoadingState);
+})();
+</script>
 
 <script>
 (function () {
@@ -2324,14 +2288,7 @@ function brandMenuV4(){
         items.forEach(el => el.classList.toggle('active', el === item));
         container.style.setProperty('--glass-index', String(idx));
 
-        // إظهار الـ skeleton ثم الانتقال
-        const sk = document.getElementById('tofof-skeleton');
-        if (sk) {
-          sk.style.display = 'block';
-          setTimeout(() => window.location.assign(NAV_ITEMS[idx]), 300);
-        } else {
-          window.location.assign(NAV_ITEMS[idx]);
-        }
+        window.location.assign(NAV_ITEMS[idx]);
       });
     });
   }

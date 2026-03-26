@@ -1,4 +1,4 @@
-﻿@php
+@php
     $favoriteProductIds = $favoriteProductIds ?? [];
 @endphp
 
@@ -597,35 +597,34 @@
                                     <div class="price">{{ number_format($relatedProduct->price, 0) }} {{ __('common.currency') }}</div>
                                 @endif
                             </div>
-
-                            <div class="product-actions">
-                                @auth
-                                <button
-                                    @click.prevent.stop="loadingFav = true; fetch('{{ url('/wishlist/toggle-async') }}/{{ $relatedProduct->id }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } }).then(r => r.json()).then(d => { if (d.success) { isFavorite = !isFavorite; window.dispatchEvent(new CustomEvent('wishlist-updated', { detail: { count: d.wishlistCount } })) } }).finally(() => loadingFav = false)"
-                                    @touchend.stop
-                                    class="btn-fav"
-                                    :class="{ 'favorited': isFavorite, 'opacity-60 pointer-events-none': loadingFav }"
-                                    :disabled="loadingFav">
-                                    <i class="bi" :class="isFavorite ? 'bi-heart-fill' : 'bi-heart'"></i>
-                                </button>
-                                @endauth
-
-                                @if ($isAvailable)
-                                    <button @click.prevent.stop="loadingAdd = true; fetch('{{ route('cart.store') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ product_id: {{ $relatedProduct->id }}, quantity: 1 }) }).then(r => r.json()).then(d => { if (d.success) { added = true; window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cartCount: d.cartCount } })); setTimeout(() => added = false, 1800) } else { alert(d.message || '{{ __('common.connection_error') }}') } }).finally(() => loadingAdd = false)"
-                                            @touchend.stop
-                                            class="btn-primary">
-                                        <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
-                                        <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
-                                        <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
-                                    </button>
-                                @else
-                                    <button class="btn-primary" disabled>
-                                        {{ __('common.out_of_stock') }}
-                                    </button>
-                                @endif
-                            </div>
                         </div>
                     </a>
+                    <div class="product-actions">
+                        @auth
+                        <button
+                            @click.prevent.stop="loadingFav = true; fetch('{{ url('/wishlist/toggle-async') }}/{{ $relatedProduct->id }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } }).then(r => r.json()).then(d => { if (d.success) { isFavorite = !isFavorite; window.dispatchEvent(new CustomEvent('wishlist-updated', { detail: { count: d.wishlistCount } })) } }).finally(() => loadingFav = false)"
+                            @touchend.stop
+                            class="btn-fav"
+                            :class="{ 'favorited': isFavorite, 'opacity-60 pointer-events-none': loadingFav }"
+                            :disabled="loadingFav">
+                            <i class="bi" :class="isFavorite ? 'bi-heart-fill' : 'bi-heart'"></i>
+                        </button>
+                        @endauth
+
+                        @if ($isAvailable)
+                            <button @click.prevent.stop="loadingAdd = true; fetch('{{ route('cart.store') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ product_id: {{ $relatedProduct->id }}, quantity: 1 }) }).then(r => r.json()).then(d => { if (d.success) { added = true; window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cartCount: d.cartCount } })); setTimeout(() => added = false, 1800) } else { alert(d.message || '{{ __('common.connection_error') }}') } }).finally(() => loadingAdd = false)"
+                                    @touchend.stop
+                                    class="btn-primary">
+                                <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
+                                <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
+                                <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
+                            </button>
+                        @else
+                            <button class="btn-primary" disabled>
+                                {{ __('common.out_of_stock') }}
+                            </button>
+                        @endif
+                    </div>
                 </div>
             @endforeach
         </div>
