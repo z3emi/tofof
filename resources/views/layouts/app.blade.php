@@ -218,7 +218,7 @@ footer.footer-mobile {
 }
 
 /* ترك مساحة أسفل الصفحة للـnav */
-@media (max-width: 767px){
+@media (max-width: 1023px){
   body{ padding-bottom: calc(84px + env(safe-area-inset-bottom)) !important; }
 }
 
@@ -281,6 +281,13 @@ html.dark .glass-nav{
 }
 html.dark .glass-item{ color:#cbd5e1; } 
 html.dark .glass-item.active{ color:#f0b0ad; }
+
+/* تحسين الحجم للأيباد والتابلت */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .glass-nav { height: 74px; border-radius: 28px; }
+  .glass-item { font-size: 14px; gap: 6px; }
+  .glass-item .icon { font-size: 26px; }
+}
 
 .glass-indicator {
   position: absolute;
@@ -412,6 +419,15 @@ html[dir="rtl"] .glass-indicator {
         header.mobile-rounded {
           border-bottom-left-radius: 30px;
           border-bottom-right-radius: 30px;
+        }
+
+        /* تحسين الهيدر للأيباد */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          #mobileHeader .text-lg { font-size: 1.4rem; }
+          #mobileHeader .w-8.h-8 { width: 2.5rem; height: 2.5rem; }
+          #mobileHeader .w-9.h-9 { width: 3rem; height: 3rem; }
+          #mobileHeader .bi { font-size: 1.4rem; }
+          #mobileHeader .container { padding-left: 2rem; padding-right: 2rem; }
         }
 
     </style>
@@ -706,7 +722,7 @@ html[dir="rtl"] .glass-indicator {
   .search-result-img{ width:50px; height:50px; object-fit:cover; border-radius:.5rem; flex-shrink:0; background:#f3f4f6; }
 
   /* موبايل فقط */
-  @media (max-width: 767px){
+  @media (max-width: 1023px){
     #mobileHeader{
       border-radius: 0;
       transition: border-radius .25s ease, box-shadow .25s ease;
@@ -738,7 +754,7 @@ html[dir="rtl"] .glass-indicator {
 @endif
 
     <style>
-      @media (min-width: 768px){
+      @media (min-width: 1024px){
         #desktopNav {
           transition: opacity .3s ease, transform .3s ease;
           will-change: opacity, transform;
@@ -1036,7 +1052,7 @@ html[dir="rtl"] .glass-indicator {
             </div>
         @endif
         <header id="mobileHeader" class="bg-[#6d0e16] py-3 border-b border-white/20 dark:border-white/15 shadow-md dark:shadow-black/40 relative overflow-visible">
-            <div class="container mx-auto hidden md:flex items-center justify-between px-4 md:px-8 text-white font-semibold">
+            <div class="container mx-auto hidden lg:flex items-center justify-between px-4 md:px-8 text-white font-semibold">
                 <a href="{{ route('homepage') }}" class="text-xl sm:text-2xl flex items-center gap-2 hover:opacity-90 transition">
                     <img src="{{ asset('logo.png') }}" alt="logo" class="w-10 h-10">
                     <span class="text-white font-bold">{{ __('layout.tofof') }}</span>
@@ -1169,7 +1185,7 @@ html[dir="rtl"] .glass-indicator {
             </div>
 
             {{-- Mobile Header --}}
-            <div class="container mx-auto md:hidden flex flex-col px-4 text-white">
+            <div class="container mx-auto lg:hidden flex flex-col px-4 text-white">
               <div class="flex w-full items-center justify-between min-h-[42px]">
                 <a href="{{ route('homepage') }}" class="flex items-center gap-2 text-lg font-bold">
                   <img src="{{ asset('logo.png') }}" alt="logo" class="w-8 h-8"> Tofof
@@ -1308,7 +1324,7 @@ html[dir="rtl"] .glass-indicator {
             </div>
         </header>
 
-        <header id="desktopNav" class="hidden md:block relative z-30 desktop-liquid-shell shadow-md">
+        <header id="desktopNav" class="hidden lg:block relative z-30 desktop-liquid-shell shadow-md">
           <div class="container mx-auto px-6 py-3 flex justify-center items-center">
             <nav class="desktop-liquid-nav flex items-center space-x-10 space-x-reverse">
 {{-- ==================== الفئات (يمين) ← البراندات (يسار) | تصميم V4 (معكوس) ==================== --}}
@@ -1826,7 +1842,7 @@ function brandMenuV4(){
           x-transition:leave-start="opacity-100"
           x-transition:leave-end="opacity-0"
           @click="mobileSearchOpen = false; searchFocused = false"
-          class="md:hidden fixed inset-0 z-30 search-blur-backdrop"
+          class="lg:hidden fixed inset-0 z-30 search-blur-backdrop"
           style="display:none;"
           aria-hidden="true"
         ></div>
@@ -1836,7 +1852,7 @@ function brandMenuV4(){
     </main>
 
 <footer class="bg-[#f7f7f7] text-gray-900 py-12 border-t border-[#e5e5e5] dark:bg-gray-950 dark:text-gray-200 dark:border-gray-800 transition-colors duration-300">
-  <div class="container mx-auto px-4 grid grid-cols-1 gap-10 md:grid-cols-4 text-center md:text-right">
+  <div class="container mx-auto px-4 grid grid-cols-1 gap-10 lg:grid-cols-4 text-center md:text-right">
     <div class="md:col-start-1">
       <a href="{{ route('homepage') }}" class="flex items-center gap-2 mb-4 justify-center md:justify-start">
         <img src="{{ asset('logo.png') }}" alt="Tofof Logo" class="w-12 h-12">
@@ -1958,7 +1974,7 @@ function brandMenuV4(){
 </footer>
 
 <!-- عنصر تفريغ المساحة أسفل الصفحة لضمان عدم تغطية الفوتر العائم لأي محتوى (خصوصاً داخل التطبيق/PWA) -->
-<div class="h-[120px] w-full md:hidden bg-transparent pointer-events-none" aria-hidden="true"></div>
+<div class="h-[120px] w-full lg:hidden bg-transparent pointer-events-none" aria-hidden="true"></div>
 
 @php
   $mobileNavIndex = request()->routeIs('homepage')
@@ -1969,7 +1985,7 @@ function brandMenuV4(){
               ? 2
               : (request()->routeIs('categories.index') ? 3 : 4)));
 @endphp
-<footer class="fixed bottom-0 left-0 right-0 footer-mobile z-40 md:hidden" x-show="!searchFocused && !mobileSearchOpen">
+<footer class="fixed bottom-0 left-0 right-0 footer-mobile z-40 lg:hidden" x-show="!searchFocused && !mobileSearchOpen">
   <div class="glass-nav-wrap">
     <nav class="glass-nav" role="navigation" aria-label="التنقل السفلي">
       <div class="glass-items" style="--glass-index: {{ $mobileNavIndex }};">

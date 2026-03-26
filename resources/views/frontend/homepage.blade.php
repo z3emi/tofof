@@ -121,7 +121,7 @@
     /* ---------- Hero Styles (reused in slider) ---------- */
     .home-scope .hero-title{ font-size:3.5rem; font-weight:800; color:var(--text); line-height:1.2; margin-bottom:1.5rem; transition: color 0.3s ease; }
     .home-scope .hero-title span{ background:linear-gradient(135deg, var(--primary-color), var(--primary-hover)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-    @media (max-width:768px){ .home-scope .hero-title{ font-size:2.5rem; } }
+    @media (max-width:1024px){ .home-scope .hero-title{ font-size:2.5rem; } }
     .home-scope .hero-subtitle{ font-size:1.25rem; color:var(--text-soft); margin-bottom:2rem; opacity:.9; line-height:1.6; transition: color 0.3s ease; }
     .home-scope .btn-hero-primary{ background:linear-gradient(135deg, var(--primary-color), var(--primary-hover)); color:#fff; padding:.6rem 1.7rem; border-radius:50px; font-weight:600; font-size:0.95rem; text-decoration:none; display:inline-block; transition:.3s; box-shadow:0 4px 15px rgba(205,137,133,.3); }
     .home-scope .btn-hero-primary:hover{ transform:translateY(-3px); box-shadow:0 8px 25px rgba(205,137,133,.4); }
@@ -155,12 +155,12 @@
     /* MOBILE FIX: Reduce spacing and font sizes on mobile for the slider */
     @media (max-width: 640px) {
         .header-slider-content {
-            padding: 1rem 1rem 2.5rem 1rem;
+            padding: 1rem 0.5rem 1.2rem 0.5rem; /* Reduced from 2.5rem bottom and 1rem sides */
         }
         .header-slider-content .hero-title {
-            font-size: 2rem; /* Smaller than the default 2.5rem for hero */
+            font-size: 1.5rem; /* Reduced from 2rem to fit the smaller height */
             line-height: 1.25;
-            margin-bottom: 0.75rem; /* Reduced margin */
+            margin-bottom: 0.5rem; /* Reduced margin */
         }
         .header-slider-content .hero-subtitle {
             font-size: 0.9rem; /* Smaller subtitle */
@@ -168,8 +168,8 @@
             line-height: 1.5;
         }
         .header-slider-content .btn-hero-primary {
-            font-size: 0.85rem;
-            padding: 0.5rem 1.4rem;
+            font-size: 0.75rem;
+            padding: 0.4rem 1.1rem;
         }
     }
 
@@ -183,9 +183,9 @@
         display:flex;
         align-items:center;
         overflow:hidden;
-        aspect-ratio: 16 / 6;
-        min-height: 140px;
-        max-height: 320px;
+        height: auto; /* الارتفاع سيتبع الصورة تلقائياً لتكون 'ذكية' */
+        min-height: 80px; 
+        max-height: 480px;
     }
     /* توحيد نسبة العرض إلى الارتفاع للسلايدرات الصغيرة أيضاً */
     .promo-slider.shrinked .slide {
@@ -195,15 +195,22 @@
         height: clamp(92px, 18vw, 170px);
         max-height: 170px;
     }
-    .home-scope .slide-bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+    .home-scope .slide-bg{ 
+        position:relative; /* جعل الصورة هي المحرك للارتفاع */
+        width:100%; 
+        height:auto; 
+        object-fit: contain; /* لضمان ظهور الصورة كاملة */
+        z-index:0; 
+        display: block;
+    }
     html.dark .home-scope .slide-bg{ opacity: 0.8; }
     .home-scope .slide-overlay{ position:absolute; inset:0; z-index:1; }
-        .home-scope .slide-content{
-            position:relative; z-index:2; color:#fff; height:100%; width:100%;
-            display:flex; flex-direction:column; justify-content:center; align-items:center !important; text-align:center !important;
-            padding: 1.25rem 0 1.25rem 0; /* إزالة البادينغ الجانبي */
-            user-select: none;
-        }
+    .home-scope .slide-content{
+        position:absolute; inset:0; z-index:2; color:#fff; height:100%; width:100%;
+        display:flex; flex-direction:column; justify-content:center; align-items:center !important; text-align:center !important;
+        padding: 0.5rem;
+        user-select: none;
+    }
         html[dir="rtl"] .home-scope .slide-content{ align-items:center !important; padding: 1.25rem 0 1.25rem 0 !important; text-align:center !important; }
         /* اجبار محاذاة النص والزر في السلايدر للوسط دائماً */
         /* تعميم محاذاة المنتصف على جميع السلايدرات */
@@ -257,9 +264,9 @@
         .home-scope .slide-content { padding: 1rem; align-items: center !important; text-align: center !important; }
 
         .promo-slider.shrinked .slide {
-            min-height: clamp(88px, 26vw, 112px);
-            height: clamp(88px, 26vw, 112px);
-            max-height: 112px;
+            height: auto;
+            min-height: 60px;
+            max-height: 140px;
         }
     }
 
@@ -332,7 +339,7 @@
 
     .home-scope .products-grid{ display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:1.5rem; }
     @media (max-width:1280px){ .home-scope .products-grid{ grid-template-columns:repeat(5,1fr); gap:1.2rem; } }
-    @media (max-width:1024px){ .home-scope .products-grid{ grid-template-columns:repeat(4,1fr); gap:1rem; } }
+    @media (max-width:1024px){ .home-scope .products-grid{ grid-template-columns:repeat(3,1fr); gap:1rem; } }
     @media (max-width:640px){  .home-scope .products-grid{ grid-template-columns:repeat(2,1fr); gap:1rem; } }
 
     /* ---------- Helpers ---------- */
@@ -774,7 +781,7 @@
 @endphp
 
 @if($primaryCategories2->count())
-<section class="pt-2 pb-6 md:pt-4 md:pb-12 section-cats relative overflow-hidden"
+<section class="pt-2 pb-6 lg:pt-4 lg:pb-12 section-cats relative overflow-hidden"
          x-data="{
               el:null, track:null, canGoLeft:false, canGoRight:true, step:320,
               autoDir:1, autoTimer:null, autoPaused:false, resumeTimer:null,

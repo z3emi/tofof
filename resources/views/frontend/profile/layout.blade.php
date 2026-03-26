@@ -29,10 +29,10 @@
 
 <div class="container mx-auto px-4 pt-2 pb-4 md:pt-4">
     <div class="flex flex-col gap-6">
-        <div class="flex flex-col md:flex-row gap-6">
+        <div class="flex flex-col lg:flex-row gap-6">
 
             {{-- الشريط الجانبي (ديسكتوب) --}}
-            <aside class="hidden md:block w-full md:w-1/4">
+            <aside class="hidden lg:block w-full lg:w-1/4">
                 <nav
                     class="bg-white rounded-lg shadow-sm border sticky top-4"
                     style="border-color:#eadbcd; max-height: calc(100vh - 2rem); overflow:auto;"
@@ -88,14 +88,14 @@
             </aside>
 
             {{-- المحتوى الرئيسي: يظهر دائمًا على الديسكتوب، وعلى الموبايل يظهر فقط إن كان edit=1 --}}
-            <main class="w-full md:w-3/4 bg-white rounded-lg shadow-sm border p-4 md:p-6 {{ $showListOnMobile ? 'profile-main--mobile-hidden' : '' }}">
+            <main class="w-full lg:w-3/4 bg-white rounded-lg shadow-sm border p-4 md:p-6 {{ $showListOnMobile ? 'profile-main--mobile-hidden' : '' }}">
                 @yield('profile-content')
             </main>
         </div>
 
         {{-- قائمة الجوال (تظهر فقط في صفحة الملف الرئيسية عندما لا يكون edit=1) --}}
         @if($showListOnMobile)
-        <section class="md:hidden space-y-4">
+        <section class="lg:hidden space-y-4">
 
             {{-- ===== بطــاقة المعلومات المختصرة (الصورة + الاسم + الرقم + الإحصائيات) ===== --}}
             <div class="info-card">
@@ -342,7 +342,7 @@
     .app-title{ font-weight:600; color: var(--text); }
 
     /* أخفي المحتوى فقط على الشاشات الصغيرة عندما يجب إظهار القائمة */
-    @media (max-width: 767px){
+    @media (max-width: 1023px){
         .profile-main--mobile-hidden{ display: none !important; }
     }
 
