@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
+use App\Support\RepairsPrimaryKeyAutoIncrement;
+use Illuminate\Database\QueryException;
 
 class ProfileController extends Controller
 {
@@ -150,7 +152,17 @@ class ProfileController extends Controller
             'longitude'         => 'nullable|numeric',
         ]);
 
-        Auth::user()->addresses()->create($validatedData);
+        try {
+            Auth::user()->addresses()->create($validatedData);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'addresses')) {
+                throw $exception;
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('addresses');
+
+            Auth::user()->addresses()->create($validatedData);
+        }
 
         return redirect($request->input('return_to', route('profile.addresses.index')))
                 ->with('success', 'تم إضافة العنوان بنجاح.');
@@ -185,7 +197,17 @@ class ProfileController extends Controller
             'longitude'         => 'nullable|numeric',
         ]);
 
-        $address = Auth::user()->addresses()->create($validatedData);
+        try {
+            $address = Auth::user()->addresses()->create($validatedData);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'addresses')) {
+                throw $exception;
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('addresses');
+
+            $address = Auth::user()->addresses()->create($validatedData);
+        }
 
         return response()->json([
             'success' => true,
