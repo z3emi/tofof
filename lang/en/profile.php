@@ -90,6 +90,7 @@ return [
     'wishlist_title'       => 'Wishlist',
     'wishlist_subheading'  => 'All products you love in one place',
     'no_favorites'         => 'No items in your wishlist yet.',
+    'wishlist_empty_desc'  => 'Looks like you haven\'t added any favorites yet. Browse our store and find something you love!',
     'browse_store'         => 'Browse Store',
 
     /* ===== Addresses ===== */

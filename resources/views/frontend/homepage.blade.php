@@ -356,7 +356,7 @@
     .home-scope .price { color:#000; font-weight:800; font-size:1rem; }
     html.dark .home-scope .price { color: #fff !important; }
     .home-scope .old { text-decoration:line-through; color:#e53935; font-size:.85rem; }
-    .home-scope .product-actions { display:flex; gap:8px; margin-top:auto; padding-top:4px; position:relative; z-index:2; }
+    .home-scope .product-actions { display:flex; gap:8px; margin-top:auto; padding: 0 10px 10px; position:relative; z-index:2; }
     .home-scope .btn-primary { background:#6d0e16 !important; color:#fff; border-radius:10px; font-weight:700; transition:.2s; }
     .home-scope .btn-primary:hover{ background:#500a10 !important; }
     .home-scope .product-actions .btn-primary { flex-grow:1; flex-shrink:1; min-width:0; overflow:hidden; height:44px; display:inline-flex; align-items:center; justify-content:center; padding:0 .75rem; white-space:nowrap; font-size:.9rem; }
@@ -1675,32 +1675,33 @@
                                     <div class="price">{{ number_format($product->price,0) }} {{ __('common.currency') }}</div>
                                 @endif
                             </div>
-                            <div class="product-actions">
-                                @auth
-                                <button @click.stop="toggleWishlist()"
-                                    @touchend.stop
-                                    class="btn-fav"
-                                    :class="{'favorited':isFavorite, 'opacity-50 pointer-events-none': loadingFav}"
-                                    :disabled="loadingFav">
-                                    <i class="bi" :class="isFavorite ? 'bi-heart-fill' : 'bi-heart'"></i>
-                                </button>
-                                @endauth
-
-                                @if ($isAvailable)
-                                    <button @click.stop="addToCart()"
-                                        @touchend.stop
-                                        class="btn-primary">
-                                        <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
-                                        <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
-                                        <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
-                                    </button>
-                                @else
-                                    <button class="btn-primary" disabled>
-                                        {{ __('common.out_of_stock') }}
-                                    </button>
-                                @endif
-                            </div>
                         </div>
+                    </a>
+                    <div class="product-actions">
+                        @auth
+                        <button @click.stop="toggleWishlist()"
+                            @touchend.stop
+                            class="btn-fav"
+                            :class="{'favorited':isFavorite, 'opacity-50 pointer-events-none': loadingFav}"
+                            :disabled="loadingFav">
+                            <i class="bi" :class="isFavorite ? 'bi-heart-fill' : 'bi-heart'"></i>
+                        </button>
+                        @endauth
+
+                        @if ($isAvailable)
+                            <button @click.stop="addToCart()"
+                                @touchend.stop
+                                class="btn-primary">
+                                <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
+                                <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
+                                <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
+                            </button>
+                        @else
+                            <button class="btn-primary" disabled>
+                                {{ __('common.out_of_stock') }}
+                            </button>
+                        @endif
+                    </div>
                 </div>
                 {{-- ===== /Shop-identical Product Card ===== --}}
             @endforeach
@@ -2265,34 +2266,34 @@
                                     <div class="price">{{ number_format($product->price,0) }} {{ __('common.currency') }}</div>
                                 @endif
                             </div>
-
-                            <div class="product-actions">
-                                @auth
-                                <button @click.stop="toggleWishlist()"
-                                    @touchend.stop
-                                    class="btn-fav"
-                                    :class="{'favorited':isFavorite, 'opacity-50 pointer-events-none': loadingFav}"
-                                    :disabled="loadingFav">
-                                    <i class="bi" :class="isFavorite ? 'bi-heart-fill' : 'bi-heart'"></i>
-                                </button>
-                                @endauth
-
-                                @if ($isAvailable)
-                                    <button @click.stop="addToCart()"
-                                        @touchend.stop
-                                        class="btn-primary">
-                                        <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
-                                        <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
-                                        <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
-                                    </button>
-                                @else
-                                    <button class="btn-primary" disabled>
-                                        {{ __('common.out_of_stock') }}
-                                    </button>
-                                @endif
-                            </div>
                         </div>
                     </a>
+
+                    <div class="product-actions">
+                        @auth
+                        <button @click.stop="toggleWishlist()"
+                            @touchend.stop
+                            class="btn-fav"
+                            :class="{'favorited':isFavorite, 'opacity-50 pointer-events-none': loadingFav}"
+                            :disabled="loadingFav">
+                            <i class="bi" :class="isFavorite ? 'bi-heart-fill' : 'bi-heart'"></i>
+                        </button>
+                        @endauth
+
+                        @if ($isAvailable)
+                            <button @click.stop="addToCart()"
+                                @touchend.stop
+                                class="btn-primary">
+                                <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
+                                <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
+                                <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
+                            </button>
+                        @else
+                            <button class="btn-primary" disabled>
+                                {{ __('common.out_of_stock') }}
+                            </button>
+                        @endif
+                    </div>
                 </div>
                 {{-- ===== /Shop-identical Product Card ===== --}}
             @endforeach

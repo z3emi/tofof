@@ -3,281 +3,255 @@
 
 @push('styles')
 <style>
-:root{
-  /* Brand palette */
-  --primary-color:#0F2A44; --primary-hover:#0A1D2F; --secondary-color:#E6E6E6; --accent-color:#eadbcd;
+    [x-cloak] { display: none !important; }
 
-  /* Base (Light) */
-  --bg:#FFFFFF; --bg-soft:#EFF6FF; --surface:#ffffff; --card-bg:#EFF6FF;
-  --text:#111827; --text-soft:#555; --muted:#999; --border:#DBEAFE;
+    /* Scope for wishlist - Precise Homepage Colors & Card Design */
+    .wishlist-scope {
+        --primary-color: #c32126;
+        --primary-hover: #a61c20;
+        --card-bg: #ffffff;
+        --text: #111111;
+        --text-soft: #333333;
+        --border: #e5e5e5;
+    }
 
-  /* Gradients (light) */
-  --hero-start:rgba(239,246,255,.6); --hero-end:rgba(219,234,254,.6);
-  --cat-grad-from:#FFFFFF; --cat-grad-to:#EFF6FF;
+    html.dark .wishlist-scope {
+        --card-bg: #1f2937;
+        --text: #ffffff;
+        --text-soft: #e5e5e5;
+        --border: #262626;
+    }
 
-  /* Slider overlay */
-  --slider-overlay-from:rgba(59,130,246,.8); --slider-overlay-to:rgba(37,99,235,.8);
+    .wishlist-scope .page-head h2 { color: var(--text); font-weight: 800; }
 
-  /* soft tint */
-  --soft:#E6E6E6;
-}
-html.dark{
-  --bg:#0b0f14; --bg-soft:#0f172a; --surface:#0f172a; --card-bg:#111827;
-  --text:#e5e7eb; --text-soft:#cbd5e1; --muted:#94a3b8; --border:#1f2937;
+    /* Products Grid Matching Homepage */
+    .wishlist-scope .products-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1.5rem;
+    }
+    @media (max-width: 1280px) { .wishlist-scope .products-grid { grid-template-columns: repeat(4, 1fr); gap: 1rem; } }
+    @media (max-width: 1024px) { .wishlist-scope .products-grid { grid-template-columns: repeat(3, 1fr); gap: 1rem; } }
+    @media (max-width: 768px) {  .wishlist-scope .products-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; } }
 
-  --hero-start:rgba(15,23,42,.6); --hero-end:rgba(17,24,39,.6);
-  --cat-grad-from:#0b0f14; --cat-grad-to:#0f172a;
+    /* Premium Product Card - Replicating Home/Shop precisely */
+    .wishlist-scope .product-card {
+        background: var(--card-bg);
+        border-radius: 14px;
+        border: 2px solid transparent;
+        box-shadow: 0 4px 12px rgba(0,0,0,.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .wishlist-scope .product-card:hover { transform: translateY(-6px); box-shadow: 0 16px 30px rgba(0,0,0,.12); }
 
-  --slider-overlay-from:rgba(59,130,246,.75); --slider-overlay-to:rgba(37,99,235,.75);
-  --soft:rgba(55,65,81,.35);
-}
+    .wishlist-scope .product-image-container {
+        aspect-ratio: 1/1;
+        position: relative;
+        overflow: hidden;
+        background: #f9f9f9;
+        border-radius: 12px 12px 0 0;
+    }
+    html.dark .wishlist-scope .product-image-container { background: #111827; }
 
-/* سطح موحد خفيف */
-.surface{ background:transparent; border-radius:16px; }
+    .wishlist-scope .product-image-slider { position: relative; width: 100%; height: 100%; }
+    .wishlist-scope .product-image-slider img {
+        position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease;
+    }
 
-/* رأس الصفحة */
-.page-head h2{ color:var(--text); font-weight:800; }
-.page-head p{ color:var(--text-soft); }
+    .wishlist-scope .product-info { padding: 12px; display: flex; flex-direction: column; gap: 6px; text-align: center; flex-grow: 1; }
+    .wishlist-scope .product-title {
+        font-weight: 700; color: var(--text); line-height: 1.35; font-size: 0.95rem;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.6em;
+    }
+    .wishlist-scope .price { color: var(--text); font-weight: 800; font-size: 1.05rem; }
+    .wishlist-scope .old { text-decoration: line-through; color: #ef4444; font-size: .85rem; margin-right: 4px; }
 
-/* زر رئيسي */
-.btn-brand{
-  display:inline-flex; align-items:center; gap:.45rem;
-  background:var(--primary-color); color:var(--surface); font-weight:800;
-  padding:.55rem 1rem; border-radius:12px; border:0; transition:.18s ease; text-decoration:none;
-}
-.btn-brand:hover{ background:var(--primary-hover); color:var(--surface); }
+    .wishlist-scope .product-actions { display: flex; gap: 8px; padding: 0 10px 10px; margin-top: auto; }
 
-/* ===== بطاقة المتجر (مطابقة) ===== */
-.shop-card{
-  position:relative; background:var(--surface); border-radius:16px; overflow:hidden;
-  border:1px solid var(--border);
-  box-shadow: 0 6px 18px rgba(0,0,0,.06);
-  transition: transform .18s ease, box-shadow .2s ease, border-color .2s ease;
-}
-.shop-card:hover{
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(0,0,0,.10);
-  border-color: var(--soft);
-}
-.shop-thumb-wrap{
-  position:relative; aspect-ratio:1/1; overflow:hidden; background:var(--card-bg);
-}
-.shop-thumb{ width:100%; height:100%; object-fit:cover; transition: transform .35s ease; }
-.shop-card:hover .shop-thumb{ transform: scale(1.05); }
+    /* Button styles - Shared with Home/Shop */
+    .wishlist-scope .btn-primary {
+        flex-grow: 1; height: 44px; background: #6d0e16 !important; color: #ffffff !important;
+        border-radius: 10px; font-weight: 700; border: none; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 0 0.75rem; white-space: nowrap; font-size: 0.9rem; transition: 0.2s;
+    }
+    .wishlist-scope .btn-primary:hover { background: #500a10 !important; }
+    .wishlist-scope .btn-primary:disabled { background-color: #9ca3af !important; cursor: not-allowed; }
 
-.shop-sale-badge{
-  position:absolute; top:.6rem; right:.6rem; z-index:2;
-  background:#0F2A44; color:#D4AF37; font-weight:800; font-size:.75rem;
-  padding:.35rem .55rem; border-radius:999px; border: 1px solid #D4AF37;
-}
-/* بادج منتهي الكمية */
-.shop-out-badge{
-  position:absolute; top:.6rem; right:.6rem; z-index:2;
-  background:#9CA3AF; color:#fff; font-weight:800; font-size:.75rem;
-  padding:.35rem .55rem; border-radius:999px;
-}
-.shop-wish{
-  position:absolute; top:.6rem; left:.6rem; z-index:2;
-  width:36px; height:36px; display:flex; align-items:center; justify-content:center;
-  border-radius:999px;
-  background:rgba(255,255,255,.9);
-  transition: background .2s ease, transform .15s ease;
-}
-html.dark .shop-wish{ background:rgba(17,24,39,.85); }
-.shop-wish:hover{ transform: scale(1.05); }
+    .wishlist-scope .btn-fav {
+        width: 44px; height: 44px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+        flex-shrink: 0; border: none; cursor: pointer; transition: 0.2s; font-size: 1.15rem;
+        background-color: #fee2e2; color: #ef4444;
+    }
+    .wishlist-scope .btn-fav:hover { background-color: #fecaca; }
 
-.shop-body{ padding:.85rem .9rem 1rem; text-align:right; }
-.shop-title{
-  color:var(--text); font-weight:800; font-size:.98rem; line-height:1.35;
-  display:-webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow:hidden;
-}
-.shop-meta{ color:var(--muted); font-size:.8rem; margin-top:.2rem; }
+    .wishlist-scope .product-sale-badge {
+        position: absolute; top: .6rem; right: .6rem; z-index: 15;
+        background: var(--primary-color); color: #fff; font-weight: 800; font-size: .7rem;
+        padding: .3rem .6rem; border-radius: 999px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
 
-.shop-price{ display:flex; align-items:center; gap:.4rem; margin-top:.5rem; }
-.shop-price .current{ color:#3B82F6; font-weight:900; font-size:1.05rem; }
-.shop-price .old{ color:#9ca3af; text-decoration:line-through; font-size:.85rem; }
+    .wishlist-scope .out-of-stock-overlay {
+        position: absolute; inset: 0; background: rgba(0,0,0,0.6); z-index: 10;
+        display: flex; align-items: center; justify-content: center; pointer-events: none;
+    }
+    .wishlist-scope .out-of-stock-badge {
+        color: white; font-weight: 700; border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 999px; padding: 0.25rem 0.6rem; font-size: 0.75rem; text-transform: uppercase;
+    }
 
-/* زر إضافة للسلة */
-.shop-add{
-  margin-top:.75rem; width:100%; padding:.55rem .75rem; border-radius:12px; border:0;
-  background:#0F2A44; color:#fff; display:flex; align-items:center; justify-content:center; gap:.5rem;
-  font-weight:800; transition: background .18s ease, transform .1s ease;
-  border: 1px solid #D4AF37;
-}
-.shop-add:hover{ background:#0A1D2F; color: #D4AF37; }
-.shop-add:disabled{ opacity:.8; cursor:not-allowed; }
+    .wishlist-scope .empty-state { text-align: center; padding: 5rem 2rem; }
+    .wishlist-scope .empty-state i { font-size: 3.5rem; color: #d1d5db; margin-bottom: 1rem; display: block; }
+    .wishlist-scope .btn-browse {
+        display: inline-flex; align-items: center; gap: 0.5rem; background: #6d0e16;
+        color: white; padding: 0.75rem 2rem; border-radius: 999px; font-weight: 700; text-decoration: none; transition: 0.2s;
+    }
+    .wishlist-scope .btn-browse:hover { background: #500a10; transform: scale(1.05); }
 
-/* حالة عدم وجود عناصر */
-.empty-state{
-  text-align:center; padding:2rem 1rem; background:var(--surface); border-radius:16px;
-  border:1px solid var(--border); box-shadow: 0 6px 18px rgba(0,0,0,.06);
-}
-.empty-state .icon{ font-size:3rem; color:#ddcfc2; }
-
-/* شبكة */
-.grid-favs{ display:grid; gap:14px; grid-template-columns:1fr 1fr; }
-@media(min-width:768px){ .grid-favs{ gap:18px; grid-template-columns: repeat(3,minmax(0,1fr)); } }
-@media(min-width:1280px){ .grid-favs{ gap:20px; grid-template-columns: repeat(4,minmax(0,1fr)); } }
-
-/* Dark tweaks */
-html.dark .bg-white{ background-color:var(--surface) !important; }
-html.dark [class*="border-[#eadbcd]"]{ border-color:var(--border) !important; }
-html.dark .shop-card{ border-color:var(--border); box-shadow: 0 10px 26px rgba(0,0,0,.35); }
+    /* Alpine Transition Fixes */
+    .wishlist-scope [x-cloak] { display: none !important; }
 </style>
 @endpush
 
 @section('profile-content')
-<div class="surface">
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4 md:mb-6 page-head">
-    <div>
-      <h2 class="text-xl md:text-2xl"><br>{{ __('profile.wishlist_title') }}</h2>
-      <p class="text-sm mt-1">{{ __('profile.wishlist_subheading') }}</p>
+<div class="wishlist-scope">
+    <div class="page-head mb-8">
+        <h2 class="text-2xl font-extrabold">{{ __('profile.wishlist_title') }}</h2>
+        <p class="text-gray-500 mt-1">{{ __('profile.wishlist_subheading') }}</p>
     </div>
-  </div>
 
-  @if ($favorites->isEmpty())
-    <div class="empty-state">
-      <i class="bi bi-heart icon"></i>
-      <p class="mt-3">{{ __('profile.no_favorites') }}</p>
-      <a href="{{ route('shop') }}" class="btn-brand mt-3">
-        <i class="bi bi-bag-plus"></i> {{ __('profile.browse_store') }}
-      </a>
-    </div>
-  @else
-    <div class="grid-favs">
-      @foreach ($favorites as $favorite)
-        @if ($product = $favorite->product)
-        <!-- ===== بطاقة المنتج (مطابقة المتجر) ===== -->
-        @php
-          /**
-           * كشف نفاد الكمية — شامل وجازم:
-           * - يتحقق من عدة أسماء محتملة للمخزون.
-           * - يتحقق من فلاق التوفّر.
-           * - يتحقق من status النصّي (out_of_stock ...).
-           * - لو ماكو أي مؤشر واضح للتوفّر => نعدّه "منتهي" افتراضيًا.
-           */
-          $qtyFields = [
-            $product->quantity ?? null,
-            $product->stock ?? null,
-            $product->stock_quantity ?? null,
-            $product->stock_qty ?? null,
-          ];
-          $qtyValue = null;
-          foreach ($qtyFields as $q) { if (!is_null($q)) { $qtyValue = (int)$q; break; } }
-
-          $flagFalseList = [
-            isset($product->in_stock) ? !$product->in_stock : null,
-            isset($product->is_in_stock) ? !$product->is_in_stock : null,
-            isset($product->available) ? !$product->available : null,
-            isset($product->is_available) ? !$product->is_available : null,
-          ];
-          $hasExplicitFalse = false;
-          foreach ($flagFalseList as $f) { if ($f !== null && $f === true) { $hasExplicitFalse = true; break; } }
-
-          $statusRaw = strtolower((string)($product->status ?? $product->stock_status ?? ''));
-          $statusOutValues = ['out_of_stock','sold_out','unavailable','inactive','disabled','ended','ended_stock','not_available','na','0'];
-          $statusSaysOut = in_array($statusRaw, $statusOutValues, true);
-
-          // اعتبارات إضافية (سعر مفقود/صفر => عادة غير قابل للبيع)
-          $priceZeroOrNull = !isset($product->price) || (float)$product->price <= 0;
-
-          if (!is_null($qtyValue)) {
-              $isOut = $qtyValue <= 0;
-          } elseif ($hasExplicitFalse || $statusSaysOut || $priceZeroOrNull) {
-              $isOut = true;
-          } else {
-              // افتراضيًا: اعتبره منتهي حتى لا يظهر زر الإضافة بالغلط
-              $isOut = true;
-          }
-        @endphp
-
-        <div class="shop-card"
-             x-data="{ added:false, loadingAdd:false, isFavorite:true, loadingFav:false }"
-             x-show="isFavorite" x-transition:leave="transition ease-in duration-300">
-          
-          <a href="{{ route('product.detail', $product) }}" class="block shop-thumb-wrap group">
-            @if ($product->firstImage)
-              <img src="{{ asset('storage/' . $product->firstImage->image_path) }}" class="shop-thumb" loading="lazy" alt="{{ $product->name_translated }}">
-            @else
-              <img src="https://placehold.co/400x400/f9f5f1/cd8985?text=No+Image" class="shop-thumb" loading="lazy" alt="No image">
-            @endif
-
-            @if($isOut)
-              <div class="shop-out-badge">{{ __('common.out_of_stock') }}</div>
-            @elseif($product->isOnSale())
-              @php $discountPercentage = round((($product->price - $product->sale_price) / $product->price) * 100); @endphp
-              <div class="shop-sale-badge">-{{ $discountPercentage }}%</div>
-            @endif
-
-            <!-- زر المفضلة العائم (نفس المتجر) -->
-            <button
-              @click.prevent="
-                loadingFav = true;
-                fetch('{{ url('/wishlist/toggle-async') }}/{{ $product->id }}', {
-                  method: 'POST',
-                  headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
-                }).then(res => res.json()).then(data => {
-                  if (data.success) {
-                    isFavorite = false;
-                    window.dispatchEvent(new CustomEvent('wishlist-updated', { detail: { count: data.wishlistCount } }));
-                  }
-                }).finally(() => loadingFav = false);
-              "
-              class="shop-wish"
-              :disabled="loadingFav"
-              title="{{ __('common.remove_from_wishlist') }}"
-            >
-              <i class="bi bi-heart-fill text-xl" style="color:#D4AF37;"></i>
-            </button>
-          </a>
-
-          <div class="shop-body">
-            <h3 class="shop-title">{{ $product->name_translated }}</h3>
-            <div class="shop-meta">{{ $product->brand->name ?? '' }}</div>
-
-            <div class="shop-price">
-              @if($product->isOnSale() && !$isOut)
-                <span class="current">{{ number_format($product->sale_price, 0) }} {{ __('common.currency') }}</span>
-                <span class="old">{{ number_format($product->price, 0) }} {{ __('common.currency') }}</span>
-              @else
-                <span class="current">{{ number_format($product->price, 0) }} {{ __('common.currency') }}</span>
-              @endif
-            </div>
-
-            @if($isOut)
-              <button class="shop-add" style="background:#9CA3AF;" disabled>
-                <i class="bi bi-x-circle"></i> {{ __('common.out_of_stock') }}
-              </button>
-            @else
-              <button
-                @click.prevent="
-                  loadingAdd = true;
-                  fetch('{{ route('cart.store') }}', {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ product_id: {{ $product->id }}, quantity: 1 })
-                  }).then(res => res.json()).then(data => {
-                    if(data.success){
-                      added = true;
-                      window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cartCount: data.cartCount } }));
-                      setTimeout(() => added = false, 2000);
-                    } else { alert(data.message || '{{ __('common.connection_error') }}'); }
-                  }).finally(() => loadingAdd = false);
-                "
-                class="shop-add"
-                :disabled="loadingAdd || added"
-              >
-                <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
-                <span x-show="loadingAdd"><i class="bi bi-arrow-repeat animate-spin"></i></span>
-                <span x-show="added"><i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}</span>
-              </button>
-            @endif
-          </div>
+    @if ($favorites->isEmpty())
+        <div class="empty-state">
+            <i class="bi bi-heart"></i>
+            <h3 class="text-xl font-bold mb-3">{{ __('profile.no_favorites') }}</h3>
+            <p class="text-gray-500 mb-6">{{ __('profile.wishlist_empty_desc') }}</p>
+            <a href="{{ route('shop') }}" class="btn-browse">
+                <i class="bi bi-bag-plus"></i> {{ __('profile.browse_store') }}
+            </a>
         </div>
-        <!-- ===== /بطاقة المنتج ===== -->
-        @endif
-      @endforeach
-    </div>
-  @endif
+    @else
+        <div class="products-grid">
+            @foreach ($favorites as $favorite)
+                @if ($product = $favorite->product)
+                @php
+                    $isAvailable = ($product->stock_qty ?? $product->stock_quantity ?? 0) > 0;
+                    $isOnSale = $product->isOnSale();
+                    $discountPct = ($isOnSale && $product->price > 0) ? round((($product->price - $product->sale_price) / $product->price) * 100) : 0;
+                    $firstImg = $product->firstImage ? asset('storage/'.$product->firstImage->image_path) : 'https://placehold.co/600x600?text=No+Image';
+                    $secondImg = optional($product->images->get(1))->image_path ? asset('storage/'.$product->images->get(1)->image_path) : null;
+                @endphp
+
+                <div class="product-card"
+                     x-data="{
+                         showAlt: false, activeState: 'normal',
+                         loadingFav: false, isFavorite: true,
+                         toggleWishlist() {
+                             if(this.loadingFav) return;
+                             this.loadingFav = true;
+                             fetch('{{ route('wishlist.toggle.async', $product->id) }}', {
+                                 method:'POST',
+                                 headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','X-Requested-With':'XMLHttpRequest'}
+                             })
+                             .then(r => r.json())
+                             .then(d => { if(d.success) { this.isFavorite = false; window.dispatchEvent(new CustomEvent('wishlist-updated',{detail:{count:d.wishlistCount}})); } })
+                             .finally(() => this.loadingFav = false);
+                         },
+                         addToCart() {
+                             if(this.activeState !== 'normal') return;
+                             this.activeState = 'loading';
+                             fetch('{{ route('cart.store') }}', {
+                                 method:'POST',
+                                 headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},
+                                 body:JSON.stringify({product_id:{{ $product->id }}, quantity:1})
+                             })
+                             .then(r => r.json())
+                             .then(d => {
+                                 if(d.success){
+                                     this.activeState = 'added';
+                                     window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}}));
+                                     setTimeout(() => this.activeState = 'normal', 2500);
+                                 } else { alert(d.message || 'Error'); this.activeState = 'normal'; }
+                             })
+                             .catch(() => { this.activeState = 'normal'; });
+                         }
+                     }"
+                     x-show="isFavorite"
+                     x-transition:leave="transition ease-in duration-300"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-90"
+                     @mouseover="secondImg ? showAlt=true : null"
+                     @mouseout="secondImg ? showAlt=false : null">
+
+                    <a href="{{ route('product.detail', $product) }}" class="block">
+                        <div class="product-image-container">
+                            @if(!$isAvailable)
+                                <div class="out-of-stock-overlay">
+                                    <span class="out-of-stock-badge">{{ __('common.out_of_stock') }}</span>
+                                </div>
+                            @endif
+
+                            @if($isOnSale && $isAvailable && $discountPct > 0)
+                                <div class="product-sale-badge">-{{ $discountPct }}%</div>
+                            @endif
+
+                            <div class="product-image-slider">
+                                <img src="{{ $firstImg }}" alt="{{ $product->name_translated }}" loading="lazy"
+                                     :style="{ transform: showAlt ? (document.documentElement.dir === 'rtl' ? 'translateX(105%)' : 'translateX(-105%)') : 'translateX(0)', transition: 'transform 0.4s ease' }">
+                                @if($secondImg)
+                                    <img src="{{ $secondImg }}" alt="{{ $product->name_translated }}" loading="lazy"
+                                         :style="{ transform: showAlt ? 'translateX(0)' : (document.documentElement.dir === 'rtl' ? 'translateX(-105%)' : 'translateX(105%)'), transition: 'transform 0.4s ease' }">
+                                @endif
+                            </div>
+                        </div>
+                    </a>
+
+                    <div class="product-info">
+                        <h3 class="product-title">{{ $product->name_translated }}</h3>
+                        <div class="flex items-baseline justify-center gap-1">
+                            @if($isOnSale && $isAvailable)
+                                <span class="price">{{ number_format($product->sale_price, 0) }} {{ __('common.currency') }}</span>
+                                <span class="old">{{ number_format($product->price, 0) }} {{ __('common.currency') }}</span>
+                            @else
+                                <span class="price">{{ number_format($product->price, 0) }} {{ __('common.currency') }}</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="product-actions" dir="{{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}">
+                        {{-- Wishlist Toggle --}}
+                        <button @click.stop="toggleWishlist()" class="btn-fav" :disabled="loadingFav" title="{{ __('common.remove_from_wishlist') }}">
+                            <template x-if="!loadingFav"><i class="bi bi-heart-fill"></i></template>
+                            <template x-if="loadingFav"><i class="bi bi-arrow-repeat animate-spin"></i></template>
+                        </button>
+
+                        {{-- Add to Cart --}}
+                        @if ($isAvailable)
+                        <button @click.stop="addToCart()" class="btn-primary" :disabled="activeState !== 'normal'">
+                            <span x-show="activeState === 'normal'" class="flex items-center gap-2">
+                                <i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}
+                            </span>
+                            <span x-show="activeState === 'loading'" x-cloak>
+                                <i class="bi bi-arrow-repeat animate-spin"></i>
+                            </span>
+                            <span x-show="activeState === 'added'" x-cloak class="flex items-center gap-2">
+                                <i class="bi bi-check-lg"></i> {{ __('common.added_to_cart') }}
+                            </span>
+                        </button>
+                        @else
+                        <button class="btn-primary !bg-gray-400 !cursor-not-allowed" disabled>
+                            {{ __('common.out_of_stock') }}
+                        </button>
+                        @endif
+                    </div>
+                </div>
+                @endif
+            @endforeach
+        </div>
+    @endif
 </div>
 @endsection
+

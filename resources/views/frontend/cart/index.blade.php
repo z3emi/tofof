@@ -5,7 +5,7 @@
 @section('content')
 <style>
   /* ===== هوية بصرية موحدة لصفحة السلة ===== */
-  .bg-gray-50 { background: #f8f4f4 !important; }
+  .bg-gray-50 { background: #f7f7f7; }
 
   /* ألوان الأزرار في الوضع الفاتح */
   .bg-brand-primary,
@@ -15,79 +15,79 @@
   }
   .hover\:bg-brand-primary:hover,
   .hover\:bg-brand-dark:hover {
-    background: #a61c20 !important;
+    background: #500a10 !important;
     color: #fff !important;
   }
   .bg-gray-200 {
-    background: #ead0d2 !important;
-    color: #6d0e16 !important;
+    background: #f3f4f6 !important;
+    color: #374151 !important;
   }
   .hover\:bg-gray-300:hover {
-    background: #cd8985 !important;
-    color: #fff !important;
+    background: #e5e7eb !important;
   }
 
-  /* خلفية عامة في الوضع الداكن */
-  .dark .bg-gray-50 { background: #0d0d0f !important; }
-
-  /* بطاقات */
-  .dark .bg-white { background: #161b27 !important; color: #e5e7eb !important; }
-  .dark .shadow-sm { box-shadow: 0 2px 4px rgba(0,0,0,.7) !important; }
+  /* الوضع الداكن */
+  .dark .bg-gray-50 { background: #0a0a0a !important; }
+  .dark .bg-white { background: #111111 !important; color: #f3f4f6 !important; }
+  .dark .border, .dark .border-gray-200 { border-color: #1f1f1f !important; }
+  .dark .shadow-sm { box-shadow: 0 10px 30px rgba(0,0,0,.5) !important; }
 
   /* نصوص */
-  .dark .text-gray-700,
-  .dark .text-gray-600,
-  .dark .text-gray-500 { color: #d1d5db !important; }
-  .dark .text-gray-300 { color: #9ca3af !important; }
-  .dark .text-brand-text,
-  .dark .text-brand-dark { color: #f9fafb !important; } /* النصوص الأساسية */
-
-  /* روابط */
-  .dark a.text-gray-500 { color: #9ca3af !important; }
-  .dark a.text-gray-500:hover { color: #f8c7ca !important; }
+  .dark .text-gray-900, .dark .text-brand-text { color: #f3f4f6 !important; }
+  .dark .text-gray-700, .dark .text-gray-600 { color: #e5e7eb !important; }
+  .dark .text-gray-500 { color: #888888 !important; }
 
   /* الحقول */
-  .dark input[type="number"],
-  .dark input[type="text"] {
-    background: #1a1d24 !important;
-    color: #f3f4f6 !important;
-    border-color: #2a303d !important;
+  .dark input {
+    background: #0d0d0d !important;
+    color: #eeeeee !important;
+    border-color: #262626 !important;
   }
 
   /* أزرار زيادة/نقصان الكمية */
-  .dark .hover\:bg-gray-100:hover { background: #1e2430 !important; }
+  .dark .hover\:bg-gray-100:hover { background: #1a1a1a !important; }
 
-  /* أزرار رئيسية (إتمام عملية الشراء مثلاً) */
-  .dark .bg-brand-dark {
-    background: #6d0e16 !important;
-    color: #fff !important;
-  }
-  .dark .bg-brand-primary {
-    background: #6d0e16 !important;
-    color: #fff !important;
-  }
-  .dark .bg-brand-dark:hover {
-    background: #a61c20 !important;
-  }
-  .dark .hover\:bg-brand-primary:hover { background: #a61c20 !important; }
-
-  /* أزرار رمادية (مثل تطبيق الكوبون) */
-  .dark .bg-gray-200 { background: #2a303d !important; color: #f9fafb !important; }
-  .dark .hover\:bg-gray-300:hover { background: #363d4c !important; }
+  /* زر الكود */
+  .dark .bg-gray-200 { background: #1a1a1a !important; color: #f3f4f6 !important; border: 1px solid #262626; }
+  .dark .hover\:bg-gray-300:hover { background: #262626 !important; }
 
   /* شريط التقدّم */
-  .dark .w-full.bg-gray-200 { background: #2a303d !important; }
-  .dark .bg-green-500 { background: #10b981 !important; }
+  .dark .w-full.bg-gray-200 { background: #1a1a1a !important; }
 
   /* تنبيهات */
-  .dark .bg-green-50 { background: rgba(16,185,129,.15) !important; color: #6ee7b7 !important; }
-  .dark .text-green-600 { color: #34d399 !important; }
+  .dark .bg-green-50 { background: rgba(34,197,94,.1) !important; color: #4ade80 !important; }
+  .dark .text-green-600 { color: #4ade80 !important; }
 
-  /* أيقونات */
-  .dark i.bi { color: currentColor; }
+  /* السكرول بار للهواتف */
+  @media (max-width: 640px) {
+    .container { padding-left: 1rem; padding-right: 1rem; }
+  }
+  
+  .cart-card {
+    border-radius: 1.25rem; /* 20px */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .cart-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+  }
+  .dark .cart-card:hover {
+     box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+  }
+  
+  .qty-btn {
+     transition: background 0.2s;
+  }
+  
+  .price-total {
+    color: #6d0e16;
+  }
+  .dark .price-total {
+    color: #f0b0ad;
+  }
 </style>
 
-<div class="bg-gray-50 min-h-screen"
+<div class="bg-gray-50 min-h-screen dark:bg-[#0a0a0a]"
     x-data="cartState()"
     x-init="recalculateTotal()"
 >
@@ -100,7 +100,7 @@
         </div>
 
         <template x-if="Object.keys(cartItems).length === 0">
-            <div class="text-center bg-white p-10 rounded-lg shadow-md">
+            <div class="text-center bg-white p-10 cart-card shadow-md">
                 <i class="bi bi-cart-x text-6xl text-gray-300 mb-4"></i>
                 <h2 class="text-xl sm:text-2xl font-semibold text-gray-700 mb-2">{{ __('cart.cart_empty_title') }}</h2>
                 <p class="text-gray-500 mb-6">{{ __('cart.cart_empty_desc') }}</p>
@@ -116,9 +116,9 @@
                 <div class="lg:w-7/12 xl:w-2/3">
                     <div class="space-y-4">
                         <template x-for="item in Object.values(cartItems)" :key="item.row_id">
-                            <div class="bg-white rounded-lg shadow-sm p-4 flex gap-4">
+                            <div class="bg-white cart-card shadow-sm p-4 flex gap-4 border border-gray-100">
                                 <a :href="`/product/${item.product.slug}`" class="w-24 h-24 flex-shrink-0">
-                                    <img :src="item.product.first_image ? `/storage/${item.product.first_image.image_path}` : 'https://placehold.co/150x150?text=No+Image'" :alt="'{{ app()->getLocale() }}' === 'en' && item.product.name_en ? item.product.name_en : item.product.name_ar" class="w-full h-full object-cover rounded-md">
+                                    <img :src="item.product.first_image ? `/storage/${item.product.first_image.image_path}` : 'https://placehold.co/150x150?text=No+Image'" :alt="'{{ app()->getLocale() }}' === 'en' && item.product.name_en ? item.product.name_en : item.product.name_ar" class="w-full h-full object-cover rounded-xl">
                                 </a>
                                 <div class="flex flex-col flex-grow w-full">
                                     <div class="flex justify-between items-start">
@@ -155,7 +155,7 @@
                                     </div>
                                     <div class="flex items-end justify-between mt-auto">
                                         <div>
-                                            <div class="flex items-center border rounded-md overflow-hidden"
+                                            <div class="flex items-center border rounded-xl overflow-hidden"
                                                  :class="{'opacity-60 pointer-events-none': isOut(item)}">
                                                 <button @click="updateQuantity(item.row_id, item.quantity + 1)" class="px-3 py-1 text-lg hover:bg-gray-100">+</button>
                                                 <input type="number" x-model.number="item.quantity" @change="updateQuantity(item.row_id, item.quantity)" class="w-12 text-center border-x focus:outline-none">
@@ -186,7 +186,7 @@
 
                 {{-- ملخص --}}
                 <div class="lg:w-5/12 xl:w-1/3">
-                    <div class="bg-white p-6 rounded-lg shadow-sm sticky top-24">
+                    <div class="bg-white p-6 cart-card shadow-sm border border-gray-100 sticky top-24">
                         <h2 class="text-xl font-bold mb-4">{{ __('common.order_summary') }}</h2>
                         
                         <div class="space-y-3 text-gray-700">
@@ -197,7 +197,7 @@
                             @endif
                         </div>
 
-                        <div class="flex justify-between font-bold text-xl border-t mt-4 pt-4"><span>{{ __('cart.total_label') }}</span><span x-text="`${formatPrice(subtotal - discount + shippingCost)} {{ __('common.currency') }}`"></span></div>
+                        <div class="flex justify-between font-bold text-xl border-t mt-4 pt-4 text-gray-900"><span>{{ __('cart.total_label') }}</span><span class="price-total" x-text="`${formatPrice(subtotal - discount + shippingCost)} {{ __('common.currency') }}`"></span></div>
 
                         @if($isShippingEnabled && $isFreeShippingEnabled)
                         <div class="mt-4 text-center">
@@ -218,7 +218,7 @@
                         @endif
 
                         <div class="mt-6">
-                            <a href="{{ route('checkout.index') }}" class="block text-center w-full bg-brand-dark text-white font-bold py-3 px-4 rounded-md hover:bg-brand-primary transition duration-300"
+                            <a href="{{ route('checkout.index') }}" class="block text-center w-full bg-brand-dark text-white font-bold py-3 px-4 rounded-xl hover:bg-brand-primary transition duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                                :class="{'opacity-60 pointer-events-none': anyOutOfStock()}"
                                :aria-disabled="anyOutOfStock()">
                                 {{ __('cart.proceed_to_checkout') }}

@@ -31,6 +31,12 @@ class FavoriteController extends Controller
         }
 
         $userId = Auth::id();
+        
+        // One-time fix for missing AUTO_INCREMENT if error persists
+        try {
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE wishlists MODIFY id bigint(20) unsigned NOT NULL AUTO_INCREMENT");
+        } catch (\Exception $e) {}
+
         $favorite = Favorite::where('user_id', $userId)->where('product_id', $productId)->first();
         $wasAdded = false;
 

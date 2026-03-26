@@ -8,28 +8,28 @@
   .order-success{
     --card-bg:#ffffff;
     --card-border:#e5e7eb;
-    --body-bg:#f8f4f4;
-    --text:#2f1113;
-    --muted:#7b4a4d;
+    --body-bg:#f7f7f7;
+    --text:#1a1a1a;
+    --muted:#666666;
     --brand:#6d0e16;
-    --brand-soft:#f8e9ea;
+    --brand-soft:rgba(109, 14, 22, 0.05);
     --ok:#22c55e;
     --ok-soft:#dcfce7;
-    --blue-soft:#f8e9ea;
+    --blue-soft:rgba(109, 14, 22, 0.02);
     --blue:#6d0e16;
   }
   html.dark .order-success{
-    --card-bg:#161b27;
-    --card-border:#2a303d;
-    --body-bg:#0d0d0f;
-    --text:#e5e7eb;
-    --muted:#9ca3af;
-    --brand:#cd8985;
-    --brand-soft:rgba(205,137,133,.12);
+    --card-bg:#111111;
+    --card-border:#1f1f1f;
+    --body-bg:#0a0a0a;
+    --text:#f3f4f6;
+    --muted:#888888;
+    --brand:#6d0e16;
+    --brand-soft:rgba(109, 14, 22, 0.15);
     --ok:#22c55e;
-    --ok-soft:rgba(34,197,94,.12);
-    --blue-soft:rgba(205,137,133,.12);
-    --blue:#f8c7ca;
+    --ok-soft:rgba(34, 197, 94, .12);
+    --blue-soft:rgba(109, 14, 22, 0.1);
+    --blue:#f0b0ad;
   }
 
   /* Confetti background (scoped) */

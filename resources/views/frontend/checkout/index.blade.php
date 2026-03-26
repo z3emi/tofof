@@ -12,74 +12,94 @@
         }
         .hover\:bg-brand-primary:hover,
         .hover\:bg-brand-dark:hover {
-            background-color: #a61c20 !important;
+            background-color: #500a10 !important;
             color: #fff !important;
+        }
+        .text-brand-primary {
+            color: #6d0e16 !important;
+        }
+        
+        /* تحسين الفوكس والتشيك بوكس */
+        input:focus, select:focus, textarea:focus {
+            border-color: #6d0e16 !important;
+            --tw-ring-color: #6d0e16 !important;
+        }
+        input[type="checkbox"]:checked,
+        input[type="radio"]:checked {
+            background-color: #6d0e16 !important;
+            border-color: #6d0e16 !important;
         }
 
         .step-badge {
             width: 2.5rem; height: 2.5rem; border-radius: 9999px;
             display: inline-flex; align-items: center; justify-content: center;
             font-weight: bold; color: white;
+            box-shadow: 0 4px 10px rgba(109, 14, 22, 0.2);
         }
         .address-card.selected {
             border-color: #6d0e16;
-            box-shadow: 0 0 0 2px rgba(109,14,22,.25);
+            box-shadow: 0 0 0 2px rgba(109,14,22,.15);
+            background-color: rgba(109, 14, 22, 0.02);
         }
 
-        /* ====== Dark Mode Identity Fixes (Burgundy) ====== */
+        /* ====== Dark Mode Identity Fixes (Premium Dark) ====== */
         /* صناديق بيضاء تصبح أسطح داكنة */
-        .dark .bg-white { background-color: #161b27 !important; }
+        .dark .bg-white { background-color: #111111 !important; }
         .dark .bg-gray-50,
-        .dark .bg-gray-50\/50 { background-color: #0d0d0f !important; }
+        .dark .bg-gray-50\/50 { background-color: #0a0a0a !important; }
 
         /* حدود أخف بالداكن */
         .dark .border,
         .dark .border-gray-200,
-        .dark .border-gray-300 { border-color: #2a303d !important; }
+        .dark .border-gray-300 { border-color: #1f1f1f !important; }
 
         /* نصوص */
         .dark .text-brand-text,
-        .dark .text-gray-800 { color: #e5e7eb !important; }
-        .dark .text-gray-700 { color: #d1d5db !important; }
+        .dark .text-gray-800 { color: #f3f4f6 !important; }
+        .dark .text-gray-700 { color: #e5e7eb !important; }
         .dark .text-gray-600 { color: #9ca3af !important; }
-        .dark .text-gray-500 { color: #94a3b8 !important; }
+        .dark .text-gray-500 { color: #888888 !important; }
 
         /* بطاقات العناوين عند التحديد تحافظ على لون الهوية */
         .dark .address-card.selected {
-            border-color: #cd8985 !important;
-            box-shadow: 0 0 0 2px rgba(205,137,133,.35) !important;
+            border-color: #6d0e16 !important;
+            box-shadow: 0 0 0 2px rgba(109,14,22,.3) !important;
+            background-color: rgba(109, 14, 22, 0.1) !important;
         }
 
         /* بطاقات الأقسام */
-        .dark .shadow-sm { box-shadow: 0 6px 24px rgba(0,0,0,.45) !important; }
+        .dark .shadow-sm { box-shadow: 0 10px 30px rgba(0,0,0,.5) !important; }
 
         /* شريط تنبيه الأخطاء */
-        .dark .bg-red-100 { background-color: rgba(239, 68, 68, .12) !important; }
-        .dark .border-red-400 { border-color: rgba(239, 68, 68, .5) !important; }
-        .dark .text-red-700 { color: #fca5a5 !important; }
+        .dark .bg-red-100 { background-color: rgba(220, 38, 38, .15) !important; }
+        .dark .border-red-400 { border-color: rgba(220, 38, 38, .4) !important; }
+        .dark .text-red-700 { color: #f87171 !important; }
 
         /* صناديق مساعدة */
-        .dark .bg-yellow-50 { background-color: rgba(205, 137, 133, .12) !important; }
-        .dark .text-yellow-800 { color: #f8c7ca !important; }
-        .dark .border-yellow-400 { border-color: rgba(205, 137, 133, .4) !important; }
+        .dark .bg-yellow-50 { background-color: rgba(109, 14, 22, 0.1) !important; }
+        .dark .text-yellow-800 { color: #fca5a5 !important; }
+        .dark .border-yellow-400 { border-color: rgba(109, 14, 22, 0.3) !important; }
 
         /* عناصر الملخص */
-        .dark .text-green-600 { color: #86efac !important; }
-        .dark .bg-gray-50 { background-color: #161b27 !important; }
+        .dark .text-green-600 { color: #4ade80 !important; }
 
         /* زر التأكيد يحافظ على ألوان الهوية */
         .dark .bg-brand-dark,
         .dark .bg-brand-primary { background-color: #6d0e16 !important; color:#fff !important; }
         .dark .hover\:bg-brand-primary:hover,
-        .dark .hover\:bg-brand-dark:hover { background-color: #a61c20 !important; color:#fff !important; }
+        .dark .hover\:bg-brand-dark:hover { background-color: #500a10 !important; color:#fff !important; }
 
-        /* حقول الإدخال (لو ظهرت) */
+        /* حقول الإدخال */
         .dark input, .dark select, .dark textarea {
-            background: transparent;
-            color: #e5e7eb;
-            border-color: #1f2937;
+            background-color: #0d0d0d !important;
+            color: #eeeeee !important;
+            border-color: #262626 !important;
         }
-        .dark input::placeholder, .dark textarea::placeholder { color: #94a3b8; }
+        .dark input:focus, .dark select:focus, .dark textarea:focus {
+            border-color: #6d0e16 !important;
+            ring-color: #6d0e16 !important;
+        }
+        .dark input::placeholder, .dark textarea::placeholder { color: #666666; }
     </style>
 @endpush
 
@@ -88,7 +108,7 @@
     $giftOrderSelected = (bool) old('is_gift');
     $selectedSavedAddressId = old('saved_address_id', $addresses->first()->id ?? null);
 @endphp
-<div class="min-h-screen bg-gray-50/50 dark:bg-[#0b0f14]">
+<div class="min-h-screen bg-[#f7f7f7] dark:bg-[#0a0a0a]">
     <div class="container mx-auto px-4 py-12">
         <div class="text-center mb-10">
             <h1 class="text-3xl md:text-4xl font-bold text-brand-text dark:text-gray-100">{{ __('checkout.page_heading') }}</h1>
@@ -120,7 +140,7 @@
     <div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
         {{-- العمود الأيسر: الشحن + الدفع --}}
         <div class="lg:w-7/12 xl:w-2/3 space-y-8">
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
                 <div class="flex items-center gap-4 mb-5">
                     <span class="step-badge bg-brand-primary">1</span>
                     <h2 class="text-xl font-bold text-brand-text dark:text-gray-100">{{ __('checkout.shipping_info') }}</h2>
@@ -132,7 +152,7 @@
                         <h3 class="text-md font-semibold text-gray-800 mb-2 dark:text-gray-100">{{ __('checkout.choose_saved_address') }}</h3>
                         <div class="space-y-3" id="saved_addresses_list">
                             @foreach($addresses as $address)
-                            <label class="address-card block border rounded-lg p-4 cursor-pointer transition hover:border-brand-primary dark:border-gray-800 dark:hover:border-brand-primary" :class="selectedAddressId == {{ $address->id }} ? 'selected' : ''">
+                            <label class="address-card block border rounded-xl p-4 cursor-pointer transition hover:border-brand-primary dark:border-gray-800 dark:hover:border-brand-primary" :class="selectedAddressId == {{ $address->id }} ? 'selected' : ''">
                                 <div class="flex items-center">
                                     <input type="radio" name="saved_address_id" value="{{ $address->id }}"
                                         class="saved-address-radio h-4 w-4 text-brand-primary focus:ring-brand-primary"
@@ -153,12 +173,12 @@
                         <p class="text-yellow-800 dark:text-yellow-200">{{ __('checkout.no_address_yet') }}</p>
                     </div>
 
-                    <a href="{{ route('profile.addresses.create') }}" id="shipping_address_actions" class="w-full text-left border rounded-lg p-4 flex items-center gap-3 text-brand-primary font-semibold hover:bg-gray-50 transition dark:border-gray-800 dark:hover:bg-gray-800/50 {{ $giftOrderSelected ? 'hidden' : '' }}">
+                    <a href="{{ route('profile.addresses.create') }}" id="shipping_address_actions" class="w-full text-left border rounded-xl p-4 flex items-center gap-3 text-brand-primary font-semibold hover:bg-gray-50 transition dark:border-gray-800 dark:hover:bg-gray-800/50 {{ $giftOrderSelected ? 'hidden' : '' }}">
                         <i class="bi bi-plus-circle-fill"></i>
                         <span>{{ __('checkout.add_new_address') }}</span>
                     </a>
 
-                    <div class="mt-6 border rounded-lg p-4 bg-gray-50/70 dark:bg-gray-800/40 dark:border-gray-800">
+                    <div class="mt-6 border rounded-xl p-4 bg-gray-50/70 dark:bg-gray-800/40 dark:border-gray-800">
                         <label class="flex items-center gap-3 cursor-pointer">
                             <input type="checkbox" name="is_gift" id="is_gift" value="1" class="h-4 w-4 text-brand-primary focus:ring-brand-primary" {{ old('is_gift') ? 'checked' : '' }}>
                             <div>
@@ -193,12 +213,12 @@
                 </div>
             </div>
             
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 dark:bg-gray-900 dark:border-gray-800">
                 <div class="flex items-center gap-4 mb-5">
                     <span class="step-badge bg-brand-primary">2</span>
                     <h2 class="text-xl font-bold text-brand-text dark:text-gray-100">{{ __('checkout.payment_method') }}</h2>
                 </div>
-                <div class="bg-gray-50 p-4 rounded-md border hover:border-brand-primary transition dark:bg-gray-800 dark:border-gray-800">
+                <div class="bg-gray-50 p-4 rounded-xl border hover:border-brand-primary transition dark:bg-gray-800 dark:border-gray-800">
                     <label for="cash" class="flex items-center cursor-pointer">
                         <input id="cash" name="payment_method" type="radio"
                                class="h-4 w-4 text-brand-primary focus:ring-brand-primary"
@@ -212,7 +232,7 @@
 
         {{-- العمود الأيمن: ملخص الطلب + استخدام المحفظة --}}
         <div class="lg:w-5/12 xl:w-1/3">
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-24 dark:bg-gray-900 dark:border-gray-800">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 sticky top-24 dark:bg-gray-900 dark:border-gray-800">
                 <h2 class="text-xl font-bold text-brand-text mb-4 border-b pb-4 dark:text-gray-100 dark:border-gray-800">{{ __('common.order_summary') }}</h2>
                 
                 <div class="space-y-3 mb-4 max-h-64 overflow-y-auto pr-2">
@@ -260,14 +280,14 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-between font-bold text-xl text-brand-dark border-t pt-2 mt-2 dark:text-gray-100 dark:border-gray-800">
+                    <div class="flex justify-between font-bold text-xl text-[#1a1a1a] border-t pt-2 mt-2 dark:text-gray-100 dark:border-gray-800">
                         <span>{{ __('checkout.total') }}</span>
-                        <span id="final_total_text">{{ number_format($finalTotal) }} {{ __('checkout.currency') }}</span>
+                        <span id="final_total_text" class="text-[#6d0e16] dark:text-[#f0b0ad]">{{ number_format($finalTotal) }} {{ __('checkout.currency') }}</span>
                     </div>
                 </div>
 
                 <div class="mt-6">
-                    <button id="checkout_submit_button" class="w-full bg-brand-dark text-white font-bold py-3 px-4 rounded-md hover:bg-brand-primary transition duration-300 text-lg {{ $addresses->isEmpty() && ! $giftOrderSelected ? 'opacity-60 cursor-not-allowed' : '' }}" type="submit" @if($addresses->isEmpty() && ! $giftOrderSelected) disabled @endif>
+                    <button id="checkout_submit_button" class="w-full bg-brand-dark text-white font-bold py-4 px-4 rounded-xl hover:bg-brand-primary transition duration-300 text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 {{ $addresses->isEmpty() && ! $giftOrderSelected ? 'opacity-60 cursor-not-allowed' : '' }}" type="submit" @if($addresses->isEmpty() && ! $giftOrderSelected) disabled @endif>
                         <i class="bi bi-shield-check"></i>
                         {{ __('checkout.confirm_order') }}
                     </button>
