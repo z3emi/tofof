@@ -57,7 +57,7 @@
         --accent-color: #ea7a7e;
 
         /* Base */
-        --bg: #f7f7f7;
+        --bg: #ffffff;
         --bg-soft: #ffffff;
         --surface: #ffffff;
         --card-bg: #ffffff;
@@ -77,7 +77,7 @@
 
         /* Section gradient */
         --cat-grad-from: #ffffff;
-        --cat-grad-to: #f7f7f7;
+        --cat-grad-to: #ffffff;
 
         /* Slider overlay (now per-slide) */
     }
@@ -902,11 +902,7 @@
          x-init="init()">
 
     {{-- خلفيات خفيفة (نفس الستايل) --}}
-    <div class="absolute inset-0 z-0 pointer-events-none">
-        <div class="absolute top-10 left-10 w-32 h-32 rounded-full bg-[#a61c20] opacity-5 blur-3xl"></div>
-        <div class="absolute bottom-20 right-20 w-40 h-40 rounded-full bg-[#c32126] opacity-5 blur-3xl"></div>
-        <div class="absolute top-1/2 left-1/3 w-24 h-24 rounded-full bg-[#1a1a1a] opacity-10 blur-2xl"></div>
-    </div>
+    <!-- Removed blurred blobs for unified white background -->
 
     <div class="w-full text-center relative z-10">
 
@@ -973,7 +969,7 @@
                     <img src="{{ $thumb }}" class="w-full h-full object-cover object-center"
                          alt="{{ $pc->name_translated }}" width="112" height="112">
                 @else
-                    <div class="w-full h-full grid place-items-center text-[#c32126] bg-gradient-to-br from-[#a61c20]/10 to-[#c32126]/10">
+                    <div class="w-full h-full grid place-items-center text-[#c32126] bg-white">
                         <i class="bi bi-tags" style="font-size:1.6rem;"></i>
                     </div>
                 @endif
@@ -1372,7 +1368,7 @@
                         @if($thumb)
                             <img src="{{ $thumb }}" class="w-full h-full object-cover object-center" alt="{{ $category->name_translated }}" width="112" height="112">
                         @else
-                            <div class="w-full h-full grid place-items-center text-[#c32126] bg-gradient-to-br from-[#a61c20]/10 to-[#c32126]/10">
+                            <div class="w-full h-full grid place-items-center text-[#c32126] bg-white">
                                 <i class="bi bi-tags" style="font-size:1.6rem;"></i>
                             </div>
                         @endif
@@ -1523,7 +1519,7 @@
 {{-- New Products Section --}}
 @if($newProducts->isNotEmpty())
 <section class="py-6 lg:py-10 bg-white relative" dir="rtl">
-    <div class="floating-element floating-3"></div>
+    <!-- Removed floating-3 -->
     <div class="container mx-auto px-4 relative z-10">
         <div class="flex justify-between items-center mb-6">
             <div class="section-header relative">
@@ -1901,8 +1897,8 @@
 
 {{-- Sale Products Section --}}
 @if($saleProducts->isNotEmpty())
-<section class="py-12 bg-gray-50 relative" dir="rtl">
-    <div class="floating-element floating-1"></div>
+<section class="py-12 bg-white relative" dir="rtl">
+    <!-- Removed floating-1 -->
     <div class="container mx-auto px-4 relative z-10">
         <div class="flex justify-between items-center mb-6">
             <div class="section-header relative">
@@ -2125,7 +2121,7 @@
 {{-- Best Selling Products Section --}}
 @if($bestSellingProducts->isNotEmpty())
 <section class="py-12 bg-white relative" dir="rtl">
-    <div class="floating-element floating-2"></div>
+    <!-- Removed floating-2 -->
     <div class="container mx-auto px-4 relative z-10">
         <div class="flex justify-between items-center mb-6">
             <div class="section-header relative">
