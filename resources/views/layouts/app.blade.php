@@ -1596,7 +1596,7 @@ html[dir="rtl"] .glass-indicator {
     {{-- زر فتح القائمة --}}
     <button type="button"
             x-ref="brandsTrigger"
-            class="relative group font-medium hover:text-[#f3e5e3] transition-colors duration-300 py-1 px-4 flex items-center gap-1 {{ request()->routeIs('categories.*') ? 'active-link' : '' }}"
+            class="relative group font-medium hover:text-[#f3e5e3] transition-colors duration-300 py-1 px-4 flex items-center gap-1 {{ request()->routeIs('categories.*') ? 'active-link pointer-events-none' : '' }}"
             aria-haspopup="true" :aria-expanded="open.toString()">
         {{-- ✅ [تعديل] تغيير كلمة البراندات إلى الفئات --}}
         <i class="bi bi-tags-fill"></i> {{ __('layout.categories_nav') }}
@@ -1728,12 +1728,12 @@ function brandMenuV4(){
 
 
 
-                    <a href="{{ route('homepage') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('homepage') ? 'active-link' : '' }}">{{ __('layout.home') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
-                    <a href="{{ route('shop') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('shop*') ? 'active-link' : '' }}">{{ __('layout.shop') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
+                    <a href="{{ route('homepage') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('homepage') ? 'active-link pointer-events-none' : '' }}">{{ __('layout.home') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
+                    <a href="{{ route('shop') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('shop*') ? 'active-link pointer-events-none' : '' }}">{{ __('layout.shop') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
 
-                    <a href="{{ route('blog.index') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('blog*') ? 'active-link' : '' }}">{{ __('layout.blog') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
-                    <a href="{{ route('about.us') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('about.us') ? 'active-link' : '' }}">{{ __('layout.about_us') }}<span class="absolute bottom-0 left-0 w-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
-                    <a href="{{ route('page.contact-us') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('page.contact-us') ? 'active-link' : '' }}">
+                    <a href="{{ route('blog.index') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('blog*') ? 'active-link pointer-events-none' : '' }}">{{ __('layout.blog') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
+                    <a href="{{ route('about.us') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('about.us') ? 'active-link pointer-events-none' : '' }}">{{ __('layout.about_us') }}<span class="absolute bottom-0 left-0 w-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
+                    <a href="{{ route('page.contact-us') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('page.contact-us') ? 'active-link pointer-events-none' : '' }}">
     {{ __('layout.contact_us') }}
     <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
 </a>
@@ -1989,22 +1989,22 @@ function brandMenuV4(){
   <div class="glass-nav-wrap">
     <nav class="glass-nav" role="navigation" aria-label="التنقل السفلي">
       <div class="glass-items" style="--glass-index: {{ $mobileNavIndex }};">
-        <a href="{{ route('homepage') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('homepage') ? 'active' : '' }}">
+        <a href="{{ route('homepage') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('homepage') ? 'active pointer-events-none' : '' }}">
           <i class="bi bi-house-door-fill icon"></i><span class="glass-label mt-0.5">{{ __('layout.home') }}</span>
         </a>
-        <a href="{{ route('shop') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('shop') ? 'active' : '' }}">
+        <a href="{{ route('shop') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('shop') ? 'active pointer-events-none' : '' }}">
           <i class="bi bi-grid-fill icon"></i><span class="glass-label mt-0.5">{{ __('layout.shop') }}</span>
         </a>
 
-        <a href="{{ route('cart.index') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('cart.index') ? 'active' : '' }} relative">
+        <a href="{{ route('cart.index') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('cart.index') ? 'active pointer-events-none' : '' }} relative">
           <i class="bi bi-cart2 icon"></i><span class="glass-label mt-0.5">{{ __('layout.cart') }}</span>
           <span x-show="cartCount > 0" x-text="cartCount" class="badge badge-cart" :class="{'animate-ping-once': isCartUpdated}" style="display:none; top: 2px; right: 15px;"></span>
         </a>
 
-        <a href="{{ route('categories.index') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('categories.index') ? 'active' : '' }}">
+        <a href="{{ route('categories.index') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('categories.index') ? 'active pointer-events-none' : '' }}">
           <i class="bi bi-grid-3x3-gap-fill icon"></i><span class="glass-label mt-0.5">{{ __('layout.categories') }}</span>
         </a>
-        <a href="{{ route('profile.show') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('profile.*', 'login', 'register') ? 'active' : '' }}">
+        <a href="{{ route('profile.show') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('profile.*', 'login', 'register') ? 'active pointer-events-none' : '' }}">
           <i class="bi bi-person-fill icon"></i><span class="glass-label mt-0.5">{{ __('layout.my_account') }}</span>
         </a>
         <span class="glass-indicator" aria-hidden="true"></span>
@@ -2297,7 +2297,7 @@ function brandMenuV4(){
       item.addEventListener('click', (e) => {
         e.preventDefault();
         if (idx === currentIndex) {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          // Do nothing
           return;
         }
         // تحديث الـ UI فوراً

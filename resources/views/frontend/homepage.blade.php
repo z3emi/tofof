@@ -485,8 +485,8 @@
             left: 10px !important;
             right: auto !important;
             top: auto !important;
-            padding: 6px 5px !important;
-            gap: 6px !important;
+            padding: 4px 3px !important;
+            gap: 4px !important;
             background: rgba(0,0,0,0.18) !important;
             box-shadow: none !important;
             border-radius: 999px !important;
@@ -501,8 +501,8 @@
             flex-direction: column;
         }
         .slider-dots .dot{
-            width: 6px !important;
-            height: 6px !important;
+            width: 3.5px !important;
+            height: 3.5px !important;
             border-radius: 999px !important;
             background: #fff !important;
             opacity: 0.55;
@@ -512,8 +512,8 @@
             transition: transform 0.2s, background 0.2s, opacity 0.2s;
         }
         .slider-dots .dot.active{
-            width: 8px !important;
-            height: 8px !important;
+            width: 5px !important;
+            height: 5px !important;
             background: #6d0e16 !important;
             opacity: 1;
             transform: scale(1.05);
