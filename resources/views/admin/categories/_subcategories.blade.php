@@ -14,7 +14,7 @@
                 @endif
 
                 <div>
-                    <h6 class="cat-title">{{ $subcategory->name_ar }}</h6>
+                    <h6 class="cat-title">{{ $subcategory->name_ar }} @if($subcategory->name_en) <span class="text-muted small">({{ $subcategory->name_en }})</span> @endif</h6>
                     <div class="chips">
                         <span class="chip chip-kind"><i class="bi bi-diagram-3"></i> قسم فرعي</span>
                         <span class="chip chip-count"><i class="bi bi-box-seam"></i> {{ $subcategory->total_products_count }} منتج</span>

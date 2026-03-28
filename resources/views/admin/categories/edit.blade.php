@@ -12,9 +12,15 @@
                     @foreach ($errors->all() as $error) <p class="mb-0">{{ $error }}</p> @endforeach
                 </div>
             @endif
-            <div class="mb-3">
-                <label for="name_ar" class="form-label">اسم القسم <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="name_ar" name="name_ar" value="{{ old('name_ar', $category->name_ar) }}" required>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="name_ar" class="form-label">اسم القسم (عربي) <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="name_ar" name="name_ar" value="{{ old('name_ar', $category->name_ar) }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="name_en" class="form-label">اسم القسم (إنكليزي)</label>
+                    <input type="text" class="form-control" id="name_en" name="name_en" value="{{ old('name_en', $category->name_en) }}">
+                </div>
             </div>
 
             {{-- **THE CHANGE IS HERE**: Added the parent category dropdown --}}
@@ -24,7 +30,7 @@
                     <option value="">-- قسم رئيسي --</option>
                     @foreach($parentCategories as $parent)
                         <option value="{{ $parent->id }}" {{ $category->parent_id == $parent->id ? 'selected' : '' }}>
-                            {{ $parent->name_ar }}
+                            {{ $parent->name_ar }} @if($parent->name_en) ({{ $parent->name_en }}) @endif
                         </option>
                     @endforeach
                 </select>

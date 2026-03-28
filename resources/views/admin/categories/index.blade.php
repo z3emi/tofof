@@ -193,7 +193,7 @@
               @endif
 
               <div>
-                <h6 class="cat-title">{{ $category->name_ar }}</h6>
+                <h6 class="cat-title">{{ $category->name_ar }} @if($category->name_en) <span class="text-muted small">({{ $category->name_en }})</span> @endif</h6>
                 <div class="chips">
                   <span class="chip chip-kind"><i class="bi bi-diagram-3"></i> قسم رئيسي</span>
                   <span class="chip chip-count"><i class="bi bi-box-seam"></i> {{ $category->total_products_count }} منتج</span>

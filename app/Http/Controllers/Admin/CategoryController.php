@@ -57,10 +57,12 @@ class CategoryController extends Controller
         if ($q !== '') {
             $query->where(function ($sub) use ($q) {
                 $sub->where('name_ar', 'like', "%{$q}%")
+                    ->orWhere('name_en', 'like', "%{$q}%")
                     ->orWhere('slug', 'like', "%{$q}%")
                     ->orWhere('id', $q)
                     ->orWhereHas('children', function ($c) use ($q) {
                         $c->where('name_ar', 'like', "%{$q}%")
+                          ->orWhere('name_en', 'like', "%{$q}%")
                           ->orWhere('slug', 'like', "%{$q}%")
                           ->orWhere('id', $q);
                     });
@@ -82,16 +84,18 @@ class CategoryController extends Controller
     {
         $request->validate([
             'name_ar'   => 'required|string|max:255|unique:categories,name_ar',
+            'name_en'   => 'nullable|string|max:255',
             'image'     => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'parent_id' => 'nullable|exists:categories,id',
         ]);
 
-        $slug = $this->generateUniqueSlug($request->name_ar);
+        $slug = $this->generateUniqueSlug($request->name_en ?: $request->name_ar);
 
         $path = $request->file('image')->store('categories', 'public');
 
         Category::create([
             'name_ar'   => $request->name_ar,
+            'name_en'   => $request->name_en,
             'slug'      => $slug,
             'image'     => $path,
             'parent_id' => $request->parent_id,
@@ -112,6 +116,7 @@ class CategoryController extends Controller
     {
         $request->validate([
             'name_ar'   => 'required|string|max:255|unique:categories,name_ar,' . $category->id,
+            'name_en'   => 'nullable|string|max:255',
             'image'     => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'parent_id' => 'nullable|exists:categories,id',
         ]);
@@ -126,6 +131,7 @@ class CategoryController extends Controller
 
         $data = [
             'name_ar'   => $request->name_ar,
+            'name_en'   => $request->name_en,
             'parent_id' => $request->parent_id,
         ];
 
@@ -171,6 +177,7 @@ class CategoryController extends Controller
         if ($q !== '') {
             $query->where(function ($sub) use ($q) {
                 $sub->where('name_ar', 'like', "%{$q}%")
+                    ->orWhere('name_en', 'like', "%{$q}%")
                     ->orWhere('slug', 'like', "%{$q}%")
                     ->orWhere('id', $q);
             });
@@ -253,6 +260,7 @@ class CategoryController extends Controller
         $data = $categories->map(function ($c) {
             return [
                 $c->name_ar,
+                $c->name_en ?? '-',
                 $c->slug ?? '-',
                 $c->parent?->name_ar ?? '-',
                 $c->products_count,

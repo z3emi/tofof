@@ -122,7 +122,7 @@
               @endif
 
               <div>
-                <h6 class="cat-title">{{ $node->name_ar }}</h6>
+                <h6 class="cat-title">{{ $node->name_ar }} @if($node->name_en) <span class="text-muted small">({{ $node->name_en }})</span> @endif</h6>
                 <div class="chips">
                   <span class="chip chip-kind"><i class="bi bi-diagram-3"></i> فئة رئيسية</span>
                   <span class="chip chip-count"><i class="bi bi-box-seam"></i> {{ $node->products_count ?? (method_exists($node,'products') ? $node->products()->count() : 0) }} منتج</span>

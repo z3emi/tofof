@@ -8,9 +8,15 @@
     <div class="card-body">
         <form action="{{ route('admin.categories.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            <div class="mb-3">
-                <label for="name_ar" class="form-label">اسم القسم <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="name_ar" name="name_ar" value="{{ old('name_ar') }}" required>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="name_ar" class="form-label">اسم القسم (عربي) <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="name_ar" name="name_ar" value="{{ old('name_ar') }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="name_en" class="form-label">اسم القسم (إنكليزي)</label>
+                    <input type="text" class="form-control" id="name_en" name="name_en" value="{{ old('name_en') }}">
+                </div>
             </div>
 
             {{-- **حقل جديد لاختيار القسم الأب** --}}
@@ -19,7 +25,7 @@
                 <select class="form-select" id="parent_id" name="parent_id">
                     <option value="">-- قسم رئيسي --</option>
                     @foreach($parentCategories as $parent)
-                        <option value="{{ $parent->id }}">{{ $parent->name_ar }}</option>
+                        <option value="{{ $parent->id }}">{{ $parent->name_ar }} @if($parent->name_en) ({{ $parent->name_en }}) @endif</option>
                     @endforeach
                 </select>
             </div>
