@@ -49,21 +49,25 @@
     try {
         $categories = Cache::remember('global_categories', now()->addHours(6), function () {
             return Category::whereNull('parent_id')
-                ->with(['children.children.products', 'children.products', 'products'])
-                ->withCount(['children', 'products'])
+                ->with('children')
+                ->withCount('products')
                 ->get()
                 ->each(function ($category) {
-                    $category->total_products_count = $category->products_count;
+                    $total = (int)$category->products_count;
                     if ($category->children) {
                         foreach ($category->children as $child) {
-                            $category->total_products_count += $child->products->count();
+                            $childTotal = (int)$child->products_count;
                             if ($child->children) {
                                 foreach ($child->children as $grandChild) {
-                                    $child->total_products_count += $grandChild->products->count();
+                                    $childTotal += (int)$grandChild->products_count;
+                                    $grandChild->total_products_count = (int)$grandChild->products_count;
                                 }
                             }
+                            $child->total_products_count = $childTotal;
+                            $total += $childTotal;
                         }
                     }
+                    $category->total_products_count = $total;
                 });
         });
     } catch (\Exception $e) {
@@ -1732,7 +1736,7 @@ function brandMenuV4(){
                     <a href="{{ route('shop') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('shop*') ? 'active-link pointer-events-none' : '' }}">{{ __('layout.shop') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
 
                     <a href="{{ route('blog.index') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('blog*') ? 'active-link pointer-events-none' : '' }}">{{ __('layout.blog') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
-                    <a href="{{ route('about.us') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('about.us') ? 'active-link pointer-events-none' : '' }}">{{ __('layout.about_us') }}<span class="absolute bottom-0 left-0 w-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
+                    <a href="{{ route('about.us') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('about.us') ? 'active-link pointer-events-none' : '' }}">{{ __('layout.about_us') }}<span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span></a>
                     <a href="{{ route('page.contact-us') }}" class="relative group font-medium hover:text-[#f3e5e3] py-1 px-4 {{ request()->routeIs('page.contact-us') ? 'active-link pointer-events-none' : '' }}">
     {{ __('layout.contact_us') }}
     <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
