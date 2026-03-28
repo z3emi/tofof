@@ -38,21 +38,23 @@
         :root {
             --sidebar-width: 260px;
             --topbar-height: 58px;
-            --bg-light: #f7f7f7;
+            --bg-light: #F5F5F5;
             --primary-dark: #6d0e16;
-            --primary-medium: #a61c20;
-            --primary-light: #ea7a7e;
+            --primary-medium: #8b121c;
+            --primary-light: #af1824;
+            --secondary-dark: #2C2C2C;
+            --accent-gold: #D4AF37;
             --secondary-light: #e7e7e7;
             --white: #ffffff;
-            --text-dark: #0a0a0a;
+            --text-dark: #2C2C2C;
             --text-light: #5f5f5f;
             --transition: all 0.25s ease;
-            --border-radius: 8px;
-            --icon-size: 1rem;
-            --nav-link-padding: 0.5rem 0.9rem;
-            --shadow-sm: 0 2px 5px rgba(0,0,0,.06);
-            --shadow-md: 0 5px 15px rgba(0,0,0,.12);
-            --shadow-color-primary: rgba(195, 33, 38, .2);
+            --border-radius: 12px;
+            --icon-size: 1.1rem;
+            --nav-link-padding: 0.6rem 1rem;
+            --shadow-sm: 0 2px 10px rgba(0,0,0,.05);
+            --shadow-md: 0 5px 20px rgba(0,0,0,.08);
+            --shadow-color-primary: rgba(109, 14, 22, .2);
         }
 
         /* START: Dark Mode Variables */
@@ -79,8 +81,8 @@
         .sidebar-content::-webkit-scrollbar{width:5px}
         .sidebar-content::-webkit-scrollbar-thumb{background-color:var(--primary-light);border-radius:3px}
         .sidebar-content::-webkit-scrollbar-track{background-color:var(--secondary-light)}
-        .sidebar-brand{padding:1rem;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:var(--primary-dark);border-bottom:1px solid var(--secondary-light);flex-shrink:0}
-        .sidebar-brand i{font-size:1.4rem;margin-left:.5rem;color:var(--primary-dark)}
+        .sidebar-brand{padding:1.4rem;display:flex;align-items:center;justify-content:center;font-size:1.35rem;font-weight:800;color:var(--primary-dark);border-bottom:1px solid var(--secondary-light);flex-shrink:0; letter-spacing: 1px;}
+        .sidebar-brand i{font-size:1.6rem;margin-left:.7rem;color:var(--accent-gold)}
         .nav-link{color:var(--text-dark);padding:var(--nav-link-padding);margin:.15rem .5rem;border-radius:var(--border-radius);display:flex;align-items:center;transition:var(--transition);font-weight:500;font-size:.9rem;position:relative;text-decoration:none}
         .nav-link:hover{background-color:var(--primary-light);color:#fff;transform:translateX(-5px)}
         .nav-link.active{background-color:var(--primary-medium);color:#fff;font-weight:600;box-shadow:0 4px 8px var(--shadow-color-primary)}
@@ -136,10 +138,10 @@
             .sidebar-overlay.active{opacity:1;visibility:visible}
         }
         /* === أيقونات سوداء دائمًا (رئيسية وفرعية) === */
-        .sidebar .nav-link .bi{color:var(--text-dark)!important;font-size:var(--icon-size);width:20px;text-align:center;margin-left:.5rem;vertical-align:middle}
-        .sidebar .nav-link:hover .bi,.sidebar .nav-link.active .bi{color:#fff!important;transform:scale(1.06)}
-        .sidebar .reports-submenu .nav-link.sub-link .bi{color:var(--text-dark)!important;font-size:.95rem}
-        .sidebar .reports-submenu .nav-link.sub-link:hover .bi{color:var(--primary-dark)!important;transform:none}
+        .sidebar .nav-link .bi{color:var(--secondary-dark)!important;font-size:var(--icon-size);width:20px;text-align:center;margin-left:.6rem;vertical-align:middle; opacity: 0.8;}
+        .sidebar .nav-link:hover .bi,.sidebar .nav-link.active .bi{color:#fff!important;transform:scale(1.1); opacity: 1;}
+        .sidebar .reports-submenu .nav-link.sub-link .bi{color:var(--secondary-dark)!important;font-size:.95rem}
+        .sidebar .reports-submenu .nav-link.sub-link:hover .bi{color:var(--accent-gold)!important;transform:none}
         .sidebar .nav-link.reports-toggle .bi,
         .sidebar .nav-link.reports-toggle:hover .bi,
         .sidebar .nav-link.reports-toggle.active .bi{color:inherit!important}
@@ -344,6 +346,45 @@
             opacity: 0.5;
         }
         /* END: Context Menu Styles */
+
+        /* START: Global Loader Styles */
+        #global-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: rgba(245, 245, 245, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1.5rem;
+            transition: opacity 0.3s ease;
+        }
+        .loader-content {
+            text-align: center;
+            animation: fadeInScale 0.4s ease-out;
+        }
+        .premium-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(109, 14, 22, 0.1);
+            border-top: 3px solid var(--primary-dark);
+            border-right: 3px solid var(--accent-gold);
+            border-radius: 50%;
+            animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            margin: 0 auto;
+        }
+        .loader-text {
+            color: var(--primary-dark);
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeInScale { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        /* END: Global Loader Styles */
     </style>
     @stack('styles')
 </head>
@@ -793,9 +834,40 @@
     <div id="context-menu"></div>
     <!-- END: Context Menu HTML -->
 
+    <div id="global-loader">
+        <div class="loader-content">
+            <div class="premium-spinner"></div>
+            <div class="loader-text mt-3">جاري التحميل...</div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const loader = document.getElementById('global-loader');
+        
+        // Show loader on link clicks
+        document.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href && href !== '#' && !href.startsWith('javascript:') && !this.hasAttribute('data-bs-toggle') && !this.hasAttribute('target')) {
+                    loader.style.display = 'flex';
+                }
+            });
+        });
+
+        // Show loader on form submissions
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function() {
+                loader.style.display = 'flex';
+            });
+        });
+
+        // Hide loader when page is shown (useful for back/forward cache)
+        window.addEventListener('pageshow', function() {
+            loader.style.display = 'none';
+        });
+
         // This script is no longer strictly necessary with pure Alpine control, but can be a good fallback.
         const mainWrapper = document.querySelector('.main-wrapper');
         const overlay = document.querySelector('.sidebar-overlay');

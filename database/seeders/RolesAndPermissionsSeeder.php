@@ -13,58 +13,73 @@ class RolesAndPermissionsSeeder extends Seeder
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // قائمة شاملة بكل الصلاحيات في النظام
+        // قائمة شاملة بكل الصلاحيات في النظام (بعد الحذف والترتيب)
         $permissions = [
-            'view-admin-panel', 'view-activity-log', 'edit-settings',
-            
-            // Products
-            'view-products', 'create-products', 'edit-products', 'delete-products',
-            
-            // Categories
-            'view-categories', 'create-categories', 'edit-categories', 'delete-categories',
-            
-            // Orders
-            'view-orders', 'create-orders', 'edit-orders', 'delete-orders',
-            'view-trashed-orders', 'restore-orders', 'force-delete-orders',
-
-            // Users & Roles
-            'view-users', 'create-users', 'edit-users', 'delete-users', 'ban-users',
-            'impersonate-users', 'logout-users',
-            'view-roles', 'create-roles', 'edit-roles', 'delete-roles',
-
-            // Customers
-            'view-customers', 'create-customers', 'edit-customers', 'delete-customers', 'ban-customers',
-            'manage-wallet', // صلاحية لإدارة محفظة العميل
-
-            // Suppliers & Purchases
-            'view-suppliers', 'create-suppliers', 'edit-suppliers', 'delete-suppliers',
-            'view-purchases', 'create-purchases', 'edit-purchases', 'delete-purchases',
-
-            // Financial & Inventory
-            'view-expenses', 'create-expenses', 'edit-expenses', 'delete-expenses',
-            'view-inventory',
-
-            // Discount Codes
-            'view-discount-codes', 'create-discount-codes', 'edit-discount-codes', 'delete-discount-codes',
-            
-
-            // Reports
-            'view-reports', 'view-reports-financial', 'view-reports-inventory', 'view-reports-customers',
-
-            // Backups & Imports
-            'manage-backups', 'manage-imports',
-
-            // Blog
-            'view-blog', 'create-blog', 'edit-blog', 'delete-blog',
-            
-            // Barcodes
+            // --- نظام عام ---
+            'view-admin-panel', 
+            'view-activity-log', 
+            'edit-settings',
+            'manage-backups', 
+            'manage-imports',
             'manage-barcodes',
+
+            // --- المنتجات والأقسام ---
+            'view-products', 
+            'create-products', 
+            'edit-products', 
+            'delete-products',
+            'view-categories', 
+            'create-categories', 
+            'edit-categories', 
+            'delete-categories',
             
-            // Customer Tiers
+            // --- الطلبات والمبيعات ---
+            'view-orders', 
+            'create-orders', 
+            'edit-orders', 
+            'delete-orders',
+            'view-trashed-orders', 
+            'restore-orders', 
+            'force-delete-orders',
+
+            // --- المستخدمين والمدراء ---
+            'view-users', 
+            'create-users', 
+            'edit-users', 
+            'delete-users', 
+            'ban-users',
+            'impersonate-users', 
+            'logout-users',
+            'view-roles', 
+            'create-roles', 
+            'edit-roles', 
+            'delete-roles',
+
+            // --- العملاء ---
+            'view-customers', 
+            'create-customers', 
+            'edit-customers', 
+            'delete-customers', 
+            'ban-customers',
+            'manage-wallet', 
             'manage-customer-tiers',
-            
-            // Reviews
-            'manage-reviews'
+
+            // --- المدونة والمراجعات ---
+            'view-blog', 
+            'create-blog', 
+            'edit-blog', 
+            'delete-blog',
+            'manage-reviews',
+
+            // --- كود الخصم ---
+            'view-discount-codes', 
+            'create-discount-codes', 
+            'edit-discount-codes', 
+            'delete-discount-codes',
+
+            // --- التقارير ---
+            'view-reports', 
+            'view-reports-customers',
         ];
 
         foreach ($permissions as $permission) {
@@ -75,7 +90,7 @@ class RolesAndPermissionsSeeder extends Seeder
             ->where('guard_name', 'admin')
             ->get();
 
-        // المدير العام (Super-Admin)
+        // المدير العام (Super-Admin) - يمتلك كل الصلاحيات
         Role::firstOrCreate(['name' => 'Super-Admin', 'guard_name' => 'admin'])
             ->syncPermissions($adminPermissions);
 

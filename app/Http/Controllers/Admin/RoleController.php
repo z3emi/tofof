@@ -28,7 +28,8 @@ class RoleController extends Controller
      */
     public function index()
     {
-        $roles = Role::paginate(10);
+        // عرض الأدوار الخاصة بلوحة التحكم فقط (admin guard) لتجنب التكرار
+        $roles = Role::where('guard_name', 'admin')->paginate(10);
         return view('admin.roles.index', compact('roles'));
     }
 
@@ -37,7 +38,8 @@ class RoleController extends Controller
      */
     public function create()
     {
-        $permissions = Permission::all();
+        // جلب الصلاحيات الخاصة بنظام الإدارة فقط
+        $permissions = Permission::where('guard_name', 'admin')->get();
         return view('admin.roles.create', compact('permissions'));
     }
 
@@ -52,14 +54,19 @@ class RoleController extends Controller
             'permissions.*' => 'integer|exists:permissions,id',
         ]);
 
-        $role = Role::create(['name' => $request->name]);
+        $role = Role::create([
+            'name' => $request->name,
+            'guard_name' => 'admin' // إنشاء أدوار لوحة التحكم دائماً بـ guard: admin
+        ]);
         
-        // ===== START: تم تعديل هذا الجزء =====
-        // جلب أسماء الصلاحيات من الـ IDs قبل المزامنة
+        // جلب أسماء الصلاحيات من الـ IDs الخاصة بـ guard: admin حصراً
         $permissionIds = $request->input('permissions', []);
-        $permissions = Permission::whereIn('id', $permissionIds)->pluck('name')->toArray();
+        $permissions = Permission::whereIn('id', $permissionIds)
+            ->where('guard_name', 'admin')
+            ->pluck('name')
+            ->toArray();
+            
         $role->syncPermissions($permissions);
-        // ===== END: تم تعديل هذا الجزء =====
 
         return redirect()->route('admin.roles.index')->with('success', 'تم إنشاء الدور بنجاح.');
     }
@@ -69,7 +76,13 @@ class RoleController extends Controller
      */
     public function edit(Role $role)
     {
-        $permissions = Permission::all();
+        if ($role->name === 'Super-Admin' && $role->guard_name === 'admin') {
+            return redirect()->route('admin.roles.index')->with('error', 'لا يمكن تعديل صلاحيات المدير العام.');
+        }
+        
+        // جلب الصلاحيات المتوافقة مع الـ Guard الخاص بهذا الدور
+        $permissions = Permission::where('guard_name', $role->guard_name)->get();
+        
         return view('admin.roles.edit', compact('role', 'permissions'));
     }
 
@@ -78,6 +91,10 @@ class RoleController extends Controller
      */
     public function update(Request $request, Role $role)
     {
+        if ($role->name === 'Super-Admin' && $role->guard_name === 'admin') {
+            return redirect()->route('admin.roles.index')->with('error', 'لا يمكن تعديل صلاحيات المدير العام.');
+        }
+
         $request->validate([
             'name' => 'required|string|unique:roles,name,' . $role->id,
             'permissions' => 'nullable|array',
@@ -86,12 +103,14 @@ class RoleController extends Controller
 
         $role->update(['name' => $request->name]);
 
-        // ===== START: تم تعديل هذا الجزء =====
-        // جلب أسماء الصلاحيات من الـ IDs قبل المزامنة
+        // جلب أسماء الصلاحيات المتوافق مع الـ guard الخاص بالدور
         $permissionIds = $request->input('permissions', []);
-        $permissions = Permission::whereIn('id', $permissionIds)->pluck('name')->toArray();
+        $permissions = Permission::whereIn('id', $permissionIds)
+            ->where('guard_name', $role->guard_name)
+            ->pluck('name')
+            ->toArray();
+        
         $role->syncPermissions($permissions);
-        // ===== END: تم تعديل هذا الجزء =====
 
         return redirect()->route('admin.roles.index')->with('success', 'تم تحديث الدور بنجاح.');
     }

@@ -23,9 +23,9 @@
         margin-top: 1rem;
     }
     .pagination .page-item .page-link {
-        background-color: #f9f5f1 !important;
-        color: #cd8985 !important;
-        border-color: #cd8985 !important;
+        background-color: #fff !important;
+        color: var(--primary-dark) !important;
+        border-color: var(--primary-dark) !important;
         font-weight: 600;
         border-radius: 0.375rem;
         transition: background-color 0.3s, color 0.3s;
@@ -37,8 +37,8 @@
         border-color: #dcaca9 !important;
     }
     .pagination .page-item.active .page-link {
-        background-color: #cd8985 !important;
-        border-color: #cd8985 !important;
+        background-color: var(--primary-dark) !important;
+        border-color: var(--primary-dark) !important;
         color: #fff !important;
     }
 
@@ -49,7 +49,7 @@
         --bs-table-accent-bg: #f3e5e3 !important;
     }
     .selectable-row.selected {
-        outline: 2px solid #cd8985;
+        outline: 2px solid var(--primary-dark);
         outline-offset: -2px;
     }
 </style>
@@ -72,7 +72,7 @@
                 </a>
             @endif
             @if($canCreateManagers)
-                <a href="{{ route('admin.managers.create') }}" class="btn btn-primary btn-sm" style="background-color: #cd8985; border-color: #cd8985;">
+                <a href="{{ route('admin.managers.create') }}" class="btn btn-primary btn-sm" style="background-color: var(--primary-dark); border-color: var(--primary-dark);">
                     <i class="bi bi-plus-circle me-1"></i> إضافة مدير جديد
                 </a>
             @endif
@@ -93,7 +93,7 @@
                 </select>
             </div>
             <div class="col-auto">
-                <button type="submit" class="btn btn-primary" style="background-color: #cd8985; border-color: #cd8985;">
+                <button type="submit" class="btn btn-primary" style="background-color: var(--primary-dark); border-color: var(--primary-dark);">
                     <i class="bi bi-search me-1"></i> بحث
                 </button>
                 @if(request()->hasAny(['search', 'status']))

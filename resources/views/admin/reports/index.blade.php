@@ -9,6 +9,7 @@
 
     <div class="row g-4">
         {{-- التقرير المالي --}}
+        @can('view-reports-financial')
         <div class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm">
                 <div class="card-body text-center">
@@ -21,21 +22,23 @@
                 </div>
             </div>
         </div>
+        @endcan
 
-        {{-- تقارير المخزون (مثال لم يتم إنشاؤه بعد) --}}
-<div class="col-md-6 col-lg-4">
-    <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-            <div class="mb-3">
-                <i class="bi bi-boxes fs-1 text-primary"></i>
+        {{-- تقارير المخزون --}}
+        @can('view-reports-inventory')
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-boxes fs-1 text-primary"></i>
+                    </div>
+                    <h5 class="card-title">تقارير المخزون</h5>
+                    <p class="card-text text-muted small">متابعة المنتجات التي على وشك النفاد والأكثر مبيعًا.</p>
+                    <a href="{{ route('admin.reports.inventory') }}" class="btn btn-primary btn-sm">عرض التقرير</a>
+                </div>
             </div>
-            <h5 class="card-title">تقارير المخزون</h5>
-            <p class="card-text text-muted small">متابعة المنتجات التي على وشك النفاد والأكثر مبيعًا.</p>
-            {{-- **THE CHANGE**: Update the link and remove the 'disabled' class --}}
-            <a href="{{ route('admin.reports.inventory') }}" class="btn btn-primary btn-sm">عرض التقرير</a>
         </div>
-    </div>
-</div>
+        @endcan
 
         {{-- تقارير العملاء (مثال لم يتم إنشاؤه بعد) --}}
 <div class="col-md-6 col-lg-4">
