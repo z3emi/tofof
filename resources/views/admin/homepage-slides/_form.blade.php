@@ -46,10 +46,41 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label for="button_url" class="form-label">رابط الزر</label>
+                        <label for="button_url" class="form-label">رابط التوجيه</label>
                         <input type="text" name="button_url" id="button_url" class="form-control @error('button_url') is-invalid @enderror"
                                value="{{ old('button_url', $homepageSlide->button_url ?? '') }}" placeholder="/shop أو https://example.com">
                         @error('button_url') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label d-block">طريقة التفعيل</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="click_type" id="click_type_button" value="button" @checked(old('click_type', $homepageSlide->click_type ?? 'button') === 'button')>
+                            <label class="btn btn-outline-primary" for="click_type_button">
+                                <i class="bi bi-cursor-fill me-1"></i> تفعيل الزر فقط
+                            </label>
+
+                            <input type="radio" class="btn-check" name="click_type" id="click_type_image" value="image" @checked(old('click_type', $homepageSlide->click_type ?? 'button') === 'image')>
+                            <label class="btn btn-outline-primary" for="click_type_image">
+                                <i class="bi bi-image-fill me-1"></i> الصورة بالكامل كزر
+                            </label>
+                        </div>
+                        <small class="text-muted mt-2 d-block">
+                            <i class="bi bi-info-circle"></i> عند اختيار "الصورة بالكامل كزر"، سيتم إخفاء الزر ويصبح الضغط على أي مكان في الصورة يوجه للرابط.
+                        </small>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="background_image" class="form-label">صورة الخلفية (العربية) <span class="text-danger">*</span></label>
+                        <input type="file" name="background_image" id="background_image" accept=".jpg,.jpeg,.png,.webp"
+                               class="form-control @error('background_image') is-invalid @enderror">
+                        @error('background_image') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        
+                        @if(!empty($homepageSlide?->background_image_url))
+                            <div class="mt-2">
+                                <img src="{{ $homepageSlide->background_image_url }}" class="img-fluid rounded border" style="max-height: 150px;">
+                            </div>
+                        @endif
                     </div>
 
                     <div class="col-12">
@@ -91,8 +122,22 @@
                     <div class="col-md-6">
                         <label class="form-label">&nbsp;</label>
                         <small class="text-muted d-block">
-                            <i class="bi bi-info-circle"></i> The button URL is the same for both languages
+                            <i class="bi bi-info-circle"></i> The redirection URL is the same for both languages
                         </small>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="background_image_en" class="form-label">Background Image (English)</label>
+                        <input type="file" name="background_image_en" id="background_image_en" accept=".jpg,.jpeg,.png,.webp"
+                               class="form-control @error('background_image_en') is-invalid @enderror">
+                        @error('background_image_en') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <small class="text-muted">Optional: If left empty, the Arabic image will be used for English as well.</small>
+                        
+                        @if(!empty($homepageSlide?->background_image_en_url))
+                            <div class="mt-2">
+                                <img src="{{ $homepageSlide->background_image_en_url }}" class="img-fluid rounded border" style="max-height: 150px;">
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -102,49 +147,32 @@
     <div class="col-lg-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">صورة الخلفية</h5>
+                <h5 class="mb-0">حالة السلايد</h5>
             </div>
             <div class="card-body">
-                <label for="background_image" class="form-label">رفع صورة</label>
-                <input type="file" name="background_image" id="background_image" accept=".jpg,.jpeg,.png,.webp"
-                       class="form-control @error('background_image') is-invalid @enderror">
-                @error('background_image') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1"
+                           @checked(old('is_active', $homepageSlide->is_active ?? true))>
+                    <label class="form-check-label fw-bold" for="is_active">السلايد ظاهر في الموقع</label>
+                </div>
 
-                <small class="text-muted d-block mt-2">يفضّل صورة أفقية واضحة للهيرو والسلايدرات.</small>
                 <div class="alert alert-info mt-3 py-3 px-3 border-0 shadow-sm" style="background: rgba(13, 202, 240, 0.1); color: #055160; border-radius: 12px; border-right: 4px solid #0dcaf0 !important;">
                     <div class="d-flex">
                         <i class="bi bi-aspect-ratio-fill fs-4 me-3 mt-1"></i>
                         <div>
-                            <div class="fw-bold mb-2" style="font-size: 1rem;">القياسات الموصى بها للأبعاد الجديدة:</div>
+                            <div class="fw-bold mb-2" style="font-size: 1rem;">القياسات الموصى بها:</div>
                             <ul class="list-unstyled mb-0" style="font-size: 0.9rem; line-height: 1.6;">
                                 <li class="mb-2">
-                                    <span class="badge bg-info text-white me-1">الهيرو سلايدر (الأول):</span>
-                                    <strong>1920 × 700 بكسل</strong> <small>(نسبة 2.7:1)</small>
+                                    <span class="badge bg-info text-white me-1">الهيرو 1:</span>
+                                    <strong>1920 × 700</strong>
                                 </li>
                                     <li>
-                                        <span class="badge bg-secondary text-white me-1">السلايدرات الترويجية (2 و 3):</span>
-                                        <strong>1920 × 540 بكسل</strong> <small>(نسبة 3.5:1 تقريباً)</small>
+                                        <span class="badge bg-secondary text-white me-1">الترويجي 2 و 3:</span>
+                                        <strong>1920 × 540</strong>
                                     </li>
                             </ul>
-                            <div class="mt-2 text-muted small">
-                                <i class="bi bi-info-circle"></i> يرجى التأكد من أن الصورة أفقية (عرضية) لضمان عدم قص الأطراف بشكل سيء.
-                            </div>
                         </div>
                     </div>
-                </div>
-
-                @if(!empty($homepageSlide?->background_image_url))
-                    <div class="mt-3">
-                        <div class="small text-muted mb-2">المعاينة الحالية</div>
-                            <img src="{{ $homepageSlide->background_image_url }}" alt="{{ $homepageSlide->alt_text ?: ($homepageSlide->title ?: 'صورة سلايدر') }}"
-                             class="img-fluid rounded border" style="max-height: 220px; object-fit: cover; width: 100%;">
-                    </div>
-                @endif
-
-                <div class="form-check form-switch mt-4">
-                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1"
-                           @checked(old('is_active', $homepageSlide->is_active ?? true))>
-                    <label class="form-check-label" for="is_active">السلايد ظاهر في الموقع</label>
                 </div>
             </div>
         </div>

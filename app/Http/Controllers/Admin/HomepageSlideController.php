@@ -41,6 +41,10 @@ class HomepageSlideController extends Controller
             $data['background_image'] = $this->uploadAndConvertImage($request->file('background_image'), 'homepage-slides');
         }
 
+        if ($request->hasFile('background_image_en')) {
+            $data['background_image_en'] = $this->uploadAndConvertImage($request->file('background_image_en'), 'homepage-slides');
+        }
+
         if (blank($data['sort_order'] ?? null)) {
             $data['sort_order'] = $this->nextSortOrder($data['section']);
         }
@@ -73,6 +77,14 @@ class HomepageSlideController extends Controller
             $data['background_image'] = $this->uploadAndConvertImage($request->file('background_image'), 'homepage-slides');
         }
 
+        if ($request->hasFile('background_image_en')) {
+            if ($homepageSlide->background_image_en && !str_starts_with($homepageSlide->background_image_en, 'http')) {
+                Storage::disk('public')->delete($homepageSlide->background_image_en);
+            }
+
+            $data['background_image_en'] = $this->uploadAndConvertImage($request->file('background_image_en'), 'homepage-slides');
+        }
+
         if (blank($data['sort_order'] ?? null)) {
             $data['sort_order'] = $this->nextSortOrder($data['section'], $homepageSlide->id);
         }
@@ -96,6 +108,10 @@ class HomepageSlideController extends Controller
 
         if ($homepageSlide->background_image && !str_starts_with($homepageSlide->background_image, 'http')) {
             Storage::disk('public')->delete($homepageSlide->background_image);
+        }
+
+        if ($homepageSlide->background_image_en && !str_starts_with($homepageSlide->background_image_en, 'http')) {
+            Storage::disk('public')->delete($homepageSlide->background_image_en);
         }
 
         $homepageSlide->delete();
@@ -164,11 +180,13 @@ class HomepageSlideController extends Controller
             'button_text_en' => ['nullable', 'string', 'max:255'],
             'button_url' => ['nullable', 'string', 'max:255'],
             'background_image' => [Rule::requiredIf(! $request->route('homepageSlide')), 'nullable', 'image', 'mimes:jpeg,png,jpg,webp'],
+            'background_image_en' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp'],
             'alt_text' => ['nullable', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer', 'min:1'],
             'show_overlay' => ['nullable', 'boolean'],
             'overlay_color' => ['nullable', 'string', 'max:20'],
             'overlay_strength' => ['nullable', 'numeric', 'min:0', 'max:1'],
+            'click_type' => ['nullable', 'string', 'in:button,image'],
         ]);
 
         $data['is_active'] = $request->boolean('is_active');

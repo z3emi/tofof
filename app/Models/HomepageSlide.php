@@ -25,12 +25,14 @@ class HomepageSlide extends Model
         'button_text_en',
         'button_url',
         'background_image',
+        'background_image_en',
         'alt_text',
         'sort_order',
         'is_active',
         'show_overlay',
         'overlay_color',
         'overlay_strength',
+        'click_type',
     ];
 
     protected $casts = [
@@ -169,14 +171,35 @@ class HomepageSlide extends Model
 
     public function getBackgroundImageUrlAttribute(): ?string
     {
-        if (blank($this->background_image)) {
+        return $this->getImageUrl($this->background_image);
+    }
+
+    public function getBackgroundImageEnUrlAttribute(): ?string
+    {
+        return $this->getImageUrl($this->background_image_en);
+    }
+
+    public function getEffectiveImageUrlAttribute(): ?string
+    {
+        $currentLocale = app()->getLocale();
+        
+        if ($currentLocale === 'en') {
+            return $this->background_image_en_url ?: $this->background_image_url;
+        }
+
+        return $this->background_image_url ?: $this->background_image_en_url;
+    }
+
+    protected function getImageUrl(?string $image): ?string
+    {
+        if (blank($image)) {
             return null;
         }
 
-        if (Str::startsWith($this->background_image, ['http://', 'https://'])) {
-            return $this->background_image;
+        if (Str::startsWith($image, ['http://', 'https://'])) {
+            return $image;
         }
 
-        return asset('storage/' . ltrim($this->background_image, '/'));
+        return asset('storage/' . ltrim($image, '/'));
     }
 }

@@ -729,9 +729,13 @@
             <div class="slider-container h-full" x-ref="sliderContainer">
                 @foreach($heroSlides as $slide)
                     <div class="slide">
-                        <img src="{{ $slide->image_path ?? $slide->background_image_url }}"
+                        @if($slide->click_type === 'image')
+                            <a href="{{ $slide->button_url ?? '#' }}" class="absolute inset-0 z-[10]" aria-label="{{ $slide->alt_text ?: $slide->title }}"></a>
+                        @endif
+
+                        <img src="{{ $slide->effective_image_url }}"
                              class="slide-bg"
-                                alt="{{ $slide->alt_text ?: ($slide->title ?: __('home.slider_image')) }}"
+                             alt="{{ $slide->alt_text ?: ($slide->title ?: __('home.slider_image')) }}"
                              width="1920"
                              height="700">
                         @if(!empty($slide->show_overlay))
@@ -760,7 +764,7 @@
                                     @endif
                                 </p>
                             @endif
-                            @if(!empty($slide->button_text) || !empty($slide->button_text_en))
+                            @if($slide->click_type !== 'image' && (!empty($slide->button_text) || !empty($slide->button_text_en)))
                                 <div class="-mt-2 w-full flex justify-center">
                                     <a href="{{ $slide->button_url ?? '#' }}" 
                                        class="inline-block bg-white text-[#c32126] px-6 py-2 rounded-full font-bold text-base hover:bg-gray-100 transition shadow-lg mx-auto">
@@ -1189,7 +1193,10 @@
       <div class="slider-container" x-ref="sliderContainer">
         @foreach($promoPrimarySlides as $slide)
             <div class="slide">
-              <img src="{{ $slide->background_image_url }}"
+                @if($slide->click_type === 'image')
+                    <a href="{{ $slide->button_url ?? '#' }}" class="absolute inset-0 z-[10]" aria-label="{{ $slide->alt_text ?: $slide->title }}"></a>
+                @endif
+              <img src="{{ $slide->effective_image_url }}"
                    class="slide-bg"
                     alt="{{ $slide->alt_text ?: ($slide->title ?: __('home.slider_image')) }}"
                    width="1920"
@@ -1220,7 +1227,7 @@
                         @endif
                     </p>
                 @endif
-                @if($slide->button_text || $slide->button_text_en)
+                @if($slide->click_type !== 'image' && ($slide->button_text || $slide->button_text_en))
                     <div class="-mt-2">
                         <a href="{{ $slide->button_url ?: '#' }}"
                            class="inline-block bg-white text-[#c32126] px-5 py-1.5 rounded-full font-bold text-sm hover:bg-gray-100 transition">
@@ -1839,7 +1846,10 @@
             <div class="slider-container" x-ref="sliderContainer">
                 @foreach($promoSecondarySlides as $slide)
                     <div class="slide">
-                        <img src="{{ $slide->background_image_url }}"
+                        @if($slide->click_type === 'image')
+                            <a href="{{ $slide->button_url ?? '#' }}" class="absolute inset-0 z-[10]" aria-label="{{ $slide->alt_text ?: $slide->title }}"></a>
+                        @endif
+                        <img src="{{ $slide->effective_image_url }}"
                              class="slide-bg"
                              alt="{{ $slide->alt_text ?: ($slide->title ?: __('home.slider_image')) }}"
                              width="1920"
@@ -1864,7 +1874,7 @@
                                     @endif
                                 </p>
                             @endif
-                            @if($slide->button_text || $slide->button_text_en)
+                            @if($slide->click_type !== 'image' && ($slide->button_text || $slide->button_text_en))
                                 <div class="-mt-2">
                                     <a href="{{ $slide->button_url ?: '#' }}" class="inline-block bg-white text-[#c32126] px-5 py-1.5 rounded-full font-bold text-sm hover:bg-gray-100 transition">
                                         @if(app()->getLocale() === 'en' && !empty($slide->button_text_en))
