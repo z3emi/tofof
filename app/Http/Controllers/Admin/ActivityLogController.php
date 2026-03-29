@@ -22,8 +22,8 @@ class ActivityLogController extends Controller
      */
     public function index(Request $request)
     {
-        // === وقت بغداد (أو خليه من config/app.php) ===
-        $timezone = config('app.timezone', 'Asia/Baghdad');
+        // === وقت بغداد (قابل للتعيين من config/app.php أو خليه افتراضي للبصرة وبغداد) ===
+        $timezone = config('app.timezone') === 'UTC' ? 'Asia/Baghdad' : config('app.timezone');
 
         // ===== 1) حدّد الموديلات المسموح يشوفها المستخدم حسب أذوناته =====
         // نستخدم أسماء الـ Model بالـ "basename" حتى ما نعتمد على الـ namespace كامل.

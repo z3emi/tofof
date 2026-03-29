@@ -106,7 +106,7 @@ $acts=['created'=>'إنشاء','updated'=>'تحديث','deleted'=>'حذف','logi
                                 @if(!$log->loggable) <span class="badge bg-light text-muted fw-normal" style="font-size:0.6rem">محذوف نهائياً</span> @endif
                             </td>
                             <td class="small text-muted">{{ $log->ip_address }}</td>
-                            <td class="small">{{ $log->created_at->format('Y-m-d H:i') }}</td>
+                            <td class="small">{{ $log->created_at->setTimezone($timezone)->format('Y-m-d H:i') }}</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-dark rounded-pill px-3" data-bs-toggle="collapse" data-bs-target="#det-{{ $log->id }}">
                                     عرض <i class="bi bi-chevron-down ms-1"></i>
