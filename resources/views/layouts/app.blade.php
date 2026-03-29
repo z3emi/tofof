@@ -2396,8 +2396,8 @@ document.addEventListener('alpine:init', () => {
           }
 
           this.results = flattened;
-          // Find first non-header index for highlight
-          this.highlightedIndex = this.results.findIndex(r => r.type !== 'header');
+          // Keep highlightedIndex at -1 by default so Enter submits the form unless user moves arrow keys
+          this.highlightedIndex = -1;
         })
         .catch(err => { if (err.name !== 'AbortError') { this.results = []; this.showResults = true; }})
         .finally(() => { this.loading = false; });

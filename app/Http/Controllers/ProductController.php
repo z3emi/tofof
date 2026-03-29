@@ -49,8 +49,8 @@ class ProductController extends Controller
             ->get();
         }
 
-        // 3. البحث عن المنتجات
-        $productsQuery = Product::query();
+        // 3. البحث عن المنتجات (فقط المنتجات النشطة)
+        $productsQuery = Product::where('is_active', true);
         if ($query) {
             $productsQuery->where(function ($q) use ($query) {
                 $q->where('name_ar', 'LIKE', "%{$query}%")

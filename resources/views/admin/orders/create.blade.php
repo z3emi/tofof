@@ -1,3 +1,5 @@
+@extends('admin.layout')
+
 @section('title', 'إضافة طلب يدوي جديد')
 
 @push('styles')
