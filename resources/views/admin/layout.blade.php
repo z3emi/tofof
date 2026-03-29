@@ -1067,11 +1067,11 @@
                             </li>
                             @endif
                             <li>
-                                <a class="dropdown-item text-danger" href="{{ route('logout') }}"
+                                <a class="dropdown-item text-danger" href="{{ route('admin.logout') }}"
                                    onclick="event.preventDefault(); document.getElementById('logout-form-top').submit();">
                                     <i class="bi bi-box-arrow-left me-2"></i> تسجيل الخروج
                                 </a>
-                                <form id="logout-form-top" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
+                                <form id="logout-form-top" action="{{ route('admin.logout') }}" method="POST" class="d-none">@csrf</form>
                             </li>
                         </ul>
                     </div>

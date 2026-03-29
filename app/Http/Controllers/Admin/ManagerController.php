@@ -265,20 +265,21 @@ class ManagerController extends Controller
 
         if ($manager->isProtectedSuperAdmin()) {
             $request->validate([
-                'password' => 'required|string|min:8|confirmed',
-            ], [
-                'password.required' => 'يجب إدخال كلمة المرور الجديدة.',
+                'password' => 'nullable|string|min:8|confirmed',
             ]);
 
-            $manager->update([
-                'password' => Hash::make($request->password),
-            ]);
-
-            return back()->with('success', 'تم تحديث كلمة مرور السوبر أدمن بنجاح.');
-        }
-
-        if ($manager->isSuperAdmin() && (!$currentManager || !$currentManager->isSuperAdmin())) {
-            abort(403, 'لا يمكنك تعديل حساب السوبر أدمن.');
+            if ($request->filled('password')) {
+                $manager->update([
+                    'password' => Hash::make($request->password),
+                ]);
+            }
+            
+            // Allow processing of other fields like avatar for the super admin
+        } else {
+            // General protection for any Super-Admin from non-Super-Admin users
+            if ($manager->isSuperAdmin() && (!$currentManager || !$currentManager->isSuperAdmin())) {
+                abort(403, 'لا يمكنك تعديل حساب السوبر أدمن.');
+            }
         }
 
         $canEditName = $currentManager?->can('edit-manager-name') ?? false;

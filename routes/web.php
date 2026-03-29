@@ -305,6 +305,7 @@ Route::middleware(['auth:admin', 'can:view-admin-panel'])->prefix('admin')->name
 
     // Admin Profile
     Route::get('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'show'])->name('profile');
+    Route::patch('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
     Route::patch('/profile/password', [\App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('profile.password');
 
     // Dashboard
