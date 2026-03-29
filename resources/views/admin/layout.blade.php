@@ -994,12 +994,16 @@
 
                     <hr class="mx-3 my-2">
 
+                    @if(auth()->user()->can('edit-settings') || auth()->user()->can('edit-settings-frontend') || auth()->user()->can('edit-settings-seo') || auth()->user()->can('manage-whatsapp') || auth()->user()->can('manage-slides') || auth()->user()->can('manage-backups') || auth()->user()->can('manage-barcodes') || auth()->user()->can('manage-customer-tiers') || auth()->user()->can('manage-imports'))
                     <li class="nav-item"
                         x-data="{ open: {{ (request()->routeIs('admin.settings.*')
-                                        || request()->routeIs('admin.homepage-slides.*')
-                                        || request()->routeIs('admin.imports.*')
-                                        || request()->routeIs('admin.backups.*')
-                                        || request()->routeIs('admin.barcodes.*')) ? 'true' : 'false' }} }">
+                                         || request()->routeIs('admin.whatsapp.*')
+                                         || request()->routeIs('admin.homepage-slides.*')
+                                         || request()->routeIs('admin.imports.*')
+                                         || request()->routeIs('admin.backups.*')
+                                         || request()->routeIs('admin.barcodes.*')
+                                         || request()->routeIs('admin.customer-tiers.*')
+                                         || request()->routeIs('admin.products.import_quantity')) ? 'true' : 'false' }} }">
 
                         <a href="#"
                         @click.prevent="open = !open"
@@ -1016,6 +1020,7 @@
 
                         <div x-show="open" x-collapse class="reports-submenu">
                             <ul class="nav flex-column">
+                                @if(auth()->user()->can('edit-settings') || auth()->user()->can('edit-settings-frontend') || auth()->user()->can('edit-settings-seo'))
                                 <li class="nav-item">
                                     <a href="{{ route('admin.settings.index') }}"
                                     class="nav-link sub-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
@@ -1023,6 +1028,8 @@
                                         <span>الموقع</span>
                                     </a>
                                 </li>
+                                @endif
+                                @can('manage-whatsapp')
                                 <li class="nav-item">
                                     <a href="{{ route('admin.whatsapp.index') }}"
                                     class="nav-link sub-link {{ request()->routeIs('admin.whatsapp.*') ? 'active' : '' }}">
@@ -1030,7 +1037,9 @@
                                         <span>واتساب</span>
                                     </a>
                                 </li>
+                                @endcan
 
+                                @can('manage-imports')
                                 <li class="nav-item">
                                     <a href="{{ route('admin.products.import_quantity') }}"
                                     class="nav-link sub-link {{ request()->routeIs('admin.products.import_quantity') ? 'active' : '' }}">
@@ -1038,6 +1047,8 @@
                                         <span>تحديث كميات المنتجات (Excel)</span>
                                     </a>
                                 </li>
+                                @endcan
+                                @can('manage-slides')
                                 <li class="nav-item">
                                     <a href="{{ route('admin.homepage-slides.index') }}"
                                     class="nav-link sub-link {{ request()->routeIs('admin.homepage-slides.*') ? 'active' : '' }}">
@@ -1045,6 +1056,8 @@
                                         <span>سلايدرات الصفحة</span>
                                     </a>
                                 </li>
+                                @endcan
+                                @can('manage-imports')
                                 <li class="nav-item">
                                     <a href="{{ route('admin.imports.index') }}"
                                     class="nav-link sub-link {{ request()->routeIs('admin.imports.*') ? 'active' : '' }}">
@@ -1052,6 +1065,8 @@
                                         <span>استرداد</span>
                                     </a>
                                 </li>
+                                @endcan
+                                @can('manage-backups')
                                 <li class="nav-item">
                                     <a href="{{ route('admin.backups.index') }}"
                                     class="nav-link sub-link {{ request()->routeIs('admin.backups.*') ? 'active' : '' }}">
@@ -1059,6 +1074,8 @@
                                         <span>النسخ الاحتياطي</span>
                                     </a>
                                 </li>
+                                @endcan
+                                @can('manage-barcodes')
                                 <li class="nav-item">
                                     <a href="{{ route('admin.barcodes.index') }}"
                                     class="nav-link sub-link {{ request()->routeIs('admin.barcodes.*') ? 'active' : '' }}">
@@ -1066,6 +1083,8 @@
                                         <span>أكواد QR / باركود</span>
                                     </a>
                                 </li>
+                                @endcan
+                                @can('manage-customer-tiers')
                                 <li class="nav-item">
                                     <a href="{{ route('admin.customer-tiers.index') }}"
                                     class="nav-link sub-link {{ request()->routeIs('admin.customer-tiers.*') ? 'active' : '' }}">
@@ -1073,9 +1092,11 @@
                                         <span>إعدادات الفئات (العملاء)</span>
                                     </a>
                                 </li>
+                                @endcan
                             </ul>
                         </div>
                     </li>
+                    @endif
                     
                     @can('view-activity-log')
                     <li class="nav-item">

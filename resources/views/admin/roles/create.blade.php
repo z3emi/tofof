@@ -4,7 +4,8 @@
 
 @php
     $translations = [
-        'view-admin-panel' => 'الوصول إلى لوحة التحكم', 'view-activity-log' => 'عرض سجل النشاطات (Log)', 'edit-settings' => 'تعديل إعدادات المتجر العامة',
+        'view-admin-panel' => 'الوصول إلى لوحة التحكم', 'view-activity-log' => 'عرض سجل النشاطات (Log)', 
+        'edit-settings' => 'إعدادات المتجر (عام)', 'edit-settings-frontend' => 'إعدادات واجهة الموقع', 'edit-settings-seo' => 'إعدادات SEO',
         'view-products' => 'عرض المنتجات', 'create-products' => 'إضافة منتج جديد', 'edit-products' => 'تعديل تفاصيل الساعات', 'delete-products' => 'حذف المنتجات',
         'view-categories' => 'عرض الأقسام والبراندات', 'create-categories' => 'إضافة قسم أو براند جديد', 'edit-categories' => 'تعديل الأقسام والبراندات', 'delete-categories' => 'حذف الأقسام والبراندات',
         'view-orders' => 'عرض طلبات العملاء', 'create-orders' => 'إضافة طلب يدوي', 'edit-orders' => 'تحديث حالة الطلب', 'delete-orders' => 'حذف الطلبات',
@@ -13,8 +14,8 @@
         'view-roles' => 'عرض الأدوار والصلاحيات', 'create-roles' => 'إضافة دور جديد', 'edit-roles' => 'تعديل صلاحيات الأدوار', 'delete-roles' => 'حذف الأدوار',
         'view-customers' => 'عرض بيانات العملاء', 'create-customers' => 'إضافة عميل جديد', 'edit-customers' => 'تعديل بيانات العميل', 'delete-customers' => 'حذف العملاء', 'ban-customers' => 'حظر العملاء', 'manage-wallet' => 'إدارة محفظة العميل',
         'view-discount-codes' => 'إدارة الكوبونات والعروض', 'create-discount-codes' => 'إضافة كود خصم', 'edit-discount-codes' => 'تعديل كود خصم', 'delete-discount-codes' => 'حذف كود خصم',
-        'view-reports' => 'الوصول للتقارير', 'view-reports-customers' => 'تقارير العملاء', 'manage-backups' => 'إدارة النسخ الاحتياطي', 'manage-imports' => 'تحديث النسخة البرمجية',
-        'view-blog' => 'عرض مقالات المدونة', 'create-blog' => 'إضافة مقال جديد', 'edit-blog' => 'تعديل المقالات', 'delete-blog' => 'حذف المقالات',
+        'view-reports' => 'الوصول للتقارير', 'view-reports-financial' => 'تقارير المبيعات', 'view-reports-inventory' => 'تقارير المخزون', 'view-reports-customers' => 'تقارير العملاء',
+        'manage-backups' => 'إدارة النسخ الاحتياطي', 'manage-imports' => 'إدارة الاسترداد والتحديث', 'manage-whatsapp' => 'إدارة الواتساب', 'manage-slides' => 'إدارة السلايدرات',
         'manage-barcodes' => 'إدارة الباركود و QR', 'manage-customer-tiers' => 'إعدادات فئات العملاء', 'manage-reviews' => 'إدارة تقييمات المنتج', 'manage-expenses' => 'إدارة المصاريف', 'manage-suppliers' => 'إدارة الموردين',
     ];
 
@@ -27,7 +28,7 @@
         if (str_contains($name, 'customer')) return 'العملاء (Customers)';
         if (str_contains($name, 'discount')) return 'الكوبونات (Coupons)';
         if (str_contains($name, 'report') || str_contains($name, 'expense')) return 'التقارير (Reports)';
-        if (str_contains($name, 'setting') || str_contains($name, 'backup') || str_contains($name, 'import')) return 'النظام (System)';
+        if (str_contains($name, 'setting') || str_contains($name, 'backup') || str_contains($name, 'import') || str_contains($name, 'whatsapp') || str_contains($name, 'slide')) return 'النظام (System)';
         return 'عام (General)';
     }
 
