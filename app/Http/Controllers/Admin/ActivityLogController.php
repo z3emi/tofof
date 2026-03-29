@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\Manager;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -65,6 +66,7 @@ class ActivityLogController extends Controller
             $query->where(function ($q) {
                 $q->whereNull('user_id')
                   ->orWhereHas('user.roles', function ($r) {
+                      // في هذا المشروع، المدراء هم الذين يقومون بالعمليات المسجلة
                       $r->where('name', '!=', 'user');
                   });
             });
@@ -147,7 +149,7 @@ class ActivityLogController extends Controller
         $logs = $query->orderBy($sortBy, $sortDir)->paginate($perPage);
 
         // قائمة مستخدمين للفلاتر (اسم + هاتف) — فقط اللي مو role=user حتى ما تكثر القائمة
-        $users = User::select('id','name','phone_number')
+        $users = Manager::select('id','name','phone_number')
                      ->whereDoesntHave('roles', function ($r) { $r->where('name','user'); })
                      ->orderBy('name')
                      ->get();

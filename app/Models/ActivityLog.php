@@ -37,8 +37,9 @@ class ActivityLog extends Model
 
     public function user()
     {
-        // سيعرض "مستخدم محذوف" إن لم يعد موجودًا
-        return $this->belongsTo(User::class)->withDefault(['name' => 'مستخدم محذوف']);
+        // سيعرض "مدير" إن لم يعد موجودًا (تغير من مستخدم محذوف بناء على طلب المستخدم)
+        // تم تغييرها لـ Manager لأن جدول activity_logs.user_id يشير لجدول managers في قواعد البيانات
+        return $this->belongsTo(Manager::class)->withDefault(['name' => 'مدير']);
     }
 
     public function loggable()
