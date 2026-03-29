@@ -407,7 +407,7 @@ html:not(.dark) .auth-foot a{color:#202737;}
       <!-- ترويسة الكارت -->
       <div class="auth-card-header">
         <div class="auth-logo-ring">
-          <img src="{{ asset('logo.png') }}" alt="Tofof">
+          <img src="{{ asset('sec-logo.png') }}" alt="Tofof">
         </div>
         <h2>{{ __('auth_pages.login.heading') }}</h2>
         <p>{{ __('auth_pages.login.subtitle') }}</p>

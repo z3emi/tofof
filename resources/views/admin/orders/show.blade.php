@@ -90,7 +90,7 @@
                 <div class="panel-header">
                     <div class="header-text">
                         <i class="bi bi-person-circle"></i>
-                        <span>معلومات العميل</span>
+                        <span>معلومات المستخدم</span>
                     </div>
                     @if($order->user_id)
                     <a href="{{ route('admin.users.show', $order->user_id) }}" class="btn btn-sm btn-outline-secondary">
@@ -98,7 +98,7 @@
                     </a>
                     @endif
                 </div>
-                <p class="mb-1"><strong>الاسم:</strong> {{ $order->customer->name ?? 'عميل محذوف' }}</p>
+                <p class="mb-1"><strong>الاسم:</strong> {{ $order->customer->name ?? 'مستخدم محذوف' }}</p>
                 <p><strong>الهاتف:</strong> <a href="tel:{{ $order->customer->phone_number ?? '' }}">{{ $order->customer->phone_number ?? 'N/A' }}</a></p>
                 <hr class="my-2">
                 @if($order->is_gift)
@@ -256,7 +256,7 @@
                 @if($primaryAddress?->latitude && $primaryAddress?->longitude)
                     <div id="orderLocationMap"></div>
                 @else
-                    <p class="text-muted text-center my-4">لم يحدد العميل الموقع على الخريطة.</p>
+                    <p class="text-muted text-center my-4">لم يحدد المستخدم الموقع على الخريطة.</p>
                 @endif
             </div>
         </div>

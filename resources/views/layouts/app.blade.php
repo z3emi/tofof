@@ -107,7 +107,7 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
-    <link rel="apple-touch-icon" href="{{ asset('logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('sec-logo.png') }}">
 
     <script>
       window.__tofofDeferredInstallPrompt = null;
@@ -134,8 +134,8 @@
           "name": "{{ $locale === 'ar' ? ($seo['site_title_ar'] ?? $seo['site_title'] ?? 'طفوف') : ($seo['site_title_en'] ?? $seo['site_title'] ?? 'Tofof') }}",
           "alternateName": "{{ $siteTitle }}",
           "url": "{{ $canonical ?? url('/') }}/",
-          "logo": "{{ asset('logo.png') }}",
-          "image": "{{ asset('logo.png') }}",
+          "logo": "{{ asset('sec-logo.png') }}",
+          "image": "{{ asset('sec-logo.png') }}",
           "telephone": "+9647744969024",
           "sameAs": [
             "https://www.instagram.com/tofof_watches",
@@ -591,7 +591,7 @@ html[dir="rtl"] .glass-indicator {
   }
   @media (max-width: 767px) {
     .store-badge-row {
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       justify-content: center;
     }
     .store-badge-btn {
@@ -1057,9 +1057,8 @@ html[dir="rtl"] .glass-indicator {
         @endif
         <header id="mobileHeader" class="bg-[#6d0e16] py-3 border-b border-white/20 dark:border-white/15 shadow-md dark:shadow-black/40 relative overflow-visible">
             <div class="container mx-auto hidden lg:flex items-center justify-between px-4 md:px-8 text-white font-semibold">
-                <a href="{{ route('homepage') }}" class="text-xl sm:text-2xl flex items-center gap-2 hover:opacity-90 transition">
-                    <img src="{{ asset('logo.png') }}" alt="logo" class="w-10 h-10">
-                    <span class="text-white font-bold">{{ __('layout.tofof') }}</span>
+                <a href="{{ route('homepage') }}" class="hover:opacity-90 transition block">
+                    <img src="{{ asset('sec-logo.png') }}" alt="logo" class="h-12 w-auto object-contain">
                 </a>
                 <div 
                     x-data="liveSearch('{{ route('products.liveSearch') }}')" 
@@ -1191,8 +1190,8 @@ html[dir="rtl"] .glass-indicator {
             {{-- Mobile Header --}}
             <div class="container mx-auto lg:hidden flex flex-col px-4 text-white">
               <div class="flex w-full items-center justify-between min-h-[42px]">
-                <a href="{{ route('homepage') }}" class="flex items-center gap-2 text-lg font-bold">
-                  <img src="{{ asset('logo.png') }}" alt="logo" class="w-8 h-8"> Tofof
+                <a href="{{ route('homepage') }}" class="flex items-center">
+                  <img src="{{ asset('sec-logo.png') }}" alt="logo" class="h-9 w-auto object-contain">
                 </a>
                 <div class="flex items-center gap-2">
                   <button
@@ -1638,7 +1637,7 @@ html[dir="rtl"] .glass-indicator {
                                         $img = $brand->image ?: $brand->icon;
                                         // ✅ [تعديل] الشعار الافتراضي للمتجر الرئيسي
                                         // !!! هام: غيّر هذا الرابط إلى رابط شعار متجرك !!!
-                                        $defaultLogo = asset('logo.png'); 
+                                        $defaultLogo = asset('sec-logo.png'); 
                                     @endphp
                                     @if($img) 
                                         <img src="{{ asset('storage/' . $img) }}" alt="{{ app()->getLocale() === 'en' && !empty($brand->name_en) ? $brand->name_en : $brand->name_ar }}">
@@ -1858,13 +1857,10 @@ function brandMenuV4(){
 <footer class="bg-[#f7f7f7] text-gray-900 py-12 border-t border-[#e5e5e5] dark:bg-gray-950 dark:text-gray-200 dark:border-gray-800 transition-colors duration-300">
   <div class="container mx-auto px-4 grid grid-cols-1 gap-10 lg:grid-cols-4 text-center md:text-right">
     <div class="md:col-start-1">
-      <a href="{{ route('homepage') }}" class="flex items-center gap-2 mb-4 justify-center md:justify-start">
-        <img src="{{ asset('logo.png') }}" alt="Tofof Logo" class="w-12 h-12">
-        <span class="text-xl font-bold text-[#6d0e16]">{{ __('layout.tofof') }}</span>
+      <a href="{{ route('homepage') }}" class="flex mb-4 justify-center md:justify-start">
+        <img src="{{ asset('sec-logo.png') }}" alt="Tofof Logo" class="w-16 h-16 object-contain">
       </a>
-      <p class="leading-relaxed text-sm text-[#6B7280] dark:text-gray-300">
-        {{ __('layout.footer_description') }}
-      </p>
+      <!-- Branding text removed as requested -->
       <div class="flex gap-4 text-[#6d0e16] text-2xl mt-4 justify-center md:justify-start">
         <a href="https://www.facebook.com/p/%D8%B7%D9%81%D9%88%D9%81-%D9%84%D9%84%D8%B3%D8%A7%D8%B9%D8%A7%D8%AA-100091444293851/" target="_blank" rel="noopener noreferrer" class="hover:text-[#6d0e16] transition"><i class="bi bi-facebook"></i></a>
         <a href="https://www.instagram.com/tofof_watches" target="_blank" rel="noopener noreferrer" class="hover:text-[#6d0e16] transition"><i class="bi bi-instagram"></i></a>
@@ -2264,7 +2260,7 @@ function brandMenuV4(){
     currentIndex = 4;
   }
 
-  // ===== تحميل مسبق لكل صفحات الفوتر =====
+  // ===== التحميل المسبق لكل صفحات الفوتر =====
   function prefetchFooterPages() {
     NAV_ITEMS.forEach(url => {
       try {
@@ -2761,7 +2757,7 @@ document.addEventListener('alpine:init', () => {
   <div class="ios-install-card w-full max-w-md p-5 md:p-6 text-right">
     <div class="flex items-center justify-between gap-3 mb-4">
       <div class="flex items-center gap-3">
-        <img src="{{ asset('logo.png') }}" alt="Tofof" class="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 object-contain bg-white">
+        <img src="{{ asset('sec-logo.png') }}" alt="Tofof" class="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 object-contain bg-white">
         <div>
           <p id="installGuideTitle" class="font-extrabold text-[#6d0e16] dark:text-[#f0b0ad] leading-none">تثبيت طفوف</p>
           <p id="installGuideSubTitle" class="text-xs text-gray-500 dark:text-gray-400 mt-1">شرح التثبيت على جهازك</p>

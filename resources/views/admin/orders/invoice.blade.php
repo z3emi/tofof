@@ -124,7 +124,7 @@
                 $finalTotal = ($subtotal - $discountAmount) + $shippingCost;
 
                 $isGift = (bool) $order->is_gift;
-                $customerName = $order->customer->name ?? 'عميل محذوف';
+                $customerName = $order->customer->name ?? 'مستخدم محذوف';
                 $customerPhone = $order->customer->phone_number ?? 'N/A';
                 $standardAddress = trim(implode('، ', array_filter([$order->governorate, $order->city, $order->nearest_landmark])));
 

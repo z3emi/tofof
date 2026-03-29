@@ -21,7 +21,7 @@
 <div class="form-card">
     <div class="form-card-header">
         <h2 class="mb-2 fw-bold text-white"><i class="bi bi-cart-plus-fill me-2"></i> إنشاء طلب جديد</h2>
-        <p class="mb-0 opacity-75 fs-6 text-white small">إضافة طلب يدوي لأحد العملاء في النظام.</p>
+        <p class="mb-0 opacity-75 fs-6 text-white small">إضافة طلب يدوي لأحد المستخدمين في النظام.</p>
     </div>
 
     <div class="p-4 p-lg-5">
@@ -36,12 +36,12 @@
             @csrf
 
             <div class="mb-5">
-                <h5 class="form-section-title">معلومات العميل والعنوان</h5>
+                <h5 class="form-section-title">معلومات المستخدم والعنوان</h5>
                 <div class="row g-4">
                     <div class="col-md-12">
-                        <label class="form-label fw-bold">اختر العميل <span class="text-danger">*</span></label>
+                        <label class="form-label fw-bold">اختر المستخدم <span class="text-danger">*</span></label>
                         <select name="customer_id" id="customer_id" class="form-select" required>
-                            <option value="">-- اختر العميل من القائمة --</option>
+                            <option value="">-- اختر المستخدم من القائمة --</option>
                             @foreach($customers as $customer)
                                 <option value="{{ $customer->id }}" data-banned="{{ $customer->user?->banned_at ? 'true' : 'false' }}" @selected(old('customer_id') == $customer->id)>
                                     {{ $customer->name }} - {{ $customer->phone_number }}
@@ -49,13 +49,13 @@
                             @endforeach
                         </select>
                         <input type="hidden" name="saved_address_id" id="saved_address_id" value="{{ old('saved_address_id') }}">
-                        <div id="banned-customer-warning" class="text-danger fw-bold mt-2 d-none"><i class="bi bi-exclamation-triangle-fill"></i> تنبيه: هذا العميل محظور حالياً!</div>
+                        <div id="banned-customer-warning" class="text-danger fw-bold mt-2 d-none"><i class="bi bi-exclamation-triangle-fill"></i> تنبيه: هذا المستخدم محظور حالياً!</div>
                     </div>
 
                     <div class="col-12">
                         <div id="saved_addresses_wrapper" class="alert alert-light border-dashed rounded-4 p-4 mb-0 d-none">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0 fw-bold"><i class="bi bi-geo-alt-fill me-2"></i> العناوين المحفوظة لهذا العميل</h6>
+                                <h6 class="mb-0 fw-bold"><i class="bi bi-geo-alt-fill me-2"></i> العناوين المحفوظة لهذا المستخدم</h6>
                                 <span class="text-muted small">سيتم تعبئة الحقول تلقائياً عند الاختيار</span>
                             </div>
                             <div id="saved_addresses_list" class="row g-3"></div>

@@ -413,7 +413,7 @@ html:not(.dark) .reg-foot a{color:#202737;}
       <!-- ترويسة الكارت -->
       <div class="register-card-header">
         <div class="register-logo-ring">
-          <img src="{{ asset('logo.png') }}" alt="Tofof">
+          <img src="{{ asset('sec-logo.png') }}" alt="Tofof">
         </div>
         <h2>{{ __('auth_pages.register.heading') }}</h2>
         <p>{{ __('auth_pages.register.subtitle') }}</p>
