@@ -944,7 +944,7 @@
 {{-- تم حذف "px-16" من هنا --}}
 <div class="overflow-x-auto no-scrollbar js-auto-bounce" x-ref="catScroll">
     {{-- تم إضافة "pr-16" هنا لإضافة فراغ في نهاية القائمة فقط --}}
-    <div class="flex flex-row gap-[5px] md:gap-8 items-start w-max py-1 auto-bounce-track" x-ref="catTrack">
+    <div class="flex flex-row gap-[14px] md:gap-12 items-start w-max py-1 auto-bounce-track" x-ref="catTrack">
         {{-- العربي: canPrev يرجع لليمين، canNext يتقدم لليسار --}}
         <div class="pulse-arrow pulse-arrow-left" x-show="canGoLeft" x-cloak><i class="bi bi-chevron-left"></i></div>
         <div class="pulse-arrow pulse-arrow-right" x-show="canGoRight" x-cloak><i class="bi bi-chevron-right"></i></div>
@@ -1353,7 +1353,7 @@
     
     <div class="overflow-x-auto no-scrollbar js-auto-bounce" x-ref="catScroll">
         {{-- تم استخدام !important هنا للتغلب على أي كود آخر --}}
-        <div class="flex flex-row gap-[2px] md:gap-8 items-start w-max py-1 auto-bounce-track" x-ref="catTrack">
+        <div class="flex flex-row gap-[14px] md:gap-12 items-start w-max py-1 auto-bounce-track" x-ref="catTrack">
             {{-- الأسهم النابضة: تتبع نفس منطق الأزرار (showLeft لليسار و showRight لليمين) --}}
             <div class="pulse-arrow pulse-arrow-left" x-show="showLeftButton" x-cloak><i class="bi bi-chevron-left"></i></div>
             <div class="pulse-arrow pulse-arrow-right" x-show="showRightButton" x-cloak><i class="bi bi-chevron-right"></i></div>

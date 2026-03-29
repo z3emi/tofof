@@ -114,26 +114,28 @@
 @endpush
 
 @section('content')
-<h1 class="h4 fw-bold mb-3">لوحة التحكم</h1>
+<div class="p-4 p-lg-5">
+    <h1 class="h4 fw-bold mb-4" style="color: var(--primary-dark);"><i class="bi bi-speedometer2 me-2"></i> لوحة التحكم الرئيسية</h1>
+
 @can('view-orders')
 @php
     $stats = [
-        ['label' => 'إجمالي الطلبات',     'value' => $totalOrders,     'icon' => 'receipt',          'bg' => 'bg-soft-brand',    'color' => 'text-brand', 'route' => route('admin.orders.index')],
-        ['label' => 'طلبات قيد الانتظار', 'value' => $pendingOrders,   'icon' => 'clock-history',    'bg' => 'bg-soft-warning','color' => 'text-warning','route' => route('admin.orders.index',['status'=>'pending'])],
-        ['label' => 'طلبات مكتملة',       'value' => $completedOrders,'icon' => 'check-circle',     'bg' => 'bg-soft-success','color' => 'text-success','route' => route('admin.orders.index',['status'=>'delivered'])],
-        ['label' => 'طلبات راجعة',         'value' => $returnedOrders, 'icon' => 'arrow-return-left','bg'=> 'bg-soft-danger', 'color' => 'text-danger', 'route' => route('admin.orders.index',['status'=>'returned'])],
+        ['label' => 'إجمالي الطلبات',     'value' => $totalOrders,     'icon' => 'receipt',          'bg' => 'bg-white',    'color' => 'text-primary', 'route' => route('admin.orders.index')],
+        ['label' => 'طلبات قيد الانتظار', 'value' => $pendingOrders,   'icon' => 'clock-history',    'bg' => 'bg-white','color' => 'text-warning','route' => route('admin.orders.index',['status'=>'pending'])],
+        ['label' => 'طلبات مكتملة',       'value' => $completedOrders,'icon' => 'check-circle',     'bg' => 'bg-white','color' => 'text-success','route' => route('admin.orders.index',['status'=>'delivered'])],
+        ['label' => 'طلبات راجعة',         'value' => $returnedOrders, 'icon' => 'arrow-return-left','bg'=> 'bg-white', 'color' => 'text-danger', 'route' => route('admin.orders.index',['status'=>'returned'])],
     ];
 @endphp
 <div class="row g-3 mb-4">
   @foreach($stats as $s)
   <div class="col-12 col-sm-6 col-xl-3">
-      <div class="card h-100 {{ $s['bg'] }}">
+      <div class="card h-100 border-0 shadow-sm {{ $s['bg'] }}">
           <div class="card-body d-flex align-items-center justify-content-between">
               <div>
-                  <div class="title">{{ $s['label'] }}</div>
-                  <div class="value">{{ number_format($s['value']) }}</div>
+                  <div class="text-muted fw-bold small mb-1">{{ $s['label'] }}</div>
+                  <div class="h3 mb-0 fw-bold">{{ number_format($s['value']) }}</div>
               </div>
-              <div class="ms-3 fs-3 {{ $s['color'] }}"><i class="bi bi-{{ $s['icon'] }}"></i></div>
+              <div class="ms-3 fs-2 {{ $s['color'] }}"><i class="bi bi-{{ $s['icon'] }}"></i></div>
               <a class="stretched-link" href="{{ $s['route'] }}"></a>
           </div>
       </div>
@@ -145,11 +147,11 @@
 @can('view-reviews')
 <div class="row g-3 mb-4">
   <div class="col-12 col-md-6 col-xl-3">
-      <div class="card h-100 bg-soft-brand">
+      <div class="card h-100 border-0 shadow-sm" style="background-color: var(--primary-dark); color: white;">
           <div class="card-body">
-              <div class="title">متوسط التقييم</div>
+              <div class="small fw-bold mb-1 opacity-75">متوسط التقييم</div>
               <div class="d-flex align-items-center mt-2">
-                  <div class="value">{{ $averageRating }}</div>
+                  <div class="h3 mb-0 fw-bold">{{ $averageRating }}</div>
                   <div class="ms-2" style="color:#ffc107">
                       @for($i=1;$i<=5;$i++)
                           @if($i <= floor($averageRating)) <i class="bi bi-star-fill"></i>
@@ -158,69 +160,71 @@
                       @endfor
                   </div>
               </div>
-              <div class="small text-muted mt-2">من {{ number_format($totalReviews) }} مراجعة</div>
+              <div class="small opacity-75 mt-2">من {{ number_format($totalReviews) }} مراجعة</div>
           </div>
       </div>
   </div>
 {{-- ===== بديل كروت المراجعات: شيء مختلف ===== --}}
 <div class="col-12 col-md-6 col-xl-3">
-  <div class="card h-100" style="background:#fff">
+  <div class="card h-100 border-0 shadow-sm" style="background:#fff">
     <div class="card-body d-flex align-items-center justify-content-between">
       <div>
-        <div class="title">العملاء النشطين</div>
-        <div class="value">{{ number_format($activeCustomers) }}</div>
+        <div class="text-muted fw-bold small mb-1">العملاء النشطين</div>
+        <div class="h3 mb-0 fw-bold">{{ number_format($activeCustomers) }}</div>
         <div class="small text-muted">لديهم طلب واحد على الأقل</div>
       </div>
-      <div class="fs-3 text-brand"><i class="bi bi-people"></i></div>
+      <div class="fs-2" style="color: var(--primary-dark);"><i class="bi bi-people"></i></div>
     </div>
   </div>
 </div>
 
 <div class="col-12 col-md-6 col-xl-3">
-  <div class="card h-100" style="background:#fff">
+  <div class="card h-100 border-0 shadow-sm" style="background:#fff">
     <div class="card-body d-flex align-items-center justify-content-between">
       <div>
-        <div class="title">الطلبات اليوم</div>
-        <div class="value">{{ number_format($todayOrders) }}</div>
+        <div class="text-muted fw-bold small mb-1">الطلبات اليوم</div>
+        <div class="h3 mb-0 fw-bold">{{ number_format($todayOrders) }}</div>
         <div class="small text-muted">{{ \Illuminate\Support\Carbon::today()->format('Y-m-d') }}</div>
       </div>
-      <div class="fs-3 text-brand"><i class="bi bi-calendar-day"></i></div>
+      <div class="fs-2" style="color: var(--primary-dark);"><i class="bi bi-calendar-day"></i></div>
     </div>
   </div>
 </div>
 
+@can('view-reports-financial')
 <div class="col-12 col-md-6 col-xl-3">
-  <div class="card h-100 bg-soft-brand">
+  <div class="card h-100 border-0 shadow-sm text-white" style="background-color: var(--primary-medium);">
     <div class="card-body d-flex align-items-center justify-content-between">
       <div>
-        <div class="title">إجمالي المبيعات (صافي)</div>
-        <div class="value">
+        <div class="small fw-bold mb-1 opacity-75">إجمالي المبيعات (صافي)</div>
+        <div class="h3 mb-0 fw-bold">
           {{ number_format($totalSales, 0) }} <span class="fs-6">د.ع</span>
         </div>
-        <div class="small text-muted">الطلبات المكتملة فقط: (مخصوم الشحن)</div>
+        <div class="small opacity-75">الطلبات المكتملة فقط</div>
       </div>
-      <div class="fs-3 text-brand"><i class="bi bi-currency-dollar"></i></div>
+      <div class="fs-2"><i class="bi bi-currency-dollar"></i></div>
     </div>
   </div>
 </div>
+@endcan
 
 {{-- ===== شريط فلاتر الفترة الزمنية ===== --}}
-<div class="filters-bar mb-3">
+<div class="filters-bar mb-3 border-0 shadow-sm">
   <form method="GET" class="row g-2 align-items-end">
     <div class="col-12 col-md-3">
-      <label class="form-label">من تاريخ</label>
+      <label class="form-label fw-bold small">من تاريخ</label>
       <input type="date" name="date_start" class="form-control" value="{{ request('date_start') }}">
     </div>
     <div class="col-12 col-md-3">
-      <label class="form-label">إلى تاريخ</label>
+      <label class="form-label fw-bold small">إلى تاريخ</label>
       <input type="date" name="date_end" class="form-control" value="{{ request('date_end') }}">
     </div>
     <div class="col-12 col-md-6 d-flex gap-2">
-      <button class="btn btn-brand px-4"><i class="bi bi-funnel me-1"></i> تطبيق</button>
-      <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary px-3">إعادة الضبط</a>
+      <button class="btn text-white px-4 fw-bold" style="background-color: var(--primary-dark);"><i class="bi bi-funnel me-1"></i> تطبيق</button>
+      <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary px-3 fw-bold">إعادة الضبط</a>
       <div class="ms-auto d-none d-md-flex align-items-center text-muted small">
         <i class="bi bi-info-circle me-1"></i>
-        البيانات أدناه محسوبة لنفس المدة
+        البيانات محسوبة للمدة المختارة
       </div>
     </div>
   </form>
@@ -244,6 +248,7 @@
     </div>
   </div>
 
+  @can('view-reports-financial')
   <div class="col-12 col-sm-6 col-xl-3">
     <div class="mini p-3 h-100">
       <div class="d-flex justify-content-between">
@@ -271,6 +276,7 @@
       <canvas id="sparkAov" class="mt-2 spark"></canvas>
     </div>
   </div>
+  @endcan
 
   <div class="col-12 col-sm-6 col-xl-3">
     <div class="mini p-3 h-100">
@@ -300,6 +306,7 @@
       </div>
     </div>
   </div>
+  @can('view-reports-financial')
   <div class="col-lg-8">
     <div class="card h-100">
       <div class="card-body">
@@ -308,6 +315,7 @@
       </div>
     </div>
   </div>
+  @endcan
 </div>
 
 {{-- ===== أقسامك القديمة (تبقى كما هي) ===== --}}
@@ -413,7 +421,7 @@
   </div>
   @endcan
 
-  @can('view-reports')
+  @can('view-reports-financial')
   <div class="col-lg-6">
       <div class="card h-100">
           <div class="card-body">
@@ -432,6 +440,7 @@
       </div>
   </div>
   @endcan
+</div>
 </div>
 @endsection
 

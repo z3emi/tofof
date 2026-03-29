@@ -642,7 +642,7 @@
 <body>
     
     <div class="main-wrapper" x-data="{ 
-        sidebarOpen: window.innerWidth <= 992 ? true : (JSON.parse(localStorage.getItem('sidebarOpen')) !== false),
+        sidebarOpen: window.innerWidth <= 992 ? false : (JSON.parse(localStorage.getItem('sidebarOpen')) !== false),
         init() {
             this.$watch('sidebarOpen', value => {
                 if (window.innerWidth > 992) {
