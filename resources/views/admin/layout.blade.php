@@ -940,9 +940,8 @@
                     </li>
                     @endcan
                     
-                    <hr class="mx-3 my-2">
-                    
                     @can('view-users')
+                    <hr class="mx-3 my-2">
                     <li class="nav-item">
                         <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                             <i class="bi bi-person-gear"></i>
@@ -951,11 +950,8 @@
                     </li>
                     @endcan
                     
-                    <hr class="mx-3 my-2">
-                    
-
-                    
                     @can('view-reports')
+                    <hr class="mx-3 my-2">
                     <li class="nav-item" x-data="{ open: {{ request()->routeIs('admin.reports.*') ? 'true' : 'false' }} }">
                         <a href="#" @click.prevent="open = !open" class="nav-link d-flex justify-content-between reports-toggle" 
                         :class="{ 'active': open }" aria-expanded="false" :aria-expanded="open.toString()">
@@ -996,9 +992,8 @@
                     </li>
                     @endcan
 
-                    <hr class="mx-3 my-2">
-
                     @if(auth()->user()->can('edit-settings') || auth()->user()->can('edit-settings-frontend') || auth()->user()->can('edit-settings-seo') || auth()->user()->can('manage-whatsapp') || auth()->user()->can('manage-slides') || auth()->user()->can('manage-backups') || auth()->user()->can('manage-barcodes') || auth()->user()->can('manage-customer-tiers') || auth()->user()->can('manage-imports'))
+                    <hr class="mx-3 my-2">
                     <li class="nav-item"
                         x-data="{ open: {{ (request()->routeIs('admin.settings.*')
                                          || request()->routeIs('admin.whatsapp.*')
