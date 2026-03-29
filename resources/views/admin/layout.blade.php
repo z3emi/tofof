@@ -81,7 +81,7 @@
         .sidebar-content::-webkit-scrollbar{width:5px}
         .sidebar-content::-webkit-scrollbar-thumb{background-color:var(--primary-light);border-radius:3px}
         .sidebar-content::-webkit-scrollbar-track{background-color:var(--secondary-light)}
-        .sidebar-brand{padding:1.4rem;display:flex;align-items:center;justify-content:center;font-size:1.35rem;font-weight:800;color:var(--primary-dark);border-bottom:1px solid var(--secondary-light);flex-shrink:0; letter-spacing: 1px;}
+        .sidebar-brand{padding:0.6rem 1rem;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:var(--primary-dark);border-bottom:1px solid var(--secondary-light);flex-shrink:0; letter-spacing: 0.5px;}
         .sidebar-brand i{font-size:1.6rem;margin-left:.7rem;color:var(--accent-gold)}
         .nav-link{color:var(--text-dark);padding:var(--nav-link-padding);margin:.15rem .5rem;border-radius:var(--border-radius);display:flex;align-items:center;transition:var(--transition);font-weight:500;font-size:.9rem;position:relative;text-decoration:none}
         .nav-link:hover{background-color:var(--primary-light);color:#fff;transform:translateX(-5px)}
@@ -92,7 +92,8 @@
         .badge{font-size:.6rem;padding:.28em .45em;margin-right:auto}
         .sidebar-footer{padding:.6rem;border-top:1px solid var(--secondary-light);flex-shrink:0;font-size:.72rem;color:var(--text-light);text-align:center}
         .content-wrapper{flex:1;display:flex;flex-direction:column;min-height:100vh}
-        .main-content{flex:1;padding:1.75rem;overflow-y:auto}
+        .main-content{flex:1;padding:0;overflow-y:auto}
+        .main-content .container-fluid{padding-left:0;padding-right:0;max-width:100%}
         .topbar{background:var(--white);padding:0 1.1rem;height:var(--topbar-height);display:flex;align-items:center;border-bottom:1px solid var(--secondary-light);flex-shrink:0;box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:999; transition: var(--transition);}
         .sidebar-toggle-btn{transition:var(--transition);border:none;background:transparent;font-size:1.35rem;color:var(--primary-dark);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%}
         .sidebar-toggle-btn:hover{color:var(--primary-medium);background-color:rgba(195, 33, 38, .1)}
@@ -126,7 +127,97 @@
         [data-theme="dark"] .list-group-item { background-color: var(--white); border-color: var(--secondary-light); }
         [data-theme="dark"] .dropdown-menu-end { background-color: var(--white); }
         [data-theme="dark"] .notification-item.unread { background-color: rgba(255,255,255,0.05); }
+        
+        /* Global Fixes for Dark Mode Visibility */
+        [data-theme="dark"] .form-card, 
+        [data-theme="dark"] .table-container,
+        [data-theme="dark"] .card { 
+            background-color: var(--white) !important; 
+            color: var(--text-dark) !important;
+        }
+        [data-theme="dark"] .bg-light { background-color: var(--bg-light) !important; }
+        [data-theme="dark"] .text-dark { color: var(--text-dark) !important; }
+        [data-theme="dark"] .text-muted { color: var(--text-light) !important; }
+        [data-theme="dark"] .search-input, [data-theme="dark"] .form-control, [data-theme="dark"] .form-select {
+            background-color: var(--bg-light) !important;
+            color: var(--text-dark) !important;
+            border-color: var(--secondary-light) !important;
+        }
+        
+        /* Global Table Row Interaction (GREY THEME) */
+        .table tr { transition: all 0.1s ease; }
+        .table tr:hover > * { 
+            background-color: #f1f5f9 !important; /* Light Grey Hover */
+            cursor: pointer;
+        }
+        [data-theme="dark"] .table tr:hover > * { 
+            background-color: rgba(255, 255, 255, 0.08) !important; 
+        }
+        
+        /* High-Visibility Context Highlight (DARKER GREY) */
+        tr.row-context-active > * { 
+            background-color: #e2e8f0 !important; /* Darker Grey for Selected Row */
+            color: #111111 !important; 
+            border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+        }
+        tr.row-context-active a, tr.row-context-active div, tr.row-context-active span, tr.row-context-active i {
+            color: #111111 !important;
+        }
+        [data-theme="dark"] tr.row-context-active > * { 
+            background-color: rgba(255, 255, 255, 0.15) !important; 
+            color: white !important;
+        }
+
+        /* Fixed White-on-White issues in Card Headers */
+        [data-theme="dark"] .card-header .text-muted { color: rgba(255,255,255,0.7) !important; }
+
         hr.mx-3.my-2{ margin: .35rem .75rem !important; background-color: var(--secondary-light) !important; opacity: 0.5;}
+        
+        /* START: Premium Global Pagination Styles */
+        .pagination {
+            display: flex;
+            padding-left: 0;
+            list-style: none;
+            gap: 5px;
+            margin-bottom: 0;
+        }
+        .pagination .page-item {
+            margin: 0;
+        }
+        .pagination .page-item .page-link {
+            border: 1px solid var(--secondary-light);
+            background-color: var(--white);
+            color: var(--text-dark);
+            padding: 0.5rem 0.85rem;
+            min-width: 40px;
+            text-align: center;
+            border-radius: 8px !important;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: var(--transition);
+            box-shadow: none;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            color: #fff;
+            box-shadow: 0 4px 10px var(--shadow-color-primary);
+        }
+        .pagination .page-item .page-link:hover:not(.active) {
+            background-color: var(--primary-light);
+            color: #fff;
+            border-color: var(--primary-light);
+            transform: translateY(-2px);
+        }
+        .pagination .page-item.disabled .page-link {
+            background-color: var(--bg-light);
+            color: var(--text-light);
+            border-color: var(--secondary-light);
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        /* END: Premium Global Pagination Styles */
 
         @media (max-width:992px){
             :root{ --sidebar-width: 250px; }
@@ -304,45 +395,98 @@
         #context-menu {
             position: fixed;
             z-index: 10000;
-            width: 220px;
-            background: var(--white);
+            width: 240px;
+            background: #ffffff !important; /* Force white background in light */
             border: 1px solid var(--secondary-light);
             border-radius: var(--border-radius);
-            box-shadow: var(--shadow-md);
-            padding: 0.5rem 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            padding: 0.6rem 0;
             display: none;
-            backdrop-filter: blur(10px);
-            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
         }
         [data-theme="dark"] #context-menu {
-            background-color: rgba(30, 30, 30, 0.9);
+            background-color: #111111 !important; /* Force dark background in dark */
+            border-color: rgba(255, 255, 255, 0.1);
         }
+        /* Context Menu Text Defaults */
+        #context-menu .context-menu-item {
+            color: #2C2C2C; /* Default dark grey in light */
+        }
+        [data-theme="dark"] #context-menu .context-menu-item {
+            color: #ffffff; /* Default white in dark */
+        }
+        
         .context-menu-item {
-            padding: 0.6rem 1rem;
+            padding: 0.75rem 1.25rem;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            color: var(--text-dark);
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: var(--transition);
+            gap: 0.85rem;
+            text-decoration: none !important;
+            font-size: 0.92rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
             cursor: pointer;
+            border-right: 3px solid transparent;
         }
         .context-menu-item:hover {
-            background-color: var(--primary-light);
-            color: #fff !important;
+            background-color: #f1f5f9 !important; /* Grey hover for menu items */
+            border-right-color: var(--primary-dark);
+        }
+        .context-menu-item:hover, .context-menu-item:hover *, .context-menu-item:hover i {
+            color: #111111 !important;
+        }
+        [data-theme="dark"] .context-menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        [data-theme="dark"] .context-menu-item:hover, [data-theme="dark"] .context-menu-item:hover * {
+            color: #ffffff !important;
         }
         .context-menu-item i {
-            font-size: 1.1rem;
-            color: var(--primary-medium);
+            font-size: 1.15rem;
+            color: var(--primary-dark);
+            width: 20px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        [data-theme="dark"] .context-menu-item i {
+            color: var(--accent-gold);
+        }
+        
+        /* Specific Color Classes with High Specificity */
+        #context-menu .context-menu-item.text-primary, #context-menu .context-menu-item.text-primary * { color: var(--primary-dark) !important; }
+        #context-menu .context-menu-item.text-danger, #context-menu .context-menu-item.text-danger * { color: #dc3545 !important; }
+        #context-menu .context-menu-item.text-success, #context-menu .context-menu-item.text-success * { color: #198754 !important; }
+        #context-menu .context-menu-item.text-warning, #context-menu .context-menu-item.text-warning * { color: #f59e0b !important; }
+        #context-menu .context-menu-item.text-info, #context-menu .context-menu-item.text-info * { color: #0ea5e9 !important; }
+        #context-menu .context-menu-item.text-brand, #context-menu .context-menu-item.text-brand * { color: var(--primary-dark) !important; }
+
+        .context-menu-item.text-danger:hover {
+            background-color: #dc3545 !important;
+        }
+        .context-menu-item.text-danger:hover i, .context-menu-item.text-danger:hover span {
+            color: #ffffff !important;
         }
         .context-menu-item:hover i {
+            color: #ffffff !important;
+            transform: scale(1.1);
+        }
+        [data-theme="dark"] .context-menu-item i {
+            color: var(--accent-gold);
+        }
+        .context-menu-item.text-danger i {
+            color: #dc3545 !important;
+        }
+        .context-menu-item.text-danger:hover {
+            background-color: #dc3545 !important;
+            color: #fff !important;
+        }
+        .context-menu-item.text-danger:hover i {
             color: #fff !important;
         }
         .context-menu-divider {
             height: 1px;
             background-color: var(--secondary-light);
-            margin: 0.4rem 0;
+            margin: 0.5rem 0;
             opacity: 0.5;
         }
         /* END: Context Menu Styles */
@@ -385,6 +529,113 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes fadeInScale { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         /* END: Global Loader Styles */
+        /* START: Sortable Columns Styling */
+        .table thead th a {
+            color: var(--text-dark) !important;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0;
+        }
+        .table thead th a:hover {
+            color: var(--primary-dark) !important;
+            opacity: 1;
+            transform: translateY(-1px);
+        }
+        [data-theme="dark"] .table thead th a {
+            color: var(--text-dark) !important;
+        }
+        .table thead th a i {
+            font-size: 0.75rem;
+            transition: var(--transition);
+        }
+        /* END: Sortable Columns Styling */
+
+        /* Column Toggle Styles */
+        .column-toggle-dropdown {
+            min-width: 220px;
+            padding: 0.75rem 0.6rem;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,.15);
+            background: var(--white);
+            border: 1px solid var(--secondary-light);
+            z-index: 1050;
+        }
+        .column-list {
+            max-height: 280px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            padding-inline-end: 10px; /* Space for scrollbar on LEFT side in RTL */
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
+        }
+        .column-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .column-list::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1; /* Light Grey Scrollbar */
+            border-radius: 10px;
+        }
+        .column-list::-webkit-scrollbar-track {
+            background-color: #f1f5f9;
+        }
+        [data-theme="dark"] .column-toggle-dropdown {
+            background: var(--white);
+            border-color: var(--secondary-light);
+        }
+        [data-theme="dark"] .column-list::-webkit-scrollbar-thumb {
+            background-color: #475569;
+        }
+        [data-theme="dark"] .column-list::-webkit-scrollbar-track {
+            background-color: #334155;
+        }
+        .column-toggle-item {
+            display: flex;
+            align-items: center;
+            padding: 0.35rem 0.5rem;
+            border-radius: 6px;
+            transition: 0.2s;
+            cursor: pointer;
+            color: var(--text-dark);
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+        .column-toggle-item:hover {
+            background: var(--bg-light);
+        }
+        .column-toggle-item input {
+            width: 14px;
+            height: 14px;
+            margin-inline-end: 8px;
+            cursor: pointer;
+        }
+        .btn-column-toggle {
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            border-radius: 10px;
+            width: 38px;
+            height: 38px;
+            transition: var(--transition);
+        }
+        .btn-column-toggle:hover {
+            background-color: #e2e8f0;
+            color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+        [data-theme="dark"] .btn-column-toggle {
+            background-color: #1e293b;
+            border-color: #334155;
+            color: #cbd5e1;
+        }
+        [data-theme="dark"] .btn-column-toggle:hover {
+            background-color: #334155;
+            color: #fff;
+        }
     </style>
     @stack('styles')
 </head>
@@ -402,7 +653,6 @@
     }" @window:resize.debounce="sidebarOpen = window.innerWidth > 992 ? JSON.parse(localStorage.getItem('sidebarOpen')) !== false : true">
         <div class="sidebar" :class="{ 'active': sidebarOpen, 'collapsed': !sidebarOpen && window.innerWidth > 992 }">
             <div class="sidebar-brand">
-                <i class="bi bi-suit-heart-fill"></i>
                 <span>Tofof</span>
             </div>
             
@@ -1200,7 +1450,14 @@
         
         document.addEventListener('contextmenu', function(e) {
             const row = e.target.closest('table tbody tr');
+            
+            // Clear existing highlighting
+            document.querySelectorAll('table tbody tr').forEach(r => r.classList.remove('row-context-active'));
+
             if (row) {
+                // Highlight current row
+                row.classList.add('row-context-active');
+
                 // Look for action buttons/links in this row
                 const actions = row.querySelectorAll('a, button, .context-menu-action');
                 
@@ -1213,24 +1470,74 @@
                         if (!action.querySelector('i')) return;
                     }
 
-                    const text = action.innerText.trim() || action.getAttribute('title') || action.getAttribute('aria-label');
+                    let text = action.innerText.trim() || action.getAttribute('title') || action.getAttribute('aria-label');
                     const icon = action.querySelector('i');
                     
                     if (!text && !icon) return;
-                    
+
                     itemsFound++;
                     const item = document.createElement('div');
                     item.className = 'context-menu-item';
+
+                    // Smart Detection & Coloring
+                    if (!text && icon) {
+                        const classes = icon.className.toLowerCase();
+                        if (classes.includes('bi-pencil') || classes.includes('bi-edit')) {
+                            text = 'تعديل';
+                            item.classList.add('text-primary');
+                        }
+                        else if (classes.includes('bi-trash')) {
+                            text = 'حذف';
+                            item.classList.add('text-danger');
+                        }
+                        else if (classes.includes('bi-eye')) {
+                            text = 'عرض التفاصيل';
+                            item.classList.add('text-info');
+                        }
+                        else if (classes.includes('bi-pause')) {
+                            text = 'إيقاف مؤقت';
+                            item.classList.add('text-warning');
+                        }
+                        else if (classes.includes('bi-play')) {
+                            text = 'تفعيل / استمرار';
+                            item.classList.add('text-success');
+                        }
+                        else if (classes.includes('bi-truck')) {
+                            text = 'شحن الطلب';
+                            item.classList.add('text-success');
+                        }
+                        else if (classes.includes('bi-check')) {
+                            text = 'توصيل / تأكيد';
+                            item.classList.add('text-success');
+                        }
+                        else if (classes.includes('bi-x-circle')) {
+                            text = 'إلغاء';
+                            item.classList.add('text-danger');
+                        }
+                        else if (classes.includes('bi-printer')) {
+                            text = 'طباعة';
+                            item.classList.add('text-brand');
+                        }
+                    }
                     
-                    if (icon) item.appendChild(icon.cloneNode(true));
+                    if (icon) {
+                        const iconClone = icon.cloneNode(true);
+                        // Clean up bootstrap text classes that might conflict with our menu styling
+                        iconClone.classList.remove('text-white', 'text-light', 'text-dark', 'text-primary', 'text-secondary', 'text-success', 'text-warning', 'text-info');
+                        item.appendChild(iconClone);
+                    }
                     if (text) {
                         const span = document.createElement('span');
                         span.textContent = text;
+                        span.style.color = 'inherit';
                         item.appendChild(span);
                     }
                     
-                    if (action.classList.contains('text-danger') || action.classList.contains('btn-outline-danger') || action.classList.contains('btn-danger')) {
+                    if (action.classList.contains('text-danger') || action.classList.contains('btn-outline-danger') || action.classList.contains('btn-danger') || action.closest('.text-danger')) {
                         item.classList.add('text-danger');
+                    }
+                    else if (action.classList.contains('text-success') || action.classList.contains('btn-outline-success') || action.classList.contains('btn-success')) {
+                        item.classList.add('text-success');
                     }
                     
                     item.onclick = () => {
@@ -1278,14 +1585,122 @@
         });
         
         document.addEventListener('click', function(e) {
-            if (!menu.contains(e.target)) menu.style.display = 'none';
+            if (!menu.contains(e.target)) {
+                menu.style.display = 'none';
+                document.querySelectorAll('table tbody tr').forEach(r => r.classList.remove('row-context-active'));
+            }
         });
         
-        window.addEventListener('resize', () => menu.style.display = 'none');
-        window.addEventListener('scroll', () => menu.style.display = 'none', true);
+        window.addEventListener('resize', () => {
+            menu.style.display = 'none';
+            document.querySelectorAll('table tbody tr').forEach(r => r.classList.remove('row-context-active'));
+        });
+        
+        window.addEventListener('scroll', () => {
+            menu.style.display = 'none';
+            document.querySelectorAll('table tbody tr').forEach(r => r.classList.remove('row-context-active'));
+        }, true);
     });
     </script>
     <!-- END: Context Menu Logic -->
+
+    <!-- START: Column Toggle Logic -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tables = document.querySelectorAll('table:not(.no-col-toggle)');
+        
+        tables.forEach((table, tableIndex) => {
+            const tableId = table.getAttribute('id') || 'table_' + window.location.pathname.replace(/\//g, '_') + '_' + tableIndex;
+            const storageKey = 'col_visibility_' + tableId;
+            let visibilityState = JSON.parse(localStorage.getItem(storageKey) || '{}');
+            
+            const thead = table.querySelector('thead');
+            if (!thead) return;
+            
+            const headers = thead.querySelectorAll('th');
+            const toggleContainer = document.querySelector('.col-toggle-place');
+            
+            if (!toggleContainer) return;
+
+            // Create Dropdown
+            const wrapper = document.createElement('div');
+            wrapper.className = 'dropdown d-inline-block me-1';
+            wrapper.innerHTML = `
+                <button class="btn btn-column-toggle d-inline-flex align-items-center justify-content-center shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="تخصيص عرض الأعمدة">
+                    <i class="bi bi-layout-three-columns fs-5"></i>
+                </button>
+                <div class="dropdown-menu column-toggle-dropdown shadow-lg border-0">
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                        <h6 class="mb-0 fw-bold small text-brand"><i class="bi bi-eye-fill me-1"></i> إظهار/إخفاء الأعمدة</h6>
+                        <span class="badge bg-soft-brand text-brand fw-normal" style="font-size:10px">تخصيص الجدول</span>
+                    </div>
+                    <div class="column-list d-grid gap-1"></div>
+                </div>
+            `;
+            
+            const listContainer = wrapper.querySelector('.column-list');
+            
+            headers.forEach((th, index) => {
+                const colName = (th.textContent || '').trim();
+                // Skip if no text and no ID
+                if (!colName && !th.dataset.columnId) return;
+                
+                const colId = th.dataset.columnId || 'col_' + index;
+                const isDefaultHidden = th.dataset.hide === 'true';
+                
+                // Set initial state if not in storage
+                if (visibilityState[colId] === undefined) {
+                    visibilityState[colId] = !isDefaultHidden;
+                }
+                
+                // Apply initial visibility
+                toggleColumn(table, index, visibilityState[colId]);
+                
+                // Create label
+                const item = document.createElement('label');
+                item.className = 'column-toggle-item';
+                item.innerHTML = `
+                    <input type="checkbox" ${visibilityState[colId] ? 'checked' : ''} data-index="${index}" data-col-id="${colId}">
+                    <span>${colName || 'عمود ' + (index + 1)}</span>
+                `;
+                
+                item.querySelector('input').addEventListener('change', function() {
+                    const isChecked = this.checked;
+                    visibilityState[colId] = isChecked;
+                    localStorage.setItem(storageKey, JSON.stringify(visibilityState));
+                    toggleColumn(table, index, isChecked);
+                });
+                
+                listContainer.appendChild(item);
+            });
+            
+            toggleContainer.appendChild(wrapper);
+        });
+        
+        function toggleColumn(table, index, show) {
+            const display = show ? '' : 'none';
+            
+            // Header
+            const th = table.querySelector(`thead tr th:nth-child(${index + 1})`);
+            if (th) th.style.display = display;
+            
+            // Body cells
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const td = row.querySelector(`td:nth-child(${index + 1})`);
+                if (td) td.style.display = display;
+            });
+
+            // Footer cells if any
+            const tfootRows = table.querySelectorAll('tfoot tr');
+            tfootRows.forEach(row => {
+                const td = row.querySelector(`td:nth-child(${index + 1})`);
+                if (td) td.style.display = display;
+            });
+        }
+    });
+    </script>
+    <!-- END: Column Toggle Logic -->
 
     <!-- START: Global Table Actions Hider & Double Click Logic -->
     <script>

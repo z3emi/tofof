@@ -56,6 +56,14 @@ class LoginController extends Controller
             ]);
         }
 
+        // --- Maintenance Mode Check ---
+        if (\App\Models\Setting::isMaintenanceMode() && !$manager->isSuperAdmin()) {
+            throw ValidationException::withMessages([
+                'login' => 'الموقع في وضع الصيانة حالياً. تسجيل الدخول متاح فقط للمدير العام.',
+            ]);
+        }
+        // ------------------------------
+
         Auth::guard('admin')->login($manager, $request->boolean('remember'));
         $request->session()->regenerate();
 

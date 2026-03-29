@@ -19,7 +19,7 @@
                     <input type="email" class="form-control bg-light" value="{{ $manager->email }}" readonly>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label text-muted">رقم الهاتف</label>
+                    <label class="form-label text-muted">اسم المستخدم</label>
                     <input type="text" class="form-control bg-light" value="{{ $manager->phone_number }}" readonly>
                 </div>
                 <div class="mb-3">

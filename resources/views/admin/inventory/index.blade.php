@@ -97,18 +97,20 @@
 
         <h5 class="mb-3">تحديث المخزون</h5>
 
-        <form method="GET" class="mb-3">
-            <div class="d-flex gap-2" style="max-width:420px;">
-                <input
-                    type="text"
-                    name="search"
-                    value="{{ request('search') }}"
-                    class="form-control"
-                    placeholder="ابحث باسم المنتج">
-                <button class="btn btn-primary">بحث</button>
-
-                @if(request('search'))
-                    <a href="{{ url()->current() }}" class="btn btn-outline-secondary">مسح</a>
+        <form method="GET" action="{{ route('admin.inventory.index') }}" class="row g-3 mb-4 p-4 bg-light rounded-4 border align-items-end">
+            <div class="col-md-8">
+                <label class="small fw-bold text-muted mb-2">بحث باسم المنتج أو SKU</label>
+                <input type="text" name="search" class="form-control" style="border-radius:12px; height:58px" placeholder="أدخل اسم المنتج أو SKU..." value="{{ request('search') }}">
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn text-white px-4 py-3 fw-bold flex-grow-1" style="background:var(--primary-dark); border-radius:12px; height:58px">بحث</button>
+                <button type="button" class="btn btn-outline-dark d-flex align-items-center justify-content-center" style="width:58px; height:58px; border-radius:12px" data-bs-toggle="modal" data-bs-target="#filtersModal" title="فلاتر إضافية">
+                    <i class="bi bi-funnel fs-4"></i>
+                </button>
+                @if(request()->anyFilled(['search','stock_status','category_id','min_qty','max_qty']))
+                    <a href="{{ route('admin.inventory.index') }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" style="width:58px; height:58px; border-radius:12px" title="تصفير">
+                        <i class="bi bi-arrow-counterclockwise fs-4"></i>
+                    </a>
                 @endif
             </div>
         </form>
@@ -210,6 +212,65 @@
 
     </div>
 </div>
+
+{{-- Filters Modal --}}
+<div class="modal fade" id="filtersModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:20px">
+            <div class="modal-header border-0 p-4 pb-0">
+                <h5 class="fw-bold mb-0"><i class="bi bi-funnel me-2"></i>تصفية المخزون المتقدمة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="GET" action="{{ route('admin.inventory.index') }}">
+                    <input type="hidden" name="search" value="{{ $search }}">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">حالة المخزون</label>
+                            <select name="stock_status" class="form-select search-input">
+                                <option value="">الكل</option>
+                                <option value="low" @selected(request('stock_status')=='low')>مخزون منخفض</option>
+                                <option value="medium" @selected(request('stock_status')=='medium')>مخزون متوسط</option>
+                                <option value="high" @selected(request('stock_status')=='high')>مخزون وافر</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">البراند (القسم الرئيسي)</label>
+                            <select name="category_id" class="form-select search-input">
+                                <option value="">كل البراندات</option>
+                                @foreach(\App\Models\Category::orderBy('name_ar')->get() as $cat)
+                                    <option value="{{ $cat->id }}" @selected(request('category_id')==$cat->id)>{{ $cat->name_ar }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">الكمية المتوفرة (من - إلى)</label>
+                            <div class="input-group">
+                                <input type="number" name="min_qty" class="form-control search-input" placeholder="الأدنى" value="{{ request('min_qty') }}">
+                                <input type="number" name="max_qty" class="form-control search-input" placeholder="الأعلى" value="{{ request('max_qty') }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-5 d-flex gap-2">
+                        <button type="submit" class="btn text-white w-100 py-3 fw-bold" style="background:var(--primary-dark); border-radius:12px">تطبيق الفلاتر</button>
+                        <a href="{{ route('admin.inventory.index') }}" class="btn btn-outline-secondary px-4 py-3" style="border-radius:12px">تصفير الكل</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.selectable-row').forEach(row => {
+            row.addEventListener('click', function () {
+                document.querySelectorAll('.selectable-row').forEach(r => r.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+    });
+</script>
 @endsection
 
 @push('scripts')

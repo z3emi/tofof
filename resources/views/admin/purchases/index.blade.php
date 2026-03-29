@@ -12,7 +12,24 @@
         </a>
     </div>
 
-    <div class="card-body">
+    <div class="card-body p-4 p-md-5">
+        <form method="GET" action="{{ route('admin.purchases.index') }}" class="row g-3 mb-4 p-4 bg-light rounded-4 border align-items-end">
+            <div class="col-md-8">
+                <label class="small fw-bold text-muted mb-2">بحث ذكي (رقم الفاتورة أو المورد)</label>
+                <input type="text" name="search" class="form-control" style="border-radius:12px; height:58px" placeholder="بحث برقم الفاتورة..." value="{{ request('search') }}">
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn text-white px-4 py-3 fw-bold flex-grow-1" style="background:var(--primary-dark); border-radius:12px; height:58px">بحث</button>
+                <button type="button" class="btn btn-outline-dark d-flex align-items-center justify-content-center" style="width:58px; height:58px; border-radius:12px" data-bs-toggle="modal" data-bs-target="#filtersModal" title="فلاتر إضافية">
+                    <i class="bi bi-funnel fs-4"></i>
+                </button>
+                @if(request()->anyFilled(['search','supplier_id','status','date_from','date_to']))
+                    <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" style="width:58px; height:58px; border-radius:12px" title="تصفير">
+                        <i class="bi bi-arrow-counterclockwise fs-4"></i>
+                    </a>
+                @endif
+            </div>
+        </form>
         <div class="table-responsive">
             <table class="table table-bordered text-center align-middle">
                 <thead class="table-light">
@@ -74,4 +91,51 @@
     </div>
 </div>
 
+{{-- Filters Modal --}}
+<div class="modal fade" id="filtersModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:20px">
+            <div class="modal-header border-0 p-4 pb-0">
+                <h5 class="fw-bold mb-0"><i class="bi bi-funnel me-2"></i>تصفية المشتريات المتقدمة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="GET" action="{{ route('admin.purchases.index') }}">
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">المورد</label>
+                            <select name="supplier_id" class="form-select" style="border-radius:12px; height:50px">
+                                <option value="">كل الموردين</option>
+                                @foreach(\App\Models\Supplier::orderBy('name')->get() as $s)
+                                    <option value="{{ $s->id }}" @selected(request('supplier_id')==$s->id)>{{ $s->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">الحالة</label>
+                            <select name="status" class="form-select" style="border-radius:12px; height:50px">
+                                <option value="">كل الحالات</option>
+                                <option value="received" @selected(request('status')=='received')>تم الاستلام</option>
+                                <option value="pending" @selected(request('status')=='pending')>قيد الانتظار</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">تاريخ الفاتورة (من)</label>
+                            <input type="date" name="date_from" class="form-control" style="border-radius:12px; height:50px" value="{{ request('date_from') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">تاريخ الفاتورة (إلى)</label>
+                            <input type="date" name="date_to" class="form-control" style="border-radius:12px; height:50px" value="{{ request('date_to') }}">
+                        </div>
+                    </div>
+                    <div class="mt-5 d-flex gap-2">
+                        <button type="submit" class="btn text-white w-100 py-3 fw-bold" style="background:var(--primary-dark); border-radius:12px">تطبيق الفلاتر</button>
+                        <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-secondary px-4 py-3" style="border-radius:12px">تصفير الكل</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

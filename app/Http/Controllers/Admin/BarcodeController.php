@@ -14,7 +14,7 @@ class BarcodeController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('per_page', 15);
+        $perPage = (int) $request->input('per_page', 10);
 
         $query = Barcode::query()->latest('id');
 

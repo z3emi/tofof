@@ -17,6 +17,8 @@ class PrimaryCategoryController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('search');
+        $allowedSorts = ['id', 'name_ar', 'sort_order', 'created_at'];
+        [$sortBy, $sortDir] = \App\Support\Sort::resolve($request, $allowedSorts, 'id');
 
         $items = PrimaryCategory::query()
             ->when($search, function ($q) use ($search) {
@@ -26,16 +28,16 @@ class PrimaryCategoryController extends Controller
                        ->orWhere('slug', 'like', "%{$search}%");
                 });
             })
-            ->whereNull('parent_id')               // جذور فقط
+            ->whereNull('parent_id')
             ->withCount('products')
-            ->with(['children' => function ($q) {  // أولاد (أول مستوى)
+            ->with(['children' => function ($q) {
                 $q->withCount('products');
             }])
-            ->ordered()
-            ->paginate(15)
+            ->orderBy($sortBy, $sortDir)
+            ->paginate($request->get('per_page', 10))
             ->withQueryString();
 
-        return view('admin.primary_categories.index', compact('items', 'search'));
+        return view('admin.primary_categories.index', compact('items', 'search', 'sortBy', 'sortDir'));
     }
 
     public function create()
@@ -164,7 +166,7 @@ class PrimaryCategoryController extends Controller
                        ->orWhere('slug', 'like', "%{$search}%");
                 });
             })
-            ->paginate(15)
+            ->paginate($request->get('per_page', 10))
             ->withQueryString();
 
         return view('admin.primary_categories.trash', compact('items', 'search'));

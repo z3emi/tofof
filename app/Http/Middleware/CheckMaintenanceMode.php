@@ -30,31 +30,31 @@ class CheckMaintenanceMode
             return $next($request);
         }
 
-        // 3) تجاوز للأدمن (بغض النظر عن المسار)
-        $isAdmin = false;
-        if (Auth::check()) {
-            $user = Auth::user();
-            // حقل is_admin (Boolean)
-            if (property_exists($user, 'is_admin') && $user->is_admin) {
-                $isAdmin = true;
-            }
-            // دعم Spatie (اختياري)
-            if (!$isAdmin && method_exists($user, 'hasRole') && $user->hasRole('admin')) {
-                $isAdmin = true;
+        // 3) تجاوز للمسؤولين بصلاحية Super-Admin
+        $isSuperAdmin = false;
+
+        // فحص جارد الأدمن أولاً
+        if (Auth::guard('admin')->check()) {
+            $manager = Auth::guard('admin')->user();
+            if (method_exists($manager, 'isSuperAdmin') && $manager->isSuperAdmin()) {
+                $isSuperAdmin = true;
             }
         }
-        if ($isAdmin) {
+        // فحص جارد الويب (للمستخدمين العاديين إن وجد سوبر أدمن فيهم)
+        elseif (Auth::check()) {
+            $user = Auth::user();
+            if (method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin()) {
+                $isSuperAdmin = true;
+            }
+        }
+
+        if ($isSuperAdmin) {
             return $next($request);
         }
 
-        // 4) قراءة وضع الصيانة من الداتابيس
-        $mode = Setting::where('key', 'maintenance_mode')->value('value') ?? 'off';
-
-        if ($mode === 'on') {
-            // حوّل لصفحة الصيانة (أو اعرضها مباشرة)
+        // 4) قراءة وضع الصيانة
+        if (\App\Models\Setting::isMaintenanceMode()) {
             return redirect()->route('maintenance.page');
-            // أو:
-            // return response()->view('frontend.maintenance', [], 200);
         }
 
         return $next($request);

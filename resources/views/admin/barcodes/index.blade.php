@@ -33,8 +33,8 @@
             </div>
             <div class="col-auto">
                 <select name="per_page" class="form-select" onchange="this.form.submit()">
-                    @foreach([10,15,25,50,100] as $n)
-                        <option value="{{ $n }}" @selected(request('per_page',15)===$n)>{{ $n }}</option>
+                    @foreach([5, 10, 15, 25, 50, 100, 200] as $n)
+                        <option value="{{ $n }}" @selected(request('per_page', 10) === (string)$n)>{{ $n }}</option>
                     @endforeach
                 </select>
             </div>

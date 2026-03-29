@@ -35,9 +35,11 @@ class ReportController extends Controller
             ->where('status', 'delivered')
             ->whereBetween('created_at', [$startDate, $endDate]);
 
-        $orders = $ordersQuery->get();
-        // جلب قائمة الطلبات مع الترقيم لعرضها في الجدول
-        $ordersList = $ordersQuery->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+        $allowedSorts = ['id', 'created_at', 'total_amount'];
+        [$sortBy, $sortDir] = \App\Support\Sort::resolve($request, $allowedSorts, 'created_at');
+
+        $orders = (clone $ordersQuery)->get();
+        $ordersList = $ordersQuery->orderBy($sortBy, $sortDir)->paginate(20)->withQueryString();
 
         $totalSalesNet     = 0; // صافي المبيعات
         $totalOrders       = $orders->count();
@@ -90,7 +92,7 @@ class ReportController extends Controller
         return view('admin.reports.financial', compact(
             'totalSalesNet', 'totalOrders', 'ordersList',
             'chartLabels', 'salesData', 'month', 'year',
-            'topSellingProducts'
+            'topSellingProducts', 'sortBy', 'sortDir', 'allowedSorts'
         ));
     }
 

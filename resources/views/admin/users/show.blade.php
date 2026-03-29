@@ -81,10 +81,9 @@ $statusLabels = [
                     <div class="card-body text-center">
                         <div class="mb-3">
                             @php
-                                $avatar = $user->avatar;
-                                $src = $avatar ? asset('storage/'.$avatar) : asset('storage/avatars/default.jpg');
+                                $src = $user->avatar_url;
                             @endphp
-                            <img src="{{ $src }}" alt="{{ $user->name }}" class="rounded-circle mx-auto" width="100" height="100" style="object-fit: cover;">
+                            <img src="{{ $src }}" alt="{{ $user->name }}" class="img-fluid rounded border" style="width: 100px; height: 100px; object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.jpg') }}';">
                         </div>
                         <h5 class="card-title mb-2">{{ $user->name }}</h5>
 
@@ -254,8 +253,8 @@ $statusLabels = [
                             @endforeach
                             <label for="per_page" class="me-2">عدد الطلبات:</label>
                             <select name="per_page" id="per_page" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 80px;">
-                                @foreach([5, 15, 25, 50] as $size)
-                                    <option value="{{ $size }}" {{ request('per_page', 5) == $size ? 'selected' : '' }}>{{ $size }}</option>
+                                @foreach([5, 10, 25, 50, 100] as $size)
+                                    <option value="{{ $size }}" {{ request('per_page', 10) == $size ? 'selected' : '' }}>{{ $size }}</option>
                                 @endforeach
                             </select>
                         </form>

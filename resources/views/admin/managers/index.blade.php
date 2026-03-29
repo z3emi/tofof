@@ -4,256 +4,205 @@
 
 @push('styles')
 <style>
-    /* تمييز المدير المحظور باللون الأحمر */
-    .table-danger, .table-danger > th, .table-danger > td {
-        background-color: #fbe9e7 !important;
-        text-decoration: line-through;
-        opacity: 0.7;
-    }
-    /* تمييز المدير غير المفعل باللون الرمادي */
-    .table-inactive, .table-inactive > th, .table-inactive > td {
-        background-color: #f1f3f5 !important;
-        opacity: 0.8;
-    }
+    .form-card { border-radius: 0 !important; border: none !important; box-shadow: none !important; background: #fff; width: 100% !important; margin: 0 !important; }
+    .form-card-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%); padding: 2.5rem 3rem; color: white; border-radius: 0 !important; }
+    
+    .table-danger, .table-danger td { background-color: #fff1f0 !important; text-decoration: line-through; opacity: 0.8; }
+    .table-inactive, .table-inactive td { background-color: #f8f9fa !important; opacity: 0.8; }
+    
+    .pagination .page-item .page-link { color: var(--primary-dark); border-radius: 8px; margin: 0 2px; }
+    .pagination .page-item.active .page-link { background-color: var(--primary-dark); border-color: var(--primary-dark); color: #fff; }
+    
+    .selectable-row { cursor: pointer; transition: all 0.2s; }
+    .selectable-row:hover { background-color: rgba(109, 14, 22, 0.02) !important; }
+    .selectable-row.selected td { background-color: #fcecea !important; outline: 2px solid var(--primary-dark); }
 
-    /* تخصيص شكل روابط التنقل */
-    .pagination {
-        justify-content: center !important;
-        gap: 0.4rem;
-        margin-top: 1rem;
-    }
-    .pagination .page-item .page-link {
-        background-color: #fff !important;
-        color: var(--primary-dark) !important;
-        border-color: var(--primary-dark) !important;
-        font-weight: 600;
-        border-radius: 0.375rem;
-        transition: background-color 0.3s, color 0.3s;
-        box-shadow: none;
-    }
-    .pagination .page-item .page-link:hover {
-        background-color: #dcaca9 !important;
-        color: #fff !important;
-        border-color: #dcaca9 !important;
-    }
-    .pagination .page-item.active .page-link {
-        background-color: var(--primary-dark) !important;
-        border-color: var(--primary-dark) !important;
-        color: #fff !important;
-    }
-
-    /* صفوف قابلة للتحديد */
-    .selectable-row { cursor: pointer; transition: background-color .12s ease; }
-    .selectable-row.selected td {
-        background-color: #f3e5e3 !important;
-        --bs-table-accent-bg: #f3e5e3 !important;
-    }
-    .selectable-row.selected {
-        outline: 2px solid var(--primary-dark);
-        outline-offset: -2px;
-    }
+    .search-box { border-radius: 12px; border: 1px solid #e2e8f0; padding: 0.75rem 1.2rem; background: #fafbff; }
 </style>
 @endpush
 
 @section('content')
 @php
     $adminUser = auth('admin')->user();
-    $canCreateManagers = $adminUser?->can('create-managers') ?? false;
-    $canViewTrashedManagers = $adminUser?->can('view-trashed-managers') ?? false;
+    $canCreate = $adminUser?->can('create-managers') ?? false;
+    $canTrash = $adminUser?->can('view-trashed-managers') ?? false;
 @endphp
 
-<div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0">فريق العمل</h4>
-        <div class="d-flex align-items-center flex-wrap gap-2">
-            @if($canViewTrashedManagers)
-                <a href="{{ route('admin.managers.trash') }}" class="btn btn-outline-danger btn-sm" title="سلة المحذوفات">
-                    <i class="bi bi-trash me-1"></i> سلة المحذوفات
-                </a>
+<div class="form-card">
+    <div class="form-card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2 class="mb-2 fw-bold text-white"><i class="bi bi-people-fill me-2"></i> إدارة فريق العمل</h2>
+            <p class="mb-0 opacity-75 fs-6 text-white small">إدارة المدراء، الصلاحيات، وحالة الحسابات في النظام.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <div class="col-toggle-place"></div>
+            @if($canTrash)
+                <a href="{{ route('admin.managers.trash') }}" class="btn btn-outline-danger p-2 d-inline-flex align-items-center justify-content-center" style="width:40px; height:40px; border-radius:10px" title="المهملات"><i class="bi bi-trash"></i></a>
             @endif
-            @if($canCreateManagers)
-                <a href="{{ route('admin.managers.create') }}" class="btn btn-primary btn-sm" style="background-color: var(--primary-dark); border-color: var(--primary-dark);">
-                    <i class="bi bi-plus-circle me-1"></i> إضافة مدير جديد
-                </a>
+            @if($canCreate)
+                <a href="{{ route('admin.managers.create') }}" class="btn btn-light px-4 py-2 rounded-3 fw-bold text-brand"><i class="bi bi-plus-circle me-1"></i> إضافة مدير</a>
             @endif
         </div>
     </div>
-    <div class="card-body">
-        {{-- فورم البحث --}}
-        <form method="GET" action="{{ route('admin.managers.index') }}" class="row g-2 mb-4">
-            <div class="col">
-                <input type="text" name="search" class="form-control" placeholder="ابحث بالاسم، البريد أو رقم الهاتف..." value="{{ request('search') }}">
+    
+    <div class="p-4 p-lg-5">
+        <form method="GET" action="{{ route('admin.managers.index') }}" class="row g-3 mb-4 p-4 bg-light rounded-4 border align-items-end">
+            <div class="col-md-8">
+                <label class="small fw-bold text-muted mb-2">بحث سريع (الاسم، البريد أو الهاتف)</label>
+                <input type="text" name="search" class="form-control search-input" placeholder="بحث بالاسم، البريد أو اسم المستخدم..." value="{{ request('search') }}">
             </div>
-            <div class="col-auto">
-                <select name="status" class="form-select" onchange="this.form.submit()">
-                    <option value="">كل الحالات</option>
-                    <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>نشط</option>
-                    <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>غير مفعل</option>
-                    <option value="banned" {{ request('status') == 'banned' ? 'selected' : '' }}>محظور</option>
-                </select>
-            </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-primary" style="background-color: var(--primary-dark); border-color: var(--primary-dark);">
-                    <i class="bi bi-search me-1"></i> بحث
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn text-white px-4 py-3 fw-bold flex-grow-1" style="background:var(--primary-dark); border-radius:12px">بحث</button>
+                <button type="button" class="btn btn-outline-dark d-flex align-items-center justify-content-center" style="width:58px; height:58px; border-radius:12px" data-bs-toggle="modal" data-bs-target="#filtersModal" title="فلاتر إضافية">
+                    <i class="bi bi-funnel fs-4"></i>
                 </button>
-                @if(request()->hasAny(['search', 'status']))
-                    <a href="{{ route('admin.managers.index') }}" class="btn btn-light border ms-1">
-                        إعادة ضبط
+                @if(request()->anyFilled(['search','status','role_id','date_from','date_to']))
+                    <a href="{{ route('admin.managers.index') }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" style="width:58px; height:58px; border-radius:12px" title="تصفير">
+                        <i class="bi bi-arrow-counterclockwise fs-4"></i>
                     </a>
                 @endif
             </div>
         </form>
 
-        <div class="mt-2 mb-3 ps-1">
-            <span class="small text-muted fw-medium">
-                <i class="bi bi-info-circle me-1"></i>
-                عرض {{ $managers->count() }} من أصل {{ $managers->total() }} مدير
-            </span>
-        </div>
-
-        <div class="table-responsive">
-            <table class="table table-bordered text-center align-middle" style="min-width: 1000px;">
-                <thead class="table-light">
-                    <tr>
-                        <th width="80">#</th>
-                        <th>المدير</th>
-                        <th>التواصل</th>
-                        <th>الحالة</th>
-                        <th>الأدوار</th>
-                        <th>تاريخ الانضمام</th>
-                        <th width="150">العمليات</th>
+        <div class="table-responsive border rounded-4 overflow-hidden shadow-sm">
+            <table class="table mb-0 align-middle text-center" id="managers_table">
+                <thead class="bg-light border-bottom">
+                    <tr class="text-muted small fw-bold">
+                        <th class="py-3" width="50" data-column-id="seq">#</th>
+                        <th class="py-3" width="70" data-hide="true" data-column-id="id">{!! \App\Support\Sort::link('id', 'ID') !!}</th>
+                        <th class="py-3 text-start" data-column-id="name">{!! \App\Support\Sort::link('name', 'المدير') !!}</th>
+                        <th class="py-3" data-column-id="username">{!! \App\Support\Sort::link('phone_number', 'اسم المستخدم') !!}</th>
+                        <th class="py-3" data-column-id="status">الحالة</th>
+                        <th class="py-3" data-column-id="roles">الأدوار</th>
+                        <th class="py-3" data-column-id="created_at">{!! \App\Support\Sort::link('created_at', 'تاريخ الانضمام') !!}</th>
+                        <th class="py-3" width="160" data-column-id="actions">الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($managers as $manager)
                         @php
-                            $isSelf = $adminUser && (string)$adminUser->id === (string)$manager->id;
+                            $isSelf = (string)$adminUser?->id === (string)$manager->id;
                             $isBanned = $manager->banned_at;
                             $isInactive = is_null($manager->phone_verified_at) && is_null($manager->banned_at);
                         @endphp
-                        <tr @class([
-                            'selectable-row',
-                            'table-danger' => $isBanned,
-                            'table-inactive' => $isInactive,
-                        ]) data-manager-id="{{ $manager->id }}">
-                            <td>{{ $manager->id }}</td>
-                            <td>
-                                <div class="d-flex align-items-center justify-content-center">
-                                    <div class="avatar-circle me-2 bg-light text-dark fw-bold d-flex align-items-center justify-content-center border" style="width: 38px; height: 38px; border-radius: 10px;">
-                                        {{ mb_substr($manager->name, 0, 1) }}
-                                    </div>
-                                    <div class="text-start">
-                                        <div class="fw-bold">{{ $manager->name }}</div>
-                                        <div class="small text-muted">{{ $manager->email }}</div>
+                        <tr class="selectable-row @if($isBanned) table-danger @elseif($isInactive) table-inactive @endif" data-manager-id="{{ $manager->id }}">
+                            <td class="small text-muted">{{ $loop->iteration + ($managers->perPage() * ($managers->currentPage() - 1)) }}</td>
+                            <td class="fw-bold">#{{ $manager->id }}</td>
+                            <td class="text-start">
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ $manager->avatar_url }}" class="rounded-circle border me-3" width="42" height="42" style="object-fit: cover;" onerror="this.src='{{ asset('storage/avatars/default.jpg') }}'">
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ $manager->name }}</div>
+                                        <div class="small text-muted">{{ $manager->email ?? 'بدون بريد' }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td>{{ $manager->phone_number ?? '---' }}</td>
+                            <td><span class="badge bg-light text-dark border px-2 py-1">{{ $manager->phone_number }}</span></td>
                             <td>
-                                @if($isBanned)
-                                    <span class="badge bg-danger">محظور</span>
-                                @elseif($isInactive)
-                                    <span class="badge bg-warning text-dark">غير مفعل</span>
-                                @else
-                                    <span class="badge bg-success">نشط</span>
-                                @endif
+                                @if($isBanned) <span class="badge bg-danger">محظور</span>
+                                @elseif($isInactive) <span class="badge bg-warning text-dark">غير نشط</span>
+                                @else <span class="badge bg-success">نشط</span> @endif
                             </td>
                             <td>
                                 @foreach($manager->roles as $role)
-                                    <span class="badge bg-light text-dark border px-2 py-1">{{ $role->name }}</span>
+                                    <span class="badge bg-info bg-opacity-10 text-info border-info border-opacity-25 px-2 py-1 mb-1">{{ $role->name }}</span>
                                 @endforeach
                             </td>
-                            <td>{{ $manager->created_at->format('Y-m-d') }}</td>
+                            <td class="text-muted small">{{ $manager->created_at->format('Y-m-d') }}</td>
                             <td>
-                                {{-- HIDDEN ACTIONS FOR CONTEXT MENU picked up by the global listener --}}
-                                <div class="btn-group">
+                                <div class="d-flex justify-content-center gap-1">
                                     @can('edit-managers')
-                                        <a href="{{ route('admin.managers.edit', $manager->id) }}" class="btn btn-sm btn-outline-info m-1 px-2" title="تعديل">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
+                                        <a href="{{ route('admin.managers.edit', $manager->id) }}" class="btn btn-sm btn-outline-primary rounded-3 px-2 py-1" title="تعديل"><i class="bi bi-pencil"></i></a>
                                     @endcan
-                                    
                                     @can('ban-managers')
                                         @if($isBanned)
-                                            <form action="{{ route('admin.managers.unban', $manager->id) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-sm btn-outline-success m-1 px-2" title="إلغاء الحظر" onclick="return confirm('تأكيد إلغاء حظر هذا المدير؟')">
-                                                    <i class="bi bi-unlock"></i>
-                                                </button>
-                                            </form>
+                                            <form action="{{ route('admin.managers.unban', $manager->id) }}" method="POST" class="d-inline">@csrf<button type="submit" class="btn btn-sm btn-outline-success rounded-3 px-2 py-1" title="فك الحظر" onclick="return confirm('تأكيد فك الحظر؟')"><i class="bi bi-unlock"></i></button></form>
                                         @else
-                                            <form action="{{ route('admin.managers.ban', $manager->id) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-sm btn-outline-danger m-1 px-2" title="حظر" onclick="return confirm('تأكيد حظر هذا المدير؟')">
-                                                    <i class="bi bi-slash-circle"></i>
-                                                </button>
-                                            </form>
+                                            <form action="{{ route('admin.managers.ban', $manager->id) }}" method="POST" class="d-inline">@csrf<button type="submit" class="btn btn-sm btn-outline-warning rounded-3 px-2 py-1" title="حظر" onclick="return confirm('تأكيد الحظر؟')"><i class="bi bi-slash-circle"></i></button></form>
                                         @endif
                                     @endcan
-
-                                    @if($adminUser->can('delete-managers') && !$isSelf)
-                                        <form action="{{ route('admin.managers.destroy', $manager->id) }}" method="POST" class="d-inline">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger m-1 px-2" title="حذف" onclick="return confirm('هل أنت متأكد من حذف هذا المدير؟ سيتم نقله لسلة المحذوفات.')">
-                                                <i class="bi bi-trash3"></i>
-                                            </button>
-                                        </form>
+                                    @if($adminUser?->can('delete-managers') && !$isSelf)
+                                        <form action="{{ route('admin.managers.destroy', $manager->id) }}" method="POST" class="d-inline">@csrf @method('DELETE')<button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1" title="حذف" onclick="return confirm('تأكيد الحذف للسلة؟')"><i class="bi bi-trash"></i></button></form>
                                     @endif
                                 </div>
                             </td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="7">لا يوجد مدراء لعرضهم حالياً.</td>
-                        </tr>
+                        <tr><td colspan="7" class="py-5 text-muted">لا يوجد نتائج لعرضها حالياً.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
-            <form method="GET" action="{{ route('admin.managers.index') }}" class="d-flex align-items-center">
-                @foreach(request()->except(['per_page', 'page']) as $key => $value)
-                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                @endforeach
-                <label for="per_page" class="me-2 small text-muted">المدراء لكل صفحة:</label>
-                <select name="per_page" id="per_page" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 80px;">
-                    @foreach([5, 10, 50, 100, 500] as $size)
-                        <option value="{{ $size }}" {{ request('per_page', 10) == $size ? 'selected' : '' }}>
-                            {{ $size }}
-                        </option>
-                    @endforeach
-                </select>
-            </form>
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div class="small text-muted">عرض {{ $managers->count() }} من أصل {{ $managers->total() }} سجل</div>
+            <div>{{ $managers->withQueryString()->links() }}</div>
+        </div>
+    </div>
+</div>
 
-            <div>
-                {{ $managers->withQueryString()->links() }}
+{{-- Filters Modal --}}
+<div class="modal fade" id="filtersModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:20px">
+            <div class="modal-header border-0 p-4 pb-0">
+                <h5 class="fw-bold mb-0"><i class="bi bi-funnel me-2"></i>تصفية المدراء المتقدمة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="GET" action="{{ route('admin.managers.index') }}">
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">حالة الحساب</label>
+                            <select name="status" class="form-select search-input">
+                                <option value="">كل الحالات</option>
+                                <option value="active" @selected(request('status')=='active')>نشط</option>
+                                <option value="banned" @selected(request('status')=='banned')>محظور</option>
+                                <option value="inactive" @selected(request('status')=='inactive')>غير مفعل</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">الدور / الصلاحية</label>
+                            <select name="role_id" class="form-select search-input">
+                                <option value="">كل الأدوار</option>
+                                @foreach(\Spatie\Permission\Models\Role::all() as $role)
+                                    <option value="{{ $role->id }}" @selected(request('role_id')==$role->id)>{{ $role->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">تاريخ الانضمام (من)</label>
+                            <input type="date" name="date_from" class="form-control search-input" value="{{ request('date_from') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">تاريخ الانضمام (إلى)</label>
+                            <input type="date" name="date_to" class="form-control search-input" value="{{ request('date_to') }}">
+                        </div>
+                    </div>
+                    <div class="mt-5 d-flex gap-2">
+                        <button type="submit" class="btn text-white w-100 py-3 fw-bold" style="background:var(--primary-dark); border-radius:12px">تطبيق الفلاتر</button>
+                        <a href="{{ route('admin.managers.index') }}" class="btn btn-outline-secondary px-4 py-3" style="border-radius:12px">تصفير الكل</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
-@endsection
 
-@push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    let selectedRow = null;
-    const rows = document.querySelectorAll('.selectable-row');
-
-    rows.forEach(row => {
-        row.addEventListener('click', function(e) {
-            if(e.target.closest('a') || e.target.closest('button') || e.target.closest('form')) {
-                return;
-            }
-            if (selectedRow) {
-                selectedRow.classList.remove('selected');
-            }
-            this.classList.add('selected');
-            selectedRow = this;
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.selectable-row').forEach(row => {
+            row.addEventListener('click', function(e) {
+                if(e.target.closest('a') || e.target.closest('button')) return;
+                document.querySelectorAll('.selectable-row').forEach(r => r.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+            row.addEventListener('dblclick', function () {
+                const id = this.dataset.managerId;
+                if (id) window.location.href = `{{ url('admin/managers') }}/${id}/edit`;
+            });
         });
     });
-});
 </script>
-@endpush
-
-
+@endsection

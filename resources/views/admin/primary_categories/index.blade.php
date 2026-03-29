@@ -1,189 +1,170 @@
+@php
+if (!function_exists('flatten_pri_cats')) {
+    function flatten_pri_cats($items, $level = 0) {
+        $flat = collect();
+        foreach ($items as $item) {
+            $item->level = $level;
+            $flat->push($item);
+            if ($item->children && $item->children->isNotEmpty()) {
+                $flat = $flat->merge(flatten_pri_cats($item->children->sortBy('sort_order'), $level + 1));
+            }
+        }
+        return $flat;
+    }
+}
+$roots = ($items ?? null) ?: (($primaryCategories ?? null) ?: ($categories ?? collect()));
+$flatItems = flatten_pri_cats($roots->sortBy('sort_order'));
+@endphp
+
 @extends('admin.layout')
-@section('title', 'شجرة الفئات')
+@section('title', 'إدارة فئات المنتجات')
 
 @push('styles')
 <style>
-  :root{
-    --brand:#cd8985;
-    --brand-dark:#be6661;
-    --line:#eadbcd;
-    --soft:#f9f5f1;
-    --border:#e9ecef;
-  }
-  .card-header{ background:#fff; border-bottom:1px solid var(--line); }
-
-  .filters-bar{
-    background:#fff; border:1px solid var(--line); border-radius:.65rem;
-    padding:10px; box-shadow:0 .25rem .5rem rgba(0,0,0,.03); margin-bottom:1rem;
-  }
-  .filters-bar .form-control,.filters-bar .form-select{ height:38px; padding:.3rem .6rem; }
-  .filters-bar .btn{ padding:.35rem .75rem; }
-
-  .category-tree{ position:relative; }
-
-  .cat-card{
-    background:#fff; border:1px solid var(--line); border-right:4px solid var(--brand);
-    border-radius:.65rem; padding:.75rem 1rem;
-    display:flex; align-items:center; justify-content:space-between; gap:1rem;
-    transition: background .15s ease, box-shadow .15s ease, transform .15s ease;
-  }
-  .cat-card:hover{ background:#fffaf8; box-shadow:0 4px 12px rgba(0,0,0,.04); transform: translateY(-1px); }
-
-  .cat-info{ display:flex; align-items:center; gap:1rem; }
-  .cat-thumb{ width:48px; height:48px; border-radius:10px; object-fit:cover; border:1px solid #eee; background:#fff; }
-  .thumb-fallback{ width:48px; height:48px; border-radius:10px; background:#fff; display:flex; align-items:center; justify-content:center; border:1px solid #eee; color:var(--brand); }
-
-  .chips{ display:flex; align-items:center; gap:.35rem; flex-wrap:wrap; }
-  .chip{ display:inline-flex; align-items:center; gap:.35rem; background:#fff; border:1px dashed #dcdcdc; border-radius:999px; padding:.2rem .55rem; }
-  .chip-kind{ background:var(--line); border-color:var(--line); }
-  .chip-count{ background:var(--soft); border-color:var(--soft); }
-
-  .actions{ display:flex; gap:.35rem; align-items:center; }
-  .btn-icon{ display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; padding:0; }
-  .toggle-btn{ background:var(--soft); border:1px solid var(--line); color:var(--brand); width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; transition:.15s; }
-  .toggle-btn:hover{ background:#ffeceb; border-color:#ffd7d5; color:var(--brand-dark); }
-  .toggle-icon{ transition: transform .18s; }
-  [aria-expanded="true"] .toggle-icon{ transform: rotate(180deg); }
-
-  .children-wrap{ border-right:2px solid var(--line); margin-right:1.25rem; padding-right:1rem; margin-top:.75rem; }
-
-  @media (max-width: 575px){
-    .cat-card{ flex-direction: column; align-items: stretch; }
-    .actions{ justify-content:flex-end }
-  }
-
-  html[dir="rtl"] .filters-bar .form-select{ padding-right: .6rem; padding-left: 2.25rem; background-position: left .65rem center; background-size: 12px 12px; }
-  html[dir="ltr"] .filters-bar .form-select{ padding-left: .6rem; padding-right: 2.25rem; background-position: right .65rem center; background-size: 12px 12px; }
-
-  .pagination .page-item .page-link{ color:var(--brand); border:1px solid var(--line); background:#fff; }
-  .pagination .page-item.active .page-link{ color:#fff; background:var(--brand); border-color:var(--brand); }
-  .pagination .page-item .page-link:hover{ color:#fff; background:var(--brand-dark); border-color:var(--brand-dark); }
-  .pagination .page-item.disabled .page-link{ color:#ccc; background:#f9f9f9; border-color:var(--line); }
+    .form-card { border-radius: 0 !important; border: none !important; box-shadow: none !important; background: #fff; width: 100% !important; margin: 0 !important; }
+    .form-card-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%); padding: 2.5rem 3rem; color: white; border-radius: 0 !important; }
+    .table-container { border-radius: 15px; border: 1px solid #f1f5f9; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .search-input { border-radius: 12px; border: 1px solid #e2e8f0; padding: 0.8rem 1.2rem; background: #fafbff; }
+    .cat-img { width:42px; height:42px; border-radius:10px; object-fit:cover; border:1px solid #eee; background:#fff; margin-right: 12px; }
 </style>
 @endpush
 
 @section('content')
-@php
-  // يدعم أي اسم متغيّر يجي من الكنترولر
-  $roots = ($items ?? null) ?: (($primaryCategories ?? null) ?: ($categories ?? collect()));
-
-  // 🔽 إضافة ترتيب للجذور فقط (بدون حذف أي سطر منطق قديم)
-  $rootsSorted = ($roots instanceof \Illuminate\Support\Collection)
-      ? $roots->sortBy([['sort_order','asc'], ['name_ar','asc'], ['id','asc']])->values()
-      : $roots;
-@endphp
-
-<div class="card shadow-sm">
-  <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <h4 class="mb-0">شجرة الفئات</h4>
-
-    <div class="d-flex gap-2">
-      <a href="{{ route('admin.primary-categories.export') }}" class="btn btn-sm btn-success" title="تصدير Excel" aria-label="تصدير Excel">
-        <i class="bi bi-file-earmark-excel"></i>
-      </a>
-      <a href="{{ route('admin.primary-categories.trash') }}" class="btn btn-outline-danger btn-sm">
-        <i class="bi bi-trash me-1"></i> سلة المحذوفات
-      </a>
-      @can('create-primary-categories')
-      <a href="{{ route('admin.primary-categories.create') }}" class="btn btn-primary btn-sm">
-        <i class="bi bi-plus-circle me-1"></i> إضافة فئة
-      </a>
-      @endcan
-    </div>
-  </div>
-
-  <div class="card-body">
-    <form method="GET" action="{{ route('admin.primary-categories.index') }}" class="row g-2 filters-bar">
-      <div class="col">
-        <input type="text" name="search" class="form-control" placeholder="ابحث بالاسم..." value="{{ request('search') }}">
-      </div>
-      <div class="col-auto">
-        <button type="submit" class="btn btn-primary">
-          <i class="bi bi-search me-1"></i> بحث
-        </button>
-      </div>
-      @if(request()->filled('search'))
-      <div class="col-auto">
-        <a href="{{ route('admin.primary-categories.index') }}" class="btn btn-outline-secondary">مسح</a>
-      </div>
-      @endif
-    </form>
-
-    <div class="category-tree" x-data>
-      @forelse ($rootsSorted as $node)
-        <div class="mb-3" x-data="{ open: false }">
-          <div class="cat-card">
-            <div class="cat-info">
-              @php $img = $node->image ? asset('storage/' . $node->image) : null; @endphp
-              @if($img)
-                <img src="{{ $img }}" alt="{{ $node->name_ar }}" class="cat-thumb">
-              @else
-                <div class="thumb-fallback">No</div>
-              @endif
-
-              <div>
-                <h6 class="cat-title">{{ $node->name_ar }} @if($node->name_en) <span class="text-muted small">({{ $node->name_en }})</span> @endif</h6>
-                <div class="chips">
-                  <span class="chip chip-kind"><i class="bi bi-diagram-3"></i> فئة رئيسية</span>
-                  <span class="chip chip-count"><i class="bi bi-box-seam"></i> {{ $node->products_count ?? (method_exists($node,'products') ? $node->products()->count() : 0) }} منتج</span>
-                  <span class="chip">ID: {{ $node->id }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="actions">
-              @if($node->children && $node->children->isNotEmpty())
-                <button class="toggle-btn" @click="open = !open" :aria-expanded="open.toString()" title="عرض/إخفاء الفروع">
-                  <i class="bi bi-chevron-down toggle-icon"></i>
-                </button>
-              @endif
-
-              @can('edit-primary-categories')
-              <a href="{{ route('admin.primary-categories.edit', $node) }}" class="btn btn-sm btn-outline-primary btn-icon" data-bs-toggle="tooltip" title="تعديل">
-                <i class="bi bi-pencil"></i>
-              </a>
-              @endcan
-
-              @can('delete-primary-categories')
-              <form action="{{ route('admin.primary-categories.destroy', $node) }}" method="POST" class="d-inline-block" onsubmit="return confirm('حذف الفئة وكل فروعها؟')">
-                @csrf @method('DELETE')
-                <button type="submit" class="btn btn-sm btn-outline-danger btn-icon" data-bs-toggle="tooltip" title="حذف">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </form>
-              @endcan
-            </div>
-          </div>
-
-          @if($node->children && $node->children->isNotEmpty())
-            <div class="children-wrap" x-show="open" x-collapse>
-              <ul class="list-unstyled mb-0">
-                @include('admin.primary_categories._subcategories', ['children' => $node->children])
-              </ul>
-            </div>
-          @endif
+<div class="form-card">
+    <div class="form-card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2 class="mb-2 fw-bold text-white"><i class="bi bi-grid-fill me-2"></i> إدارة شجرة الفئات</h2>
+            <p class="mb-0 opacity-75 fs-6 text-white small">تصنيف المنتجات حسب النوع (مثل: العناية، العطور، المستلزمات) مع دعم الأقسام الفرعية.</p>
         </div>
-      @empty
-        <div class="text-center py-4">
-          <p class="mb-0 text-muted">لا توجد فئات لعرضها.</p>
+        <div class="d-flex gap-2">
+            <div class="col-toggle-place"></div>
+            <a href="{{ route('admin.primary-categories.export', request()->all()) }}" class="btn btn-outline-info p-2 d-inline-flex align-items-center justify-content-center" style="width:40px; height:40px; border-radius:10px" title="تصدير إكسل"><i class="bi bi-file-earmark-excel"></i></a>
+            <a href="{{ route('admin.primary-categories.trash') }}" class="btn btn-outline-danger p-2 d-inline-flex align-items-center justify-content-center" style="width:40px; height:40px; border-radius:10px" title="المهملات"><i class="bi bi-trash"></i></a>
+            @can('create-primary-categories')
+                <a href="{{ route('admin.primary-categories.create') }}" class="btn btn-light px-4 fw-bold text-brand d-inline-flex align-items-center"><i class="bi bi-plus-circle me-1"></i> إضافة فئة</a>
+            @endcan
         </div>
-      @endforelse
     </div>
+    
+    <div class="p-4 p-lg-5">
+        <form method="GET" action="{{ route('admin.primary-categories.index') }}" class="row g-3 mb-4 p-4 bg-light rounded-4 border align-items-end">
+            <div class="col-md-8">
+                <label class="small fw-bold text-muted mb-2">بحث سريع في الأقسام</label>
+                <input type="text" name="search" class="form-control search-input" placeholder="أدخل اسم الفئة للبحث..." value="{{ request('search') }}">
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn text-white px-4 py-3 fw-bold flex-grow-1" style="background:var(--primary-dark); border-radius:12px">بحث</button>
+                <button type="button" class="btn btn-outline-dark d-flex align-items-center justify-content-center" style="width:58px; height:58px; border-radius:12px" data-bs-toggle="modal" data-bs-target="#filtersModal" title="فلاتر إضافية">
+                    <i class="bi bi-funnel fs-4"></i>
+                </button>
+                @if(request()->anyFilled(['search','level','date_from','date_to']))
+                    <a href="{{ route('admin.primary-categories.index') }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" style="width:58px; height:58px; border-radius:12px" title="تصفير">
+                        <i class="bi bi-arrow-counterclockwise fs-4"></i>
+                    </a>
+                @endif
+            </div>
+        </form>
 
-    @if($roots instanceof \Illuminate\Contracts\Pagination\Paginator)
-      <div class="d-flex justify-content-end mt-3">
-        {{ $roots->links() }}
-      </div>
-    @endif
-  </div>
+        <div class="table-container shadow-sm border overflow-hidden">
+            <table class="table mb-0 align-middle" id="primary_categories_table">
+                <thead class="bg-light border-bottom">
+                    <tr class="text-muted small fw-bold text-center">
+                        <th class="py-3" width="50" data-column-id="seq">#</th>
+                        <th class="py-3" width="70" data-hide="true" data-column-id="id">{!! \App\Support\Sort::link('id', 'ID') !!}</th>
+                        <th class="py-3 text-start" data-column-id="name">{!! \App\Support\Sort::link('name_ar', 'الفئة') !!}</th>
+                        <th class="py-3" data-column-id="products">المنتجات</th>
+                        <th class="py-3" data-column-id="sort">{!! \App\Support\Sort::link('sort_order', 'الترتيب') !!}</th>
+                        <th class="py-3" data-column-id="level">المستوى</th>
+                        <th class="py-3" width="120" data-column-id="actions">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($flatItems as $node)
+                        <tr class="text-center">
+                            <td class="small text-muted">{{ $loop->iteration }}</td>
+                            <td class="small text-muted">#{{ $node->id }}</td>
+                            <td class="text-start">
+                                <div class="d-flex align-items-center">
+                                    @for($i=0; $i < $node->level; $i++) <span class="ms-3 opacity-25">|—</span> @endfor
+                                    @php $img = $node->image ? asset('storage/' . $node->image) : null; @endphp
+                                    <img src="{{ $img ?: 'https://placehold.co/42?text=N/A' }}" class="cat-img">
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ $node->name_ar }}</div>
+                                        <div class="small text-muted">{{ $node->name_en }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-light text-dark border px-2 py-1">{{ $node->products_count ?? 0 }} منتج</span></td>
+                            <td><span class="small text-muted">{{ $node->sort_order ?? 0 }}</span></td>
+                            <td>
+                                @if($node->level==0) <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2">رئيسي</span>
+                                @else <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2">فرعي</span> @endif
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-center gap-1">
+                                    @can('edit-primary-categories') <a href="{{ route('admin.primary-categories.edit', $node->id) }}" class="btn btn-sm btn-outline-primary rounded-3 px-2 py-1"><i class="bi bi-pencil"></i></a> @endcan
+                                    @can('delete-primary-categories') <form action="{{ route('admin.primary-categories.destroy', $node->id) }}" method="POST" onsubmit="return confirm('حذف؟')">@csrf @method('DELETE')<button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1"><i class="bi bi-trash"></i></button></form> @endcan
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" class="py-5 text-center text-muted">لا توجد فئات لعرضها.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if($roots instanceof \Illuminate\Pagination\AbstractPaginator)
+            <div class="mt-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <form method="GET" class="d-flex align-items-center bg-light p-2 rounded-3 border">
+                    @foreach(request()->except(['per_page','page']) as $k=>$v) <input type="hidden" name="{{ $k }}" value="{{ $v }}"> @endforeach
+                    <span class="small text-muted me-2 ms-2">إظهار:</span>
+                    <select name="per_page" class="form-select form-select-sm border-0 bg-transparent fw-bold" onchange="this.form.submit()" style="width:70px">
+                        @foreach([10,25,50,100] as $s) <option value="{{$s}}" @selected(request('per_page',10)==$s)>{{$s}}</option> @endforeach
+                    </select>
+                </form>
+                <div>{{ $roots->withQueryString()->links() }}</div>
+            </div>
+        @endif
+    </div>
+</div>
+
+{{-- Filters Modal --}}
+<div class="modal fade" id="filtersModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:20px">
+            <div class="modal-header border-0 p-4 pb-0">
+                <h5 class="fw-bold mb-0"><i class="bi bi-funnel me-2"></i>تصفية شجرة الفئات المتقدمة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="GET" action="{{ route('admin.primary-categories.index') }}">
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">مستوى الفئة</label>
+                            <select name="level" class="form-select search-input">
+                                <option value="">الكل</option>
+                                <option value="main" @selected(request('level')=='main')>رئيسي</option>
+                                <option value="sub" @selected(request('level')=='sub')>فرعي</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">تاريخ الإضافة (من)</label>
+                            <input type="date" name="date_from" class="form-control search-input" value="{{ request('date_from') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">تاريخ الإضافة (إلى)</label>
+                            <input type="date" name="date_to" class="form-control search-input" value="{{ request('date_to') }}">
+                        </div>
+                    </div>
+                    <div class="mt-5 d-flex gap-2">
+                        <button type="submit" class="btn text-white w-100 py-3 fw-bold" style="background:var(--primary-dark); border-radius:12px">تطبيق الفلاتر</button>
+                        <a href="{{ route('admin.primary-categories.index') }}" class="btn btn-outline-secondary px-4 py-3" style="border-radius:12px">تصفير الكل</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  const triggers = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-  triggers.forEach(function (el) { new bootstrap.Tooltip(el); });
-});
-</script>
-@endpush

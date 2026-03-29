@@ -1,149 +1,222 @@
-@extends('admin.layout')
-
 @section('title', 'إضافة طلب يدوي جديد')
 
+@push('styles')
+<style>
+    .form-card { border-radius: 0 !important; border: none !important; box-shadow: none !important; background: #fff; width: 100% !important; margin: 0 !important; }
+    .form-card-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%); padding: 2.5rem 3rem; color: white; border-radius: 0 !important; }
+    .form-section-title { font-weight: 700; color: var(--primary-dark); border-right: 4px solid var(--accent-gold); padding-right: 15px; margin-bottom: 2rem; }
+    .form-control, .form-select { border-radius: 12px; padding: 0.8rem 1.2rem; border: 1px solid #e2e8f0; background-color: #fcfcfc; }
+    .product-box { background: #f8fafc; border-radius: 15px; padding: 2rem; border: 1px solid #e2e8f0; margin-bottom: 2rem; }
+    .summary-card { background: #fff; border-radius: 15px; border: 1px solid #e2e8f0; overflow: hidden; }
+    .summary-item { display: flex; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid #f1f5f9; }
+    .summary-total { background: #f8fafc; font-size: 1.25rem; font-weight: 800; color: var(--primary-dark); }
+    .submit-btn { background: var(--primary-dark); padding: 1rem 3rem; border-radius: 12px; font-weight: 700; color: white; border: none; transition: all 0.3s; }
+    .submit-btn:hover { background: var(--primary-medium); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(109,14,22,0.2); }
+</style>
+@endpush
+
 @section('content')
-<form action="{{ route('admin.orders.store') }}" method="POST" id="create-order-form">
-    @csrf
-    <div class="card shadow-sm">
-        <div class="card-header"><h4 class="mb-0">إنشاء طلب جديد</h4></div>
-        <div class="card-body">
-            @if (session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    @foreach ($errors->all() as $error) <p class="mb-0">{{ $error }}</p> @endforeach
-                </div>
-            @endif
+<div class="form-card">
+    <div class="form-card-header">
+        <h2 class="mb-2 fw-bold text-white"><i class="bi bi-cart-plus-fill me-2"></i> إنشاء طلب جديد</h2>
+        <p class="mb-0 opacity-75 fs-6 text-white small">إضافة طلب يدوي لأحد العملاء في النظام.</p>
+    </div>
 
-            {{-- Customer Selection --}}
-            <div class="row">
-                <div class="col-md-12 mb-3">
-                    <label for="customer_id" class="form-label">اختر العميل</label>
-                    <select name="customer_id" id="customer_id" class="form-select" required>
-                        <option value="">-- اختر العميل --</option>
-                        @foreach($customers as $customer)
-                            <option value="{{ $customer->id }}" data-banned="{{ $customer->user?->banned_at ? 'true' : 'false' }}" @selected(old('customer_id') == $customer->id)>
-                                {{ $customer->name }} - {{ $customer->phone_number }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <input type="hidden" name="saved_address_id" id="saved_address_id" value="{{ old('saved_address_id') }}">
-                    <div id="banned-customer-warning" class="text-danger fw-bold mt-2" style="display: none;"><i class="bi bi-exclamation-triangle-fill"></i> هذا العميل محظور!</div>
-                </div>
+    <div class="p-4 p-lg-5">
+        @if (session('error'))<div class="alert alert-danger border-0 rounded-4 shadow-sm mb-4">{{ session('error') }}</div>@endif
+        @if ($errors->any())
+            <div class="alert alert-danger border-0 rounded-4 shadow-sm mb-4">
+                <ul class="mb-0">@foreach ($errors->all() as $error) <li>{{ $error }}</li> @endforeach</ul>
             </div>
+        @endif
 
-            {{-- Shipping Address --}}
-            <h5 class="mt-3">عنوان التوصيل</h5>
-            <div id="saved_addresses_wrapper" class="alert alert-light border mb-3" style="display: none;">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <strong class="mb-0">عناوين العميل المحفوظة</strong>
-                    <span class="text-muted small">اختر أحد العناوين ليتم تعبئة الحقول تلقائياً</span>
-                </div>
-                <div id="saved_addresses_list" class="list-group mt-3"></div>
-            </div>
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label for="governorate" class="form-label">المحافظة</label>
-                    <select name="governorate" id="governorate" class="form-select" required>
-                        <option value="">-- اختر المحافظة --</option>
-                        @foreach(['بغداد','نينوى','البصرة','صلاح الدين','دهوك','أربيل','السليمانية','ديالى','واسط','ميسان','ذي قار','المثنى','بابل','كربلاء','النجف','الانبار','الديوانية','كركوك','حلبجة'] as $gov)
-                            <option value="{{ $gov }}">{{ $gov }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-4 mb-3"><label for="city" class="form-label">المدينة / القضاء</label><input type="text" class="form-control" id="city" name="city" value="{{ old('city') }}" required></div>
-                <div class="col-md-4 mb-3"><label for="nearest_landmark" class="form-label">أقرب نقطة دالة</label><input type="text" class="form-control" id="nearest_landmark" name="nearest_landmark" value="{{ old('nearest_landmark') }}" required></div>
-            </div>
+        <form action="{{ route('admin.orders.store') }}" method="POST" id="create-order-form">
+            @csrf
 
-            <div class="mb-3">
-                <label for="address_details" class="form-label">تفاصيل العنوان</label>
-                <textarea class="form-control" id="address_details" name="address_details" rows="3" required>{{ old('address_details') }}</textarea>
-            </div>
-
-            {{-- ===== START: تم تعديل هذا القسم ===== --}}
-            <div class="mb-3">
-                <label for="notes" class="form-label">ملاحظات الطلب (اختياري)</label>
-                <textarea name="notes" id="notes" class="form-control" rows="4">{{ old('notes') }}</textarea>
-            </div>
-
-            <div class="card border-0 bg-light mb-3">
-                <div class="card-body">
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" role="switch" id="is_gift" name="is_gift" value="1" @checked(old('is_gift'))>
-                        <label class="form-check-label fw-bold" for="is_gift">هذا الطلب هدية</label>
+            <div class="mb-5">
+                <h5 class="form-section-title">معلومات العميل والعنوان</h5>
+                <div class="row g-4">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">اختر العميل <span class="text-danger">*</span></label>
+                        <select name="customer_id" id="customer_id" class="form-select" required>
+                            <option value="">-- اختر العميل من القائمة --</option>
+                            @foreach($customers as $customer)
+                                <option value="{{ $customer->id }}" data-banned="{{ $customer->user?->banned_at ? 'true' : 'false' }}" @selected(old('customer_id') == $customer->id)>
+                                    {{ $customer->name }} - {{ $customer->phone_number }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <input type="hidden" name="saved_address_id" id="saved_address_id" value="{{ old('saved_address_id') }}">
+                        <div id="banned-customer-warning" class="text-danger fw-bold mt-2 d-none"><i class="bi bi-exclamation-triangle-fill"></i> تنبيه: هذا العميل محظور حالياً!</div>
                     </div>
 
-                    <div id="gift_fields" style="display: none;">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="gift_recipient_name" class="form-label">اسم مستلم الهدية</label>
-                                <input type="text" class="form-control" id="gift_recipient_name" name="gift_recipient_name" value="{{ old('gift_recipient_name') }}">
+                    <div class="col-12">
+                        <div id="saved_addresses_wrapper" class="alert alert-light border-dashed rounded-4 p-4 mb-0 d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0 fw-bold"><i class="bi bi-geo-alt-fill me-2"></i> العناوين المحفوظة لهذا العميل</h6>
+                                <span class="text-muted small">سيتم تعبئة الحقول تلقائياً عند الاختيار</span>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="gift_recipient_phone" class="form-label">رقم هاتف مستلم الهدية</label>
-                                <input type="text" class="form-control" id="gift_recipient_phone" name="gift_recipient_phone" value="{{ old('gift_recipient_phone') }}">
-                            </div>
+                            <div id="saved_addresses_list" class="row g-3"></div>
                         </div>
-                        <div class="mb-3">
-                            <label for="gift_recipient_address_details" class="form-label">عنوان مستلم الهدية</label>
-                            <textarea class="form-control" id="gift_recipient_address_details" name="gift_recipient_address_details" rows="2">{{ old('gift_recipient_address_details') }}</textarea>
-                        </div>
-                        <div class="mb-0">
-                            <label for="gift_message" class="form-label">رسالة الهدية (اختياري)</label>
-                            <textarea class="form-control" id="gift_message" name="gift_message" rows="2">{{ old('gift_message') }}</textarea>
-                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">المحافظة <span class="text-danger">*</span></label>
+                        <select name="governorate" id="governorate" class="form-select" required>
+                            <option value="">-- اختر المحافظة --</option>
+                            @foreach(['بغداد','نينوى','البصرة','صلاح الدين','دهوك','أربيل','السليمانية','ديالى','واسط','ميسان','ذي قار','المثنى','بابل','كربلاء','النجف','الانبار','الديوانية','كركوك','حلبجة'] as $gov)
+                                <option value="{{ $gov }}">{{ $gov }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">المدينة / القضاء <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="city" name="city" value="{{ old('city') }}" placeholder="اسم المنطقة أو القضاء" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">أقرب نقطة دالة <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="nearest_landmark" name="nearest_landmark" value="{{ old('nearest_landmark') }}" placeholder="مثال: جامع، مدرسة، محل مشهور" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold">تفاصيل العنوان الإضافية</label>
+                        <textarea class="form-control" id="address_details" name="address_details" rows="3" placeholder="رقم الزقاق، الدار، أو أي تفاصيل أخرى">{{ old('address_details') }}</textarea>
                     </div>
                 </div>
             </div>
-            {{-- ===== END: تم تعديل هذا القسم ===== --}}
 
-            <hr>
-            <h5 class="mb-3">المنتجات المطلوبة</h5>
-            <div class="row g-3 align-items-end mb-3">
-                <div class="col-md-6">
-                    <label for="product_selector" class="form-label">اختر منتج</label>
-                    <select id="product_selector" class="form-select">
-                        <option value="">-- اختر المنتج --</option>
-                        @foreach($products as $product)
-                            <option value="{{ $product->id }}" data-price="{{ $product->price }}" data-stock="{{ $product->stock_quantity }}" data-name="{{ $product->name_ar }}" data-category="{{ $product->category_id }}">
-                                {{ $product->name_ar }} (المتاح: {{ $product->stock_quantity }})
-                            </option>
-                        @endforeach
-                    </select>
+            <div class="mb-5">
+                <h5 class="form-section-title">خيارات إضافية (هدايا وملاحظات)</h5>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">ملاحظات عامة</label>
+                        <textarea name="notes" id="notes" class="form-control" rows="5" placeholder="أي تعليمات خاصة لشركة التوصيل...">{{ old('notes') }}</textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-4 bg-light rounded-4 border h-100">
+                            <div class="form-check form-switch mb-4">
+                                <input class="form-check-input scale-125 ms-0 me-3" type="checkbox" id="is_gift" name="is_gift" value="1" @checked(old('is_gift'))>
+                                <label class="form-check-label fw-bold text-primary" for="is_gift"><i class="bi bi-gift-fill me-1"></i> هذا الطلب عبارة عن هدية</label>
+                            </div>
+
+                            <div id="gift_fields" class="d-none">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold text-muted mb-2">اسم المستلم</label>
+                                        <input type="text" class="form-control form-control-sm" id="gift_recipient_name" name="gift_recipient_name" value="{{ old('gift_recipient_name') }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="small fw-bold text-muted mb-2">رقم هاتف المستلم</label>
+                                        <input type="text" class="form-control form-control-sm" id="gift_recipient_phone" name="gift_recipient_phone" value="{{ old('gift_recipient_phone') }}">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="small fw-bold text-muted mb-2">عنوان الهدية</label>
+                                        <input type="text" class="form-control form-control-sm" id="gift_recipient_address_details" name="gift_recipient_address_details" value="{{ old('gift_recipient_address_details') }}">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="small fw-bold text-muted mb-2">رسالة الهدية</label>
+                                        <textarea class="form-control form-control-sm" id="gift_message" name="gift_message" rows="2">{{ old('gift_message') }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-2"><label for="quantity_selector" class="form-label">الكمية</label><input type="number" id="quantity_selector" class="form-control" value="1" min="1"></div>
-                <div class="col-md-2"><label for="price_selector" class="form-label">السعر</label><input type="number" id="price_selector" class="form-control" step="any" placeholder="سعر البيع"></div>
-                <div class="col-md-2 d-grid"><button type="button" class="btn btn-success" id="add_product_btn"><i class="bi bi-plus-lg"></i></button></div>
             </div>
 
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead class="table-light"><tr><th>المنتج</th><th style="width: 20%;">سعر البيع</th><th style="width: 15%;">الكمية</th><th>الإجمالي</th><th style="width: 80px;">حذف</th></tr></thead>
-                    <tbody id="order_items_table"></tbody>
-                </table>
-            </div>
+            <div class="mb-5">
+                <h5 class="form-section-title">اختيار المنتجات</h5>
+                <div class="product-box shadow-sm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ابحث عن منتج</label>
+                            <select id="product_selector" class="form-select">
+                                <option value="">-- اكتب اسم المنتج للبحث --</option>
+                                @foreach($products as $product)
+                                    <option value="{{ $product->id }}" data-price="{{ $product->price }}" data-stock="{{ $product->stock_quantity }}" data-name="{{ $product->name_ar }}" data-category="{{ $product->category_id }}">
+                                        {{ $product->name_ar }} (المتوفر: {{ $product->stock_quantity }}) - {{ number_format($product->price, 0) }} د.ع
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">الكمية</label>
+                            <input type="number" id="quantity_selector" class="form-control text-center" value="1" min="1">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-bold">السعر</label>
+                            <input type="number" id="price_selector" class="form-control" step="any">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-dark w-100 py-3 fw-bold rounded-3" id="add_product_btn"><i class="bi bi-plus-lg me-1"></i> إضافة</button>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="row justify-content-end mt-4">
-                <div class="col-md-6">
-                    <h5 class="mb-3">ملخص الطلب</h5>
-                    <table class="table table-bordered">
-                        <tbody>
-                            <tr><th class="w-50">المجموع الفرعي</th><td id="subtotal_amount">0 د.ع</td></tr>
-                            <tr><th>كود الخصم</th><td><div class="input-group"><input type="text" id="discount_code_input" name="discount_code" class="form-control form-control-sm" placeholder="أدخل الكود"><button class="btn btn-sm btn-outline-secondary" type="button" id="apply_discount_btn">تطبيق</button></div><input type="hidden" name="discount_amount" id="discount_amount_hidden" value="0"><small id="discount_feedback" class="d-block mt-1"></small></td></tr>
-                            <tr><th>قيمة الخصم</th><td id="discount_amount_display">0 د.ع</td></tr>
-                            <tr><th>الشحن</th><td><div class="d-flex justify-content-between align-items-center"><span id="shipping_cost_display">{{ number_format($defaultShippingCost ?? 0, 0) }} د.ع</span>@if(\App\Models\Setting::isFreeShippingEnabled())<div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="free_shipping_switch" name="free_shipping"><label class="form-check-label" for="free_shipping_switch">شحن مجاني</label></div>@else<span class="text-muted small">الشحن المجاني معطّل من الإعدادات</span>@endif</div></td></tr>
+                <div class="table-responsive rounded-4 border overflow-hidden shadow-sm mb-4">
+                    <table class="table mb-0 align-middle text-center">
+                        <thead class="bg-light border-bottom">
+                            <tr class="text-muted small fw-bold">
+                                <th class="py-3 text-start ps-4">المنتج</th>
+                                <th class="py-3" width="180">سعر البيع</th>
+                                <th class="py-3" width="120">الكمية</th>
+                                <th class="py-3" width="180">الإجمالي</th>
+                                <th class="py-3" width="80"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="order_items_table">
+                            {{-- Rows added via JS --}}
                         </tbody>
-                        <tfoot class="table-light"><tr class="fw-bold fs-5"><td>الإجمالي النهائي</td><td id="total_amount">5,000 د.ع</td></tr></tfoot>
                     </table>
                 </div>
+
+                <div class="row justify-content-end">
+                    <div class="col-md-5">
+                        <div class="summary-card shadow-sm">
+                            <div class="summary-item">
+                                <span class="text-muted fw-bold">المجموع الفرعي</span>
+                                <span id="subtotal_amount" class="fw-bold">0 د.ع</span>
+                            </div>
+                            <div class="p-3 border-bottom bg-light bg-opacity-50">
+                                <label class="small fw-bold text-muted mb-2 d-block">كود الخصم (إن وجد)</label>
+                                <div class="input-group">
+                                    <input type="text" id="discount_code_input" name="discount_code" class="form-control form-control-sm border-end-0" style="border-radius:10px 0 0 10px" placeholder="أدخل الكود">
+                                    <button class="btn btn-outline-dark btn-sm fw-bold px-3" style="border-radius:0 10px 10px 0" type="button" id="apply_discount_btn">تطبيق</button>
+                                </div>
+                                <input type="hidden" name="discount_amount" id="discount_amount_hidden" value="0">
+                                <small id="discount_feedback" class="d-block mt-1 small"></small>
+                            </div>
+                            <div class="summary-item">
+                                <span class="text-muted fw-bold">قيمة الخصم</span>
+                                <span id="discount_amount_display" class="text-danger fw-bold">0 د.ع</span>
+                            </div>
+                            <div class="summary-item align-items-center">
+                                <span class="text-muted fw-bold">أجور الشحن</span>
+                                <div class="text-end">
+                                    <div id="shipping_cost_display" class="fw-bold mb-1">0 د.ع</div>
+                                    @if(\App\Models\Setting::isFreeShippingEnabled())
+                                        <div class="form-check form-switch d-inline-block">
+                                            <input class="form-check-input" type="checkbox" id="free_shipping_switch" name="free_shipping">
+                                            <label class="form-check-label small text-muted" for="free_shipping_switch">شحن مجاني</label>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="summary-item summary-total py-4">
+                                <span>الإجمالي النهائي</span>
+                                <span id="total_amount">0 د.ع</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="card-footer text-end">
-            <button type="submit" class="btn btn-primary">حفظ الطلب</button>
-            <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary">إلغاء</a>
-        </div>
+
+            <div class="d-flex justify-content-end gap-3 pt-5 border-top">
+                <a href="{{ route('admin.orders.index') }}" class="btn btn-light px-5 py-3 rounded-3 fw-bold">إلغاء والعودة</a>
+                <button type="submit" class="submit-btn shadow-sm py-3 px-5">حفظ الطلب نهائياً</button>
+            </div>
+        </form>
     </div>
-</form>
+</div>
 @endsection
 
 @push('scripts')
@@ -222,7 +295,7 @@ $(document).ready(function() {
 
     function resetAddressSelection() {
         savedAddressesList.empty();
-        savedAddressesWrapper.hide();
+        savedAddressesWrapper.addClass('d-none');
         applyAddressFromPayload({});
     }
 
@@ -252,7 +325,7 @@ $(document).ready(function() {
 
     function toggleGiftFields() {
         const isGift = isGiftInput.is(':checked');
-        giftFields.toggle(isGift);
+        if (isGift) giftFields.removeClass('d-none'); else giftFields.addClass('d-none');
         giftRecipientNameInput.prop('required', isGift);
         giftRecipientPhoneInput.prop('required', isGift);
         giftRecipientAddressInput.prop('required', isGift);
@@ -265,6 +338,8 @@ $(document).ready(function() {
 
     savedAddressesList.on('change', 'input[name="selected_address_option"]', function () {
         const payload = $(this).data('payload');
+        savedAddressesList.find('label').removeClass('border-primary bg-primary bg-opacity-5');
+        $(this).closest('label').addClass('border-primary bg-primary bg-opacity-5');
         if (payload) {
             applyAddressFromPayload(payload);
         }
@@ -274,51 +349,50 @@ $(document).ready(function() {
         savedAddressesList.empty();
 
         if (!Array.isArray(addresses) || addresses.length === 0) {
-            savedAddressesWrapper.hide();
+            savedAddressesWrapper.addClass('d-none');
             return;
         }
 
         if (addresses.length === 1) {
-            savedAddressesWrapper.hide();
+            savedAddressesWrapper.addClass('d-none');
             applyAddressFromPayload(addresses[0]);
             return;
         }
 
-        savedAddressesWrapper.show();
+        savedAddressesWrapper.removeClass('d-none');
 
         addresses.forEach(function (address) {
-            const item = $('<label class="list-group-item list-group-item-action d-flex align-items-start gap-3"></label>');
+            const col = $('<div class="col-md-6"></div>');
+            const item = $('<label class="d-flex align-items-start gap-3 p-3 bg-white border rounded-4 cursor-pointer h-100 transition-all"></label>');
+            item.css('cursor', 'pointer');
+            
             const radio = $('<input type="radio" class="form-check-input mt-1" name="selected_address_option">');
             radio.val(address.id || '').data('payload', address);
 
             const content = $('<div class="text-start flex-grow-1"></div>');
 
             if (address.is_default) {
-                content.append('<span class="badge bg-primary ms-1 mb-1">افتراضي</span>');
+                content.append('<span class="badge bg-primary ms-1 mb-1" style="font-size:10px">افتراضي</span>');
             }
 
-            content.append($('<div class="fw-bold"></div>').text(address.address_details || 'بدون تفاصيل'));
+            content.append($('<div class="fw-bold small text-dark"></div>').text(address.address_details || 'بدون تفاصيل'));
 
             if (address.city || address.governorate) {
                 content.append(
-                    $('<div class="small text-muted"></div>').text([address.city, address.governorate].filter(Boolean).join(' - '))
-                );
-            }
-
-            if (address.nearest_landmark) {
-                content.append(
-                    $('<div class="small text-muted"></div>').text('نقطة دالة: ' + address.nearest_landmark)
+                    $('<div class="small text-muted mt-1" style="font-size:11px"></div>').text([address.city, address.governorate].filter(Boolean).join(' - '))
                 );
             }
 
             item.append(radio).append(content);
-            savedAddressesList.append(item);
+            col.append(item);
+            savedAddressesList.append(col);
         });
 
         const preferred = addresses.find(address => address.is_default) || addresses[0];
         if (preferred) {
             applyAddressFromPayload(preferred);
             savedAddressesList.find(`input[value="${preferred.id}"]`).prop('checked', true);
+            savedAddressesList.find(`input[value="${preferred.id}"]`).closest('label').addClass('border-primary bg-primary bg-opacity-5');
         }
     }
 
@@ -333,7 +407,7 @@ $(document).ready(function() {
         }
 
         savedAddressInput.val('');
-        savedAddressesWrapper.hide();
+        savedAddressesWrapper.addClass('d-none');
         savedAddressesList.empty();
 
         $.get(customerAddressesUrl(customerId))
@@ -343,7 +417,7 @@ $(document).ready(function() {
 
                 if (!addresses.length) {
                     applyAddressFromPayload(fallback);
-                    savedAddressesWrapper.hide();
+                    savedAddressesWrapper.addClass('d-none');
                     return;
                 }
 
@@ -372,11 +446,15 @@ $(document).ready(function() {
 
         const newRow = `
             <tr class="item-row" data-stock="${stock}" data-category="${category}">
-                <td><input type="hidden" name="products[${productId}][id]" value="${productId}">${productName}</td>
-                <td><input type="number" name="products[${productId}][price]" class="form-control item-price" value="${productPrice}" min="0" step="any" required></td>
-                <td><input type="number" name="products[${productId}][quantity]" class="form-control item-quantity" value="${quantity}" min="1" required></td>
-                <td class="item-subtotal">${formatNumber(productPrice * quantity)} د.ع</td>
-                <td><button type="button" class="btn btn-sm btn-danger remove-item"><i class="bi bi-trash"></i></button></td>
+                <td class="text-start ps-4">
+                    <input type="hidden" name="products[${productId}][id]" value="${productId}">
+                    <div class="fw-bold text-dark">${productName}</div>
+                    <div class="small text-muted" style="font-size:11px">المتوفر: ${stock} قطعة</div>
+                </td>
+                <td><input type="number" name="products[${productId}][price]" class="form-control item-price text-center fw-bold" value="${productPrice}" min="0" step="any" required></td>
+                <td><input type="number" name="products[${productId}][quantity]" class="form-control item-quantity text-center fw-bold" value="${quantity}" min="1" required></td>
+                <td class="item-subtotal fw-bold text-dark">${formatNumber(productPrice * quantity)} د.ع</td>
+                <td><button type="button" class="btn btn-link text-danger p-0 remove-item" title="حذف"><i class="bi bi-x-circle-fill fs-5"></i></button></td>
             </tr>
         `;
         orderItemsTable.append(newRow);
@@ -444,7 +522,11 @@ $(document).ready(function() {
         const selectedOption = $(this).find(':selected');
         const customerId = $(this).val();
         const isBanned = selectedOption.data('banned');
-        bannedCustomerWarning.toggle(!!isBanned);
+        if (isBanned === true || isBanned === 'true') {
+            bannedCustomerWarning.removeClass('d-none');
+        } else {
+            bannedCustomerWarning.addClass('d-none');
+        }
         fetchCustomerAddresses(customerId);
     });
 
@@ -454,7 +536,12 @@ $(document).ready(function() {
             $('#customer_id').trigger('change');
         } else {
             const initialOption = $('#customer_id').find(':selected');
-            bannedCustomerWarning.toggle(!!initialOption.data('banned'));
+            const isBanned = initialOption.data('banned');
+            if (isBanned === true || isBanned === 'true') {
+                bannedCustomerWarning.removeClass('d-none');
+            } else {
+                bannedCustomerWarning.addClass('d-none');
+            }
         }
     }
 

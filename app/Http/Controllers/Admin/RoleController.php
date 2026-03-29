@@ -26,11 +26,16 @@ class RoleController extends Controller
     /**
      * Display a listing of all roles.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // عرض الأدوار الخاصة بلوحة التحكم فقط (admin guard) لتجنب التكرار
-        $roles = Role::where('guard_name', 'admin')->paginate(10);
-        return view('admin.roles.index', compact('roles'));
+        $allowedSorts = ['id', 'name', 'created_at'];
+        [$sortBy, $sortDir] = \App\Support\Sort::resolve($request, $allowedSorts, 'name', 'asc');
+
+        $roles = Role::where('guard_name', 'admin')
+            ->orderBy($sortBy, $sortDir)
+            ->paginate(10);
+            
+        return view('admin.roles.index', compact('roles', 'sortBy', 'sortDir'));
     }
 
     /**

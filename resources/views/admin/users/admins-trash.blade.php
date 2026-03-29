@@ -19,7 +19,7 @@
     <div class="card-body">
         <form method="GET" action="{{ route('admin.admins.trash') }}" class="row g-2 mb-4">
             <div class="col">
-                <input type="text" name="search" class="form-control" placeholder="ابحث بالاسم أو رقم الهاتف..." value="{{ request('search') }}">
+                <input type="text" name="search" class="form-control" placeholder="ابحث بالاسم أو اسم المستخدم..." value="{{ request('search') }}">
             </div>
             <div class="col-auto">
                 <button type="submit" class="btn btn-primary" style="background-color:#FF5722;border-color:#FF5722;">
@@ -32,12 +32,12 @@
             <table class="table table-bordered text-center align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>#</th>
-                        <th>الاسم</th>
-                        <th>رقم الهاتف</th>
+                        <th>{!! \App\Support\Sort::link('id', '#') !!}</th>
+                        <th>{!! \App\Support\Sort::link('name', 'الاسم') !!}</th>
+                        <th>{!! \App\Support\Sort::link('phone_number', 'اسم المستخدم') !!}</th>
                         <th>المشرف المباشر</th>
                         <th>الأدوار</th>
-                        <th>تاريخ الحذف</th>
+                        <th>{!! \App\Support\Sort::link('deleted_at', 'تاريخ الحذف') !!}</th>
                         <th>العمليات</th>
                     </tr>
                 </thead>

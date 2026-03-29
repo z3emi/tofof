@@ -121,24 +121,20 @@ $sortDir = request('wallet_sort_dir', 'desc');
                 <input type="hidden" name="{{ $k }}" value="{{ $v }}">
             @endforeach
 
-            <div class="col-md-3">
-                <input type="text" name="wallet_q" class="form-control" placeholder="ابحث بالملاحظة..." value="{{ request('wallet_q') }}">
+            <div class="col-md-8">
+                <input type="text" name="wallet_q" class="form-control" style="border-radius:12px; height:58px" placeholder="ابحث بالملاحظة أو الوصف..." value="{{ request('wallet_q') }}">
             </div>
 
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100" style="background-color:#cd8985;border-color:#cd8985;">
-                    <i class="bi bi-search" style="color:#000;"></i> بحث
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn text-white px-4 fw-bold flex-grow-1" style="background-color:var(--primary-dark); border-radius:12px; height:58px">بحث</button>
+                <button type="button" class="btn btn-outline-dark d-flex align-items-center justify-content-center" style="width:58px; height:58px; border-radius:12px" data-bs-toggle="modal" data-bs-target="#filtersModal" title="تصفية الحركات">
+                    <i class="bi bi-funnel fs-4"></i>
                 </button>
-            </div>
-
-            <div class="col-md-2">
-                <button type="button"
-                        class="btn btn-outline-primary w-100"
-                        data-bs-toggle="modal"
-                        data-bs-target="#filtersModal"
-                        style="background-color:#cd8985;color:#fff;border-color:#cd8985;">
-                    <i class="bi bi-funnel" style="color:#000;"></i> فلاتر
-                </button>
+                @if(request()->anyFilled(['wallet_from','wallet_to','wallet_min','wallet_max','wallet_type','wallet_q']))
+                    <a href="{{ route('admin.users.show', ['user' => $user->id, 'wallet_view' => 'page']) }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" style="width:58px; height:58px; border-radius:12px" title="إعادة تعيين">
+                        <i class="bi bi-arrow-counterclockwise fs-4"></i>
+                    </a>
+                @endif
             </div>
         </form>
 

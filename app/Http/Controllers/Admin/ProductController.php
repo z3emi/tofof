@@ -39,7 +39,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = $request->input('per_page', 5);
+        $perPage = $request->input('per_page', 10);
 
         // تحميل الصور + القسم + الفئة الثانية (مع الأب) — إضافات بدون حذف
         $query = Product::with('firstImage')
@@ -79,13 +79,16 @@ class ProductController extends Controller
             }
         }
 
-        $products = $query->latest()->paginate($perPage)->withQueryString();
+        $allowedSorts = ['id', 'name_ar', 'price', 'sale_price', 'available_quantity', 'is_active', 'created_at'];
+        [$sortBy, $sortDir] = \App\Support\Sort::resolve($request, $allowedSorts, 'id');
+
+        $products = $query->orderBy($sortBy, $sortDir)->paginate($perPage)->withQueryString();
 
         // للفلترة في الواجهة (اختياري)
         $categories = Category::all();
         $primaryCategories = PrimaryCategory::active()->ordered()->get();
 
-        return view('admin.products.index', compact('products', 'categories', 'primaryCategories'));
+        return view('admin.products.index', compact('products', 'categories', 'primaryCategories', 'sortBy', 'sortDir', 'allowedSorts'));
     }
 
     /**
@@ -274,7 +277,7 @@ class ProductController extends Controller
 
     public function trash(Request $request)
     {
-        $perPage = $request->input('per_page', 5);
+        $perPage = $request->input('per_page', 10);
 
         $products = Product::onlyTrashed()
             ->with(['category', 'primaryCategories.parent'])

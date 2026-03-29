@@ -109,10 +109,10 @@
                 <table class="table table-hover align-middle text-center mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>رقم الفاتورة (الطلب)</th>
-                            <th>تاريخ الفاتورة</th>
+                            <th>{!! \App\Support\Sort::link('id', 'رقم الفاتورة (الطلب)') !!}</th>
+                            <th>{!! \App\Support\Sort::link('created_at', 'تاريخ الفاتورة') !!}</th>
                             <th>العميل</th>
-                            <th>المبلغ الإجمالي (بعد الخصم وبدون الشحن)</th>
+                            <th>{!! \App\Support\Sort::link('total_amount', 'المبلغ الإجمالي (بعد الخصم وبدون الشحن)') !!}</th>
                             <th>عرض الطلب</th>
                         </tr>
                     </thead>

@@ -76,7 +76,13 @@ class LoginController extends Controller
                     ->with('status', 'حسابك غير مفعل. لقد أرسلنا رمز تحقق جديد إلى واتساب.');
             }
         }
-        // --- نهاية فحص التفعيل ---
+        // --- Maintenance Mode Check ---
+        if (\App\Models\Setting::isMaintenanceMode()) {
+            throw ValidationException::withMessages([
+                $this->username() => 'الموقع في وضع الصيانة حالياً. يرجى المحاولة لاحقاً.'
+            ]);
+        }
+        // ------------------------------
 
         // حماية من محاولات كثيرة
         if (method_exists($this, 'hasTooManyLoginAttempts') &&

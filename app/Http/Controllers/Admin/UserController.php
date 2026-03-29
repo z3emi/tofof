@@ -23,27 +23,25 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = (int) $request->input('per_page', 5);
-        $allowedPageSizes = [5, 10, 25, 50, 100];
+        $perPage = (int) $request->input('per_page', 10);
+        $allowedPageSizes = [5, 10, 25, 50, 100, 250, 500];
         if (! in_array($perPage, $allowedPageSizes, true)) {
-            $perPage = 5;
+            $perPage = 10;
         }
 
         $query = User::with('roles', 'permissions')
             ->withCount(['orders' => function ($query) {
                 // نعد الطلبات المكتملة (مُسلّمة) فقط لغرض الفئات
                 $query->where('status', 'delivered');
-            }])
-            ->latest();
+            }]);
 
         $allowedSorts = ['id', 'name', 'phone_number', 'orders_count', 'created_at', 'wallet_balance'];
-        $sortBy  = in_array($request->get('sort_by'), $allowedSorts, true) ? $request->get('sort_by') : 'id';
-        $sortDir = $request->get('sort_dir') === 'asc' ? 'asc' : 'desc';
+        [$sortBy, $sortDir] = \App\Support\Sort::resolve($request, $allowedSorts, 'id');
 
         if ($sortBy === 'wallet_balance') {
             $query->orderByRaw('CAST(wallet_balance AS DECIMAL(15,2)) '.$sortDir);
         } else {
-            $query->reorder()->orderBy($sortBy, $sortDir);
+            $query->orderBy($sortBy, $sortDir);
         }
 
         if ($request->filled('search')) {
@@ -67,7 +65,7 @@ class UserController extends Controller
 
         $users = $query->paginate($perPage)->withQueryString();
 
-        return view('admin.users.index', compact('users', 'sortBy', 'sortDir'));
+        return view('admin.users.index', compact('users', 'sortBy', 'sortDir', 'perPage', 'allowedSorts'));
     }
 
     public function show(Request $request, User $user)
@@ -83,7 +81,7 @@ class UserController extends Controller
             });
         }
 
-        $perPage = $request->input('per_page', 5);
+        $perPage = $request->input('per_page', 10);
         $orders = $query->paginate($perPage)->withQueryString();
 
         $totalOrders = $user->orders()->count();
@@ -101,7 +99,7 @@ class UserController extends Controller
         $walletTo     = $request->input('wallet_to');
         $walletType   = $request->input('wallet_type'); // credit|debit|null
         $walletSearch = $request->input('wallet_q');
-        $walletPer    = (int) $request->input('wallet_per_page', $walletView === 'detailed' ? 15 : 5);
+        $walletPer    = (int) $request->input('wallet_per_page', $walletView === 'detailed' ? 15 : 10);
 
         // (جديد) فرز المحفظة
         $walletSortBy  = $request->input('wallet_sort_by', 'created_at'); // id|created_at|amount
@@ -309,9 +307,18 @@ public function update(Request $request, User $user)
 
     public function trash(Request $request)
     {
-        $perPage = (int) $request->input('per_page', 20);
-        $users = User::onlyTrashed()->latest('deleted_at')->paginate($perPage)->withQueryString();
-        return view('admin.users.trash', compact('users'));
+        $perPage = (int) $request->input('per_page', 10);
+        
+        $query = User::onlyTrashed();
+
+        $allowedSorts = ['id', 'name', 'phone_number', 'deleted_at'];
+        [$sortBy, $sortDir] = \App\Support\Sort::resolve($request, $allowedSorts, 'deleted_at');
+        
+        $query->orderBy($sortBy, $sortDir);
+
+        $users = $query->paginate($perPage)->withQueryString();
+        
+        return view('admin.users.trash', compact('users', 'sortBy', 'sortDir', 'perPage'));
     }
 
     public function restore($id)
@@ -333,13 +340,19 @@ public function update(Request $request, User $user)
         return redirect()->back()->with('success', 'تم حذف المستخدم نهائيًا.');
     }
     
-    public function inactive()
+    public function inactive(Request $request)
     {
-        $inactiveUsers = User::whereNull('phone_verified_at')
-                               ->latest()
-                               ->paginate(20);
+        $perPage = (int) $request->input('per_page', 20);
+        $query = User::whereNull('phone_verified_at');
 
-        return view('admin.users.inactive', compact('inactiveUsers'));
+        $allowedSorts = ['id', 'name', 'phone_number', 'created_at'];
+        [$sortBy, $sortDir] = \App\Support\Sort::resolve($request, $allowedSorts, 'created_at');
+
+        $query->orderBy($sortBy, $sortDir);
+
+        $inactiveUsers = $query->paginate($perPage)->withQueryString();
+
+        return view('admin.users.inactive', compact('inactiveUsers', 'sortBy', 'sortDir', 'perPage'));
     }
 
     public function forceLogout(User $user)

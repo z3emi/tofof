@@ -84,7 +84,7 @@ class ManagerController extends Controller
         }
 
         $allowedSorts = ['id', 'name', 'phone_number', 'team_members_count', 'created_at'];
-        [$sortBy, $sortDir] = Sort::resolve($request, $allowedSorts, 'created_at');
+        [$sortBy, $sortDir] = Sort::resolve($request, $allowedSorts, 'id');
 
         $query->orderBy($sortBy, $sortDir);
 
@@ -483,8 +483,7 @@ class ManagerController extends Controller
         $canViewContactDetails = $currentManager?->can('view-manager-contact') ?? false;
 
         $query = Manager::onlyTrashed()
-            ->with(['roles', 'manager'])
-            ->orderByDesc('deleted_at');
+            ->with(['roles', 'manager']);
 
         if ($request->filled('search')) {
             $searchTerm = $request->search;
@@ -493,6 +492,11 @@ class ManagerController extends Controller
                   ->orWhere('phone_number', 'like', "%{$searchTerm}%");
             });
         }
+
+        $allowedSorts = ['id', 'name', 'phone_number', 'deleted_at'];
+        [$sortBy, $sortDir] = Sort::resolve($request, $allowedSorts, 'deleted_at');
+
+        $query->orderBy($sortBy, $sortDir);
 
         $perPage = (int) $request->input('per_page', 10);
         if ($perPage < 5) {
@@ -505,6 +509,9 @@ class ManagerController extends Controller
 
         return view('admin.managers.trash', [
             'managers' => $managers,
+            'allowedSorts' => $allowedSorts,
+            'sortBy' => $sortBy,
+            'sortDir' => $sortDir,
             'perPage' => $perPage,
             'canViewContactDetails' => $canViewContactDetails,
         ]);

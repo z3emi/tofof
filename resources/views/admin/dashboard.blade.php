@@ -189,7 +189,6 @@
   </div>
 </div>
 
-@can('view-reports-financial')
 <div class="col-12 col-md-6 col-xl-3">
   <div class="card h-100 bg-soft-brand">
     <div class="card-body d-flex align-items-center justify-content-between">
@@ -204,7 +203,6 @@
     </div>
   </div>
 </div>
-@endcan
 
 {{-- ===== شريط فلاتر الفترة الزمنية ===== --}}
 <div class="filters-bar mb-3">
@@ -246,7 +244,6 @@
     </div>
   </div>
 
-  @can('view-reports-financial')
   <div class="col-12 col-sm-6 col-xl-3">
     <div class="mini p-3 h-100">
       <div class="d-flex justify-content-between">
@@ -274,7 +271,6 @@
       <canvas id="sparkAov" class="mt-2 spark"></canvas>
     </div>
   </div>
-  @endcan
 
   <div class="col-12 col-sm-6 col-xl-3">
     <div class="mini p-3 h-100">
@@ -304,7 +300,6 @@
       </div>
     </div>
   </div>
-  @can('view-reports-financial')
   <div class="col-lg-8">
     <div class="card h-100">
       <div class="card-body">
@@ -313,7 +308,6 @@
       </div>
     </div>
   </div>
-  @endcan
 </div>
 
 {{-- ===== أقسامك القديمة (تبقى كما هي) ===== --}}
@@ -419,7 +413,7 @@
   </div>
   @endcan
 
-  @can('view-reports-financial')
+  @can('view-reports')
   <div class="col-lg-6">
       <div class="card h-100">
           <div class="card-body">

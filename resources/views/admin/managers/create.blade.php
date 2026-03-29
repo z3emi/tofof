@@ -2,277 +2,238 @@
 
 @section('title', 'إضافة مدير جديد')
 
-@php
-    $governorateOptions = $governorates ?? [];
-    $selectedGovernorates = collect(old('governorates', []))->filter()->all();
-@endphp
-
 @section('content')
 @can('create-managers')
 @push('styles')
 <style>
-    .extra-small {
-        font-size: 0.78rem;
+    .form-card {
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: #fff;
+        width: 100% !important;
+        margin: 0 !important;
     }
 
-    .role-card {
-        position: relative;
-        display: block;
+    .form-card-header {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%);
+        padding: 2.5rem 3rem;
+        color: white;
+        border-radius: 0 !important;
     }
 
-    .role-card input {
-        position: absolute;
-        opacity: 0;
-        pointer-events: none;
+    .form-section-title {
+        font-weight: 700;
+        color: var(--primary-dark);
+        border-right: 4px solid var(--accent-gold);
+        padding-right: 15px;
+        margin-bottom: 2rem;
     }
 
-    .role-card .card {
-        border: 1px solid #e4e9f2;
-        transition: all .25s ease;
-        border-radius: 1.25rem;
-        background: linear-gradient(135deg, rgba(248, 249, 250, 0.65), #ffffff);
-        min-height: 180px;
-        position: relative;
-    }
-
-    .role-card .card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-    }
-
-    .role-card input:checked + .card {
-        border-color: #FF5722;
-        box-shadow: 0 16px 32px rgba(74, 74, 74, 0.25);
-        background: linear-gradient(135deg, rgba(74, 74, 74, 0.15), rgba(255, 255, 255, 0.9));
-    }
-
-    .role-card input:focus-visible + .card {
-        outline: 2px solid #FF5722;
-        outline-offset: 3px;
-    }
-
-    .role-card__icon {
-        width: 44px;
-        height: 44px;
-        background: rgba(74, 74, 74, 0.18);
-        border-radius: 14px;
-        display: grid;
-        place-items: center;
-        color: #FF5722;
-        font-size: 1.15rem;
-    }
-
-    .role-card__badge {
-        background: rgba(74, 74, 74, 0.12);
-        color: #FF5722;
-        border-radius: 999px;
-        padding: 0.35rem 0.75rem;
-        font-size: 0.75rem;
-    }
-
-    .role-card__selected {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        background: #FF5722;
-        color: #fff;
-        border-radius: 999px;
-        padding: 0.35rem 0.75rem;
-        font-size: 0.7rem;
+    .form-label {
         font-weight: 600;
-        opacity: 0;
-        transform: translateY(-6px);
-        transition: all .2s ease;
-        pointer-events: none;
+        color: var(--text-dark);
+        margin-bottom: 0.6rem;
+        font-size: 0.95rem;
     }
 
-    .role-card input:checked + .card .role-card__selected {
-        opacity: 1;
-        transform: translateY(0);
+    .form-control, .form-select {
+        border-radius: 12px;
+        padding: 0.8rem 1.2rem;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+        background-color: #fcfcfc;
     }
 
-    .role-card__footer {
-        background: rgba(255, 255, 255, 0.6);
-        border-radius: 0.75rem;
-        padding: 0.4rem 0.75rem;
-        color: #6c757d;
-        font-size: 0.75rem;
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 4px rgba(109, 14, 22, 0.08);
+        background-color: #fff;
     }
 
-    .role-card.border-danger .card {
-        border-color: #dc3545 !important;
-        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    .role-selection-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .role-card-item {
+        cursor: pointer;
+        position: relative;
+    }
+
+    .role-card-item input {
+        display: none;
+    }
+
+    .role-card-inner {
+        border: 2px solid #f1f5f9;
+        border-radius: 15px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        height: 100%;
+        background: #fafbff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .role-card-item:hover .role-card-inner {
+        border-color: var(--primary-light);
+        transform: translateY(-5px);
+    }
+
+    .role-card-item input:checked + .role-card-inner {
+        border-color: var(--primary-dark);
+        background: white;
+        box-shadow: 0 10px 20px rgba(109, 14, 22, 0.1);
+    }
+
+    .role-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(109, 14, 22, 0.1);
+        color: var(--primary-dark);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .submit-btn {
+        background: var(--primary-dark);
+        border: none;
+        padding: 1rem 3rem;
+        border-radius: 10px;
+        font-weight: 700;
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .submit-btn:hover {
+        background: var(--primary-medium);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(109, 14, 22, 0.3);
+    }
+
+    .cancel-btn {
+        background: #f1f5f9;
+        padding: 1rem 3rem;
+        border-radius: 10px;
+        font-weight: 700;
+        color: var(--text-dark);
+        text-decoration: none;
+        transition: all 0.3s ease;
     }
 </style>
 @endpush
 
-<div class="card shadow-sm">
-    <div class="card-header">
-        <h5 class="mb-0">إنشاء حساب مدير جديد</h5>
+<div class="form-card">
+    <div class="form-card-header">
+        <h2 class="mb-2 fw-bold text-white"><i class="bi bi-person-plus-fill me-2"></i> إضافة مدير جديد للنظام</h2>
+        <p class="mb-0 opacity-75 fs-6 text-white">أدخل المعلومات الأساسية وحدد الدور الوظيفي للمدير الجديد.</p>
     </div>
-    <div class="card-body">
-        <form action="{{ route('admin.managers.store') }}" method="POST" class="js-required-check" data-required-message="يرجى تعبئة جميع الحقول المطلوبة قبل الحفظ.">
+    
+    <div class="p-4 p-lg-5">
+        @if ($errors->any())
+            <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-5">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form action="{{ route('admin.managers.store') }}" method="POST">
             @csrf
 
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    @foreach ($errors->all() as $error)
-                        <p class="mb-0">{{ $error }}</p>
-                    @endforeach
-                </div>
-            @endif
-
-            <div class="alert alert-warning d-none" data-required-warning></div>
-
-            <div class="accordion" id="userCreateAccordion">
-                {{-- المعلومات الأساسية --}}
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingBasic">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBasic" aria-expanded="true" aria-controls="collapseBasic">
-                            المعلومات الأساسية
-                        </button>
-                    </h2>
-                    <div id="collapseBasic" class="accordion-collapse collapse show" aria-labelledby="headingBasic" data-bs-parent="#userCreateAccordion">
-                        <div class="accordion-body">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="name" class="form-label">اسم اليوزر</label>
-                                    <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="phone_number" class="form-label">رقم الهاتف</label>
-                                    <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ old('phone_number') }}" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="email" class="form-label">البريد الإلكتروني (اختياري)</label>
-                                    <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="password" class="form-label">كلمة المرور</label>
-                                    <input type="password" class="form-control" id="password" name="password" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="password_confirmation" class="form-label">تأكيد كلمة المرور</label>
-                                    <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="manager_id" class="form-label">المشرف المباشر</label>
-                                    <select name="manager_id" id="manager_id" class="form-select">
-                                        <option value="">بدون مشرف (إدارة عليا)</option>
-                                        @foreach(($managers ?? collect()) as $availableManager)
-                                            <option value="{{ $availableManager->id }}" {{ old('manager_id') == $availableManager->id ? 'selected' : '' }}>
-                                                {{ $availableManager->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <small class="text-muted">استخدم هذا الحقل لربط المدير بمشرفه المباشر حتى يستطيع المشرف رؤية طلباته.</small>
-                                </div>
-                                <div class="col-md-12 mb-3">
-                                    <label class="form-label">المحافظات المخصصة (الزون)</label>
-                                    <div class="border rounded-3 p-3" id="governorate_selector">
-                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-                                            <span class="fw-semibold">اختر المحافظات التي يمكن للمدير متابعتها</span>
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <button type="button" class="btn btn-outline-primary" data-action="select-all">تحديد الكل</button>
-                                                <button type="button" class="btn btn-outline-secondary" data-action="clear-all">مسح الكل</button>
-                                            </div>
-                                        </div>
-                                        <div class="row g-2">
-                                            @foreach($governorateOptions as $governorate)
-                                                @php $inputId = 'gov_' . \Illuminate\Support\Str::slug($governorate); @endphp
-                                                <div class="col-md-4 col-sm-6">
-                                                    <div class="form-check">
-                                                        <input class="form-check-input governorate-checkbox" type="checkbox" value="{{ $governorate }}" id="{{ $inputId }}" name="governorates[]" @checked(in_array($governorate, $selectedGovernorates, true))>
-                                                        <label class="form-check-label" for="{{ $inputId }}">{{ $governorate }}</label>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                    <small class="text-muted d-block mt-2">يمكنك اختيار أكثر من محافظة، أو تركها فارغة لعرض العملاء المرتبطين بالمدير فقط.</small>
-                                    @error('governorates')
-                                        <div class="text-danger small mt-1">{{ $message }}</div>
-                                    @enderror
-                                    @error('governorates.*')
-                                        <div class="text-danger small mt-1">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
+            <!-- المعلومات الأساسية -->
+            <div class="mb-5">
+                <h5 class="form-section-title">المعلومات الشخصية والوظيفية</h5>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="name" class="form-label">الاسم الكامل <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}" placeholder="أدخل اسم المدير المعتمد" required>
                     </div>
-                </div>
-
-                {{-- الأدوار --}}
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingRole">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRole" aria-expanded="false" aria-controls="collapseRole">
-                            اختيار الدور الوظيفي
-                        </button>
-                    </h2>
-                    <div id="collapseRole" class="accordion-collapse collapse" aria-labelledby="headingRole" data-bs-parent="#userCreateAccordion">
-                        <div class="accordion-body">
-                            <p class="text-muted small mb-3">اختر دوراً واحداً فقط ليتم منحه لهذا المدير.</p>
-                            <div class="row g-3">
-                                @forelse(($roles ?? collect()) as $role)
-                                    <div class="col-md-4">
-                                        <div class="border rounded-3 p-3 h-100">
-                                            <div class="form-check">
-                                                <input type="radio" class="form-check-input" name="role" id="role_{{ $role->id }}" value="{{ $role->name }}" @checked(old('role') === $role->name) required>
-                                                <label class="form-check-label fw-semibold" for="role_{{ $role->id }}">{{ $role->name }}</label>
-                                            </div>
-                                            <p class="text-muted small mb-0 mt-2">يتضمن {{ $role->permissions_count }} صلاحية.</p>
-                                        </div>
-                                    </div>
-                                @empty
-                                    <div class="col-12">
-                                        <div class="alert alert-warning mb-0">لم يتم إنشاء أدوار بعد.</div>
-                                    </div>
-                                @endforelse
-                            </div>
-                            @error('role')
-                                <div class="text-danger small mt-2">{{ $message }}</div>
-                            @enderror
-                        </div>
+                    <div class="col-md-6">
+                        <label for="phone_number" class="form-label">اسم المستخدم (رقم الهاتف) <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ old('phone_number') }}" placeholder="أدخل رقم الهاتف كاسم مستخدم" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="email" class="form-label">البريد الإلكتروني (اختياري)</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" placeholder="example@tofof.com">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="manager_id" class="form-label">المشرف المباشر</label>
+                        <select name="manager_id" id="manager_id" class="form-select">
+                            <option value="">بدون مشرف (إدارة عليا)</option>
+                            @foreach(($managers ?? collect()) as $availableManager)
+                                <option value="{{ $availableManager->id }}" {{ old('manager_id') == $availableManager->id ? 'selected' : '' }}>
+                                    {{ $availableManager->name }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
             </div>
 
-            <hr class="mt-4">
-            <button type="submit" class="btn btn-primary">إنشاء المدير</button>
-            <a href="{{ route('admin.managers.index') }}" class="btn btn-secondary">إلغاء</a>
+            <!-- الأمان -->
+            <div class="mb-5">
+                <h5 class="form-section-title">إعدادات الحماية والأمان</h5>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="password" class="form-label">كلمة المرور القوية <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="password_confirmation" class="form-label">تأكيد كلمة المرور <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="••••••••" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- الصلاحيات -->
+            <div class="mb-5">
+                <h5 class="form-section-title">تحديد الصلاحيات (الدور الوظيفي)</h5>
+                <p class="text-muted small mb-4">اختر الدور الوظيفي الذي سيحصل عليه المدير، والذي سيحدد امكانياته داخل لوحة التحكم.</p>
+                
+                <div class="role-selection-grid">
+                    @forelse(($roles ?? collect()) as $role)
+                        <label class="role-card-item">
+                            <input type="radio" name="role" value="{{ $role->name }}" @checked(old('role') === $role->name) required>
+                            <div class="role-card-inner">
+                                <div class="role-icon">
+                                    <i class="bi bi-shield-check"></i>
+                                </div>
+                                <div class="role-name">{{ $role->name }}</div>
+                                <div class="role-desc">يمنح هذا الدور {{ $role->permissions_count }} صلاحية محددة للنظام.</div>
+                            </div>
+                        </label>
+                    @empty
+                        <div class="col-12 text-center py-5">
+                            <div class="alert alert-warning border-0">لا توجد أدوار إشرافية معرفة في النظام حالياً.</div>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-3 pt-5 border-top">
+                <a href="{{ route('admin.managers.index') }}" class="cancel-btn">إلغاء والعودة</a>
+                <button type="submit" class="submit-btn shadow-sm">حفظ وإنشاء الحساب</button>
+            </div>
         </form>
     </div>
 </div>
 @else
-<div class="alert alert-danger">ليس لديك صلاحية لإنشاء المدراء.</div>
+<div class="p-5 text-center">
+    <div class="alert alert-danger rounded-4 shadow-sm p-5 d-inline-block">
+        <i class="bi bi-shield-exclamation display-1 mb-3"></i>
+        <h4>عذراً، ليس لديك الصلاحية الكافية لإنشاء حسابات إدارية.</h4>
+    </div>
+</div>
 @endcan
 @endsection
-
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const container = document.getElementById('governorate_selector');
-    if (!container) {
-        return;
-    }
-
-    const checkboxes = container.querySelectorAll('.governorate-checkbox');
-
-    container.querySelectorAll('[data-action="select-all"]').forEach((button) => {
-        button.addEventListener('click', () => {
-            checkboxes.forEach((checkbox) => {
-                checkbox.checked = true;
-            });
-        });
-    });
-
-    container.querySelectorAll('[data-action="clear-all"]').forEach((button) => {
-        button.addEventListener('click', () => {
-            checkboxes.forEach((checkbox) => {
-                checkbox.checked = false;
-            });
-        });
-    });
-});
-</script>
-@endpush

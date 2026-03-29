@@ -40,10 +40,7 @@ class CategoryController extends Controller
     {
         $q = trim((string)$request->get('q', ''));
         $allowedSizes = [5, 10, 25, 50, 100];
-        $perPage = (int) $request->get('per_page', 5);
-        if (!in_array($perPage, $allowedSizes, true)) {
-            $perPage = 5;
-        }
+        $perPage = (int) $request->get('per_page', 10);
 
         $query = Category::query()
             ->whereNull('parent_id')
@@ -69,9 +66,12 @@ class CategoryController extends Controller
             });
         }
 
-        $categories = $query->latest()->paginate($perPage)->withQueryString();
+        $allowedSorts = ['id', 'name_ar', 'total_products_count', 'created_at'];
+        [$sortBy, $sortDir] = \App\Support\Sort::resolve($request, $allowedSorts, 'id');
 
-        return view('admin.categories.index', compact('categories'));
+        $categories = $query->orderBy($sortBy, $sortDir)->paginate($perPage)->withQueryString();
+
+        return view('admin.categories.index', compact('categories', 'sortBy', 'sortDir'));
     }
 
     public function create()

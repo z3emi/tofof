@@ -105,20 +105,21 @@ class OrderController extends Controller
             $query->where('user_id', $request->user_id);
         }
 
+        $allowedSorts = ['id', 'user_name', 'total_amount', 'status', 'created_at', 'city', 'governorate'];
+        [$sortBy, $sortDir] = \App\Support\Sort::resolve($request, $allowedSorts, 'id');
+
         if ($sortBy === 'user_name') {
             $query->join('customers', 'orders.customer_id', '=', 'customers.id')
                   ->orderBy('customers.name', $sortDir)
                   ->select('orders.*');
-        } elseif (in_array($sortBy, ['id', 'total_amount', 'status', 'created_at'])) {
-            $query->orderBy($sortBy, $sortDir);
         } else {
-            $query->latest('id');
+            $query->orderBy($sortBy, $sortDir);
         }
 
-        $perPage = $request->input('per_page', 5);
+        $perPage = (int) $request->get('per_page', 10);
         $orders = $query->paginate($perPage)->withQueryString();
 
-        return view('admin.orders.index', compact('orders', 'sortBy', 'sortDir'));
+        return view('admin.orders.index', compact('orders', 'sortBy', 'sortDir', 'allowedSorts'));
     }
 
     public function create()

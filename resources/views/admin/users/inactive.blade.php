@@ -19,12 +19,12 @@
             <table class="table table-striped table-hover text-center align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>#</th>
-                        <th>الاسم</th>
-                        <th>رقم الهاتف</th>
+                        <th>{!! \App\Support\Sort::link('id', '#') !!}</th>
+                        <th>{!! \App\Support\Sort::link('name', 'الاسم') !!}</th>
+                        <th>{!! \App\Support\Sort::link('phone_number', 'رقم الهاتف') !!}</th>
                         <th>رمز التحقق (OTP)</th>
                         <th>صلاحية الرمز تنتهي في</th>
-                        <th>تاريخ التسجيل</th>
+                        <th>{!! \App\Support\Sort::link('created_at', 'تاريخ التسجيل') !!}</th>
                     </tr>
                 </thead>
                 <tbody>

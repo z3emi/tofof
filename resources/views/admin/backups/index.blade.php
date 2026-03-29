@@ -1,75 +1,76 @@
 @extends('admin.layout')
+
 @section('title', 'إدارة النسخ الاحتياطي')
 
 @push('styles')
 <style>
-    /* ===== START: تم إضافة هذه التنسيقات ===== */
-    /* تمييز الصف المحدد بلون مختلف */
-    .table-row-selected {
-        background-color: #f3e5e3 !important; /* brand-secondary */
-        --bs-table-accent-bg: #f3e5e3 !important; /* لضمان التوافق مع Bootstrap */
-    }
-    /* ===== END: تم إضافة هذه التنسيقات ===== */
+    .form-card { border-radius: 0 !important; border: none !important; box-shadow: none !important; background: #fff; width: 100% !important; margin: 0 !important; }
+    .form-card-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%); padding: 2.5rem 3rem; color: white; border-radius: 0 !important; }
+    .table-container { border-radius: 15px; border: 1px solid #f1f5f9; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .selectable-row.selected { background-color: #fcecea !important; }
 </style>
 @endpush
 
 @section('content')
-<div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h4 class="mb-0">النسخ الاحتياطية</h4>
-        <div class="dropdown">
-            <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="actionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-gear-fill me-1"></i> إجراءات
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionsDropdown">
-                <li><a class="dropdown-item" href="{{ route('admin.backups.create-full') }}"><i class="bi bi-file-earmark-zip-fill me-2"></i> إنشاء نسخة كاملة (.zip)</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.backups.create-db') }}"><i class="bi bi-database-down me-2"></i> إنشاء نسخة للداتا فقط (.sql)</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#uploadModal"><i class="bi bi-upload me-2"></i> رفع نسخة احتياطية</a></li>
-                <li><button type="submit" form="delete-form" class="dropdown-item text-danger" onclick="return confirm('هل أنت متأكد من حذف كل النسخ الاحتياطية المحددة؟');"><i class="bi bi-trash me-2"></i> حذف المحدد</button></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="{{ route('admin.backups.settings') }}"><i class="bi bi-wrench-adjustable-circle me-2"></i> الإعدادات</a></li>
-            </ul>
+<div class="form-card">
+    <div class="form-card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2 class="mb-2 fw-bold text-white"><i class="bi bi-database-fill-check me-2"></i> إدارة النسخ الاحتياطي للأمان</h2>
+            <p class="mb-0 opacity-75 fs-6 text-white small">حماية بيانات المتجر، الصور، وقواعد البيانات عبر نسخ احتياطية دورية.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <div class="dropdown">
+                <button class="btn btn-light px-4 fw-bold dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-plus-circle me-1"></i> إنشاء نسخة جديدة
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="border-radius:12px">
+                    <li><a class="dropdown-item py-2" href="{{ route('admin.backups.create-full') }}"><i class="bi bi-file-earmark-zip me-2"></i> نسخة كاملة (Zip)</a></li>
+                    <li><a class="dropdown-item py-2" href="{{ route('admin.backups.create-db') }}"><i class="bi bi-database me-2"></i> قاعدة البيانات فقط (Sql)</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#uploadModal"><i class="bi bi-cloud-arrow-up me-2"></i> رفع ملف خارجي</a></li>
+                </ul>
+            </div>
+            <a href="{{ route('admin.backups.settings') }}" class="btn btn-outline-light px-4 fw-bold"><i class="bi bi-gear-fill"></i> الإعدادات</a>
         </div>
     </div>
-    <div class="card-body">
+    
+    <div class="p-4 p-lg-5">
+        <div class="mb-4 d-flex justify-content-between align-items-center">
+            <div class="text-muted small fw-bold">إجمالي النسخ المتوفرة: {{ count($backups) }}</div>
+            <button type="submit" form="delete-form" class="btn btn-sm btn-outline-danger px-4 rounded-pill fw-bold" onclick="return confirm('حذف المحدد؟')"><i class="bi bi-trash me-1"></i> حذف النسخ المحددة</button>
+        </div>
+
         <form action="{{ route('admin.backups.destroy') }}" method="POST" id="delete-form">
-            @csrf
-            @method('DELETE')
-            <div class="table-responsive">
-                <table class="table table-bordered text-center align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 50px;"><input type="checkbox" class="form-check-input" id="select-all"></th>
-                            <th>اسم الملف</th>
-                            <th>تاريخ الإنشاء</th>
-                            <th>الحجم</th>
-                            <th>العمليات</th>
+            @csrf @method('DELETE')
+            <div class="table-container shadow-sm border overflow-hidden">
+                <table class="table mb-0 align-middle text-center">
+                    <thead class="bg-light border-bottom">
+                        <tr class="text-muted small fw-bold">
+                            <th class="py-3" width="50"><input type="checkbox" id="select-all" class="form-check-input"></th>
+                            <th class="py-3 text-start">اسم الملف</th>
+                            <th class="py-3">تاريخ الإنشاء</th>
+                            <th class="py-3">الحجم</th>
+                            <th class="py-3" width="150">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($backups as $backup)
-                            <tr>
-                                <td><input type="checkbox" class="form-check-input backup-checkbox" name="backups[]" value="{{ $backup['name'] }}"></td>
-                                <td class="text-start">{{ $backup['name'] }}</td>
-                                <td>{{ $backup['date'] }}</td>
-                                <td>{{ $backup['size'] }}</td>
+                        @forelse($backups as $backup)
+                            <tr class="selectable-row">
+                                <td><input type="checkbox" name="backups[]" value="{{ $backup['name'] }}" class="form-check-input backup-checkbox"></td>
+                                <td class="text-start fw-bold text-dark">{{ $backup['name'] }}</td>
+                                <td class="small text-muted">{{ $backup['date'] }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ $backup['size'] }}</span></td>
                                 <td>
-                                    <a href="{{ route('admin.backups.download', $backup['name']) }}" class="btn btn-sm btn-outline-success m-1 px-2" title="تنزيل">
-                                        <i class="bi bi-download"></i>
-                                    </a>
-                                    @if(preg_match('~\.(sql|zip)$~i', $backup['name']))
-                                    <button type="button" 
-                                            class="btn btn-sm btn-outline-warning m-1 px-2 restore-btn" 
-                                            data-filename="{{ $backup['name'] }}"
-                                            title="استعادة">
-                                        <i class="bi bi-arrow-counterclockwise"></i>
-                                    </button>
-                                    @endif
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <a href="{{ route('admin.backups.download', $backup['name']) }}" class="btn btn-sm btn-outline-success rounded-3 px-2 py-1"><i class="bi bi-download"></i></a>
+                                        @if(preg_match('~\.(sql|zip)$~i', $backup['name']))
+                                            <button type="button" class="btn btn-sm btn-outline-warning rounded-3 px-2 py-1 restore-btn" data-filename="{{ $backup['name'] }}"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="p-4">لا توجد نسخ احتياطية لعرضها.</td></tr>
+                            <tr><td colspan="5" class="py-5 text-muted">لا توجد نسخ احتياطية متاحة حالياً.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -78,85 +79,51 @@
     </div>
 </div>
 
-{{-- Upload Modal --}}
-<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+{{-- Modals remain same logic but upgraded style --}}
+<div class="modal fade" id="uploadModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:20px">
             <form action="{{ route('admin.backups.upload') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold" id="uploadModalLabel">رفع ملف نسخة احتياطية</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="fw-bold">رفع نسخة احتياطية</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label for="backup_file" class="form-label fw-bold">اختر الملف (.zip أو .sql)</label>
-                        <input class="form-control" type="file" id="backup_file" name="backup_file" required>
-                        <div class="form-text mt-2 text-muted">
-                            <i class="bi bi-info-circle me-1"></i>
-                            يمكنك رفع ملفات النسخ الاحتياطية بأي حجم (يعتمد على إعدادات السيرفر).
-                        </div>
+                        <label class="small fw-bold mb-2">اختر الملف (.zip أو .sql)</label>
+                        <input type="file" name="backup_file" class="form-control" style="border-radius:10px" required>
                     </div>
                 </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal" style="border-radius: 10px;">إغلاق</button>
-                    <button type="submit" class="btn btn-primary px-4" style="border-radius: 10px;">رفع الملف</button>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="submit" class="btn btn-dark w-100 py-3 fw-bold" style="border-radius:12px">بدء الرفع</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-{{-- Restore Premium Modal --}}
-<div class="modal fade" id="restoreModal" tabindex="-1" aria-hidden="true">
+{{-- Restore Modal --}}
+<div class="modal fade" id="restoreModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg text-end" style="border-radius: 25px; overflow: hidden;">
-            <div class="modal-body p-5 position-relative">
-                {{-- Icon Badge --}}
-                <div class="position-absolute top-0 start-0 m-4">
-                    <div class="rounded-pill bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border: 1px solid #eee;">
-                        <i class="bi bi-shield-check text-brown fs-4"></i>
-                    </div>
-                </div>
-
+        <div class="modal-content border-0 shadow-lg text-end" style="border-radius:20px; overflow:hidden">
+            <div class="modal-body p-5">
                 <div class="text-center mb-4">
-                    <h4 class="fw-bold mb-3" style="color: #2b2b2b;">استعادة نسخة احتياطية</h4>
-                    <p class="text-muted mb-0 mx-auto" style="max-width: 320px; line-height: 1.6;">
-                        سيتم استعادة النسخة الاحتياطية <br>
-                        <span id="display-filename" class="fw-bold text-dark"></span> <br>
-                        بما فيها قاعدة البيانات والملفات والصور. يمكنك اختيار استبدال البيانات الحالية لمنع التكرار. هل ترغب بالمتابعة؟
-                    </p>
+                    <div class="bg-warning bg-opacity-10 text-warning d-inline-flex p-3 rounded-circle mb-3"><i class="bi bi-exclamation-triangle fs-1"></i></div>
+                    <h4 class="fw-bold">تأكيد عملية الاستعادة</h4>
+                    <p class="text-muted small">سيتم استبدال البيانات الحالية بالبيانات الموجودة في الملف: <br><strong id="display-filename" class="text-dark"></strong></p>
                 </div>
-
-                <form action="{{ route('admin.backups.restore') }}" method="POST" id="restore-form">
-                    @csrf
-                    <input type="hidden" name="backup_file" id="modal-backup-file">
-                    
-                    <div class="bg-light p-3 rounded-4 mb-3 border">
-                        <div class="form-check d-flex align-items-center mb-0">
-                            <input class="form-check-input ms-3" type="checkbox" name="restore_trash" id="restore_trash" value="1">
-                            <label class="form-check-label flex-grow-1 text-muted" for="restore_trash">
-                                استعادة السجلات المحذوفة من سلة المهملات (إن وجدت)
-                            </label>
+                <form action="{{ route('admin.backups.restore') }}" method="POST">
+                    @csrf <input type="hidden" name="backup_file" id="modal-backup-file">
+                    <div class="bg-light p-3 rounded-3 mb-3 border">
+                        <div class="form-check d-flex align-items-center m-0">
+                            <input class="form-check-input ms-3" type="checkbox" name="replace_data" value="1" checked>
+                            <label class="form-check-label text-muted small">استبدال البيانات الحالية (يوصى به لمنع التكرار)</label>
                         </div>
                     </div>
-
-                    <div class="bg-light p-3 rounded-4 mb-4 border">
-                        <div class="form-check d-flex align-items-start mb-0">
-                            <input class="form-check-input ms-3 mt-1" type="checkbox" name="replace_data" id="replace_data" value="1" checked>
-                            <label class="form-check-label flex-grow-1 text-muted" for="replace_data">
-                                استبدال البيانات الحالية قبل الاستعادة (يمنع التكرار ويعيد كل البيانات كما هي في النسخة)
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                        <button type="submit" class="btn py-3 px-5 text-dark fw-bold" style="background-color: #ffc107; border-radius: 15px; flex: 1.5;">
-                            متابعة الاستعادة
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary py-3 px-5 fw-bold" data-bs-dismiss="modal" style="border-radius: 15px; border: 1px solid #dee2e6; flex: 1;">
-                            إلغاء
-                        </button>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-warning w-100 py-3 fw-bold text-dark" style="border-radius:12px">تأكيد الاستعادة</button>
+                        <button type="button" class="btn btn-light w-50 py-3 fw-bold border" data-bs-dismiss="modal" style="border-radius:12px">إلغاء</button>
                     </div>
                 </form>
             </div>
@@ -164,56 +131,22 @@
     </div>
 </div>
 
-<style>
-    .text-brown { color: #5a4b41; }
-    .rounded-4 { border-radius: 1rem !important; }
-    .form-check-input:checked { background-color: #ffc107; border-color: #ffc107; }
-</style>
-@endsection
-
-@push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const selectAll = document.getElementById('select-all');
-    const checkboxes = document.querySelectorAll('.backup-checkbox');
+    const sAll = document.getElementById('select-all');
+    const cbs = document.querySelectorAll('.backup-checkbox');
+    sAll?.addEventListener('change', function() { cbs.forEach(c => { c.checked = this.checked; c.closest('tr').classList.toggle('selected', this.checked); }); });
+    cbs.forEach(c => { c.addEventListener('change', function() { this.closest('tr').classList.toggle('selected', this.checked); }); });
 
-    // ===== START: تم تحديث هذا السكربت بالكامل =====
-    function toggleRowHighlight(checkbox) {
-        const row = checkbox.closest('tr');
-        if (checkbox.checked) {
-            row.classList.add('table-row-selected');
-        } else {
-            row.classList.remove('table-row-selected');
-        }
-    }
-
-    selectAll.addEventListener('change', function() {
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-            toggleRowHighlight(checkbox);
-        });
-    });
-
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            toggleRowHighlight(this);
-        });
-    });
-    // ===== END: تم تحديث هذا السكربت بالكامل =====
-    // Restore Modal Handling
-    const restoreModal = new bootstrap.Modal(document.getElementById('restoreModal'));
-    const restoreBtns = document.querySelectorAll('.restore-btn');
-    const modalBackupFile = document.getElementById('modal-backup-file');
-    const displayFilename = document.getElementById('display-filename');
-
-    restoreBtns.forEach(btn => {
+    const rModal = new bootstrap.Modal(document.getElementById('restoreModal'));
+    document.querySelectorAll('.restore-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            const filename = this.getAttribute('data-filename');
-            modalBackupFile.value = filename;
-            displayFilename.textContent = filename;
-            restoreModal.show();
+            const f = this.dataset.filename;
+            document.getElementById('modal-backup-file').value = f;
+            document.getElementById('display-filename').innerText = f;
+            rModal.show();
         });
     });
 });
 </script>
-@endpush
+@endsection

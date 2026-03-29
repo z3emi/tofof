@@ -3,88 +3,80 @@
 
 @push('styles')
 <style>
-    :root{ --brand:#cd8985; --line:#eadbcd; }
-    .card-header{ background:#fff; border-bottom:1px solid var(--line); }
-    .prod-cell .thumb{ width:44px;height:44px;border-radius:10px;object-fit:cover;border:1px solid #eee;background:#fff; }
-    .prod-cell .title{ font-weight:700;margin:0;color:#333;font-size:.95rem; }
-    .chip{
-        display:inline-flex;align-items:center;gap:.35rem;
-        background:#fff;border:1px dashed #dcdcdc;color:#666;
-        border-radius:999px;padding:.05rem .45rem;font-size:.74rem;font-weight:600;
-    }
+    .form-card { border-radius: 0 !important; border: none !important; box-shadow: none !important; background: #fff; width: 100% !important; margin: 0 !important; }
+    .form-card-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%); padding: 2.5rem 3rem; color: white; border-radius: 0 !important; }
+    .table-container { border-radius: 15px; border: 1px solid #f1f5f9; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .prod-thumb { width:42px; height:42px; border-radius:10px; object-fit:cover; border:1px solid #eee; background:#fff; }
 </style>
 @endpush
 
 @section('content')
-<div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <h4 class="mb-0 text-danger"><i class="bi bi-trash"></i> سلة محذوفات المنتجات</h4>
-        <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-right me-1"></i> العودة للمنتجات
-        </a>
+<div class="form-card">
+    <div class="form-card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="mb-2 fw-bold text-white"><i class="bi bi-trash-fill me-2"></i> سلة محذوفات المنتجات</h2>
+            <p class="mb-0 opacity-75 fs-6 text-white small">إدارة المنتجات المحذوفة من المتجر.</p>
+        </div>
+        <a href="{{ route('admin.products.index') }}" class="btn btn-outline-light px-4 fw-bold rounded-3"><i class="bi bi-arrow-right me-1"></i> العودة للمنتجات</a>
     </div>
 
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered text-center align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>#</th>
-                        <th>المنتج</th>
-                        <th>السعر</th>
-                        <th>تاريخ الحذف</th>
-                        <th>العمليات</th>
+    <div class="p-4 p-lg-5">
+        <div class="table-container shadow-sm border overflow-hidden">
+            <table class="table mb-0 align-middle text-center">
+                <thead class="bg-light border-bottom">
+                    <tr class="text-muted small fw-bold">
+                        <th class="py-3" width="80">#</th>
+                        <th class="py-3">المنتج</th>
+                        <th class="py-3">السعر</th>
+                        <th class="py-3">تاريخ الحذف</th>
+                        <th class="py-3" width="220">الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($products as $product)
                         <tr>
-                            <td class="fw-bold">{{ $product->id }}</td>
-                            <td class="text-start prod-cell">
+                            <td class="small text-muted">#{{ $product->id }}</td>
+                            <td class="text-start">
                                 <div class="d-flex align-items-center gap-3">
-                                    @if ($product->firstImage)
-                                        <img src="{{ asset('storage/' . $product->firstImage->image_path) }}" alt="{{ $product->name_ar ?? $product->name }}" class="thumb">
-                                    @else
-                                        <img src="https://placehold.co/44x44?text=No+Img" alt="No Image" class="thumb">
-                                    @endif
-                                    <div class="flex-grow-1">
-                                        <p class="title mb-1">{{ $product->name_ar ?? $product->name }}</p>
-                                        <span class="chip">SKU: {{ $product->sku ?? 'N/A' }}</span>
+                                    @php $img = $product->firstImage ? asset('storage/' . $product->firstImage->image_path) : 'https://placehold.co/42?text=N/A'; @endphp
+                                    <img src="{{ $img }}" class="prod-thumb">
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ $product->name_ar ?? $product->name }}</div>
+                                        <div class="small text-muted">SKU: {{ $product->sku ?? 'N/A' }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="fw-semibold">{{ number_format($product->price, 0) }} د.ع</td>
-                            <td>{{ $product->deleted_at->format('Y-m-d H:i') }}</td>
+                            <td class="fw-bold text-dark">{{ number_format($product->price, 0) }} د.ع</td>
+                            <td class="small text-muted">{{ $product->deleted_at->format('Y-m-d H:i') }}</td>
                             <td>
-                                @can('edit-products')
-                                <form action="{{ route('admin.products.restore', $product->id) }}" method="POST" class="d-inline-block">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm btn-success m-1" title="استرجاع">
-                                        <i class="bi bi-arrow-counterclockwise"></i> استرجاع
-                                    </button>
-                                </form>
-                                @endcan
-
-                                @can('edit-products')
-                                <form action="{{ route('admin.products.forceDelete', $product->id) }}" method="POST" class="d-inline-block" onsubmit="return confirm('تنبيه: سيتم مسح المنتج نهائياً ولا يمكن التراجع. هل أنت متأكد؟')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger m-1" title="حذف نهائي">
-                                        <i class="bi bi-trash-fill"></i> حذف نهائي
-                                    </button>
-                                </form>
-                                @endcan
+                                <div class="d-flex justify-content-center gap-2">
+                                    <form action="{{ route('admin.products.restore', $product->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-success rounded-3 px-3 fw-bold">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i> استرجاع
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('admin.products.forceDelete', $product->id) }}" method="POST" onsubmit="return confirm('حذف نهائي؟')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-3 fw-bold">
+                                            <i class="bi bi-trash-fill me-1"></i> حذف نهائي
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="py-4 text-muted">سلة المحذوفات فارغة.</td></tr>
+                        <tr><td colspan="5" class="py-5 text-center text-muted">سلة المحذوفات فارغة.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
 
-        <div class="mt-3">
-            {{ $products->links() }}
-        </div>
+        @if($products->hasPages())
+            <div class="mt-4 d-flex justify-content-center">
+                {{ $products->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection

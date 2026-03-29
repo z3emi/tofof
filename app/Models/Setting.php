@@ -83,4 +83,14 @@ class Setting extends Model
 
         return (bool) ($value === '1' || $value === 1 || $value === true);
     }
+
+    /**
+     * Check if maintenance mode is enabled.
+     */
+    public static function isMaintenanceMode(): bool
+    {
+        $value = static::getValue('maintenance_mode', 'off');
+
+        return $value === 'on' || $value === '1' || $value === 1 || $value === true;
+    }
 }
