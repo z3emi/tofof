@@ -5,38 +5,43 @@
 @php
     $translations = [
         'view-admin-panel' => 'الوصول إلى لوحة التحكم', 'view-activity-log' => 'عرض سجل النشاطات (Log)', 
+        'view-gifts' => 'عرض الهدايا', 'create-gifts' => 'إضافة هدية', 'edit-gifts' => 'تعديل هدية', 'delete-gifts' => 'حذف هدية',
+        'view-blog' => 'عرض مقالات المدونة', 'create-blog' => 'إضافة مقال جديد', 'edit-blog' => 'تعديل المقالات', 'delete-blog' => 'حذف المقالات',
+        'view-blog-categories' => 'أقسام المدونة', 'create-blog-categories' => 'إضافة قسم مدونة', 'edit-blog-categories' => 'تعديل قسم مدونة', 'delete-blog-categories' => 'حذف قسم مدونة',
         'edit-settings' => 'إعدادات المتجر (عام)', 'edit-settings-frontend' => 'إعدادات واجهة الموقع', 'edit-settings-seo' => 'إعدادات SEO',
-        'view-products' => 'عرض المنتجات', 'create-products' => 'إضافة منتج جديد', 'edit-products' => 'تعديل تفاصيل الساعات', 'delete-products' => 'حذف المنتجات',
-        'view-categories' => 'عرض الأقسام والبراندات', 'create-categories' => 'إضافة قسم أو براند جديد', 'edit-categories' => 'تعديل الأقسام والبراندات', 'delete-categories' => 'حذف الأقسام والبراندات',
+        'view-products' => 'عرض المنتجات', 'create-products' => 'إضافة منتج جديد', 'edit-products' => 'تعديل منتج', 'delete-products' => 'حذف منتج',
+        'view-primary-categories' => 'عرض الفئات الرئيسية', 'create-primary-categories' => 'إضافة فئة', 'edit-primary-categories' => 'تعديل فئة', 'delete-primary-categories' => 'حذف فئة',
+        'view-categories' => 'عرض البراندات', 'create-categories' => 'إضافة براند', 'edit-categories' => 'تعديل براند', 'delete-categories' => 'حذف براند',
         'view-orders' => 'عرض طلبات العملاء', 'create-orders' => 'إضافة طلب يدوي', 'edit-orders' => 'تحديث حالة الطلب', 'delete-orders' => 'حذف الطلبات',
         'view-trashed-orders' => 'عرض الطلبات المحذوفة', 'restore-orders' => 'استعادة الطلبات', 'force-delete-orders' => 'حذف الطلبات نهائياً',
         'view-users' => 'إدارة المستخدمين والمدراء', 'create-users' => 'إضافة مستخدم جديد', 'edit-users' => 'تعديل بيانات المستخدم', 'delete-users' => 'حذف المستخدمين', 'ban-users' => 'حظر/إلغاء حظر المستخدمين',
         'view-roles' => 'عرض الأدوار والصلاحيات', 'create-roles' => 'إضافة دور جديد', 'edit-roles' => 'تعديل صلاحيات الأدوار', 'delete-roles' => 'حذف الأدوار',
-        'view-customers' => 'عرض بيانات العملاء', 'create-customers' => 'إضافة عميل جديد', 'edit-customers' => 'تعديل بيانات العميل', 'delete-customers' => 'حذف العملاء', 'ban-customers' => 'حظر العملاء', 'manage-wallet' => 'إدارة محفظة العميل',
         'view-discount-codes' => 'إدارة الكوبونات والعروض', 'create-discount-codes' => 'إضافة كود خصم', 'edit-discount-codes' => 'تعديل كود خصم', 'delete-discount-codes' => 'حذف كود خصم',
-        'view-reports' => 'الوصول للتقارير', 'view-reports-financial' => 'تقارير المبيعات', 'view-reports-inventory' => 'تقارير المخزون', 'view-reports-customers' => 'تقارير العملاء',
+        'view-reports' => 'الوصول للتقارير', 'view-reports-financial' => 'تقارير المبيعات', 'view-reports-inventory' => 'تقارير المخزون',
         'manage-backups' => 'إدارة النسخ الاحتياطي', 'manage-imports' => 'إدارة الاسترداد والتحديث', 'manage-whatsapp' => 'إدارة الواتساب', 'manage-slides' => 'إدارة السلايدرات',
-        'manage-barcodes' => 'إدارة الباركود و QR', 'manage-customer-tiers' => 'إعدادات فئات العملاء', 'manage-reviews' => 'إدارة تقييمات المنتج', 'manage-expenses' => 'إدارة المصاريف', 'manage-suppliers' => 'إدارة الموردين',
+        'manage-barcodes' => 'إدارة الباركود و QR', 'manage-customer-tiers' => 'إعدادات فئات العملاء', 'manage-reviews' => 'إدارة تقييمات المنتج',
     ];
 
     function permGroupName($name) {
         if (str_contains($name, 'product')) return 'المنتجات (Products)';
         if (str_contains($name, 'blog')) return 'المدونة (Blog)';
-        if (str_contains($name, 'category')) return 'التصنيفات (Categories)';
+        if (str_contains($name, 'primary-category')) return 'إدارة الفئات (Categories)';
+        if (str_contains($name, 'category')) return 'إدارة البراندات (Brands)';
         if (str_contains($name, 'order')) return 'الطلبات (Orders)';
-        if (str_contains($name, 'user') || str_contains($name, 'role') || str_contains($name, 'manager')) return 'المستخدمون (Users)';
-        if (str_contains($name, 'customer')) return 'العملاء (Customers)';
+        if (str_contains($name, 'user') || str_contains($name, 'role')) return 'المستخدمون (Users)';
         if (str_contains($name, 'discount')) return 'الكوبونات (Coupons)';
-        if (str_contains($name, 'report') || str_contains($name, 'expense')) return 'التقارير (Reports)';
-        if (str_contains($name, 'setting') || str_contains($name, 'backup') || str_contains($name, 'import') || str_contains($name, 'whatsapp') || str_contains($name, 'slide')) return 'النظام (System)';
+        if (str_contains($name, 'report')) return 'التقارير (Reports)';
+        if (str_contains($name, 'setting') || str_contains($name, 'backup') || str_contains($name, 'import') || str_contains($name, 'whatsapp') || str_contains($name, 'slide') || str_contains($name, 'barcode') || str_contains($name, 'tier')) return 'النظام (System)';
+        if (str_contains($name, 'gift')) return 'الهدايا (Gifts)';
         return 'عام (General)';
     }
 
+    $permissions = $permissions->filter(fn($p) => isset($translations[$p->name]));
     $groupedPerms = $permissions->groupBy(fn($p) => permGroupName($p->name));
     $icons = [
-        'المنتجات (Products)' => 'bi-watch', 'المدونة (Blog)' => 'bi-journal-richtext', 'التصنيفات (Categories)' => 'bi-tags',
-        'الطلبات (Orders)' => 'bi-cart-check', 'المستخدمون (Users)' => 'bi-people', 'العملاء (Customers)' => 'bi-person-badge',
-        'الكوبونات (Coupons)' => 'bi-percent', 'التقارير (Reports)' => 'bi-graph-up-arrow', 'النظام (System)' => 'bi-gear-wide-connected', 'عام (General)' => 'bi-shield-check',
+        'المنتجات (Products)' => 'bi-watch', 'المدونة (Blog)' => 'bi-journal-richtext', 'إدارة الفئات (Categories)' => 'bi-tags', 'إدارة البراندات (Brands)' => 'bi-card-list',
+        'الطلبات (Orders)' => 'bi-cart-check', 'المستخدمون (Users)' => 'bi-people', 'الكوبونات (Coupons)' => 'bi-percent', 
+        'التقارير (Reports)' => 'bi-graph-up-arrow', 'النظام (System)' => 'bi-gear-wide-connected', 'الهدايا (Gifts)' => 'bi-gift', 'عام (General)' => 'bi-shield-check',
     ];
 @endphp
 

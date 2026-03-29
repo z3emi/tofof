@@ -840,6 +840,7 @@
 
                         <div x-show="open" x-collapse class="reports-submenu">
                             <ul class="nav flex-column">
+                                @can('view-blog')
                                 <li class="nav-item">
                                     <a href="{{ route('admin.blog.posts.index') }}"
                                     class="nav-link sub-link {{ request()->routeIs('admin.blog.posts.*') ? 'active' : '' }}">
@@ -847,6 +848,8 @@
                                         <span>المقالات</span>
                                     </a>
                                 </li>
+                                @endcan
+                                @can('view-blog-categories')
                                 <li class="nav-item">
                                     <a href="{{ route('admin.blog.categories.index') }}"
                                     class="nav-link sub-link {{ request()->routeIs('admin.blog.categories.*') ? 'active' : '' }}">
@@ -854,6 +857,7 @@
                                         <span>الأقسام</span>
                                     </a>
                                 </li>
+                                @endcan
                             </ul>
                         </div>
                     </li>
@@ -871,7 +875,7 @@
                     @endcan
                     {{-- ===== END: الطلبات + العملاء ===== --}}
 
-                    @can('view-admin-panel')
+                    @can('view-gifts')
                     @if (Route::has('admin.gifts.index'))
                     <li class="nav-item">
                         <a href="{{ route('admin.gifts.index') }}" class="nav-link {{ request()->routeIs('admin.gifts.*') ? 'active' : '' }}">
@@ -891,7 +895,7 @@
                     </li>
                     @endcan
                     
-                    @can('view-categories')
+                    @can('view-primary-categories')
                     <li class="nav-item">
                         <a href="{{ route('admin.primary-categories.index') }}" class="nav-link {{ request()->routeIs('admin.primary-categories.*') ? 'active' : '' }}">
                             <i class="bi bi-tags"></i>
