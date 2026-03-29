@@ -68,8 +68,8 @@
             <table class="table mb-0 align-middle text-center" id="managers_table">
                 <thead class="bg-light border-bottom">
                     <tr class="text-muted small fw-bold">
-                        <th class="py-3" width="50" data-column-id="seq">#</th>
-                        <th class="py-3" width="70" data-hide="true" data-column-id="id">{!! \App\Support\Sort::link('id', 'ID') !!}</th>
+                        <th class="py-3" width="50" data-column-id="seq">{!! \App\Support\Sort::link('id', '#') !!}</th>
+                        <th class="py-3" width="70" data-hide="true" data-column-id="id">ID</th>
                         <th class="py-3 text-start" data-column-id="name">{!! \App\Support\Sort::link('name', 'المدير') !!}</th>
                         <th class="py-3" data-column-id="username">{!! \App\Support\Sort::link('phone_number', 'اسم المستخدم') !!}</th>
                         <th class="py-3" data-column-id="status">الحالة</th>
@@ -87,7 +87,7 @@
                         @endphp
                         <tr class="selectable-row @if($isBanned) table-danger @elseif($isInactive) table-inactive @endif" data-manager-id="{{ $manager->id }}">
                             <td class="small text-muted">{{ $loop->iteration + ($managers->perPage() * ($managers->currentPage() - 1)) }}</td>
-                            <td class="fw-bold">#{{ $manager->id }}</td>
+                            <td class="small text-muted">#{{ $manager->id }}</td>
                             <td class="text-start">
                                 <div class="d-flex align-items-center">
                                     <img src="{{ $manager->avatar_url }}" class="rounded-circle border me-3" width="42" height="42" style="object-fit: cover;" onerror="this.src='{{ asset('storage/avatars/default.jpg') }}'">

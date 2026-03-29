@@ -51,8 +51,8 @@
             <table class="table mb-0 align-middle text-center" id="roles_table">
                 <thead class="bg-light border-bottom">
                     <tr class="text-muted small fw-bold">
-                        <th class="py-3" width="50" data-column-id="seq">#</th>
-                        <th class="py-3" width="70" data-hide="true" data-column-id="id">{!! \App\Support\Sort::link('id', 'ID') !!}</th>
+                        <th class="py-3" width="50" data-column-id="seq">{!! \App\Support\Sort::link('id', '#') !!}</th>
+                        <th class="py-3" width="70" data-hide="true" data-column-id="id">ID</th>
                         <th class="py-3 text-start" data-column-id="name">{!! \App\Support\Sort::link('name', 'مسمى الدور الوظيفي') !!}</th>
                         <th class="py-3" data-column-id="guard">نظام الوصول (Guard)</th>
                         <th class="py-3" data-column-id="permissions">عدد الصلاحيات</th>

@@ -69,8 +69,8 @@ $flatCats = flatten_tree($categories);
             <table class="table mb-0 align-middle" id="categories_table">
                 <thead class="bg-light border-bottom">
                     <tr class="text-muted small fw-bold text-center">
-                        <th class="py-3" width="50" data-column-id="seq">#</th>
-                        <th class="py-3" width="70" data-hide="true" data-column-id="id">{!! \App\Support\Sort::link('id', 'ID') !!}</th>
+                        <th class="py-3" width="50" data-column-id="seq">{!! \App\Support\Sort::link('id', '#') !!}</th>
+                        <th class="py-3" width="70" data-hide="true" data-column-id="id">ID</th>
                         <th class="py-3 text-start" data-column-id="name">التصنيف / البراند</th>
                         <th class="py-3" data-column-id="products">{!! \App\Support\Sort::link('total_products_count', 'المنتجات') !!}</th>
                         <th class="py-3" data-column-id="level">المستوى</th>

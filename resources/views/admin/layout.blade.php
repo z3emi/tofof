@@ -92,7 +92,7 @@
         .badge{font-size:.6rem;padding:.28em .45em;margin-right:auto}
         .sidebar-footer{padding:.6rem;border-top:1px solid var(--secondary-light);flex-shrink:0;font-size:.72rem;color:var(--text-light);text-align:center}
         .content-wrapper{flex:1;display:flex;flex-direction:column;min-height:100vh}
-        .main-content{flex:1;padding:0;overflow-y:auto}
+        .main-content{flex:1;padding:0;overflow:auto; -webkit-overflow-scrolling: touch;}
         .main-content .container-fluid{padding-left:0;padding-right:0;max-width:100%}
         .topbar{background:var(--white);padding:0 1.1rem;height:var(--topbar-height);display:flex;align-items:center;border-bottom:1px solid var(--secondary-light);flex-shrink:0;box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:999; transition: var(--transition);}
         .sidebar-toggle-btn{transition:var(--transition);border:none;background:transparent;font-size:1.35rem;color:var(--primary-dark);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%}
@@ -142,6 +142,35 @@
             background-color: var(--bg-light) !important;
             color: var(--text-dark) !important;
             border-color: var(--secondary-light) !important;
+        }
+
+        /* Enable Horizontal Scroll for all Data Tables and Containers */
+        .table-container, .table-responsive {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            width: 100% !important;
+            margin-bottom: 1rem;
+        }
+        
+        .main-content {
+            overflow-x: auto;
+            max-width: 100vw;
+        }
+
+        /* Ensure tables are readable and scrollable on mobile */
+        table.table {
+            min-width: 800px; /* Force minimum width to guarantee horizontal scroll for readability */
+        }
+        
+        /* Exception for small tables if needed */
+        table.table-sm-auto {
+            min-width: auto;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding-bottom: 2rem; /* Space for scrollbar */
+            }
         }
         
         /* Global Table Row Interaction (GREY THEME) */
@@ -461,28 +490,21 @@
         #context-menu .context-menu-item.text-brand, #context-menu .context-menu-item.text-brand * { color: var(--primary-dark) !important; }
 
         .context-menu-item.text-danger:hover {
-            background-color: #dc3545 !important;
+            background-color: #f1f5f9 !important; /* Subtle Gray Hover for danger item */
         }
-        .context-menu-item.text-danger:hover i, .context-menu-item.text-danger:hover span {
-            color: #ffffff !important;
-        }
-        .context-menu-item:hover i {
-            color: #ffffff !important;
-            transform: scale(1.1);
-        }
-        [data-theme="dark"] .context-menu-item i {
-            color: var(--accent-gold);
-        }
-        .context-menu-item.text-danger i {
+        .context-menu-item.text-danger:hover i, .context-menu-item.text-danger:hover * {
             color: #dc3545 !important;
         }
-        .context-menu-item.text-danger:hover {
-            background-color: #dc3545 !important;
-            color: #fff !important;
+        [data-theme="dark"] .context-menu-item.text-danger:hover {
+            background-color: rgba(220, 53, 69, 0.1) !important;
         }
-        .context-menu-item.text-danger:hover i {
-            color: #fff !important;
+        [data-theme="dark"] .context-menu-item.text-danger:hover i, [data-theme="dark"] .context-menu-item.text-danger:hover * {
+            color: #ea7a7e !important;
         }
+        .context-menu-item:hover i {
+            transform: scale(1.1);
+        }
+
         .context-menu-divider {
             height: 1px;
             background-color: var(--secondary-light);
@@ -1464,8 +1486,9 @@
                 let itemsFound = 0;
                 menu.innerHTML = '';
                 
+                const addedLabels = new Set();
                 actions.forEach((action) => {
-                    if (action.classList.contains('form-check-input')) return;
+                    if (action.classList.contains('form-check-input') || action.dataset.noContext === 'true') return;
                     if (action.tagName === 'A' && !action.classList.contains('btn') && !action.classList.contains('context-menu-action')) {
                         if (!action.querySelector('i')) return;
                     }
@@ -1474,20 +1497,26 @@
                     const icon = action.querySelector('i');
                     
                     if (!text && !icon) return;
+                    if (text && addedLabels.has(text.toLowerCase())) return;
+                    if (text) addedLabels.add(text.toLowerCase());
 
                     itemsFound++;
                     const item = document.createElement('div');
                     item.className = 'context-menu-item';
 
                     // Smart Detection & Coloring
-                    if (!text && icon) {
+                    if (icon) {
                         const classes = icon.className.toLowerCase();
-                        if (classes.includes('bi-pencil') || classes.includes('bi-edit')) {
-                            text = 'تعديل';
+                        if (classes.includes('bi-pencil') || classes.includes('bi-edit') || classes.includes('bi-pencil-square')) {
+                            if (!text) text = 'تعديل';
                             item.classList.add('text-primary');
                         }
+                        else if (classes.includes('bi-plus-slash-minus')) {
+                            if (!text) text = 'تعديل الكمية';
+                            item.classList.add('text-info');
+                        }
                         else if (classes.includes('bi-trash')) {
-                            text = 'حذف';
+                            if (!text) text = 'حذف';
                             item.classList.add('text-danger');
                         }
                         else if (classes.includes('bi-eye')) {

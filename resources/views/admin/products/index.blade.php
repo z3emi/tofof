@@ -9,7 +9,7 @@
     .status-badge { border-radius: 8px; padding: 0.4rem 0.8rem; font-weight: 700; font-size: 0.8rem; color: #fff; }
     .bg-active { background: #198754; }
     .bg-inactive { background: #6c757d; }
-    .table-container { border-radius: 15px; border: 1px solid #f1f5f9; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .table-container { border-radius: 15px; border: 1px solid #f1f5f9; overflow-x: auto; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); -webkit-overflow-scrolling: touch; }
     .search-input { border-radius: 12px; border: 1px solid #e2e8f0; padding: 0.8rem 1.2rem; background: #fafbff; }
     .prod-thumb { width:48px; height:48px; border-radius:10px; object-fit:cover; border:1px solid #eee; }
     .qty-badge { font-weight:700; padding:0.35rem 0.7rem; border-radius:8px; font-size:0.85rem; }
@@ -65,12 +65,12 @@
             </div>
         </form>
 
-        <div class="table-container shadow-sm border overflow-hidden">
+        <div class="table-container shadow-sm border">
             <table class="table mb-0 align-middle text-center" id="products_table">
                 <thead class="bg-light border-bottom">
                     <tr class="text-muted small fw-bold">
-                        <th class="py-3" width="50" data-column-id="seq">#</th>
-                        <th class="py-3" width="70" data-hide="true" data-column-id="id">{!! \App\Support\Sort::link('id', 'ID') !!}</th>
+                        <th class="py-3" width="50" data-column-id="seq">{!! \App\Support\Sort::link('id', '#') !!}</th>
+                        <th class="py-3" width="70" data-hide="true" data-column-id="id">ID</th>
                         <th class="py-3 text-start" data-column-id="name">{!! \App\Support\Sort::link('name_ar', 'المنتج') !!}</th>
                         <th class="py-3" data-column-id="price">{!! \App\Support\Sort::link('price', 'سعر البيع') !!}</th>
                         <th class="py-3" data-column-id="sale_price">{!! \App\Support\Sort::link('sale_price', 'سعر الخصم') !!}</th>
@@ -100,9 +100,21 @@
                                 @else <span class="text-muted small">لا يوجد</span> @endif
                             </td>
                             <td>
-                                <span class="qty-badge @if($qty > 10) qty-high @elseif($qty > 0) qty-mid @else qty-low @endif">
-                                    {{ $qty }}
-                                </span>
+                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                    <span class="qty-badge @if($qty > 10) qty-high @elseif($qty > 0) qty-mid @else qty-low @endif">
+                                        {{ $qty }}
+                                    </span>
+                                    @can('edit-products')
+                                    <button type="button" class="btn btn-sm btn-outline-secondary border-0 p-1 edit-qty-trigger" 
+                                            data-id="{{ $product->id }}" 
+                                            data-name="{{ $product->name_ar }}" 
+                                            data-qty="{{ $qty }}"
+                                            data-no-context="true"
+                                            title="تعديل الكمية">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    @endcan
+                                </div>
                             </td>
                             <td>
                                 @if($product->is_active) <span class="status-badge bg-active shadow-sm">فعال</span>
@@ -110,9 +122,18 @@
                             </td>
                             <td>
                                 <div class="d-flex justify-content-center gap-1">
-                                    <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-sm btn-outline-primary rounded-3 px-2 py-1"><i class="bi bi-pencil"></i></a>
-                                    <form action="{{ route('admin.products.toggleStatus', $product->id) }}" method="POST">@csrf<button type="submit" class="btn btn-sm {{ $product->is_active ? 'btn-outline-warning' : 'btn-outline-success' }} rounded-3 px-2 py-1"><i class="bi {{ $product->is_active ? 'bi-pause' : 'bi-play' }}"></i></button></form>
-                                    <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('حذف؟')">@csrf @method('DELETE')<button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1"><i class="bi bi-trash"></i></button></form>
+                                    @can('edit-products')
+                                    <button type="button" class="btn btn-sm btn-outline-info rounded-3 px-2 py-1 edit-qty-trigger" 
+                                            data-id="{{ $product->id }}" 
+                                            data-name="{{ $product->name_ar }}" 
+                                            data-qty="{{ $qty }}"
+                                            title="تعديل الكمية">
+                                        <i class="bi bi-plus-slash-minus"></i>
+                                    </button>
+                                    @endcan
+                                    <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-sm btn-outline-primary rounded-3 px-2 py-1" title="تعديل المنتج"><i class="bi bi-pencil"></i></a>
+                                    <form action="{{ route('admin.products.toggleStatus', $product->id) }}" method="POST">@csrf<button type="submit" class="btn btn-sm {{ $product->is_active ? 'btn-outline-warning' : 'btn-outline-success' }} rounded-3 px-2 py-1" title="{{ $product->is_active ? 'إيقاف' : 'تفعيل' }}"><i class="bi {{ $product->is_active ? 'bi-pause' : 'bi-play' }}"></i></button></form>
+                                    <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('حذف؟')">@csrf @method('DELETE')<button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1" title="حذف"><i class="bi bi-trash"></i></button></form>
                                 </div>
                             </td>
                         </tr>
@@ -197,4 +218,64 @@
         </div>
     </div>
 </div>
+
+{{-- Edit Quantity Modal --}}
+<div class="modal fade" id="editQtyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:20px">
+            <div class="modal-header border-0 p-4 pb-0">
+                <h5 class="fw-bold mb-0"><i class="bi bi-pencil-square me-2 text-brand"></i>تعديل الكمية</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editQtyForm" method="POST">
+                @csrf
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-3">المنتج: <span id="modalProductName" class="fw-bold text-dark"></span></p>
+                    <div class="form-group">
+                        <label class="small fw-bold text-muted mb-2">الكمية المتاحة حالياً</label>
+                        <input type="number" name="stock_quantity" id="modalStockQty" class="form-control search-input" min="0" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="submit" class="btn text-white w-100 py-3 fw-bold" style="background:var(--primary-dark); border-radius:12px">حفظ التغييرات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const editQtyModalEl = document.getElementById('editQtyModal');
+    if (!editQtyModalEl) return;
+    
+    const editQtyModal = new bootstrap.Modal(editQtyModalEl);
+    const editQtyForm = document.getElementById('editQtyForm');
+    const modalProductName = document.getElementById('modalProductName');
+    const modalStockQty = document.getElementById('modalStockQty');
+
+    document.addEventListener('click', function(e) {
+        const trigger = e.target.closest('.edit-qty-trigger');
+        if (trigger) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const id = trigger.dataset.id;
+            const name = trigger.dataset.name;
+            const qty = trigger.dataset.qty;
+            
+            modalProductName.textContent = name;
+            modalStockQty.value = qty;
+            editQtyForm.action = `{{ url('admin/products') }}/${id}/update-stock`;
+            
+            editQtyModal.show();
+            
+            const contextMenu = document.getElementById('context-menu');
+            if (contextMenu) contextMenu.style.display = 'none';
+        }
+    });
+});
+</script>
+@endpush
 @endsection

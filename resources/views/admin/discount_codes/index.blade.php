@@ -54,8 +54,8 @@
             <table class="table mb-0 align-middle text-center" id="coupons_table">
                 <thead class="bg-light border-bottom">
                     <tr class="text-muted small fw-bold">
-                        <th class="py-3" width="50" data-column-id="seq">#</th>
-                        <th class="py-3" width="70" data-hide="true" data-column-id="id">{!! \App\Support\Sort::link('id', 'ID') !!}</th>
+                        <th class="py-3" width="50" data-column-id="seq">{!! \App\Support\Sort::link('id', '#') !!}</th>
+                        <th class="py-3" width="70" data-hide="true" data-column-id="id">ID</th>
                         <th class="py-3" data-column-id="code">رمز الكوبون</th>
                         <th class="py-3" data-column-id="type">نوع الخصم</th>
                         <th class="py-3" data-column-id="value">القيمة</th>
