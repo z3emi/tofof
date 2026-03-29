@@ -658,6 +658,142 @@
             background-color: #334155;
             color: #fff;
         }
+
+        /* START: Toast Notification Styles */
+        .toast-container {
+            position: fixed;
+            bottom: 25px;
+            left: 30px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            pointer-events: none;
+        }
+
+        .custom-toast {
+            position: relative;
+            border-radius: 12px;
+            background: var(--white);
+            padding: 15px 25px 15px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transform: translateX(calc(-100% - 40px));
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.35);
+            min-width: 300px;
+            max-width: 450px;
+            border: 1px solid var(--secondary-light);
+            display: flex;
+            align-items: center;
+            pointer-events: auto;
+        }
+
+        .custom-toast.active {
+            transform: translateX(0%);
+        }
+
+        .custom-toast .toast-content {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .toast-content .toast-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            min-width: 40px;
+            background-color: var(--primary-dark);
+            color: #fff;
+            font-size: 20px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .toast-content .message {
+            display: flex;
+            flex-direction: column;
+            margin: 0 15px;
+            flex-grow: 1;
+        }
+
+        .message .text {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-light);
+            line-height: 1.4;
+        }
+
+        .message .text.text-1 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+
+        .custom-toast .close-toast {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 5px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: var(--transition);
+            color: var(--text-dark);
+            font-size: 1rem;
+        }
+
+        .custom-toast .close-toast:hover {
+            opacity: 1;
+        }
+
+        .custom-toast .progress-bar-toast {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            height: 4px;
+            width: 100%;
+            background: var(--secondary-light);
+        }
+
+        .custom-toast .progress-bar-toast:before {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            height: 100%;
+            width: 100%;
+            background-color: var(--primary-dark);
+        }
+
+        .custom-toast.active .progress-bar-toast:before {
+            animation: toast-progress 5s linear forwards;
+        }
+
+        .custom-toast:hover .progress-bar-toast:before {
+            animation-play-state: paused;
+        }
+
+        @keyframes toast-progress {
+            100% {
+                right: 100%;
+            }
+        }
+
+        /* Toast Variants */
+        .toast-success .toast-icon { background-color: #198754; }
+        .toast-success .progress-bar-toast:before { background-color: #198754; }
+        
+        .toast-error .toast-icon { background-color: #dc3545; }
+        .toast-error .progress-bar-toast:before { background-color: #dc3545; }
+        
+        .toast-warning .toast-icon { background-color: #ffc107; color: #000; }
+        .toast-warning .progress-bar-toast:before { background-color: #ffc107; }
+        
+        .toast-info .toast-icon { background-color: #0dcaf0; }
+        .toast-info .progress-bar-toast:before { background-color: #0dcaf0; }
+        /* END: Toast Notification Styles */
     </style>
     @stack('styles')
 </head>
@@ -1080,21 +1216,8 @@
             
             <main class="main-content">
                 <div class="container-fluid">
-                    @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                    @endif
-                    
-                    @if (session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        {{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                    @endif
+                    {{-- Toast Container for dynamic and flash messages --}}
+                    <div id="toast-container" class="toast-container"></div>
                     
                     @yield('content')
                 </div>
@@ -1795,5 +1918,104 @@
     <!-- END: Global Table Actions Hider & Double Click Logic -->
 
     @stack('scripts')
+
+    <!-- START: Toast Notification Logic -->
+    <script>
+    window.showToast = function(title, message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `custom-toast toast-${type}`;
+        
+        // Define icons based on type
+        let icon = 'bi-check-circle-fill';
+        if (type === 'error') icon = 'bi-exclamation-triangle-fill';
+        if (type === 'warning') icon = 'bi-exclamation-circle-fill';
+        if (type === 'info') icon = 'bi-info-circle-fill';
+
+        toast.innerHTML = `
+            <div class="toast-content">
+                <div class="toast-icon">
+                    <i class="bi ${icon}"></i>
+                </div>
+                <div class="message">
+                    <span class="text text-1">${title}</span>
+                    <span class="text text-2">${message}</span>
+                </div>
+            </div>
+            <i class="bi bi-x close-toast"></i>
+            <div class="progress-bar-toast"></div>
+        `;
+
+        container.appendChild(toast);
+
+        // Trigger animation
+        setTimeout(() => {
+            toast.classList.add('active');
+        }, 10);
+
+        // Close logic
+        const closeBtn = toast.querySelector('.close-toast');
+        const closeToast = () => {
+            toast.classList.remove('active');
+            setTimeout(() => {
+                toast.remove();
+            }, 500);
+        };
+
+        closeBtn.onclick = closeToast;
+
+        // Auto remove with Pause/Resume on Hover
+        let remaining = 5000;
+        let start = Date.now();
+        let timer;
+
+        const pause = () => {
+            clearTimeout(timer);
+            remaining -= Date.now() - start;
+        };
+
+        const resume = () => {
+            start = Date.now();
+            timer = setTimeout(closeToast, remaining);
+        };
+
+        toast.addEventListener('mouseenter', pause);
+        toast.addEventListener('mouseleave', resume);
+
+        // Initial start
+        timer = setTimeout(closeToast, remaining);
+        
+        // Cleanup timers on manual close
+        closeBtn.addEventListener('click', () => {
+            clearTimeout(timer);
+            toast.removeEventListener('mouseenter', pause);
+            toast.removeEventListener('mouseleave', resume);
+        });
+    };
+
+    // Handle Laravel Session Flash Messages
+    document.addEventListener('DOMContentLoaded', function() {
+        @if(session('success'))
+            window.showToast('تم بنجاح', "{{ session('success') }}", 'success');
+        @endif
+
+        @if(session('error'))
+            window.showToast('خطأ', "{{ session('error') }}", 'error');
+        @endif
+
+        @if(session('status'))
+            window.showToast('تنبيه', "{{ session('status') }}", 'info');
+        @endif
+
+        @if($errors->any())
+            @foreach($errors->all() as $error)
+                window.showToast('خطأ في البيانات', "{{ $error }}", 'error');
+            @endforeach
+        @endif
+    });
+    </script>
+    <!-- END: Toast Notification Logic -->
 </body>
 </html>

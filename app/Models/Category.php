@@ -69,4 +69,15 @@ class Category extends Model
         }
         return $collection;
     }
+
+    /**
+     * ✅ [إضافة] رابط الصورة بشكل صحيح
+     */
+    public function getImageUrlAttribute()
+    {
+        if ($this->image) {
+            return asset('storage/' . $this->image);
+        }
+        return 'https://placehold.co/400x400?text=' . urlencode($this->name_ar);
+    }
 }
