@@ -8,7 +8,13 @@ use Illuminate\Http\JsonResponse;
 
 class WhatsAppSessionController extends Controller
 {
+    public function index()
+    {
+        return view('admin.whatsapp.index');
+    }
+
     public function status(WhatsAppWebService $whatsAppWebService): JsonResponse
+
     {
         $statusData = $whatsAppWebService->getStatus();
         $status = (string) ($statusData['status'] ?? 'offline');

@@ -462,8 +462,10 @@ Route::middleware(['auth:admin', 'can:view-admin-panel'])->prefix('admin')->name
     Route::get('settings', [SettingsController::class, 'index'])->name('settings.index')->middleware('can:edit-settings');
     Route::patch('settings', [SettingsController::class, 'update'])->name('settings.update')->middleware('can:edit-settings');
     Route::post('settings/logout-all', [SettingsController::class, 'logoutAllUsers'])->name('settings.logoutAll')->middleware('can:edit-settings');
+    Route::get('whatsapp', [WhatsAppSessionController::class, 'index'])->name('whatsapp.index')->middleware('can:edit-settings');
     Route::get('whatsapp/status', [WhatsAppSessionController::class, 'status'])->name('whatsapp.status')->middleware('can:edit-settings');
     Route::post('whatsapp/logout', [WhatsAppSessionController::class, 'logout'])->name('whatsapp.logout')->middleware('can:edit-settings');
+
     Route::resource('homepage-slides', HomepageSlideController::class)
         ->except(['show'])
         ->parameters(['homepage-slides' => 'homepageSlide'])

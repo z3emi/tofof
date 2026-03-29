@@ -241,6 +241,20 @@
 @endpush
 
 @section('content')
+@php
+    $canGeneral = auth()->user()->can('edit-settings');
+    $canFrontend = auth()->user()->can('edit-settings-frontend');
+    $canSEO = auth()->user()->can('edit-settings-seo');
+    
+    $activeTab = 'none';
+    if ($canGeneral) {
+        $activeTab = 'general';
+    } elseif ($canFrontend) {
+        $activeTab = 'frontend';
+    } elseif ($canSEO) {
+        $activeTab = 'seo';
+    }
+@endphp
 <div class="form-card">
     <div class="form-card-header">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -256,19 +270,23 @@
         </div>
 
         <ul class="nav nav-tabs nav-tabs-custom" id="settingsTabs" role="tablist">
+            @can('edit-settings')
             <li class="nav-item">
-                <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general-tab-pane" type="button" role="tab">عام</button>
+                <button class="nav-link {{ $activeTab == 'general' ? 'active' : '' }}" id="general-tab" data-bs-toggle="tab" data-bs-target="#general-tab-pane" type="button" role="tab">عام</button>
             </li>
+            @endcan
+            @can('edit-settings-frontend')
             <li class="nav-item">
-                <button class="nav-link" id="frontend-tab" data-bs-toggle="tab" data-bs-target="#frontend-tab-pane" type="button" role="tab">واجهة الموقع</button>
+                <button class="nav-link {{ $activeTab == 'frontend' ? 'active' : '' }}" id="frontend-tab" data-bs-toggle="tab" data-bs-target="#frontend-tab-pane" type="button" role="tab">واجهة الموقع</button>
             </li>
+            @endcan
+            @can('edit-settings-seo')
             <li class="nav-item">
-                <button class="nav-link" id="seo-tab" data-bs-toggle="tab" data-bs-target="#seo-tab-pane" type="button" role="tab">SEO</button>
+                <button class="nav-link {{ $activeTab == 'seo' ? 'active' : '' }}" id="seo-tab" data-bs-toggle="tab" data-bs-target="#seo-tab-pane" type="button" role="tab">SEO</button>
             </li>
-            <li class="nav-item">
-                <button class="nav-link" id="whatsapp-tab" data-bs-toggle="tab" data-bs-target="#whatsapp-tab-pane" type="button" role="tab">واتساب</button>
-            </li>
+            @endcan
         </ul>
+
     </div>
 
     <div class="p-4 p-lg-5">
@@ -277,7 +295,8 @@
             @method('PATCH')
             
             <div class="tab-content" id="settingsTabsContent">
-                <div class="tab-pane fade show active" id="general-tab-pane" role="tabpanel" aria-labelledby="general-tab">
+                @can('edit-settings')
+                <div class="tab-pane fade {{ $activeTab == 'general' ? 'show active' : '' }}" id="general-tab-pane" role="tabpanel" aria-labelledby="general-tab">
                     <div class="row g-4">
                         {{-- ⚡ وضع الصيانة --}}
                         <div class="col-md-6">
@@ -375,7 +394,10 @@
                     </div>
                 </div>
 
-                <div class="tab-pane fade" id="frontend-tab-pane" role="tabpanel">
+                @endcan
+
+                @can('edit-settings-frontend')
+                <div class="tab-pane fade {{ $activeTab == 'frontend' ? 'show active' : '' }}" id="frontend-tab-pane" role="tabpanel">
                     <div class="row g-4">
                         <div class="col-12">
                             <div class="settings-group-card">
@@ -434,7 +456,10 @@
                     </div>
                 </div>
 
-                <div class="tab-pane fade" id="seo-tab-pane" role="tabpanel">
+                @endcan
+
+                @can('edit-settings-seo')
+                <div class="tab-pane fade {{ $activeTab == 'seo' ? 'show active' : '' }}" id="seo-tab-pane" role="tabpanel">
                     <div class="settings-group-card border-0 shadow-sm overflow-hidden" style="border-radius:24px">
                         <div class="settings-group-header d-flex align-items-center bg-white py-4 border-bottom">
                             <i class="bi bi-search me-3 fs-3 text-secondary"></i>
@@ -500,65 +525,9 @@
                     </div>
                 </div>
 
-                <div class="tab-pane fade" id="whatsapp-tab-pane" role="tabpanel">
-                    <div class="whatsapp-card shadow-sm">
-                        <div class="wa-header">
-                            <i class="bi bi-whatsapp mb-3 d-block"></i>
-                            <h3 class="fw-bold mb-0">بوابة الربط مع واتساب</h3>
-                            <p class="opacity-75 mt-2 mb-0 h6">أتمتة إرسال الفواتير وأكواد التحقق لعملائك</p>
-                        </div>
-                        <div class="wa-body text-center" id="whatsapp-session-box" data-status-url="{{ route('admin.whatsapp.status') }}" data-logout-url="{{ route('admin.whatsapp.logout') }}" data-csrf="{{ csrf_token() }}">
-                            <div id="wa-loading-state">
-                                <div class="premium-spinner mb-3"></div>
-                                <div class="text-muted fw-bold">جاري التحقق من حالة الاتصال...</div>
-                            </div>
 
-                            <div id="wa-connected-state" class="d-none">
-                                <div class="wa-status-badge wa-connected">
-                                    <i class="bi bi-check-circle-fill"></i> متصل حالياً بنجاح
-                                </div>
-                                <h4 class="fw-bold mb-1" id="wa-phone-number"></h4>
-                                <p class="text-muted mb-4">النظام جاهز الآن لإرسال الإشعارات التلقائية.</p>
-                                <hr class="my-4 opacity-50">
-                                <button type="button" id="wa-logout-btn" class="btn btn-outline-danger px-5 py-2 rounded-pill fw-bold">
-                                    <i class="bi bi-power me-1"></i> قطع الاتصال بالخدمة
-                                </button>
-                            </div>
+                @endcan
 
-                            <div id="wa-disconnected-state" class="d-none">
-                                <div class="wa-status-badge wa-disconnected mb-4">
-                                    <i class="bi bi-exclamation-triangle"></i> الخدمة غير متصلة
-                                </div>
-                                
-                                <div class="row justify-content-center mb-4 text-start" dir="rtl">
-                                    <div class="col-md-10">
-                                        <div class="wa-instruction-step"><span class="wa-step-number">1</span><span>افتح تطبيق <b>واتساب</b> على هاتفك المحمول.</span></div>
-                                        <div class="wa-instruction-step"><span class="wa-step-number">2</span><span>افتح <b>القائمة</b> (أو الإعدادات) واختر <b>الأجهزة المرتبطة</b>.</span></div>
-                                        <div class="wa-instruction-step"><span class="wa-step-number">3</span><span>اضغط على <b>ربط جهاز</b> وقم بتوجيه الكاميرا نحو الكود أدناه.</span></div>
-                                    </div>
-                                </div>
-
-                                <div class="wa-qr-container shadow-sm border" id="wa-qr-box">
-                                    <img id="wa-qr-image" class="img-fluid d-none" style="width:240px; height:240px">
-                                    <div id="wa-qr-help" class="py-5 text-muted small px-4" style="max-width:240px; line-height:1.6">جاري توليد كود الاستجابة السريعة (QR Code)...</div>
-                                </div>
-                                
-                                <div class="mt-4">
-                                    <button type="button" id="wa-refresh-btn" class="btn btn-light border px-4 rounded-pill fw-bold text-dark">
-                                        <i class="bi bi-arrow-clockwise me-1"></i> تحديث الرمز
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div id="wa-error-state" class="d-none">
-                                <div class="alert alert-danger px-4 py-3 rounded-4 mb-3 border-0">
-                                    <i class="bi bi-x-circle-fill me-2"></i> حدث خطأ أثناء الاتصال بالسيرفر.
-                                </div>
-                                <button type="button" onclick="window.location.reload()" class="btn btn-brand px-4 rounded-pill">إعادة المحاولة</button>
-                            </div>
-                        </div>
-                    </div> <!-- closes settings-group-card -->
-                </div> <!-- closes tab-pane -->
             </div> <!-- closes tab-content -->
         </form>
 
@@ -868,143 +837,7 @@
             previewBackdrop.addEventListener('click', closeWelcomePreview);
         }
 
-        const whatsappBox = document.getElementById('whatsapp-session-box');
 
-        if (!whatsappBox) {
-            return;
-        }
-
-        const statusUrl = whatsappBox.dataset.statusUrl;
-        const logoutUrl = whatsappBox.dataset.logoutUrl;
-        const csrfToken = whatsappBox.dataset.csrf;
-
-        const loadingState = document.getElementById('wa-loading-state');
-        const connectedState = document.getElementById('wa-connected-state');
-        const disconnectedState = document.getElementById('wa-disconnected-state');
-        const errorState = document.getElementById('wa-error-state');
-        const phoneNumber = document.getElementById('wa-phone-number');
-        const qrImage = document.getElementById('wa-qr-image');
-        const qrHelp = document.getElementById('wa-qr-help');
-        const logoutBtn = document.getElementById('wa-logout-btn');
-        const refreshBtn = document.getElementById('wa-refresh-btn');
-
-        let loading = false;
-
-        const showState = (state) => {
-            loadingState.classList.add('d-none');
-            connectedState.classList.add('d-none');
-            disconnectedState.classList.add('d-none');
-            errorState.classList.add('d-none');
-
-            if (state === 'loading') {
-                loadingState.classList.remove('d-none');
-                return;
-            }
-
-            if (state === 'connected') {
-                connectedState.classList.remove('d-none');
-                return;
-            }
-
-            if (state === 'disconnected') {
-                disconnectedState.classList.remove('d-none');
-                return;
-            }
-
-            errorState.classList.remove('d-none');
-        };
-
-        const loadWhatsAppStatus = async () => {
-            if (loading) {
-                return;
-            }
-
-            loading = true;
-
-            try {
-                const response = await fetch(statusUrl, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Request failed');
-                }
-
-                const payload = await response.json();
-
-                if (payload.status === 'connected') {
-                    phoneNumber.textContent = payload.phone || '-';
-                    showState('connected');
-                } else {
-                    if (payload.qr) {
-                        qrImage.src = payload.qr;
-                        qrImage.classList.remove('d-none');
-                        qrHelp.textContent = 'امسح الباركود من تطبيق واتساب على الهاتف.';
-                    } else {
-                        qrImage.removeAttribute('src');
-                        qrImage.classList.add('d-none');
-
-                        if (payload.status === 'initializing' || payload.status === 'authenticated') {
-                            qrHelp.textContent = 'الخدمة تعمل الآن، انتظر قليلاً حتى يتم توليد الباركود.';
-                        } else if (payload.last_error) {
-                            qrHelp.textContent = 'تعذر توليد الباركود: ' + payload.last_error;
-                        } else {
-                            qrHelp.textContent = 'لم يتم استلام باركود حتى الآن. جرّب التحديث بعد ثوانٍ.';
-                        }
-                    }
-
-                    showState('disconnected');
-                }
-            } catch (error) {
-                showState('error');
-            } finally {
-                loading = false;
-            }
-        };
-
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', async () => {
-                logoutBtn.disabled = true;
-
-                try {
-                    const response = await fetch(logoutUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-
-                    const payload = await response.json().catch(() => ({}));
-
-                    if (!response.ok || payload.success === false) {
-                        qrHelp.textContent = payload.message
-                            ? 'فشل تسجيل الخروج: ' + payload.message
-                            : 'فشل تسجيل الخروج من واتساب. حاول مرة أخرى.';
-                    } else {
-                        qrHelp.textContent = 'تم تسجيل الخروج بنجاح. انتظر توليد QR جديد...';
-                    }
-                } finally {
-                    logoutBtn.disabled = false;
-                    await loadWhatsAppStatus();
-                }
-            });
-        }
-
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', async () => {
-                await loadWhatsAppStatus();
-            });
-        }
-
-        showState('loading');
-        loadWhatsAppStatus();
-        setInterval(loadWhatsAppStatus, 3000);
 
         // SEO Preview Logic
         const seoTitleInput = document.getElementById('seo_title_input');

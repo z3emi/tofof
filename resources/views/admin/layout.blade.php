@@ -1024,6 +1024,14 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
+                                    <a href="{{ route('admin.whatsapp.index') }}"
+                                    class="nav-link sub-link {{ request()->routeIs('admin.whatsapp.*') ? 'active' : '' }}">
+                                        <i class="bi bi-whatsapp"></i>
+                                        <span>واتساب</span>
+                                    </a>
+                                </li>
+
+                                <li class="nav-item">
                                     <a href="{{ route('admin.products.import_quantity') }}"
                                     class="nav-link sub-link {{ request()->routeIs('admin.products.import_quantity') ? 'active' : '' }}">
                                         <i class="bi bi-upload"></i>

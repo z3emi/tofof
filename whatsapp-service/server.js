@@ -1,147 +1,105 @@
-const path = require('path');
+require('dotenv').config();
 const express = require('express');
-const qrcode = require('qrcode');
 const { Client, LocalAuth } = require('whatsapp-web.js');
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+const qrcode = require('qrcode');
+const path = require('path');
+const fs = require('fs');
+
+// IMPORTANT: Force Puppeteer to use a local cache directory in the project folder.
+// This prevents "Could not find Chrome" errors when moving between Windows/Linux.
+const PUPPETEER_CACHE_PATH = path.join(__dirname, '.puppeteer_cache');
+process.env.PUPPETEER_CACHE_DIR = PUPPETEER_CACHE_PATH;
 
 const app = express();
-app.use(express.json({ limit: '1mb' }));
+const port = process.env.WHATSAPP_PORT || 3001;
+const apiKey = process.env.WHATSAPP_API_KEY || 'tofof-secret-key';
 
-const PORT = Number(process.env.PORT || 3001);
-const API_KEY = String(process.env.WHATSAPP_SERVICE_KEY || '').trim();
-const CHROME_PATH = (process.env.PUPPETEER_EXECUTABLE_PATH || process.env.CHROME_BIN || '').trim() || null;
+app.use(express.json());
 
-console.log('[Config] PORT:', PORT);
-console.log('[Config] CHROME_PATH:', CHROME_PATH || '(bundled)');
-console.log('[Config] API auth enabled:', API_KEY !== '');
+let client = null;
+let isInitializing = false;
 
 const state = {
-  status: 'initializing',
+  status: 'disconnected', // disconnected, initializing, authenticated, connected, error, auth_failure
   qr: null,
   phone: null,
   lastError: null,
 };
 
-let client = null;
-let isInitializing = false;
-let reinitTimer = null;
+const normalizePhone = (phone) => {
+  if (!phone) return null;
+  const numeric = String(phone).replace(/\D/g, '');
+  if (numeric.length === 0) return null;
+  return numeric.includes('@c.us') ? numeric : `${numeric}@c.us`;
+};
 
-function scheduleInitialize(reason, delayMs = 1500) {
-  if (reinitTimer) {
-    clearTimeout(reinitTimer);
-    reinitTimer = null;
+const authMiddleware = (req, res, next) => {
+  const token = req.headers['x-api-key'];
+  if (token !== apiKey) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid API Key' });
   }
+  next();
+};
 
-  reinitTimer = setTimeout(() => {
-    reinitTimer = null;
-    initializeClient().catch((error) => {
-      console.error('[WA] Scheduled init error:', reason, error.message || error);
-    });
-  }, delayMs);
-}
-
-function normalizePhone(rawPhone) {
-  const raw = String(rawPhone || '').trim();
-
-  if (raw.endsWith('@c.us')) {
-    return raw;
-  }
-
-  let digits = raw.replace(/\D+/g, '');
-
-  if (!digits) {
-    return null;
-  }
-
-  if (digits.startsWith('00')) {
-    digits = digits.slice(2);
-  }
-
-  if (digits.startsWith('0')) {
-    digits = `964${digits.replace(/^0+/, '')}`;
-  }
-
-  return `${digits}@c.us`;
-}
-
-function authMiddleware(req, res, next) {
-  if (!API_KEY) {
-    return next();
-  }
-
-  const provided = String(req.header('X-API-Key') || '').trim();
-
-  if (provided !== API_KEY) {
-    console.warn('[Auth] Unauthorized request', {
-      providedLength: provided.length,
-      expectedLength: API_KEY.length,
-    });
-
-    return res.status(401).json({ success: false, message: 'Unauthorized' });
-  }
-
-  return next();
-}
+const scheduleInitialize = (from, ms) => {
+  console.log(`[WA] Initializing in ${ms}ms (caused by: ${from})`);
+  setTimeout(() => initializeClient(), ms);
+};
 
 async function initializeClient() {
   if (isInitializing) {
-    console.log('[WA] initializeClient skipped: already initializing.');
-    return;
+     console.log('[WA] Already initializing, skipping...');
+     return;
   }
-
+  
   if (client) {
-    console.log('[WA] initializeClient skipped: client already exists.');
-    return;
+     console.log('[WA] Client already exists, skipping...');
+     return;
   }
 
   isInitializing = true;
   state.status = 'initializing';
   state.lastError = null;
-
-  console.log('[WA] Initializing WhatsApp client...');
+  state.qr = null;
 
   try {
-    const puppeteerOpts = {
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process',
-        '--disable-extensions',
-      ],
-    };
-
-    if (CHROME_PATH) {
-      puppeteerOpts.executablePath = CHROME_PATH;
-      console.log('[WA] Using Chrome at:', CHROME_PATH);
-    } else {
-      console.log('[WA] Using bundled Chromium from puppeteer');
-    }
+    console.log(`[WhatsApp] Starting initialization...`);
+    console.log(`[WhatsApp] Puppeteer Cache: ${PUPPETEER_CACHE_PATH}`);
 
     client = new Client({
+      restartOnAuthFail: true,
       authStrategy: new LocalAuth({
-        clientId: 'tofof-main',
-        dataPath: path.resolve(__dirname, '.wwebjs_auth'),
+        clientId: 'tofof-session',
+        dataPath: path.join(__dirname, '.wwebjs_auth')
       }),
-      puppeteer: puppeteerOpts,
+      puppeteer: {
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-gpu'
+        ],
+        executablePath: process.env.CHROME_PATH || undefined,
+        // Make sure it looks into our custom cache
+        cacheDirectory: PUPPETEER_CACHE_PATH
+      }
     });
 
-    client.on('qr', async (qrText) => {
-      console.log('[WA] QR received, generating image...');
-      try {
-        state.qr = await qrcode.toDataURL(qrText, { width: 320, margin: 2 });
-        state.status = 'qr';
-        state.phone = null;
-        console.log('[WA] QR ready.');
-      } catch (error) {
-        console.error('[WA] QR generation error:', error.message);
-        state.status = 'error';
-        state.lastError = String(error.message || error);
-      }
+    client.on('qr', async (qr) => {
+      console.log('[WA] QR Code received.');
+      state.status = 'disconnected';
+      state.qr = await qrcode.toDataURL(qr);
+      state.lastError = null;
+    });
+
+    client.on('loading_screen', (percent, message) => {
+      console.log('[WA] Loading:', percent, '%', message);
+      state.status = 'initializing';
     });
 
     client.on('authenticated', () => {
@@ -182,24 +140,25 @@ async function initializeClient() {
         }
       } catch (error) {
         console.error('[WA] Destroy error:', error.message);
-        state.lastError = String(error.message || error);
       }
-
-      scheduleInitialize('disconnected', 2000);
+      
+      scheduleInitialize('disconnected-event', 5000);
     });
 
     console.log('[WA] Calling client.initialize()...');
     await client.initialize();
     console.log('[WA] client.initialize() completed.');
+
   } catch (error) {
     const message = String(error.message || error);
     console.error('[WA] initializeClient error:', message);
     state.status = 'error';
     state.lastError = message;
+    client = null;
 
     if (message.includes('browser is already running')) {
       state.status = 'disconnected';
-      scheduleInitialize('browser-lock-retry', 3000);
+      scheduleInitialize('browser-lock-retry', 5000);
     }
   } finally {
     isInitializing = false;
@@ -228,6 +187,38 @@ app.get('/api/qr', (_, res) => {
   });
 });
 
+app.post('/api/logout', async (req, res) => {
+  console.log('[WA] Logout requested.');
+  if (!client) {
+    return res.status(200).json({ success: true, message: 'No active client to logout' });
+  }
+
+  try {
+    const activeClient = client;
+    client = null;
+    
+    // Add a race protection to avoid infinite loops if it hangs
+    const logoutTimeout = setTimeout(() => {
+        console.warn('[WA] Logout timeout - forcing destruction');
+        try { activeClient.destroy(); } catch(e) {}
+    }, 10000);
+
+    await activeClient.logout();
+    await activeClient.destroy();
+    clearTimeout(logoutTimeout);
+
+    state.status = 'disconnected';
+    state.phone = null;
+    state.qr = null;
+
+    initializeClient();
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('[WA] Logout error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 app.post('/api/send', async (req, res) => {
   const phone = normalizePhone(req.body.phone);
   const message = String(req.body.message || '').trim();
@@ -249,71 +240,16 @@ app.post('/api/send', async (req, res) => {
   }
 });
 
-app.post('/api/logout', async (_, res) => {
-  if (reinitTimer) {
-    clearTimeout(reinitTimer);
-    reinitTimer = null;
-  }
-
-  if (!client) {
-    state.status = 'logged_out';
-    state.phone = null;
-    state.qr = null;
-    state.lastError = null;
-
-    scheduleInitialize('empty-logout', 1500);
-
-    return res.json({ success: true, message: 'Already logged out' });
-  }
-
-  let logoutError = null;
-  let destroyError = null;
-
-  try {
-    await client.logout();
-    console.log('[WA] Logout request sent successfully.');
-  } catch (error) {
-    logoutError = String(error.message || error);
-    console.warn('[WA] client.logout() failed, continuing with destroy:', logoutError);
-  }
-
-  try {
-    await client.destroy();
-    console.log('[WA] Client destroyed after logout.');
-  } catch (error) {
-    destroyError = String(error.message || error);
-    console.error('[WA] client.destroy() failed:', destroyError);
-  }
-
-  client = null;
-  state.status = 'logged_out';
-  state.phone = null;
-  state.qr = null;
-  state.lastError = destroyError || logoutError;
-
-  scheduleInitialize('logout', 2000);
-
-  if (destroyError) {
-    return res.status(500).json({
-      success: false,
-      message: destroyError,
-      warning: logoutError,
-    });
-  }
-
-  return res.json({
-    success: true,
-    message: logoutError ? 'Logged out with warning' : 'Logged out successfully',
-    warning: logoutError,
-  });
+app.listen(port, () => {
+  console.log(`[WhatsApp] Service running on port ${port}`);
+  console.log(`[WhatsApp] Local cache enforced at: ${PUPPETEER_CACHE_PATH}`);
+  initializeClient();
 });
 
-app.listen(PORT, () => {
-  console.log(`WhatsApp service running on port ${PORT}`);
-  scheduleInitialize('startup', 100);
-  initializeClient().catch((error) => {
-    console.error('[WA] Startup init error:', error.message || error);
-    state.status = 'error';
-    state.lastError = String(error.message || error);
-  });
-});
+// Periodic status check to ensure client is alive
+setInterval(() => {
+  if (!client && !isInitializing) {
+     console.log('[WA] Client watchdog: client is null, re-initializing...');
+     initializeClient();
+  }
+}, 30000);
