@@ -62,7 +62,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         // عرض الطلبات المرتبطة بمستخدمين نشطين فقط (غير محذوفين)
-        $query = Order::whereHas('customer.user')->with('customer', 'user');
+        $query = Order::with('customer', 'user');
         $sortBy = $request->input('sort_by', 'id');
         $sortDir = $request->input('sort_dir', 'desc');
 
@@ -70,7 +70,7 @@ class OrderController extends Controller
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('id', 'like', "%{$searchTerm}%")
-                  ->orWhereHas('customer.user', function ($subQ) use ($searchTerm) {
+                  ->orWhereHas('customer', function ($subQ) use ($searchTerm) {
                       $subQ->where('name', 'like', "%{$searchTerm}%")
                            ->orWhere('phone_number', 'like', "%{$searchTerm}%");
                   });
@@ -125,8 +125,10 @@ class OrderController extends Controller
 
     public function create()
     {
-        // جلب العملاء الذين لديهم حساب مستخدم نشط فقط (غير محذوف)
-        $customers = Customer::whereHas('user')->orderBy('name')->get();
+        // جلب العملاء الذين لا يملكون حساب مستخدم محذوف (أي جلب كل العملاء، مع استثناء من تم حذف حسابهم)
+        $customers = Customer::whereDoesntHave('user', function($q) {
+            $q->onlyTrashed();
+        })->orderBy('name')->get();
 
         // جلب المنتجات التي يتوفر منها مخزون
         $products = Product::where('is_active', true)
@@ -162,7 +164,7 @@ class OrderController extends Controller
             'saved_address_id' => 'nullable|exists:addresses,id',
         ]);
 
-        $customer = Customer::whereHas('user')->findOrFail($request->customer_id);
+        $customer = Customer::findOrFail($request->customer_id);
 
         $addressPayload = [
             'governorate' => $request->governorate,
