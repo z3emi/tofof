@@ -125,10 +125,8 @@ class OrderController extends Controller
 
     public function create()
     {
-        // جلب العملاء الذين لا يملكون حساب مستخدم محذوف (أي جلب كل العملاء، مع استثناء من تم حذف حسابهم)
-        $customers = Customer::whereDoesntHave('user', function($q) {
-            $q->onlyTrashed();
-        })->orderBy('name')->get();
+        // جلب جميع المستخدمين المسجلين في النظام
+        $users = \App\Models\User::orderBy('name')->get();
 
         // جلب المنتجات التي يتوفر منها مخزون
         $products = Product::where('is_active', true)
@@ -137,14 +135,14 @@ class OrderController extends Controller
 
         $defaultShippingCost = $this->defaultShippingCost();
 
-        return view('admin.orders.create', compact('customers', 'products', 'defaultShippingCost'));
+        return view('admin.orders.create', compact('users', 'products', 'defaultShippingCost'));
     }
 
 
     public function store(Request $request, InventoryService $inventoryService, DiscountService $discountService)
     {
         $request->validate([
-            'customer_id' => 'required|exists:customers,id',
+            'user_id' => 'required|exists:users,id',
             'governorate' => 'required|string|max:255',
             'city' => 'required|string|max:255',
             'nearest_landmark' => 'required|string|max:255',
@@ -164,7 +162,22 @@ class OrderController extends Controller
             'saved_address_id' => 'nullable|exists:addresses,id',
         ]);
 
-        $customer = Customer::findOrFail($request->customer_id);
+        $user = \App\Models\User::findOrFail($request->user_id);
+        
+        $customer = \App\Models\Customer::firstOrCreate(
+            ['phone_number' => $user->phone_number],
+            [
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'governorate' => $user->governorate,
+                'city' => $user->city,
+                'address_details' => $user->address
+            ]
+        );
+        if (!$customer->user_id) {
+            $customer->update(['user_id' => $user->id]);
+        }
 
         $addressPayload = [
             'governorate' => $request->governorate,
@@ -173,20 +186,14 @@ class OrderController extends Controller
             'nearest_landmark' => $request->nearest_landmark,
         ];
 
-        if ($request->filled('saved_address_id') && ! $customer->user) {
-            return redirect()->back()->withInput()->withErrors([
-                'saved_address_id' => 'لا توجد عناوين محفوظة لهذا العميل.',
-            ]);
-        }
-
-        if ($request->filled('saved_address_id') && $customer->user) {
-            $addressRecord = Address::where('id', $request->saved_address_id)
-                ->where('user_id', $customer->user->id)
+        if ($request->filled('saved_address_id')) {
+            $addressRecord = \App\Models\Address::where('id', $request->saved_address_id)
+                ->where('user_id', $user->id)
                 ->first();
 
             if (! $addressRecord) {
                 return redirect()->back()->withInput()->withErrors([
-                    'saved_address_id' => 'العنوان المحدد غير مرتبط بهذا العميل.',
+                    'saved_address_id' => 'العنوان المحدد غير مرتبط بهذا المستخدم.',
                 ]);
             }
 
@@ -235,7 +242,7 @@ class OrderController extends Controller
 
             $order = $this->createOrderWithRepair([
                 'user_id' => auth()->id(),
-                'customer_id' => $request->customer_id,
+                'customer_id' => $customer->id,
                 'governorate' => $addressPayload['governorate'],
                 'city' => $addressPayload['city'],
                 'address_details' => $addressPayload['address_details'],

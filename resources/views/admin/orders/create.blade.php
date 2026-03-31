@@ -40,11 +40,11 @@
                 <div class="row g-4">
                     <div class="col-md-12">
                         <label class="form-label fw-bold">اختر المستخدم <span class="text-danger">*</span></label>
-                        <select name="customer_id" id="customer_id" class="form-select" required>
+                        <select name="user_id" id="user_id" class="form-select" required>
                             <option value="">-- اختر المستخدم من القائمة --</option>
-                            @foreach($customers as $customer)
-                                <option value="{{ $customer->id }}" data-banned="{{ $customer->user?->banned_at ? 'true' : 'false' }}" @selected(old('customer_id') == $customer->id)>
-                                    {{ $customer->name }} - {{ $customer->phone_number }}
+                            @foreach($users as $user)
+                                <option value="{{ $user->id }}" data-banned="{{ $user->banned_at ? 'true' : 'false' }}" @selected(old('user_id') == $user->id)>
+                                    {{ $user->name }} - {{ $user->phone_number }}
                                 </option>
                             @endforeach
                         </select>
@@ -229,7 +229,7 @@
 {{-- ===== END: تم حذف سكربتات TinyMCE ===== --}}
 <script>
 $(document).ready(function() {
-    $('#customer_id, #product_selector').select2({
+    $('#user_id, #product_selector').select2({
         placeholder: 'ابحث أو اختر...',
         allowClear: true,
         language: { noResults: () => "لا يوجد نتائج مطابقة" }
@@ -398,12 +398,12 @@ $(document).ready(function() {
         }
     }
 
-    function customerAddressesUrl(customerId) {
-        return addressEndpointTemplate.replace('__ID__', customerId);
+    function userAddressesUrl(userId) {
+        return addressEndpointTemplate.replace('__ID__', userId);
     }
 
-    function fetchCustomerAddresses(customerId) {
-        if (!customerId) {
+    function fetchUserAddresses(userId) {
+        if (!userId) {
             resetAddressSelection();
             return;
         }
@@ -412,7 +412,7 @@ $(document).ready(function() {
         savedAddressesWrapper.addClass('d-none');
         savedAddressesList.empty();
 
-        $.get(customerAddressesUrl(customerId))
+        $.get(userAddressesUrl(userId))
             .done(function (response) {
                 const addresses = response && Array.isArray(response.addresses) ? response.addresses : [];
                 const fallback = response && response.fallback ? response.fallback : {};
@@ -520,24 +520,24 @@ $(document).ready(function() {
         });
     });
 
-    $('#customer_id').on('change', function() {
+    $('#user_id').on('change', function() {
         const selectedOption = $(this).find(':selected');
-        const customerId = $(this).val();
+        const userId = $(this).val();
         const isBanned = selectedOption.data('banned');
         if (isBanned === true || isBanned === 'true') {
             bannedCustomerWarning.removeClass('d-none');
         } else {
             bannedCustomerWarning.addClass('d-none');
         }
-        fetchCustomerAddresses(customerId);
+        fetchUserAddresses(userId);
     });
 
-    const initialCustomerId = $('#customer_id').val();
-    if (initialCustomerId) {
+    const initialUserId = $('#user_id').val();
+    if (initialUserId) {
         if (!hasAddressDetailsOld) {
-            $('#customer_id').trigger('change');
+            $('#user_id').trigger('change');
         } else {
-            const initialOption = $('#customer_id').find(':selected');
+            const initialOption = $('#user_id').find(':selected');
             const isBanned = initialOption.data('banned');
             if (isBanned === true || isBanned === 'true') {
                 bannedCustomerWarning.removeClass('d-none');
