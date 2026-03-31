@@ -13,6 +13,7 @@ use App\Models\Customer;
 use App\Models\Setting;
 use App\Services\InventoryService;
 use App\Models\DiscountCodeUsage;
+use App\Models\WalletTransaction;
 use App\Models\User;
 use App\Models\Manager;
 use App\Notifications\NewOrderNotification;
@@ -240,13 +241,23 @@ class CheckoutController extends Controller
                 Notification::send($admins, new NewOrderNotification($order));
             }
             
-            DB::commit();
+            try {
+                DB::commit();
+            } catch (\PDOException $e) {
+                if (!str_contains($e->getMessage(), 'active transaction')) {
+                    throw $e;
+                }
+            }
 
             session()->forget(['cart', 'discount_code', 'discount_value', 'discount_code_id']);
             return redirect()->route('checkout.success')->with('order_id', $order->id);
 
         } catch (\Exception $e) {
-            DB::rollBack();
+            try {
+                DB::rollBack();
+            } catch (\PDOException $pdoEx) {
+                // Ignore implicit commit errors from DDL
+            }
             return redirect()->back()->withInput()->with('error', 'حدث خطأ أثناء إنشاء الطلب: ' . $e->getMessage());
         }
     }
