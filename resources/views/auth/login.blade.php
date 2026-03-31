@@ -433,7 +433,7 @@ html:not(.dark) .auth-foot a{color:#202737;}
                 inputmode="numeric" pattern="[0-9]*"
                 @input="localNumber = ($event.target.value || '').replace(/\D+/g, '')"
                 :maxlength="selectedCountry.code === '+964' ? 10 : 15"
-                     required autocomplete="tel" autofocus
+                     required autocomplete="tel"
                      placeholder="{{ __('auth_pages.login.phone_placeholder') }}">
             </div>
             <input type="hidden" name="phone_number" :value="selectedCountry.code.replace('+','') + localNumber">
@@ -526,29 +526,4 @@ html:not(.dark) .auth-foot a{color:#202737;}
 @endsection
 
 @push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const phoneInput = document.getElementById('local_phone_number');
-  if (!phoneInput) return;
-
-  function focusPhoneInput() {
-    try { phoneInput.focus({ preventScroll: true }); } catch (_) { phoneInput.focus(); }
-    try {
-      const len = (phoneInput.value || '').length;
-      phoneInput.setSelectionRange(len, len);
-    } catch (_) {}
-  }
-
-  // محاولة فورية + retries
-  focusPhoneInput();
-  [50, 200, 500].forEach(d => setTimeout(() => {
-    if (document.activeElement !== phoneInput) focusPhoneInput();
-  }, d));
-
-  // fallback: أول لمس أو كليك على الصفحة
-  const onInteract = () => { if (document.activeElement !== phoneInput) focusPhoneInput(); };
-  document.addEventListener('touchstart', onInteract, { once: true, passive: true });
-  document.addEventListener('click',      onInteract, { once: true });
-});
-</script>
 @endpush

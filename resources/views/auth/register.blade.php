@@ -430,7 +430,7 @@ html:not(.dark) .reg-foot a{color:#202737;}
             <input id="name" type="text"
                    class="r-field @error('name') error @enderror"
                    name="name" value="{{ old('name') }}"
-                   required autocomplete="name" autofocus
+                   required autocomplete="name"
                  placeholder="{{ __('auth_pages.register.full_name_placeholder') }}">
             @error('name')
               <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
