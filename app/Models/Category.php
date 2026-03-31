@@ -18,6 +18,11 @@ class Category extends Model
         'slug',
         'image',
         'parent_id',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function parent()

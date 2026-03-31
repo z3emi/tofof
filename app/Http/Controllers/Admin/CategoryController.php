@@ -87,6 +87,7 @@ class CategoryController extends Controller
             'name_en'   => 'nullable|string|max:255',
             'image'     => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'parent_id' => 'nullable|exists:categories,id',
+            'is_active' => 'sometimes|boolean',
         ]);
 
         $slug = $this->generateUniqueSlug($request->name_en ?: $request->name_ar);
@@ -99,6 +100,7 @@ class CategoryController extends Controller
             'slug'      => $slug,
             'image'     => $path,
             'parent_id' => $request->parent_id,
+            'is_active' => $request->boolean('is_active', true),
         ]);
 
         $this->flushCategoryCaches();
@@ -119,6 +121,7 @@ class CategoryController extends Controller
             'name_en'   => 'nullable|string|max:255',
             'image'     => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'parent_id' => 'nullable|exists:categories,id',
+            'is_active' => 'sometimes|boolean',
         ]);
 
         if ($request->filled('parent_id') && (int)$request->parent_id === (int)$category->id) {
@@ -133,6 +136,7 @@ class CategoryController extends Controller
             'name_ar'   => $request->name_ar,
             'name_en'   => $request->name_en,
             'parent_id' => $request->parent_id,
+            'is_active' => $request->boolean('is_active'),
         ];
 
         if ($category->name_ar !== $request->name_ar) {
@@ -268,5 +272,16 @@ class CategoryController extends Controller
         })->toArray();
 
         return Excel::download(new CategoriesExport($data), 'categories.xlsx');
+    }
+    public function toggleStatus(Category $category, Request $request)
+    {
+        if ($request->has('status')) {
+            $category->update(['is_active' => $request->status == '1']);
+        } else {
+            $category->update(['is_active' => !$category->is_active]);
+        }
+        
+        $message = $category->is_active ? 'تم تفعيل البراند بنجاح.' : 'تم إيقاف البراند بنجاح.';
+        return redirect()->back()->with('success', $message);
     }
 }

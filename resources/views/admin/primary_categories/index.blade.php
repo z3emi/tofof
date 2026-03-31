@@ -75,6 +75,7 @@ $flatItems = flatten_pri_cats($roots->sortBy('sort_order'));
                         <th class="py-3" data-column-id="products">المنتجات</th>
                         <th class="py-3" data-column-id="sort">{!! \App\Support\Sort::link('sort_order', 'الترتيب') !!}</th>
                         <th class="py-3" data-column-id="level">المستوى</th>
+                        <th class="py-3" data-column-id="status">الحالة</th>
                         <th class="py-3" width="120" data-column-id="actions">الإجراءات</th>
                     </tr>
                 </thead>
@@ -101,9 +102,42 @@ $flatItems = flatten_pri_cats($roots->sortBy('sort_order'));
                                 @else <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2">فرعي</span> @endif
                             </td>
                             <td>
+                                @if($node->is_active) <span class="status-badge bg-active shadow-sm" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 6px; background: #eefdf3; color: #1e7e34; border: 1px solid #c3e6cb;">فعال</span>
+                                @else <span class="status-badge bg-inactive shadow-sm" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 6px; background: #fffcf0; color: #856404; border: 1px solid #ffeeba;">غير فعال</span> @endif
+                            </td>
+                            <td>
                                 <div class="d-flex justify-content-center gap-1">
-                                    @can('edit-primary-categories') <a href="{{ route('admin.primary-categories.edit', $node->id) }}" class="btn btn-sm btn-outline-primary rounded-3 px-2 py-1"><i class="bi bi-pencil"></i></a> @endcan
-                                    @can('delete-primary-categories') <form action="{{ route('admin.primary-categories.destroy', $node->id) }}" method="POST" onsubmit="return confirm('حذف؟')">@csrf @method('DELETE')<button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1"><i class="bi bi-trash"></i></button></form> @endcan
+                                    @can('edit-primary-categories') 
+                                        <a href="{{ route('admin.primary-categories.edit', $node->id) }}" class="btn btn-sm btn-outline-primary rounded-3 px-2 py-1" title="تعديل"><i class="bi bi-pencil"></i></a> 
+                                    
+                                        @if($node->is_active)
+                                            <form action="{{ route('admin.primary-categories.toggleStatus', $node->id) }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="status" value="0">
+                                                <button type="submit" class="btn btn-sm btn-outline-warning rounded-3 px-2 py-1" title="إيقاف التفعيل">
+                                                    <i class="bi bi-pause"></i>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <form action="{{ route('admin.primary-categories.toggleStatus', $node->id) }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="status" value="1">
+                                                <button type="submit" class="btn btn-sm btn-outline-success rounded-3 px-2 py-1" title="تفعيل">
+                                                    <i class="bi bi-play"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    @endcan
+                                    
+                                    @can('delete-primary-categories') 
+                                        <form action="{{ route('admin.primary-categories.destroy', $node->id) }}" method="POST" onsubmit="return confirm('حذف؟')">
+                                            @csrf 
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1" title="حذف">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form> 
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

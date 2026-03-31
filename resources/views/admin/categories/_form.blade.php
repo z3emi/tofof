@@ -30,7 +30,7 @@
         <div class="form-text x-small mt-1 text-muted">يُستخدم في روابط المتجر (URL).</div>
     </div>
 
-    <div class="col-md-6">
+    <div class="col-md-3">
         <label class="form-label fw-bold small text-muted">البراند الأب (اختياري)</label>
         <div class="input-group">
             <span class="input-group-text bg-white border-end-0"><i class="bi bi-diagram-3 text-muted"></i></span>
@@ -44,6 +44,17 @@
             </select>
         </div>
         @error('parent_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label fw-bold small text-muted d-block">الحالة</label>
+        <input type="hidden" name="is_active" value="0">
+        <div class="form-check form-switch pt-2">
+            <input class="form-check-input" type="checkbox" name="is_active" id="is_active" value="1"
+                   @checked(old('is_active', $item->id ? $item->is_active : true))>
+            <label class="form-check-label fw-bold text-dark" for="is_active">تفعيل البراند</label>
+        </div>
+        @error('is_active') <div class="invalid-feedback d-block text-danger">{{ $message }}</div> @enderror
     </div>
 
     <div class="col-md-12">

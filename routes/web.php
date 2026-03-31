@@ -362,6 +362,7 @@ Route::middleware(['auth:admin', 'can:view-admin-panel'])->prefix('admin')->name
         Route::post('/{id}/restore', [CategoryController::class, 'restore'])->name('restore')->middleware('can:edit-categories');
         Route::delete('/{id}/force-delete', [CategoryController::class, 'forceDelete'])->name('forceDelete')->middleware('can:edit-categories');
         Route::get('/export', [CategoryController::class, 'exportExcel'])->name('export')->middleware('can:view-categories');
+        Route::post('/{category}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('toggleStatus')->middleware('can:edit-categories');
     });
     Route::resource('categories', CategoryController::class)->except(['show'])->middleware('can:view-categories');
 
@@ -543,10 +544,8 @@ Route::middleware(['auth:admin']) // أضف صلاحياتك مثل can:manage-c
             Route::get('/export', [PrimaryCategoryController::class, 'exportExcel'])->name('export');
         });
         Route::resource('primary-categories', PrimaryCategoryController::class);
-        Route::patch('primary-categories/{primary_category}/toggle', [PrimaryCategoryController::class, 'toggle'])
-              ->name('primary-categories.toggle');
-        Route::patch('primary-categories/{primary_category}/toggle', [PrimaryCategoryController::class, 'toggle'])
-         ->name('primary-categories.toggle');
+        Route::post('primary-categories/{primary_category}/toggle-status', [PrimaryCategoryController::class, 'toggleStatus'])
+         ->name('primary-categories.toggleStatus');
              Route::get('primary-categories/{primary_category}/children', [PrimaryCategoryController::class, 'children'])
          ->name('primary-categories.children');
     });

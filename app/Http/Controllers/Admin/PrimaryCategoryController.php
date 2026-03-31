@@ -191,10 +191,14 @@ class PrimaryCategoryController extends Controller
         return redirect()->back()->with('success', 'تم حذف الفئة نهائيًا.');
     }
 
-    public function toggle(PrimaryCategory $primary_category)
+    public function toggleStatus(PrimaryCategory $primary_category, Request $request)
     {
-        $primary_category->update(['is_active' => ! $primary_category->is_active]);
-        return back()->with('success', $primary_category->is_active ? 'تم التفعيل' : 'تم الإيقاف');
+        if ($request->has('status')) {
+            $primary_category->update(['is_active' => $request->status == '1']);
+        } else {
+            $primary_category->update(['is_active' => !$primary_category->is_active]);
+        }
+        return back()->with('success', $primary_category->is_active ? 'تم التفعيل بنجاح' : 'تم الإيقاف بنجاح');
     }
     // app/Http/Controllers/Admin/PrimaryCategoryController.php
 public function children(\App\Models\PrimaryCategory $primary_category)
