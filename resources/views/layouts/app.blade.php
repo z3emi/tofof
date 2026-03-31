@@ -1859,121 +1859,142 @@ function brandMenuV4(){
         @yield('content')
     </main>
 
-<footer class="bg-[#f7f7f7] text-gray-900 py-12 border-t border-[#e5e5e5] dark:bg-gray-950 dark:text-gray-200 dark:border-gray-800 transition-colors duration-300">
-  <div class="container mx-auto px-4 grid grid-cols-1 gap-10 lg:grid-cols-4 text-center md:text-right">
-    <div class="md:col-start-1">
-      <a href="{{ route('homepage') }}" class="flex mb-4 justify-center md:justify-start">
-        <img src="{{ asset('sec-logo.png') }}" alt="Tofof Logo" class="w-16 h-16 object-contain">
-      </a>
-      <!-- Branding text removed as requested -->
-      <div class="flex gap-4 text-[#6d0e16] text-2xl mt-4 justify-center md:justify-start">
-        <a href="https://www.facebook.com/p/%D8%B7%D9%81%D9%88%D9%81-%D9%84%D9%84%D8%B3%D8%A7%D8%B9%D8%A7%D8%AA-100091444293851/" target="_blank" rel="noopener noreferrer" class="hover:text-[#6d0e16] transition"><i class="bi bi-facebook"></i></a>
-        <a href="https://www.instagram.com/tofof_watches" target="_blank" rel="noopener noreferrer" class="hover:text-[#6d0e16] transition"><i class="bi bi-instagram"></i></a>
-        <a href="https://wa.me/9647744969024" target="_blank" rel="noopener noreferrer" class="hover:text-[#6d0e16] transition"><i class="bi bi-whatsapp"></i></a>
-      </div>
-    </div>
-    <div>
-      <h3 class="text-lg font-semibold text-[#6d0e16] mb-4">{{ __('layout.about_tofof') }}</h3>
-      <ul class="space-y-2">
-        <li><a href="{{ route('about.us') }}" class="hover:text-[#6d0e16]">{{ __('layout.about_us') }}</a></li>
-        <li><a href="{{ route('privacy.policy') }}" class="hover:text-[#6d0e16]">{{ __('layout.privacy_policy') }}</a></li>
-        @if (Route::has('terms')) <li><a href="{{ route('terms') }}" class="hover:text-[#6d0e16]">{{ __('layout.terms_conditions') }}</a></li> @endif
-      </ul>
-    </div>
-    <div>
-      <h3 class="text-lg font-semibold text-[#6d0e16] mb-4">{{ __('layout.our_services') }}</h3>
-      <ul class="space-y-2">
-        <li><a href="{{ Route::has('payment.delivery') ? route('payment.delivery') : url('/payment-delivery') }}" class="hover:text-[#6d0e16]">{{ __('layout.payment_delivery') }}</a></li>
-        <li><a href="{{ route('faq') }}" class="hover:text-[#6d0e16]">{{ __('layout.faq') }}</a></li>
-        @if (Route::has('contact.us')) <li><a href="{{ route('contact.us') }}" class="hover:text-[#6d0e16]">{{ __('layout.contact_us') }}</a></li> @endif
-        <li><a href="{{ route('blog.index') }}" class="hover:text-[#6d0e16]">{{ __('layout.blog') }}</a></li>
-        <li><a href="{{ route('return.policy') }}" class="hover:text-[#6d0e16]">{{ __('layout.return_policy') }}</a></li>
-      </ul>
-    </div>
-    <div>
-      <h3 class="text-lg font-semibold text-[#6d0e16] mb-4">{{ __('layout.support') }}</h3>
-<ul class="space-y-2">
-    <li><a href="{{ route('profile.show') }}" class="hover:text-[#6d0e16]">{{ __('layout.my_account') }}</a></li>
-
-    @if (Route::has('orders.index'))
-        <li><a href="{{ route('orders.index') }}" class="hover:text-[#6d0e16]">{{ __('layout.my_orders') }}</a></li>
-    @endif
-
-    <li><a href="{{ route('wishlist') }}" class="hover:text-[#6d0e16]">{{ __('layout.wishlist') }}</a></li>
-
-    @if (Route::has('track.order'))
-        <li><a href="{{ route('track.order') }}" class="hover:text-[#6d0e16]">{{ __('layout.track_order') }}</a></li>
-    @endif
-
-    @if (Route::has('page.contact-us'))
-        <li><a href="{{ route('page.contact-us') }}" class="hover:text-[#6d0e16]">{{ __('layout.contact_us') }}</a></li>
-    @endif
-
-    <li>
-        <a href="#"
-           x-data
-           @click.prevent="window.dispatchEvent(new CustomEvent('open-request-modal'))"
-           class="hover:text-[#6d0e16]">
-            {{ __('layout.request_product') }}
+<footer class="bg-gray-50 text-gray-800 pt-16 pb-8 border-t border-gray-200 dark:bg-gray-950 dark:text-gray-300 dark:border-gray-800 transition-colors duration-300">
+  <div class="container mx-auto px-4 md:px-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-12">
+      <!-- Logo and Description -->
+      <div class="lg:col-span-4 flex flex-col items-center md:items-start text-center md:text-right">
+        <a href="{{ route('homepage') }}" class="inline-block mb-6 hover:opacity-90 transition-opacity">
+          <img src="{{ asset('logo-black.png') }}" alt="Tofof Logo" class="w-40 h-auto object-contain dark:hidden">
+          <img src="{{ asset('sec-logo.png') }}" alt="Tofof Logo" class="w-40 h-auto object-contain hidden dark:block">
         </a>
-    </li>
-</ul>
-  </div>
-  </div>
-  <div class="mt-10 footer-bottom-bar">
-    <div class="container mx-auto px-4 footer-bottom-grid">
-      <div class="footer-payment-row footer-left-col">
-        <div class="payment-pill"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="Mastercard"></div>
-        <div class="payment-pill pill-has-bg"><img src="https://zaincash.com/static/media/ZainCashLogo.fea8cf3bb90421f45dd384d6afc6fe3b.svg" alt="Zain Cash"></div>
-        <div class="payment-pill"><img src="https://qi.iq/images/logo.svg?1=1" alt="Qi Card"></div>
-      </div>
-
-      <div class="footer-bottom-center footer-center-col dark:text-gray-400">
-        <a href="https://wosooll.com" target="_blank" class="flex items-center gap-1 hover:opacity-80 transition font-bold">
-          <i class="bi bi-heart-fill text-red-400"></i>
-          <span dir="ltr">Powered By Wosool</span>
-        </a>
-        <span class="footer-divider">|</span>
-        <div>
-          &copy; {{ date('Y') }} {{ __('layout.copyright') }} <a href="{{ route('homepage') }}" class="font-bold text-[#6d0e16] hover:text-[#6d0e16]">Tofof</a>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed max-w-sm">
+          أفضل الساعات والاكسسوارات الفاخرة التي تناسب جميع الأذواق والمناسبات. تميز بإطلالتك مع طفوف.
+        </p>
+        <div class="flex items-center gap-3">
+          <a href="https://www.facebook.com/p/%D8%B7%D9%81%D9%88%D9%81-%D9%84%D9%84%D8%B3%D8%A7%D8%B9%D8%A7%D8%AA-100091444293851/" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800 flex items-center justify-center text-[#6d0e16] dark:text-[#f0b0ad] hover:bg-[#6d0e16] hover:text-white dark:hover:bg-[#f0b0ad] dark:hover:text-gray-900 transition-all duration-300 hover:-translate-y-1">
+            <i class="bi bi-facebook text-lg"></i>
+          </a>
+          <a href="https://www.instagram.com/tofof_watches" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800 flex items-center justify-center text-[#6d0e16] dark:text-[#f0b0ad] hover:bg-[#6d0e16] hover:text-white dark:hover:bg-[#f0b0ad] dark:hover:text-gray-900 transition-all duration-300 hover:-translate-y-1">
+            <i class="bi bi-instagram text-lg"></i>
+          </a>
+          <a href="https://wa.me/9647744969024" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800 flex items-center justify-center text-[#6d0e16] dark:text-[#f0b0ad] hover:bg-[#6d0e16] hover:text-white dark:hover:bg-[#f0b0ad] dark:hover:text-gray-900 transition-all duration-300 hover:-translate-y-1">
+            <i class="bi bi-whatsapp text-lg"></i>
+          </a>
         </div>
       </div>
 
-      <div class="store-badge-row footer-right-col" style="flex-wrap: wrap; justify-content: center; max-width: 480px; margin: 0 auto md:0 0;">
+      <!-- Quick Links 1 -->
+      <div class="lg:col-span-2 text-center md:text-right">
+        <h3 class="text-lg font-bold text-[#6d0e16] dark:text-[#f0b0ad] mb-6 relative inline-block pb-2">
+          {{ __('layout.about_tofof') }}
+          <span class="absolute bottom-0 right-0 w-1/2 h-0.5 bg-[#6d0e16] dark:bg-[#f0b0ad] rounded-full"></span>
+        </h3>
+        <ul class="space-y-3 font-medium text-sm">
+          <li><a href="{{ route('about.us') }}" class="inline-flex items-center gap-2 hover:text-[#6d0e16] dark:hover:text-[#f0b0ad] transition-all duration-200 hover:translate-x-[-4px]"><i class="bi bi-chevron-left text-[10px] text-gray-400"></i>{{ __('layout.about_us') }}</a></li>
+          <li><a href="{{ route('privacy.policy') }}" class="inline-flex items-center gap-2 hover:text-[#6d0e16] dark:hover:text-[#f0b0ad] transition-all duration-200 hover:translate-x-[-4px]"><i class="bi bi-chevron-left text-[10px] text-gray-400"></i>{{ __('layout.privacy_policy') }}</a></li>
+          @if (Route::has('terms'))<li><a href="{{ route('terms') }}" class="inline-flex items-center gap-2 hover:text-[#6d0e16] dark:hover:text-[#f0b0ad] transition-all duration-200 hover:translate-x-[-4px]"><i class="bi bi-chevron-left text-[10px] text-gray-400"></i>{{ __('layout.terms_conditions') }}</a></li>@endif
+        </ul>
+      </div>
+
+      <!-- Quick Links 2 -->
+      <div class="lg:col-span-3 text-center md:text-right">
+        <h3 class="text-lg font-bold text-[#6d0e16] dark:text-[#f0b0ad] mb-6 relative inline-block pb-2">
+          {{ __('layout.our_services') }}
+          <span class="absolute bottom-0 right-0 w-1/2 h-0.5 bg-[#6d0e16] dark:bg-[#f0b0ad] rounded-full"></span>
+        </h3>
+        <ul class="space-y-3 font-medium text-sm">
+          <li><a href="{{ Route::has('payment.delivery') ? route('payment.delivery') : url('/payment-delivery') }}" class="inline-flex items-center gap-2 hover:text-[#6d0e16] dark:hover:text-[#f0b0ad] transition-all duration-200 hover:translate-x-[-4px]"><i class="bi bi-chevron-left text-[10px] text-gray-400"></i>{{ __('layout.payment_delivery') }}</a></li>
+          <li><a href="{{ route('faq') }}" class="inline-flex items-center gap-2 hover:text-[#6d0e16] dark:hover:text-[#f0b0ad] transition-all duration-200 hover:translate-x-[-4px]"><i class="bi bi-chevron-left text-[10px] text-gray-400"></i>{{ __('layout.faq') }}</a></li>
+          @if (Route::has('contact.us'))<li><a href="{{ route('contact.us') }}" class="inline-flex items-center gap-2 hover:text-[#6d0e16] dark:hover:text-[#f0b0ad] transition-all duration-200 hover:translate-x-[-4px]"><i class="bi bi-chevron-left text-[10px] text-gray-400"></i>{{ __('layout.contact_us') }}</a></li>@endif
+          <li><a href="{{ route('blog.index') }}" class="inline-flex items-center gap-2 hover:text-[#6d0e16] dark:hover:text-[#f0b0ad] transition-all duration-200 hover:translate-x-[-4px]"><i class="bi bi-chevron-left text-[10px] text-gray-400"></i>{{ __('layout.blog') }}</a></li>
+          <li><a href="{{ route('return.policy') }}" class="inline-flex items-center gap-2 hover:text-[#6d0e16] dark:hover:text-[#f0b0ad] transition-all duration-200 hover:translate-x-[-4px]"><i class="bi bi-chevron-left text-[10px] text-gray-400"></i>{{ __('layout.return_policy') }}</a></li>
+        </ul>
+      </div>
+
+      <!-- Quick Links 3 -->
+      <div class="lg:col-span-3 text-center md:text-right">
+        <h3 class="text-lg font-bold text-[#6d0e16] dark:text-[#f0b0ad] mb-6 relative inline-block pb-2">
+          {{ __('layout.support') }}
+          <span class="absolute bottom-0 right-0 w-1/2 h-0.5 bg-[#6d0e16] dark:bg-[#f0b0ad] rounded-full"></span>
+        </h3>
+        <ul class="space-y-3 font-medium text-sm">
+          <li><a href="{{ route('profile.show') }}" class="inline-flex items-center gap-2 hover:text-[#6d0e16] dark:hover:text-[#f0b0ad] transition-all duration-200 hover:translate-x-[-4px]"><i class="bi bi-chevron-left text-[10px] text-gray-400"></i>{{ __('layout.my_account') }}</a></li>
+          @if (Route::has('orders.index'))<li><a href="{{ route('orders.index') }}" class="inline-flex items-center gap-2 hover:text-[#6d0e16] dark:hover:text-[#f0b0ad] transition-all duration-200 hover:translate-x-[-4px]"><i class="bi bi-chevron-left text-[10px] text-gray-400"></i>{{ __('layout.my_orders') }}</a></li>@endif
+          <li><a href="{{ route('wishlist') }}" class="inline-flex items-center gap-2 hover:text-[#6d0e16] dark:hover:text-[#f0b0ad] transition-all duration-200 hover:translate-x-[-4px]"><i class="bi bi-chevron-left text-[10px] text-gray-400"></i>{{ __('layout.wishlist') }}</a></li>
+          @if (Route::has('track.order'))<li><a href="{{ route('track.order') }}" class="inline-flex items-center gap-2 hover:text-[#6d0e16] dark:hover:text-[#f0b0ad] transition-all duration-200 hover:translate-x-[-4px]"><i class="bi bi-chevron-left text-[10px] text-gray-400"></i>{{ __('layout.track_order') }}</a></li>@endif
+          @if (Route::has('page.contact-us'))<li><a href="{{ route('page.contact-us') }}" class="inline-flex items-center gap-2 hover:text-[#6d0e16] dark:hover:text-[#f0b0ad] transition-all duration-200 hover:translate-x-[-4px]"><i class="bi bi-chevron-left text-[10px] text-gray-400"></i>{{ __('layout.contact_us') }}</a></li>@endif
+          <li>
+              <a href="#" x-data @click.prevent="window.dispatchEvent(new CustomEvent('open-request-modal'))" class="inline-flex items-center gap-2 hover:text-[#6d0e16] dark:hover:text-[#f0b0ad] transition-all duration-200 hover:translate-x-[-4px]"><i class="bi bi-chevron-left text-[10px] text-gray-400"></i>{{ __('layout.request_product') }}</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col xl:flex-row items-center justify-between gap-6">
+      
+      <!-- Payment Methods -->
+      <div class="flex items-center justify-center gap-3">
+        <div class="w-12 h-8 bg-white dark:bg-gray-100 rounded flex items-center justify-center p-1.5 shadow-sm">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Visa_Inc._logo_%282021%E2%80%93present%29.svg" alt="Visa" class="h-full object-contain">
+        </div>
+        <div class="w-12 h-8 bg-white dark:bg-gray-100 rounded flex items-center justify-center p-1.5 shadow-sm">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="Mastercard" class="h-full object-contain">
+        </div>
+        <div class="w-12 h-8 bg-white dark:bg-gray-100 rounded flex items-center justify-center p-1.5 shadow-sm">
+          <img src="https://zaincash.com/static/media/ZainCashLogo.fea8cf3bb90421f45dd384d6afc6fe3b.svg" alt="Zain Cash" class="h-full object-contain">
+        </div>
+        <div class="w-12 h-8 bg-white dark:bg-gray-100 rounded flex items-center justify-center p-1.5 shadow-sm">
+          <img src="https://qi.iq/images/logo.svg?1=1" alt="Qi Card" class="h-full object-contain">
+        </div>
+      </div>
+
+      <!-- Copyright -->
+      <div class="text-sm font-medium text-center flex flex-col sm:flex-row items-center gap-2 text-gray-600 dark:text-gray-400">
+        <span>&copy; {{ date('Y') }} {{ __('layout.copyright') }} <a href="{{ route('homepage') }}" class="font-bold text-[#6d0e16] dark:text-[#f0b0ad] hover:underline">Tofof</a></span>
+        <span class="hidden sm:inline text-gray-300 dark:text-gray-700">|</span>
+        <a href="https://wosooll.com" target="_blank" class="flex items-center gap-1 hover:text-gray-900 dark:hover:text-white transition group">
+          <span dir="ltr">Powered By Wosool</span>
+          <i class="bi bi-heart-fill text-red-400 group-hover:scale-110 transition-transform"></i>
+        </a>
+      </div>
+
+      <!-- App Badges -->
+      <div class="flex flex-wrap justify-center gap-3">
         <!-- Google Play -->
-        <button type="button" class="pwa-install-btn store-badge-btn bg-black hover:bg-gray-900 border border-gray-700 transition shadow-lg" aria-label="تثبيت التطبيق على اندرويد">
-          <span class="store-icon">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
-              <polygon points="3,1.5 3,12 12,12" fill="#4CAF50"/>
-              <polygon points="3,12 12,12 3,22.5" fill="#1976D2"/>
-              <polygon points="3,1.5 12,12 21.5,12" fill="#FFC107"/>
-              <polygon points="12,12 21.5,12 3,22.5" fill="#F44336"/>
-            </svg>
-          </span>
-          <span class="text-wrap text-right mr-1">
-            <span class="mini text-gray-300">{{ __('layout.available_on') }}</span>
-            <span class="label text-white">Google Play</span>
-          </span>
+        <button type="button" class="pwa-install-btn flex items-center gap-2 bg-black hover:bg-gray-900 border border-gray-800 text-white px-3 py-1.5 rounded-lg transition shadow-md" aria-label="تثبيت التطبيق على اندرويد">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+            <polygon points="3,1.5 3,12 12,12" fill="#4CAF50"/>
+            <polygon points="3,12 12,12 3,22.5" fill="#1976D2"/>
+            <polygon points="3,1.5 12,12 21.5,12" fill="#FFC107"/>
+            <polygon points="12,12 21.5,12 3,22.5" fill="#F44336"/>
+          </svg>
+          <div class="text-right flex flex-col justify-center leading-none">
+            <span class="mini text-[10px] text-gray-300">{{ __('layout.available_on') }}</span>
+            <span class="label text-sm font-bold">Google Play</span>
+          </div>
         </button>
 
         <!-- App Store -->
-        <button type="button" class="pwa-install-btn store-badge-btn bg-black hover:bg-gray-900 border border-gray-700 transition shadow-lg" aria-label="تثبيت التطبيق على ايفون">
-          <span class="store-icon"><i class="bi bi-apple text-white" style="font-size: 1.8rem; line-height: 1;"></i></span>
-          <span class="text-wrap text-right mr-1">
-            <span class="mini text-gray-300">{{ __('layout.available_on') }}</span>
-            <span class="label text-white">App Store</span>
-          </span>
+        <button type="button" class="pwa-install-btn flex items-center gap-2 bg-black hover:bg-gray-900 border border-gray-800 text-white px-3 py-1.5 rounded-lg transition shadow-md" aria-label="تثبيت التطبيق على ايفون">
+          <i class="bi bi-apple text-xl"></i>
+          <div class="text-right flex flex-col justify-center leading-none">
+            <span class="mini text-[10px] text-gray-300">{{ __('layout.available_on') }}</span>
+            <span class="label text-sm font-bold">App Store</span>
+          </div>
         </button>
 
         <!-- Windows -->
-        <button type="button" class="pwa-install-btn store-badge-btn bg-black hover:bg-gray-900 border border-gray-700 transition shadow-lg" aria-label="تثبيت التطبيق على ويندوز">
-          <span class="store-icon"><i class="bi bi-windows text-[#00a4ef]" style="font-size: 1.7rem; line-height: 1;"></i></span>
-          <span class="text-wrap text-right mr-1">
-            <span class="mini text-gray-300">{{ __('layout.available_for') }}</span>
-            <span class="label text-white">Windows</span>
-          </span>
+        <button type="button" class="pwa-install-btn flex items-center gap-2 bg-black hover:bg-gray-900 border border-gray-800 text-white px-3 py-1.5 rounded-lg transition shadow-md" aria-label="تثبيت التطبيق على ويندوز">
+          <i class="bi bi-windows text-[#00a4ef] text-xl"></i>
+          <div class="text-right flex flex-col justify-center leading-none">
+            <span class="mini text-[10px] text-gray-300">{{ __('layout.available_for') }}</span>
+            <span class="label text-sm font-bold">Windows</span>
+          </div>
         </button>
       </div>
+
     </div>
   </div>
 </footer>
