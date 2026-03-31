@@ -825,23 +825,22 @@ html[dir="rtl"] .glass-indicator {
         .search-popup, .notification-popup {
           position: fixed;
           z-index: 9990 !important;
-          background: rgba(255, 255, 255, 0.65);
-          -webkit-backdrop-filter: blur(16px);
-          backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.25);
-          border-radius: 1rem;
-          box-shadow: 0 8px 26px rgba(0,0,0,.12);
-          background-color: transparent !important;
+          background: rgba(255, 255, 255, 0.94) !important;
+          -webkit-backdrop-filter: blur(32px);
+          backdrop-filter: blur(32px);
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          border-radius: 1.25rem;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.12);
           max-height: 70vh;
           overflow-y: auto;
         }
 
         .dark .search-popup, .dark .notification-popup {
-          background: rgba(15, 23, 42, 0.65);
-          -webkit-backdrop-filter: blur(16px);
-          backdrop-filter: blur(16px);
-          border-color: rgba(148, 163, 184, 0.2);
-          box-shadow: 0 10px 28px rgba(0,0,0,.45);
+          background: rgba(17, 24, 39, 0.94) !important;
+          -webkit-backdrop-filter: blur(32px);
+          backdrop-filter: blur(32px);
+          border-color: rgba(255, 255, 255, 0.1);
+          box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
 
         .search-popup .search-result-item { border-bottom-color: rgba(190, 102, 97, 0.2) !important; }
@@ -1532,11 +1531,11 @@ html[dir="rtl"] .glass-indicator {
             width: 400px;
             height: 70vh;
             border-radius: 24px;
-            background: rgba(255, 255, 255, 0.1);
-            -webkit-backdrop-filter: blur(20px);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            background: rgba(255, 255, 255, 0.88);
+            -webkit-backdrop-filter: blur(40px);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.12);
             overflow: hidden; 
         }
         .liquid-scroll-container {
@@ -1577,8 +1576,8 @@ html[dir="rtl"] .glass-indicator {
         .liquid-logo img { width: 100%; height: 100%; object-fit: contain; }
         
         .liquid-name {
-            font-weight: 700; color: var(--text, #34282C);
-            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            font-weight: 700; color: #1a1a1a;
+            transition: color 0.3s ease;
         }
 
         .liquid-toggle { margin-right: auto; padding: 0.5rem; color: rgba(52, 40, 44, 0.6); }
@@ -1589,11 +1588,11 @@ html[dir="rtl"] .glass-indicator {
         .liquid-sub-item .liquid-name { font-size: 0.9rem; }
 
         /* Dark Mode */
-        html.dark .liquid-glass-panel { background: rgba(31, 41, 55, 0.25); border-color: rgba(55, 65, 81, 0.5); }
-        html.dark .liquid-item:hover { background: rgba(55, 65, 81, 0.4); }
-        html.dark .liquid-name { color: #e5e7eb; text-shadow: none; }
-        html.dark .liquid-toggle { color: rgba(229, 231, 235, 0.6); }
-        html.dark .liquid-logo { background-color: #0a0a0a; border-color: rgba(205, 137, 133, 0.4); }
+        html.dark .liquid-glass-panel { background: rgba(15, 23, 42, 0.9); border-color: rgba(255, 255, 255, 0.1); }
+        html.dark .liquid-item:hover { background: rgba(255, 255, 255, 0.05); }
+        html.dark .liquid-name { color: #f9fafb; text-shadow: none; }
+        html.dark .liquid-toggle { color: rgba(240, 242, 245, 0.8); }
+        html.dark .liquid-logo { background-color: #ffffff; border-color: rgba(255, 255, 255, 0.2); }
         
         .liquid-scroll-container::-webkit-scrollbar { width: 6px; }
         .liquid-scroll-container::-webkit-scrollbar-track { background: transparent; }
