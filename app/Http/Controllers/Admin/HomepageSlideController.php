@@ -29,8 +29,9 @@ class HomepageSlideController extends Controller
     {
         $sections = HomepageSlide::sections();
         $selectedSection = $request->query('section', HomepageSlide::SECTION_HERO);
+        $homepageSlide = new HomepageSlide();
 
-        return view('admin.homepage-slides.create', compact('sections', 'selectedSection'));
+        return view('admin.homepage-slides.create', compact('sections', 'selectedSection', 'homepageSlide'));
     }
 
     public function store(Request $request)

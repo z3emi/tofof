@@ -658,73 +658,7 @@
 {{-- Header Image Slider (Matching Second Slider Style) --}}
 @if(($heroSlides ?? collect())->isNotEmpty())
 <section class="container mx-auto px-4 mt-4">
-    <div class="promo-slider hero-slider"
-        x-data="{
-            currentSlide: 0,
-            slides: {{ $heroSlides->count() }},
-            startX: 0, currentX: 0, isDragging: false, sliderWidth: 0, autoSlideInterval: null,
-            rtl: document.documentElement.dir === 'rtl',
-            io: null,
-            init() {
-                this.sliderWidth = this.$el.offsetWidth;
-                this.goToSlide(this.currentSlide);
-                this.startAutoSlide();
-                this.$el.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
-                this.$el.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: true });
-                this.$el.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: true });
-                this.$el.addEventListener('mousedown', this.handleMouseDown.bind(this));
-                this.$el.addEventListener('mousemove', this.handleMouseMove.bind(this));
-                this.$el.addEventListener('mouseup', this.handleMouseUp.bind(this));
-                this.$el.addEventListener('mouseleave', this.handleMouseUp.bind(this));
-                this.$el.addEventListener('alpine:destroy', () => this.cleanup());
-                try {
-                    this.io = new IntersectionObserver((entries) => {
-                        entries.forEach(e => {
-                            if (e.isIntersecting) { this.resumeAutoSlide(); } else { this.pauseAutoSlide(); }
-                        });
-                    }, { threshold: 0.15 });
-                    this.io.observe(this.$el);
-                } catch(_) {}
-                window.addEventListener('resize', () => { this.sliderWidth = this.$el.offsetWidth; });
-            },
-            startAutoSlide() {
-                if (this.autoSlideInterval) return;
-                this.autoSlideInterval = setInterval(() => {
-                    if (!this.isDragging) {
-                        this.currentSlide = (this.currentSlide + 1) % this.slides;
-                        this.goToSlide(this.currentSlide);
-                    }
-                }, 5000);
-            },
-            cleanup() { 
-                if (this.autoSlideInterval) { clearInterval(this.autoSlideInterval); this.autoSlideInterval = null; }
-                if (this.io) { try { this.io.disconnect(); } catch(_) {} }
-            },
-            handleTouchStart(e) { this.startX = e.touches[0].clientX; this.isDragging = true; this.pauseAutoSlide(); },
-            handleTouchMove(e) { if (!this.isDragging) return; this.currentX = e.touches[0].clientX; },
-            handleTouchEnd() { if (!this.isDragging) return; this.isDragging = false; this.handleSwipe(); this.resumeAutoSlide(); },
-            handleMouseDown(e) { this.startX = e.clientX; this.isDragging = true; this.$el.style.cursor = 'grabbing'; this.pauseAutoSlide(); },
-            handleMouseMove(e) { if (!this.isDragging) return; this.currentX = e.clientX; },
-            handleMouseUp() { if (!this.isDragging) return; this.isDragging = false; this.$el.style.cursor = 'grab'; this.handleSwipe(); this.resumeAutoSlide(); },
-            pauseAutoSlide() { if (this.autoSlideInterval) { clearInterval(this.autoSlideInterval); this.autoSlideInterval = null; } },
-            resumeAutoSlide() { this.startAutoSlide(); },
-            handleSwipe() {
-                const diff = this.startX - this.currentX;
-                const threshold = this.sliderWidth / 4;
-                if (Math.abs(diff) > threshold) {
-                    if ((diff > 0 && !this.rtl) || (diff < 0 && this.rtl)) { this.currentSlide = (this.currentSlide + 1) % this.slides; }
-                    else { this.currentSlide = (this.currentSlide - 1 + this.slides) % this.slides; }
-                }
-                this.goToSlide(this.currentSlide);
-            },
-            goToSlide(index) {
-                this.currentSlide = index;
-                const direction = this.rtl ? 1 : -1;
-                this.$refs.sliderContainer.style.transition = 'transform 0.5s ease';
-                this.$refs.sliderContainer.style.transform = `translateX(${direction * (this.currentSlide * 100)}%)`;
-                setTimeout(() => { this.$refs.sliderContainer.style.transition = ''; }, 500);
-            }
-        }">
+    <div class="promo-slider hero-slider" x-data="carouselSlider({{ $heroSlides->count() }})">
         <div class="slider-wrapper h-full">
             <div class="slider-container h-full" x-ref="sliderContainer">
                 @foreach($heroSlides as $slide)
@@ -1107,88 +1041,7 @@
 @if(($promoPrimarySlides ?? collect())->isNotEmpty())
 <section class="container mx-auto px-4">
 
-    <div class="promo-slider promo-primary-slider"
-       x-data="{
-        currentSlide: 0,
-        slides: 3, /* default; will auto-detect */
-        startX: 0, currentX: 0, isDragging: false, sliderWidth: 0, autoSlideInterval: null,
-        rtl: document.documentElement.dir === 'rtl',
-        io:null,
-
-        init() {
-          this.sliderWidth = this.$el.offsetWidth;
-
-          /* NEW: dynamic slides */
-          this.slides = this.$refs.sliderContainer?.children?.length || this.slides;
-
-          this.goToSlide(this.currentSlide);
-          this.startAutoSlide();
-
-          this.$el.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
-          this.$el.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: true });
-          this.$el.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: true });
-
-          this.$el.addEventListener('mousedown', this.handleMouseDown.bind(this));
-          this.$el.addEventListener('mousemove', this.handleMouseMove.bind(this));
-          this.$el.addEventListener('mouseup', this.handleMouseUp.bind(this));
-          this.$el.addEventListener('mouseleave', this.handleMouseUp.bind(this));
-
-          /* OLD (kept): */
-          this.$watch && this.$watch('$destroy', () => { this.cleanup(); });
-
-          /* NEW: destroy + visibility */
-          this.$el.addEventListener('alpine:destroy', () => this.cleanup());
-          try {
-            this.io = new IntersectionObserver((entries) => {
-              entries.forEach(e => e.isIntersecting ? this.resumeAutoSlide() : this.pauseAutoSlide());
-            }, { threshold: 0.15 });
-            this.io.observe(this.$el);
-          } catch(_) {}
-
-          window.addEventListener('resize', () => { this.sliderWidth = this.$el.offsetWidth; });
-        },
-
-        startAutoSlide() {
-          if (this.autoSlideInterval) return;
-          this.autoSlideInterval = setInterval(() => {
-            if (!this.isDragging) {
-              this.currentSlide = (this.currentSlide + 1) % this.slides;
-              this.goToSlide(this.currentSlide);
-            }
-          }, 5000);
-        },
-
-        cleanup() { if (this.autoSlideInterval) { clearInterval(this.autoSlideInterval); this.autoSlideInterval = null; } if(this.io){ try{ this.io.disconnect(); }catch(_){}} },
-
-        handleTouchStart(e) { this.startX = e.touches[0].clientX; this.isDragging = true; this.pauseAutoSlide(); },
-        handleTouchMove(e) { if (!this.isDragging) return; this.currentX = e.touches[0].clientX; },
-        handleTouchEnd() { if (!this.isDragging) return; this.isDragging = false; this.handleSwipe(); this.resumeAutoSlide(); },
-
-        handleMouseDown(e) { this.startX = e.clientX; this.isDragging = true; this.$el.style.cursor = 'grabbing'; this.pauseAutoSlide(); },
-        handleMouseMove(e) { if (!this.isDragging) return; this.currentX = e.clientX; },
-        handleMouseUp() { if (!this.isDragging) return; this.isDragging = false; this.$el.style.cursor = 'grab'; this.handleSwipe(); this.resumeAutoSlide(); },
-
-        pauseAutoSlide() { if (this.autoSlideInterval) { clearInterval(this.autoSlideInterval); this.autoSlideInterval = null; } },
-        resumeAutoSlide() { this.startAutoSlide(); },
-
-        handleSwipe() {
-          const diff = this.startX - this.currentX;
-          const threshold = this.sliderWidth / 4;
-          if (Math.abs(diff) > threshold) {
-            if ((diff > 0 && !this.rtl) || (diff < 0 && this.rtl)) { this.currentSlide = (this.currentSlide + 1) % this.slides; }
-            else { this.currentSlide = (this.currentSlide - 1 + this.slides) % this.slides; }
-          }
-          this.goToSlide(this.currentSlide);
-        },
-
-        goToSlide(index) {
-          this.currentSlide = index;
-          const direction = this.rtl ? 1 : -1;
-          this.$refs.sliderContainer.style.transition = 'transform 0.5s ease';
-          this.$refs.sliderContainer.style.transform = `translateX(${direction * (this.currentSlide * 100)}%)`;
-          setTimeout(() => { this.$refs.sliderContainer.style.transition = ''; }, 500);
-        }
-      }">
+    <div class="promo-slider promo-primary-slider" x-data="carouselSlider(3)">
     <div class="slider-wrapper">
       <div class="slider-container" x-ref="sliderContainer">
         @foreach($promoPrimarySlides as $slide)
@@ -1757,91 +1610,7 @@
 {{-- Promo Slider 2 --}}
 @if(($promoSecondarySlides ?? collect())->isNotEmpty())
 <section class="container mx-auto px-4">
-    <div class="promo-slider promo-primary-slider"
-         x-data="{
-         currentSlide: 0,
-         slides: 2, /* default; will auto-detect */
-         startX: 0,
-         currentX: 0,
-         isDragging: false,
-         sliderWidth: 0,
-         autoSlideInterval: null,
-         rtl: document.documentElement.dir === 'rtl',
-         io:null,
-
-         init() {
-           this.sliderWidth = this.$el.offsetWidth;
-
-           /* NEW: dynamic slides */
-           this.slides = this.$refs.sliderContainer?.children?.length || this.slides;
-
-           this.goToSlide(this.currentSlide);
-           this.startAutoSlide();
-
-           this.$el.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
-           this.$el.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: true });
-           this.$el.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: true });
-
-           this.$el.addEventListener('mousedown', this.handleMouseDown.bind(this));
-           this.$el.addEventListener('mousemove', this.handleMouseMove.bind(this));
-           this.$el.addEventListener('mouseup', this.handleMouseUp.bind(this));
-           this.$el.addEventListener('mouseleave', this.handleMouseUp.bind(this));
-
-           /* OLD (kept): */
-           this.$watch && this.$watch('$destroy', () => { this.cleanup(); });
-
-           /* NEW: destroy + visibility */
-           this.$el.addEventListener('alpine:destroy', () => this.cleanup());
-           try {
-             this.io = new IntersectionObserver((entries) => {
-               entries.forEach(e => e.isIntersecting ? this.resumeAutoSlide() : this.pauseAutoSlide());
-             }, { threshold: 0.15 });
-             this.io.observe(this.$el);
-           } catch(_) {}
-
-         },
-
-         startAutoSlide() {
-           if (this.autoSlideInterval) return;
-           this.autoSlideInterval = setInterval(() => {
-             if (!this.isDragging) {
-               this.currentSlide = (this.currentSlide + 1) % this.slides;
-               this.goToSlide(this.currentSlide);
-             }
-           }, 5000);
-         },
-
-         cleanup() { if (this.autoSlideInterval) { clearInterval(this.autoSlideInterval); this.autoSlideInterval = null; } if(this.io){ try{ this.io.disconnect(); }catch(_){}} },
-
-         handleTouchStart(e) { this.startX = e.touches[0].clientX; this.isDragging = true; this.pauseAutoSlide(); },
-         handleTouchMove(e) { if (!this.isDragging) return; this.currentX = e.touches[0].clientX; },
-         handleTouchEnd() { if (!this.isDragging) return; this.isDragging = false; this.handleSwipe(); this.resumeAutoSlide(); },
-
-         handleMouseDown(e) { this.startX = e.clientX; this.isDragging = true; this.$el.style.cursor = 'grabbing'; this.pauseAutoSlide(); },
-         handleMouseMove(e) { if (!this.isDragging) return; this.currentX = e.clientX; },
-         handleMouseUp() { if (!this.isDragging) return; this.isDragging = false; this.$el.style.cursor = 'grab'; this.handleSwipe(); this.resumeAutoSlide(); },
-
-         pauseAutoSlide() { if (this.autoSlideInterval) { clearInterval(this.autoSlideInterval); this.autoSlideInterval = null; } },
-         resumeAutoSlide() { this.startAutoSlide(); },
-
-         handleSwipe() {
-           const diff = this.startX - this.currentX;
-           const threshold = this.sliderWidth / 4;
-           if (Math.abs(diff) > threshold) {
-             if ((diff > 0 && !this.rtl) || (diff < 0 && this.rtl)) { this.currentSlide = (this.currentSlide + 1) % this.slides; }
-             else { this.currentSlide = (this.currentSlide - 1 + this.slides) % this.slides; }
-           }
-           this.goToSlide(this.currentSlide);
-         },
-
-         goToSlide(index) {
-           this.currentSlide = index;
-           const direction = this.rtl ? 1 : -1;
-           this.$refs.sliderContainer.style.transition = 'transform 0.5s ease';
-           this.$refs.sliderContainer.style.transform = `translateX(${direction * (this.currentSlide * 100)}%)`;
-           setTimeout(() => { this.$refs.sliderContainer.style.transition = ''; }, 500);
-         }
-       }">
+    <div class="promo-slider promo-primary-slider" x-data="carouselSlider(2)">
         <div class="slider-wrapper">
             <div class="slider-container" x-ref="sliderContainer">
                 @foreach($promoSecondarySlides as $slide)
@@ -2448,5 +2217,129 @@
 @endif
 
 </div> {{-- إغلاق home-scope --}}
+
+@push('scripts')
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('carouselSlider', (initialSlides = 1) => ({
+            currentSlide: 0,
+            slides: initialSlides,
+            startX: 0, currentX: 0, startY: 0, isDragging: false, sliderWidth: 0, autoSlideInterval: null,
+            rtl: document.documentElement.dir === 'rtl',
+            io: null,
+
+            init() {
+                this.$el.style.touchAction = 'pan-y'; // Prevent browser from interfering with horizontal drag
+                this.sliderWidth = this.$el.offsetWidth;
+                this.slides = this.$refs.sliderContainer?.children?.length || this.slides;
+                this.goToSlide(this.currentSlide);
+                this.startAutoSlide();
+
+                this.$el.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
+                // Use passive: false so we can preventDefault horizontal swipes!
+                this.$el.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+                this.$el.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: true });
+
+                this.$el.addEventListener('mousedown', this.handleMouseDown.bind(this));
+                this.$el.addEventListener('mousemove', this.handleMouseMove.bind(this));
+                this.$el.addEventListener('mouseup', this.handleMouseUp.bind(this));
+                this.$el.addEventListener('mouseleave', this.handleMouseUp.bind(this));
+
+                this.$el.addEventListener('alpine:destroy', () => this.cleanup());
+                try {
+                    this.io = new IntersectionObserver((entries) => {
+                        entries.forEach(e => {
+                            if (e.isIntersecting) { this.resumeAutoSlide(); } else { this.pauseAutoSlide(); }
+                        });
+                    }, { threshold: 0.15 });
+                    this.io.observe(this.$el);
+                } catch(_) {}
+                window.addEventListener('resize', () => { this.sliderWidth = this.$el.offsetWidth; this.goToSlide(this.currentSlide); });
+            },
+            startAutoSlide() {
+                if (this.autoSlideInterval) return;
+                this.autoSlideInterval = setInterval(() => {
+                    if (!this.isDragging) {
+                        this.currentSlide = (this.currentSlide + 1) % this.slides;
+                        this.goToSlide(this.currentSlide);
+                    }
+                }, 5000);
+            },
+            cleanup() { 
+                if (this.autoSlideInterval) { clearInterval(this.autoSlideInterval); this.autoSlideInterval = null; }
+                if (this.io) { try { this.io.disconnect(); } catch(_) {} }
+            },
+            handleTouchStart(e) { 
+                this.startX = e.touches[0].clientX; 
+                this.startY = e.touches[0].clientY;
+                this.currentX = this.startX; 
+                this.isDragging = true; 
+                this.pauseAutoSlide(); 
+            },
+            handleTouchMove(e) { 
+                if (!this.isDragging) return; 
+                const dx = Math.abs(this.startX - e.touches[0].clientX);
+                const dy = Math.abs(this.startY - e.touches[0].clientY);
+                
+                // If it's a horizontal movement, prevent native scrolling to allow smooth drag
+                if (dx > dy && e.cancelable) {
+                    e.preventDefault();
+                }
+                
+                this.currentX = e.touches[0].clientX; 
+                this.updateDragPosition(); 
+            },
+            handleTouchEnd() { if (!this.isDragging) return; this.isDragging = false; this.handleSwipe(); this.resumeAutoSlide(); },
+            handleMouseDown(e) { this.startX = e.clientX; this.currentX = this.startX; this.isDragging = true; this.$el.style.cursor = 'grabbing'; this.pauseAutoSlide(); },
+            handleMouseMove(e) { 
+                if (!this.isDragging) return; 
+                this.currentX = e.clientX; 
+                this.updateDragPosition(); 
+            },
+            handleMouseUp() { if (!this.isDragging) return; this.isDragging = false; this.$el.style.cursor = 'grab'; this.handleSwipe(); this.resumeAutoSlide(); },
+            pauseAutoSlide() { if (this.autoSlideInterval) { clearInterval(this.autoSlideInterval); this.autoSlideInterval = null; } },
+            resumeAutoSlide() { this.startAutoSlide(); },
+            updateDragPosition() {
+                const diff = this.startX - this.currentX;
+                // Add soft resistance if dragging out of bounds (optional visual feedback)
+                let percentDiff = (diff / this.sliderWidth) * 100;
+                
+                const direction = this.rtl ? 1 : -1;
+                const expectedTranslate = (direction * this.currentSlide * 100) - percentDiff;
+                this.$refs.sliderContainer.style.transition = 'none';
+                this.$refs.sliderContainer.style.transform = `translateX(${expectedTranslate}%)`;
+            },
+            handleSwipe() {
+                const diff = this.startX - this.currentX;
+                // Require only 40px drag to trigger slide change
+                const threshold = Math.min(40, this.sliderWidth / 10);
+                
+                let newSlide = this.currentSlide;
+                if (Math.abs(diff) > threshold) {
+                    if ((diff > 0 && !this.rtl) || (diff < 0 && this.rtl)) { 
+                        newSlide = this.currentSlide + 1; 
+                    } else { 
+                        newSlide = this.currentSlide - 1; 
+                    }
+                }
+                
+                // Clamp or Wrap logic
+                if (newSlide >= this.slides) newSlide = 0; // Wrap to start
+                if (newSlide < 0) newSlide = this.slides - 1; // Wrap to end
+                
+                this.currentSlide = newSlide;
+                this.goToSlide(this.currentSlide);
+            },
+            goToSlide(index) {
+                this.currentSlide = index;
+                const direction = this.rtl ? 1 : -1;
+                this.$refs.sliderContainer.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+                this.$refs.sliderContainer.style.transform = `translateX(${direction * (this.currentSlide * 100)}%)`;
+                setTimeout(() => { if (!this.isDragging) this.$refs.sliderContainer.style.transition = ''; }, 400);
+            }
+        }));
+    });
+</script>
+@endpush
 
 @endsection
