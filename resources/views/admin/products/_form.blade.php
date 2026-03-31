@@ -67,16 +67,17 @@
                 {{-- البراند --}}
                 <div class="mb-3">
                     <label for="category_id" class="form-label">البراند <span class="text-danger">*</span></label>
-                    <select class="form-select @error('category_id') is-invalid @enderror"
-                            id="category_id" name="category_id" required>
-                        <option value="">-- اختر البراند --</option>
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}"
-                                @selected(old('category_id', $product->category_id ?? '') == $category->id)>
-                                {{ $category->name_ar }}
-                            </option>
-                        @endforeach
-                    </select>
+                        <select class="form-select select2-with-image @error('category_id') is-invalid @enderror"
+                                id="category_id" name="category_id" required>
+                            <option value="">-- اختر البراند --</option>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}"
+                                    data-image="{{ $category->image_url }}"
+                                    @selected(old('category_id', $product->category_id ?? '') == $category->id)>
+                                    {{ $category->name_ar }}
+                                </option>
+                            @endforeach
+                        </select>
                     @error('category_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
@@ -109,10 +110,12 @@
 
                 <div class="mb-3">
                     <label class="form-label">الفئة الرئيسية</label>
-                    <select id="pc_parent" class="form-select">
+                    <select id="pc_parent" class="form-select select2-with-image">
                         <option value="">-- اختر الفئة الرئيسية --</option>
                         @foreach($rootPrimaryCategories as $root)
-                            <option value="{{ $root->id }}" @selected($preselectedParentId == $root->id)>
+                            <option value="{{ $root->id }}" 
+                                    data-image="{{ $root->image_url }}"
+                                    @selected($preselectedParentId == $root->id)>
                                 {{ $root->name_ar }}
                             </option>
                         @endforeach
@@ -121,7 +124,7 @@
 
                 <div class="mb-3">
                     <label class="form-label">الفئة الفرعية</label>
-                    <select id="pc_child" class="form-select" @if(!$preselectedParentId) disabled @endif></select>
+                    <select id="pc_child" class="form-select select2-with-image" @if(!$preselectedParentId) disabled @endif></select>
                     <small class="text-muted">إذا لا توجد فئات فرعية، تُعتمد الفئة الرئيسية تلقائيًا.</small>
                     @error('primary_category_id')
                         <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -287,8 +290,49 @@
 </div>
 
 @push('styles')
+{{-- Select2 CSS --}}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 {{-- Summernote CSS --}}
 <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+<style>
+    /* Select2 Skinning */
+    .select2-container--default .select2-selection--single {
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        height: 48px;
+        padding: 8px 12px;
+        background-color: #fcfcfc;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 46px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 30px;
+        color: #2C2C2C;
+    }
+    .select2-dropdown {
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    .select-item-with-img {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .select-item-with-img img {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        object-fit: cover;
+        background: #f8f9fa;
+        border: 1px solid #eee;
+    }
+    .select-item-with-img .text {
+        font-weight: 500;
+    }
+</style>
 <style>
     /* Force Summernote Editor to LTR */
     .note-editor.note-frame { 
@@ -371,8 +415,9 @@
 @endpush
 
 @push('scripts')
-{{-- jQuery and Summernote JS --}}
+{{-- jQuery, Select2 and Summernote JS --}}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
 
 {{-- الفئة الرئيسية: تحميل الفئات الفرعية ديناميكيًا --}}
@@ -386,6 +431,9 @@
 
     function clearChildren() {
         childSel.innerHTML = '<option value="">— اختر الفئة الفرعية —</option>';
+        if ($(childSel).data('select2')) {
+            $(childSel).trigger('change');
+        }
     }
 
     function syncFinal() {
@@ -396,8 +444,11 @@
 
     async function loadChildren(parentId, preselectChildId = null) {
         clearChildren();
-        childSel.disabled = true;
-        if (!parentId) { syncFinal(); return; }
+        if (!parentId) { 
+            childSel.disabled = true;
+            syncFinal(); 
+            return; 
+        }
 
         try {
             const url = endpointTmpl.replace('__ID__', parentId);
@@ -415,6 +466,10 @@
                     const opt = document.createElement('option');
                     opt.value = row.id;
                     opt.textContent = row.name_ar || ('#' + row.id);
+                    // 👈 إضافة الصورة هنا
+                    if (row.image_url) {
+                        opt.setAttribute('data-image', row.image_url);
+                    }
                     frag.appendChild(opt);
                 });
 
@@ -426,14 +481,15 @@
                     childSel.value = String(preselectChildId);
                 }
             } else {
-                clearChildren();
                 childSel.disabled = true;
             }
         } catch (e) {
-            clearChildren();
             childSel.disabled = true;
             console.error('Load children failed', e);
         } finally {
+            if ($(childSel).data('select2')) {
+                $(childSel).trigger('change'); // إعادة تنشيط سلكت 2
+            }
             syncFinal();
         }
     }
@@ -441,11 +497,45 @@
     parentSel?.addEventListener('change', e => loadChildren(e.target.value));
     childSel?.addEventListener('change', syncFinal);
 
-    if (parentSel && parentSel.value) {
-        loadChildren(parentSel.value, preChild);
-    } else {
-        syncFinal();
+    // دالة تهيئة Select2 مع الصور
+    function initSelect2WithImages() {
+        function formatState(state) {
+            if (!state.id) return state.text;
+            const img = $(state.element).data('image');
+            if (!img) return state.text;
+            
+            return $(
+                '<div class="select-item-with-img">' +
+                '<img src="' + img + '" />' +
+                '<span class="text">' + state.text + '</span>' +
+                '</div>'
+            );
+        }
+
+        $('.select2-with-image').each(function() {
+            const $this = $(this);
+            $this.select2({
+                templateResult: formatState,
+                templateSelection: formatState,
+                language: {
+                    noResults: function() { return "لا توجد نتائج"; }
+                },
+                width: '100%',
+                dir: 'rtl'
+            });
+        });
     }
+
+    $(document).ready(function() {
+        initSelect2WithImages();
+        
+        if (parentSel && parentSel.value) {
+            loadChildren(parentSel.value, preChild);
+        } else {
+            syncFinal();
+        }
+    });
+
 })();
 </script>
 

@@ -202,7 +202,13 @@ public function children(\App\Models\PrimaryCategory $primary_category)
     $children = $primary_category->children()
         ->active()
         ->ordered()
-        ->get(['id','name_ar']);
+        ->get(['id', 'name_ar', 'image']);
+
+    $children->each(function ($item) {
+        $item->image_url = $item->image 
+            ? asset('storage/' . $item->image) 
+            : 'https://placehold.co/100x100?text=' . urlencode($item->name_ar);
+    });
 
     return response()->json($children);
 }
