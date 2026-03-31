@@ -1568,10 +1568,11 @@ html[dir="rtl"] .glass-indicator {
 
         /* ✅ [تعديل] تغيير لون خلفية اللوجو */
         .liquid-logo {
-            width: 40px; height: 40px; border-radius: 10px; margin-left: 1rem; flex-shrink: 0;
-            background-color: #ffffff;
-            border: 1px solid rgba(205, 137, 133, 0.3);
-            padding: 4px; display: flex; align-items: center; justify-content: center;
+            width: 44px; height: 44px; border-radius: 50%; margin-left: 1rem; flex-shrink: 0;
+            background-color: transparent;
+            border: none;
+            padding: 0; display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
         }
         .liquid-logo img { width: 100%; height: 100%; object-fit: contain; }
         
@@ -1592,7 +1593,7 @@ html[dir="rtl"] .glass-indicator {
         html.dark .liquid-item:hover { background: rgba(255, 255, 255, 0.05); }
         html.dark .liquid-name { color: #f9fafb; text-shadow: none; }
         html.dark .liquid-toggle { color: rgba(240, 242, 245, 0.8); }
-        html.dark .liquid-logo { background-color: #ffffff; border-color: rgba(255, 255, 255, 0.2); }
+        html.dark .liquid-logo { background-color: transparent; border-color: transparent; }
         
         .liquid-scroll-container::-webkit-scrollbar { width: 6px; }
         .liquid-scroll-container::-webkit-scrollbar-track { background: transparent; }
