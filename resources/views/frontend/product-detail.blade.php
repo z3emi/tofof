@@ -66,10 +66,88 @@
     html.dark .product-page .border-gray-300{ border-color: var(--border) !important; }
 
     /* ===== معرض الصور ===== */
-    .thumbnail-active { border-color: var(--brand); box-shadow: 0 0 0 2px var(--brand); }
-    .zoom-modal-overlay { background-color: rgba(0, 0, 0, 0.75); }
-    html.dark .product-page .shadow-md{ box-shadow: var(--tile-shadow) !important; }
-    .product-page .md\:col-span-2 .bg-white{ background: var(--surface) !important; border-color: var(--border) !important; }
+    .product-gallery-container {
+        position: relative;
+    }
+    .main-image-wrapper {
+        background: #fff;
+        padding: 10px;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+        border: 1px solid var(--border);
+        transition: transform 0.3s ease;
+    }
+    .image-zoom-container {
+        cursor: zoom-in;
+        border-radius: 14px;
+        background: #fff;
+        position: relative;
+    }
+    .thumbnail-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: var(--brand) transparent;
+    }
+    .thumbnail-scroll::-webkit-scrollbar { height: 4px; }
+    .thumbnail-scroll::-webkit-scrollbar-thumb { background: var(--brand); border-radius: 10px; }
+    
+    .thumb-btn {
+        width: 76px;
+        height: 76px;
+        border-radius: 12px;
+        border: 2px solid transparent;
+        padding: 4px;
+        background: #fff;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        flex-shrink: 0;
+    }
+    .thumb-btn.active {
+        border-color: var(--brand);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(109, 14, 22, 0.15);
+    }
+    .thumb-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    
+    .zoom-hint {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        background: rgba(255,255,255,0.8);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        backdrop-filter: blur(4px);
+        z-index: 5;
+        transition: 0.3s;
+    }
+    .image-zoom-container:hover .zoom-hint { transform: scale(1.1); background: #fff; }
+
+    html.dark .main-image-wrapper { background: #1a1a1a; }
+    html.dark .image-zoom-container { background: #1a1a1a; }
+    html.dark .thumb-btn { background: #1a1a1a; }
+
+    .zoom-modal-overlay {
+        background-color: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: all 0.4s ease;
+    }
+    .zoomed-image-card {
+        background: transparent;
+        padding: 5px;
+        border-radius: 12px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
 
     /* ===================================================
         تنسيق موحد للأزرار الرئيسية والثانوية
@@ -154,18 +232,18 @@
     .product-page .product-title { font-weight:700; color:#2d2a2a; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.6em; word-break: break-word; }
     .product-page .price { color:var(--brand); font-weight:800; font-size:1.1rem; }
     .product-page .old { text-decoration:line-through; color:#9ca3af; font-size:.85rem; }
-    .product-page .product-actions { display:flex; gap:8px; margin-top:auto; padding-top:4px; position:relative; z-index:2; }
+    .product-page .product-actions { display:flex; gap:8px; margin-top:auto; padding: 0 12px 12px; position:relative; z-index:2; }
     .product-page .product-actions .btn-primary { flex-grow:1; flex-shrink:1; min-width:0; overflow:hidden; height:44px; display:inline-flex; align-items:center; justify-content:center; padding:0 .75rem; white-space:nowrap; font-size:.9rem; }
     .product-page .product-actions .btn-primary:only-child { flex-grow:unset; width:100%; }
     .product-page .btn-fav { width:44px; height:44px; border-radius:999px; background-color:#e5e7eb; color:#4b5563; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; transition:.2s; font-size:1.1rem; border:none; cursor:pointer; }
     .product-page .btn-fav:hover { background-color:#d1d5db; }
     .product-page .btn-fav.favorited { background-color:#fee2e2; color:#ef4444; }
-    .product-page .product-image-container { aspect-ratio: 1 / 1; position:relative; overflow:hidden; }
-    .product-page .product-image-slider { display: flex; width: 200%; height: 100%; transition: transform 0.3s ease-in-out; will-change: transform; }
-    .product-page .product-image-slider img { width: 50%; height: 100%; object-fit: cover; }
+    .product-page .product-image-container { aspect-ratio: 1 / 1; position:relative; overflow:hidden; border-radius:12px 12px 0 0; }
+    .product-page .product-image-slider { position: relative; width: 100%; height: 100%; }
+    .product-page .product-image-slider img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; }
     .product-page .product-dots { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 10; }
-    .product-page .product-dot { width: 8px; height: 8px; background-color: rgba(255, 255, 255, 0.6); border-radius: 50%; transition: background-color 0.3s ease, transform 0.3s ease; }
-    .product-page .product-dot.active { background-color: var(--brand); transform: scale(1.2); }
+    .product-page .product-dot { width: 8px; height: 8px; background-color: rgba(255, 255, 255, 0.6); border-radius: 50%; transition: width 0.3s ease, background-color 0.3s ease, transform 0.3s ease; }
+    .product-page .product-dot.active { width: 18px; border-radius: 4px; background-color: var(--brand); transform: scale(1.1); }
     html.dark .product-page .product-card { background-color:#1f2937; }
     html.dark .product-page .product-title { color:#f9fafb; }
     html.dark .product-page .btn-fav { background-color:#374151; color:#9ca3af; }
@@ -242,16 +320,25 @@
                  loadingAdd: false,
                  isFavorite: {{ $isFavorited ? 'true' : 'false' }},
                  loadingFav: false,
-                 imageZoomOpen: false,
-                 isZoomed: false,
-                 zoomOrigin: 'center',
-                 handleZoom(e) {
-                     const rect = e.currentTarget.getBoundingClientRect();
-                     const x = ((e.clientX - rect.left) / rect.width) * 100;
-                     const y = ((e.clientY - rect.top) / rect.height) * 100;
-                     this.zoomOrigin = `${x}% ${y}%`;
-                     this.isZoomed = true;
-                 },
+                  imageZoomOpen: false,
+                  init() {
+                      this.$watch('imageZoomOpen', value => {
+                          if (value) {
+                              document.body.style.overflow = 'hidden';
+                          } else {
+                              document.body.style.overflow = '';
+                          }
+                      });
+                  },
+                  isZoomed: false,
+                  zoomOrigin: 'center',
+                  handleZoom(e) {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = ((e.clientX - rect.left) / rect.width) * 100;
+                      const y = ((e.clientY - rect.top) / rect.height) * 100;
+                      this.zoomOrigin = `${x}% ${y}%`;
+                      this.isZoomed = true;
+                  },
                  selectOption(option, value) {
                      this.selectedOptionValueIds[option.id] = value.id;
                      this.selectedOptions[option.name] = value.label;
@@ -289,30 +376,46 @@
              }">
 
             {{-- معرض الصور --}}
-            <div class="md:col-span-2 flex flex-col gap-4">
-                <div class="bg-white p-2 rounded-lg shadow-md border border-gray-200">
-                    <div class="relative w-full aspect-square rounded-lg overflow-hidden image-zoom-container" 
-                         style="background: var(--surface);"
+            <div class="md:col-span-2 product-gallery-container flex flex-col gap-6">
+                <div class="main-image-wrapper">
+                    <div class="relative w-full aspect-square rounded-lg overflow-hidden image-zoom-container shadow-inner" 
                          @mousemove="handleZoom($event)"
                          @mouseleave="isZoomed = false"
                          @click="imageZoomOpen = true">
+                        
+                        {{-- شارة الخصم --}}
+                        @if($product->isOnSale())
+                            @php
+                                $mainDiscount = round(100 - ($product->sale_price / $product->price * 100));
+                            @endphp
+                            <div class="absolute top-4 left-4 z-10 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg border border-white/20">
+                                -{{ $mainDiscount }}% {{ __('common.off') }}
+                            </div>
+                        @endif
+
+                        <div class="zoom-hint">
+                            <i class="bi bi-search text-lg"></i>
+                        </div>
+
                         <img :src="mainImage" 
                              alt="{{ $product->name_translated }}" 
-                             class="absolute inset-0 w-full h-full object-contain" 
+                             class="absolute inset-0 w-full h-full object-contain p-4" 
                              :style="{ 
                                  transform: isZoomed ? 'scale(2.5)' : 'scale(1)', 
-                                 transformOrigin: zoomOrigin 
+                                 transformOrigin: zoomOrigin,
+                                 transition: isZoomed ? 'none' : 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
                              }"
                              loading="eager">
                     </div>
                 </div>
+
                 @if($product->images->count() > 1)
-                <div class="flex gap-2 overflow-x-auto pb-2">
+                <div class="thumbnail-scroll flex gap-3 overflow-x-auto pb-4 no-scrollbar">
                     @foreach($product->images as $image)
                         <button @click="mainImage = '{{ asset('storage/' . $image->image_path) }}'"
-                                class="w-20 h-20 flex-shrink-0 rounded-md border-2 p-1 transition"
-                                :class="mainImage === '{{ asset('storage/' . $image->image_path) }}' ? 'thumbnail-active' : 'border-gray-200 hover:border-brand-primary'">
-                            <img src="{{ asset('storage/' . $image->image_path) }}" alt="Thumbnail" class="w-full h-full object-cover rounded-sm">
+                                class="thumb-btn transition-all"
+                                :class="mainImage === '{{ asset('storage/' . $image->image_path) }}' ? 'active' : 'opacity-70 hover:opacity-100 hover:border-gray-200'">
+                            <img src="{{ asset('storage/' . $image->image_path) }}" alt="Thumbnail">
                         </button>
                     @endforeach
                 </div>
@@ -320,7 +423,7 @@
             </div>
 
             {{-- معلومات المنتج --}}
-            <div class="md:col-span-3 flex flex-col">
+            <div class="md:col-span-3">
                 <div class="text-sm text-gray-500 mb-2">
                     <a href="{{ route('shop') }}" class="hover:text-brand-primary">{{ __('product.shop') }}</a>
                     @if($product->category)
@@ -492,10 +595,23 @@
                     <div class="mt-3">{{ $reviews->withQueryString()->links() }}</div>
                 </div>
             </div>
-            <div x-show="imageZoomOpen" x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4 zoom-modal-overlay" style="display: none;" @keydown.escape.window="imageZoomOpen = false">
-                <div class="relative max-w-full max-h-full flex items-center justify-center" @click.away="imageZoomOpen = false">
-                    <img :src="mainImage" alt="Zoomed Image" class="max-w-[95vw] max-h-[95vh] w-auto h-auto object-contain rounded-lg shadow-2xl border-2 border-white/10">
-                    <button @click="imageZoomOpen = false" class="absolute top-2 right-2 md:-top-4 md:-right-4 bg-white text-black rounded-full h-10 w-10 flex items-center justify-center shadow-lg hover:bg-gray-200 transition-colors z-[60]">
+            <div x-show="imageZoomOpen" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 class="fixed inset-0 z-[99999] flex items-center md:items-start justify-center p-4 md:pt-[240px] md:pb-20 zoom-modal-overlay" 
+                 style="display: none;" 
+                 @keydown.escape.window="imageZoomOpen = false">
+                
+                <div class="relative w-full max-w-5xl flex items-center justify-center pointer-events-none" @click.away="imageZoomOpen = false">
+                    <div class="zoomed-image-card pointer-events-auto">
+                        <img :src="mainImage" alt="Zoomed Image" class="max-h-[70vh] md:max-h-[calc(100vh-340px)] w-auto object-contain rounded-xl shadow-2xl border border-white/20">
+                    </div>
+                    <button @click="imageZoomOpen = false" 
+                            class="absolute top-0 right-0 md:-top-4 md:-right-4 bg-white text-black rounded-full h-10 w-10 flex items-center justify-center shadow-lg hover:bg-gray-200 transition-all z-[100000] pointer-events-auto">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
@@ -508,6 +624,7 @@
         <h2 class="text-3xl font-bold text-brand-dark mb-8 text-center">{{ __('product.you_may_like') }}</h2>
         <div class="related-products-grid">
             @foreach($relatedProducts as $relatedProduct)
+                {{-- ===== Shop-identical Product Card ===== --}}
                 <div class="product-card"
                      x-data="{
                          showAlt: false,
@@ -520,7 +637,43 @@
                          touchStartX: 0, touchStartY: 0, isSwiping: false, gestureDetermined: false,
                          handleTouchStart(e) { this.touchStartX = e.touches[0].clientX; this.touchStartY = e.touches[0].clientY; this.isSwiping = false; this.gestureDetermined = false; },
                          handleTouchMove(e) { if (this.gestureDetermined) return; const dx = Math.abs(e.touches[0].clientX - this.touchStartX); const dy = Math.abs(e.touches[0].clientY - this.touchStartY); if (dx > 10 || dy > 10) { if (dx > dy) { this.isSwiping = true; e.preventDefault(); } this.gestureDetermined = true; } },
-                         handleTouchEnd(e, linkEl) { if (this.isSwiping) { if (this.hasTwoImages) { this.showAlt = !this.showAlt; } } else { const dx = Math.abs(e.changedTouches[0].clientX - this.touchStartX); const dy = Math.abs(e.changedTouches[0].clientY - this.touchStartY); if (dx < 10 && dy < 10) { window.location.href = linkEl.href; } } }
+                         handleTouchEnd(e, linkEl) { if (this.isSwiping) { if (this.hasTwoImages) { this.showAlt = !this.showAlt; } } else { const dx = Math.abs(e.changedTouches[0].clientX - this.touchStartX); const dy = Math.abs(e.changedTouches[0].clientY - this.touchStartY); if (dx < 10 && dy < 10) { window.location.href = linkEl.href; } } },
+                         toggleWishlist() {
+                             if(this.loadingFav) return;
+                             this.loadingFav=true;
+                             fetch('{{ route('wishlist.toggle.async', $relatedProduct->id) }}', {
+                                 method:'POST',
+                                 headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','X-Requested-With':'XMLHttpRequest'}
+                             })
+                             .then(r=>r.json())
+                             .then(d=>{
+                                 if(d.success){
+                                     this.isFavorite=!this.isFavorite;
+                                     window.dispatchEvent(new CustomEvent('wishlist-updated',{detail:{count:d.wishlistCount}}))
+                                 } else { alert(d.message || 'Error'); }
+                             })
+                             .catch(()=>alert('{{ __('common.connection_error') }}'))
+                             .finally(()=>this.loadingFav=false);
+                         },
+                         addToCart() {
+                             if(this.loadingAdd) return;
+                             this.loadingAdd=true;
+                             fetch('{{ route('cart.store') }}', {
+                                 method:'POST',
+                                 headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json','Content-Type':'application/json'},
+                                 body:JSON.stringify({product_id:{{ $relatedProduct->id }},quantity:1})
+                             })
+                             .then(r=>r.json())
+                             .then(d=>{
+                                 if(d.success){
+                                     this.added=true;
+                                     window.dispatchEvent(new CustomEvent('cart-updated',{detail:{cartCount:d.cartCount}}));
+                                     setTimeout(()=>this.added=false,1800);
+                                 } else { alert(d.message || 'Error'); }
+                             })
+                             .catch(()=>alert('{{ __('common.connection_error') }}'))
+                             .finally(()=>this.loadingAdd=false);
+                         }
                      }"
                      @mouseover="hasTwoImages ? showAlt = true : null"
                      @mouseout="hasTwoImages ? showAlt = false : null">
@@ -533,16 +686,12 @@
 
                         <div class="relative product-image-container">
                             @php
-                                // حالة التوفر
                                 $isAvailable = ($relatedProduct->stock_qty ?? $relatedProduct->stock_quantity ?? 0) > 0;
-
-                                // حالة الخصم وحساب النسبة
                                 $hasSale = $relatedProduct->isOnSale();
-                                $discountPercent = 0;
-
-                                if ($hasSale && $relatedProduct->price > 0) {
-                                    $discountPercent = round(100 - ($relatedProduct->sale_price / $relatedProduct->price * 100));
-                                }
+                                $discountPercent = ($hasSale && $relatedProduct->price > 0)
+                                    ? round(100 - ($relatedProduct->sale_price / $relatedProduct->price * 100))
+                                    : 0;
+                                $secondImage = optional($relatedProduct->images->get(1))->image_path;
                             @endphp
 
                             {{-- شارة "منتهي الكمية" --}}
@@ -559,22 +708,47 @@
                                 </div>
                             @endif
 
-                            <div class="product-image-slider" :style="{ transform: `translateX(${showAlt ? (rtl ? '50%' : '-50%') : '0'})` }">
+                            {{-- سلايد الصور --}}
+                            <div class="product-image-slider">
+                                {{-- الصورة الأولى --}}
                                 @if ($relatedProduct->firstImage)
-                                    <img src="{{ asset('storage/'.$relatedProduct->firstImage->image_path) }}" alt="{{ $relatedProduct->name_translated }}" loading="lazy" width="600" height="600">
+                                    <img src="{{ asset('storage/'.$relatedProduct->firstImage->image_path) }}" 
+                                         alt="{{ $relatedProduct->name_translated }}" loading="lazy" width="600" height="600"
+                                         :style="{
+                                            transform: showAlt && hasTwoImages
+                                                ? (rtl ? 'translateX(105%)' : 'translateX(-105%)')
+                                                : 'translateX(0)',
+                                            transition: 'transform 0.35s ease'
+                                         }">
                                 @else
-                                    <img src="https://placehold.co/600x600?text=No+Image" alt="No image" loading="lazy" width="600" height="600">
+                                    <img src="https://placehold.co/600x600?text=No+Image" alt="No image" loading="lazy" width="600" height="600"
+                                         :style="{
+                                            transform: showAlt && hasTwoImages
+                                                ? (rtl ? 'translateX(105%)' : 'translateX(-105%)')
+                                                : 'translateX(0)',
+                                            transition: 'transform 0.35s ease'
+                                         }">
                                 @endif
 
-                                @php $secondImage = optional($relatedProduct->images->get(1))->image_path; @endphp
+                                {{-- الصورة الثانية --}}
                                 @if ($secondImage)
-                                    <img src="{{ asset('storage/'.$secondImage) }}" alt="{{ $relatedProduct->name_translated }} (alt)" loading="lazy" width="600" height="600">
-                                @else
-                                    @if ($relatedProduct->firstImage)
-                                        <img src="{{ asset('storage/' . $relatedProduct->firstImage->image_path) }}" alt="{{ $relatedProduct->name_translated }}" loading="lazy" width="600" height="600">
-                                    @else
-                                        <img src="https://placehold.co/600x600?text=No+Image" alt="No image" loading="lazy" width="600" height="600">
-                                    @endif
+                                    <img src="{{ asset('storage/'.$secondImage) }}" 
+                                         alt="{{ $relatedProduct->name_translated }} (alt)" loading="lazy" width="600" height="600"
+                                         :style="{
+                                            transform: showAlt && hasTwoImages
+                                                ? 'translateX(0)'
+                                                : (rtl ? 'translateX(-105%)' : 'translateX(105%)'),
+                                            transition: 'transform 0.35s ease'
+                                         }">
+                                @elseif ($relatedProduct->firstImage)
+                                    <img src="{{ asset('storage/' . $relatedProduct->firstImage->image_path) }}" 
+                                         alt="{{ $relatedProduct->name_translated }}" loading="lazy" width="600" height="600"
+                                         :style="{
+                                            transform: showAlt && hasTwoImages
+                                                ? 'translateX(0)'
+                                                : (rtl ? 'translateX(-105%)' : 'translateX(105%)'),
+                                            transition: 'transform 0.35s ease'
+                                         }">
                                 @endif
                             </div>
 
@@ -589,6 +763,22 @@
                         <div class="product-info">
                             <h3 class="product-title">{{ $relatedProduct->name_translated }}</h3>
 
+                            @php
+                                $avg = round((float) ($relatedProduct->average_rating ?? 0), 1);
+                                $count = (int) ($relatedProduct->reviews_count ?? 0);
+                            @endphp
+                            <div class="flex items-center justify-center gap-2" title="{{ __('common.rating') }} {{ $avg }}">
+                                <div class="flex">
+                                    @for($i=1;$i<=5;$i++)
+                                        @php $full=$i<=floor($avg); $half=!$full && ($i-$avg)<=0.5; @endphp
+                                        <i class="bi {{ $full ? 'bi-star-fill' : ($half ? 'bi-star-half' : 'bi-star') }} text-yellow-500 text-sm"></i>
+                                    @endfor
+                                </div>
+                                @if($count > 0)
+                                    <span class="text-xs text-gray-500">({{ $count }})</span>
+                                @endif
+                            </div>
+
                             <div class="flex items-baseline justify-center gap-2">
                                 @if($relatedProduct->isOnSale())
                                     <div class="price">{{ number_format($relatedProduct->sale_price, 0) }} {{ __('common.currency') }}</div>
@@ -602,7 +792,7 @@
                     <div class="product-actions">
                         @auth
                         <button
-                            @click.prevent.stop="loadingFav = true; fetch('{{ url('/wishlist/toggle-async') }}/{{ $relatedProduct->id }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' } }).then(r => r.json()).then(d => { if (d.success) { isFavorite = !isFavorite; window.dispatchEvent(new CustomEvent('wishlist-updated', { detail: { count: d.wishlistCount } })) } }).finally(() => loadingFav = false)"
+                            @click.stop="toggleWishlist()"
                             @touchend.stop
                             class="btn-fav"
                             :class="{ 'favorited': isFavorite, 'opacity-60 pointer-events-none': loadingFav }"
@@ -612,7 +802,7 @@
                         @endauth
 
                         @if ($isAvailable)
-                            <button @click.prevent.stop="loadingAdd = true; fetch('{{ route('cart.store') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify({ product_id: {{ $relatedProduct->id }}, quantity: 1 }) }).then(r => r.json()).then(d => { if (d.success) { added = true; window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cartCount: d.cartCount } })); setTimeout(() => added = false, 1800) } else { alert(d.message || '{{ __('common.connection_error') }}') } }).finally(() => loadingAdd = false)"
+                            <button @click.stop="addToCart()"
                                     @touchend.stop
                                     class="btn-primary">
                                 <span x-show="!added && !loadingAdd"><i class="bi bi-cart-plus"></i> {{ __('common.add_to_cart') }}</span>
