@@ -1056,7 +1056,7 @@ html[dir="rtl"] .glass-indicator {
             </div>
         @endif
         <header id="mobileHeader" class="bg-[#6d0e16] py-3 border-b border-white/20 dark:border-white/15 shadow-md dark:shadow-black/40 relative overflow-visible">
-            <div class="container mx-auto hidden lg:flex items-center justify-between px-4 md:px-8 text-white font-semibold">
+            <div class="container mx-auto hidden lg:flex items-center justify-between px-4 md:px-8 text-white font-semibold" dir="ltr">
                 <a href="{{ route('homepage') }}" class="hover:opacity-90 transition block">
                     <img src="{{ asset('sec-logo.png') }}" alt="logo" class="h-12 w-auto object-contain">
                 </a>
@@ -1114,7 +1114,7 @@ html[dir="rtl"] .glass-indicator {
                         </div>
                     </template>
                 </div>
-                <div class="hidden md:flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-4" dir="ltr">
                     @if($showDashboardLink)
                         <a href="{{ url('/admin/dashboard') }}" class="inline-flex items-center gap-2 rounded-full px-3 py-2 bg-white/10 hover:bg:white/20 transition" title="{{ __('layout.dashboard') }}">
                             <i class="bi bi-speedometer2 text-xl"></i><span class="hidden lg:inline">{{ __('layout.dashboard') }}</span>
@@ -1188,12 +1188,13 @@ html[dir="rtl"] .glass-indicator {
             </div>
 
             {{-- Mobile Header --}}
-            <div class="container mx-auto lg:hidden flex flex-col px-4 text-white">
+            <div class="container mx-auto lg:hidden flex flex-col px-4 text-white" dir="ltr">
               <div class="flex w-full items-center justify-between min-h-[42px]">
                 <a href="{{ route('homepage') }}" class="flex items-center">
                   <img src="{{ asset('sec-logo.png') }}" alt="logo" class="h-9 w-auto object-contain">
                 </a>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 sm:gap-3">
+                  {{-- Search Toggle --}}
                   <button
                     @click="mobileSearchOpen = !mobileSearchOpen; if (mobileSearchOpen) { $nextTick(() => document.getElementById('mobileSearchInput')?.focus()); } else { searchFocused = false; }"
                     class="w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full"
@@ -1204,19 +1205,15 @@ html[dir="rtl"] .glass-indicator {
                     <i class="bi" :class="mobileSearchOpen ? 'bi-x-lg' : 'bi-search'"></i>
                   </button>
 
-                  <a href="{{ route('wishlist') }}" class="relative p-2 hover:bg-white/10 rounded-full" title="{{ __('layout.wishlist') }}">
-                    <i class="bi bi-heart text-lg"></i>
-                    <span x-show="wishlistCount > 0" x-text="wishlistCount" class="badge" style="display:none;"></span>
-                  </a>
                   {{-- Language Switcher Mobile --}}
                   <div x-data="{ langOpen: false }" class="relative" @click.away="langOpen = false">
                       <button @click="langOpen = !langOpen"
-                          class="flex items-center gap-1 p-2 hover:bg-white/10 rounded-full text-sm font-bold"
+                          class="flex items-center gap-1 p-1 hover:bg-white/10 rounded-full text-xs font-bold"
                           title="{{ __('layout.change_language') }}">
                           @if($locale === 'ar')
-                            <img src="{{ request()->root() }}/flags/iq.svg" class="w-6 h-4 object-cover rounded-sm shadow-sm" alt="Arabic">
+                            <img src="{{ request()->root() }}/flags/iq.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="Arabic">
                           @elseif($locale === 'en')
-                            <img src="{{ request()->root() }}/flags/us.svg" class="w-6 h-4 object-cover rounded-sm shadow-sm" alt="English">
+                            <img src="{{ request()->root() }}/flags/us.svg" class="w-5 h-3.5 object-cover rounded-sm shadow-sm" alt="English">
                           @endif
                       </button>
                         <div x-show="langOpen" x-cloak x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
@@ -1232,11 +1229,38 @@ html[dir="rtl"] .glass-indicator {
                           </a>
                         </div>
                   </div>
+
+                  {{-- Theme Toggle --}}
+                  <button @click="toggleTheme" class="w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.toggle_theme') }}">
+                    <i class="bi bi-moon-fill text-lg" :class="isDark ? 'bi-sun-fill' : 'bi-moon-fill'"></i>
+                  </button>
+
+                  {{-- Login / Cart / Wishlist / Notifications --}}
+                  @auth
+                    <a href="{{ route('profile.show') }}" class="w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.my_account') }}">
+                        <i class="bi bi-person text-lg"></i>
+                    </a>
+                  @else
+                    <a href="{{ route('login') }}" title="{{ __('layout.login_register') }}" class="w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full text-white">
+                        <i class="bi bi-person text-lg"></i>
+                    </a>
+                  @endauth
+
+                  <a href="{{ route('cart.index') }}" class="relative w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.cart') }}">
+                    <i class="bi bi-cart2 text-lg"></i>
+                    <span x-show="cartCount > 0" x-text="cartCount" class="badge" style="display: none;"></span>
+                  </a>
+
+                  <a href="{{ route('wishlist') }}" class="relative w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.wishlist') }}">
+                    <i class="bi bi-heart text-lg"></i>
+                    <span x-show="wishlistCount > 0" x-text="wishlistCount" class="badge" style="display: none;"></span>
+                  </a>
+
                   @auth
                   <div class="relative" x-data="userNotificationsComponent('{{ route('user.notifications.index') }}', '{{ route('user.notifications.markAsRead') }}')" x-init="fetchNotifications(); setInterval(() => fetchNotifications(), 60000)" x-ref="notificationContainerMobile">
-                    <button @click="dropdownOpen = !dropdownOpen" class="relative p-2 hover:bg-white/10 rounded-full" title="{{ __('layout.notifications') }}">
+                    <button @click="dropdownOpen = !dropdownOpen" class="relative w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.notifications') }}">
                       <i class="bi bi-bell text-lg"></i>
-                      <span x-show="unreadCount > 0" x-text="unreadCount" class="badge" style="display:none;"></span>
+                      <span x-show="unreadCount > 0" x-text="unreadCount" class="badge" style="display: none;"></span>
                     </button>
                     <template x-teleport="body">
                         <div x-show="dropdownOpen" @click.away="dropdownOpen = false" class="text-right notification-popup w-72 sm:w-80" style="display:none;"
@@ -1255,9 +1279,6 @@ html[dir="rtl"] .glass-indicator {
                     </template>
                   </div>
                   @endauth
-                  <button @click="toggleTheme" class="w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.toggle_theme') }}">
-                    <i class="bi bi-moon-fill text-lg" :class="isDark ? 'bi-sun-fill' : 'bi-moon-fill'"></i>
-                  </button>
                 </div>
               </div>
 
@@ -1998,7 +2019,7 @@ function brandMenuV4(){
 
         <a href="{{ route('cart.index') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('cart.index') ? 'active pointer-events-none' : '' }} relative">
           <i class="bi bi-cart2 icon"></i><span class="glass-label mt-0.5">{{ __('layout.cart') }}</span>
-          <span x-show="cartCount > 0" x-text="cartCount" class="badge badge-cart" :class="{'animate-ping-once': isCartUpdated}" style="display:none; top: 2px; right: 15px;"></span>
+          <span x-show="cartCount > 0" x-text="cartCount" class="badge badge-cart" :class="{'animate-ping-once': isCartUpdated}" style="display: none; top: 2px; right: 15px;"></span>
         </a>
 
         <a href="{{ route('categories.index') }}" data-fast-nav="true" class="glass-item {{ request()->routeIs('categories.index') ? 'active pointer-events-none' : '' }}">

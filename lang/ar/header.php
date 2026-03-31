@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'brand_name' => 'الريان',
+    'brand_name' => 'طفوف',
     'search_placeholder' => 'ابحث عن منتجات أو علامات تجارية',
     'arabic' => 'العربية',
     'english' => 'English',

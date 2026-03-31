@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'brand_name' => 'Al Rayyan',
+    'brand_name' => 'TOFOF',
     'search_placeholder' => 'Search products or brands',
     'arabic' => 'Arabic',
     'english' => 'English',
