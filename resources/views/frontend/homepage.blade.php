@@ -174,13 +174,13 @@
     }
 
     /* ---------- Promo Slider (Generalized for all sliders) ---------- */
-    .home-scope .promo-slider{ position:relative; overflow:hidden; border-radius:16px; margin: 0.75rem auto; background:var(--surface); transition: background 0.3s ease; }
+    .home-scope .promo-slider{ position:relative; overflow:visible; border-radius:16px; margin: 0.75rem auto; background:var(--surface); transition: background 0.3s ease; }
     @media (min-width: 1024px) {
         .home-scope .promo-slider {
             max-width: 1300px; /* تم تكبير عرض السلايدر في الكمبيوتر ليكون أوسع وأبرز */
         }
     }
-    .home-scope .slider-wrapper{ position:relative; width:100%; height:100%; }
+    .home-scope .slider-wrapper{ position:relative; width:100%; height:100%; overflow:hidden; border-radius:16px; }
     .home-scope .slider-container{ display:flex; transition:transform .5s ease; height:100%; }
     .home-scope .slide{
         position:relative;
@@ -480,13 +480,14 @@
      3) موبايل – أصغر/أخف وما تتداخل مع النص
      ========================= */
   @media (max-width: 640px){
+        .home-scope .promo-slider { margin-bottom: 30px !important; }
         .slider-dots{
-            bottom: 10px !important;
-            left: 10px !important;
+            bottom: -16px !important;
+            left: 50% !important;
             right: auto !important;
             top: auto !important;
-            padding: 4px 3px !important;
-            gap: 4px !important;
+            padding: 4px 8px !important;
+            gap: 6px !important;
             background: rgba(0,0,0,0.18) !important;
             box-shadow: none !important;
             border-radius: 999px !important;
@@ -494,25 +495,25 @@
             max-width: none;
             width: auto;
             height: auto;
-            transform: none !important;
+            transform: translateX(-50%) !important;
             opacity: .96;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
+            flex-direction: row;
         }
         .slider-dots .dot{
-            width: 3.5px !important;
-            height: 3.5px !important;
+            width: 5px !important;
+            height: 5px !important;
             border-radius: 999px !important;
             background: #fff !important;
             opacity: 0.55;
             margin: 0 !important;
             border: none !important;
             box-shadow: none !important;
-            transition: transform 0.2s, background 0.2s, opacity 0.2s;
+            transition: width 0.2s, transform 0.2s, background 0.2s, opacity 0.2s;
         }
         .slider-dots .dot.active{
-            width: 5px !important;
+            width: 15px !important;
             height: 5px !important;
             background: #6d0e16 !important;
             opacity: 1;
@@ -715,16 +716,16 @@
                 @endforeach
             </div>
 
-            <div class="slider-dots">
-                <template x-for="(slide, index) in slides" :key="index">
-                    <div class="dot"
-                         role="button" tabindex="0"
-                         :aria-label="`{{ __('home.slide_label') }} ${index+1}`"
-                         :class="{ 'active': currentSlide === index }"
-                         @click="goToSlide(index)"
-                         @keydown.enter.space="goToSlide(index)"></div>
-                </template>
-            </div>
+        </div>
+        <div class="slider-dots">
+            <template x-for="(slide, index) in slides" :key="index">
+                <div class="dot"
+                     role="button" tabindex="0"
+                     :aria-label="`{{ __('home.slide_label') }} ${index+1}`"
+                     :class="{ 'active': currentSlide === index }"
+                     @click="goToSlide(index)"
+                     @keydown.enter.space="goToSlide(index)"></div>
+            </template>
         </div>
     </div>
 </section>
@@ -1097,6 +1098,7 @@
         @endforeach
       </div>
 
+      </div>
       <div class="slider-dots">
         <template x-for="(slide, index) in slides" :key="index">
           <div class="dot"
@@ -1107,7 +1109,6 @@
                @keydown.enter.space="goToSlide(index)"></div>
         </template>
       </div>
-    </div>
   </div>
 </section>
 @endif
@@ -1659,16 +1660,16 @@
                 @endforeach
             </div>
 
-            <div class="slider-dots">
-                <template x-for="(slide, index) in slides" :key="index">
-                    <div class="dot"
-                         role="button" tabindex="0"
-                         :aria-label="`Slide ${index+1}`"
-                         :class="{ 'active': currentSlide === index }"
-                         @click="goToSlide(index)"
-                         @keydown.enter.space="goToSlide(index)"></div>
-                </template>
-            </div>
+        </div>
+        <div class="slider-dots">
+            <template x-for="(slide, index) in slides" :key="index">
+                <div class="dot"
+                     role="button" tabindex="0"
+                     :aria-label="`Slide ${index+1}`"
+                     :class="{ 'active': currentSlide === index }"
+                     @click="goToSlide(index)"
+                     @keydown.enter.space="goToSlide(index)"></div>
+            </template>
         </div>
     </div>
 </section>
