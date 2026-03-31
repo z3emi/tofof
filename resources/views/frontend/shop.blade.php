@@ -96,11 +96,11 @@
     .product-card:hover{ transform:translateY(-6px); box-shadow:0 16px 30px rgba(0,0,0,.10); }
     .product-content-link { display: flex; flex-direction: column; flex-grow: 1; text-decoration: none; color: inherit; }
     .product-image-container{ aspect-ratio:1/1; position:relative; overflow:hidden; }
-    .product-image-slider{ display:flex; width:200%; height:100%; transition:transform .3s ease; }
-    .product-image-slider img{ width:50%; height:100%; object-fit:cover; }
+    .product-image-slider{ position:relative; width:100%; height:100%; }
+    .product-image-slider img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
     .product-dots{ position:absolute; bottom:8px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:10;}
-    .product-dot{ width:8px; height:8px; background:rgba(255,255,255,.6); border-radius:999px;}
-    .product-dot.active{ background:var(--primary-color); }
+    .product-dot{ width:6px; height:6px; background:rgba(255,255,255,.6); border-radius:999px; transition: width .22s ease, opacity .22s ease; opacity: .8; }
+    .product-dot.active{ background:var(--primary-color); width:12px; opacity: 1; }
     /* شارة نسبة الخصم داخل كارت المتجر */
     .product-sale-badge{
         position:absolute;
