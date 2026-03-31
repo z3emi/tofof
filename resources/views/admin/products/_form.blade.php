@@ -32,13 +32,13 @@
                     </div>
                     <div class="col-md-6">
                         <label for="description_ar" class="form-label">الوصف (عربي) <span class="text-danger">*</span></label>
-                        <textarea class="form-control @error('description_ar') is-invalid @enderror"
+                        <textarea class="form-control rich-editor @error('description_ar') is-invalid @enderror"
                                   id="description_ar" name="description_ar" rows="5" required>{{ old('description_ar', $product->description_ar ?? '') }}</textarea>
                         @error('description_ar')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6">
                         <label for="description_en" class="form-label">Description (English)</label>
-                        <textarea class="form-control @error('description_en') is-invalid @enderror"
+                        <textarea class="form-control rich-editor @error('description_en') is-invalid @enderror"
                                   id="description_en" name="description_en" rows="5">{{ old('description_en', $product->description_en ?? '') }}</textarea>
                         @error('description_en')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
@@ -166,9 +166,13 @@
                     <input type="file"
                            class="form-control @error('images.*') is-invalid @enderror"
                            id="images" name="images[]" multiple
+                           accept="image/*"
                            @if(!isset($product)) required @endif>
                     @error('images.*')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
+
+                {{-- معاينة الصور الجديدة --}}
+                <div id="new-images-preview" class="d-flex flex-wrap gap-2 mb-3"></div>
 
                 @if(isset($product) && $product->images->isNotEmpty())
                 <div>
@@ -200,7 +204,7 @@
     <div class="col-lg-4">
         <div class="card shadow-sm h-100">
             <div class="card-header bg-white d-flex align-items-center gap-2 fw-semibold">
-                <i class="bi bi-cash-coin text-danger"></i> الأسعار
+                <i class="bi bi-cash-coin text-danger"></i> الأسعار والمخزون
             </div>
             <div class="card-body">
 
@@ -242,6 +246,20 @@
                     @error('sale_ends_at')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
+                <hr class="my-3">
+
+                <div class="mb-3">
+                    <label for="stock_quantity" class="form-label">الكمية المتاحة (المخزون) <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-box-seam"></i></span>
+                        <input type="number" class="form-control @error('stock_quantity') is-invalid @enderror"
+                               id="stock_quantity" name="stock_quantity"
+                               value="{{ old('stock_quantity', $product->stock_quantity ?? 0) }}"
+                               required min="0">
+                    </div>
+                    @error('stock_quantity')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                </div>
+
             </div>
         </div>
     </div>
@@ -268,7 +286,22 @@
     </button>
 </div>
 
+@push('styles')
+{{-- Summernote CSS --}}
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+<style>
+    .note-editor.note-frame { border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; background: #fff; }
+    .note-btn { background: #fff !important; border: 1px solid #eee !important; color: #333 !important; }
+    .note-btn:hover { background: #f8f9fa !important; }
+    .note-modal-content { border-radius: 15px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+</style>
+@endpush
+
 @push('scripts')
+{{-- jQuery and Summernote JS --}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+
 {{-- الفئة الرئيسية: تحميل الفئات الفرعية ديناميكيًا --}}
 <script>
 (function () {
@@ -343,36 +376,82 @@
 })();
 </script>
 
-{{-- حذف صورة من معرض المنتج عبر AJAX --}}
+<script>
+$(document).ready(function() {
+    $('.rich-editor').summernote({
+        placeholder: 'أدخل الوصف هنا...',
+        tabsize: 2,
+        height: 200,
+        toolbar: [
+            ['style', ['style']],
+            ['font', ['bold', 'underline', 'clear']],
+            ['color', ['color']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['table', ['table']],
+            ['insert', ['link', 'picture']],
+            ['view', ['fullscreen', 'codeview', 'help']]
+        ],
+        lang: 'ar-AR'
+    });
+});
+</script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // معاينة الصور الجديدة قبل الرفع
+    const imagesInput = document.getElementById('images');
+    const previewContainer = document.getElementById('new-images-preview');
+
+    if (imagesInput) {
+        imagesInput.addEventListener('change', function() {
+            previewContainer.innerHTML = '';
+            const files = Array.from(this.files);
+            
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'position-relative';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="img-thumbnail rounded" style="width:90px;height:90px;object-fit:cover;">
+                        <span class="badge bg-primary position-absolute top-100 start-50 translate-middle mt-1 small" style="font-size:10px">جديد</span>
+                    `;
+                    previewContainer.appendChild(div);
+                }
+                reader.readAsDataURL(file);
+            });
+        });
+    }
+
+    // حذف صورة من معرض المنتج عبر AJAX
     const gallery = document.getElementById('image-gallery');
-    if (!gallery) return;
+    if (gallery) {
+        gallery.addEventListener('click', function (e) {
+            const btn = e.target.closest('.delete-image-btn');
+            if (!btn) return;
+            e.preventDefault();
 
-    gallery.addEventListener('click', function (e) {
-        const btn = e.target.closest('.delete-image-btn');
-        if (!btn) return;
-        e.preventDefault();
-
-        if (!confirm('هل أنت متأكد من حذف هذه الصورة؟')) return;
-
-        fetch(`/admin/products/images/${btn.dataset.imageId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json',
-            },
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('image-container-' + btn.dataset.imageId)?.remove();
-            } else {
-                alert(data.message || 'فشل حذف الصورة.');
-            }
-        })
-        .catch(() => alert('حدث خطأ في الاتصال.'));
-    });
+            window.confirmAction('هل أنت متأكد من حذف هذه الصورة؟', function() {
+                fetch(`/admin/products/images/${btn.dataset.imageId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('image-container-' + btn.dataset.imageId)?.remove();
+                        window.showToast('تم بنجاح', 'تم حذف الصورة بنجاح.');
+                    } else {
+                        window.showToast('خطأ', data.message || 'فشل حذف الصورة.', 'error');
+                    }
+                })
+                .catch(() => window.showToast('خطأ', 'حدث خطأ في الاتصال.', 'error'));
+            });
+        });
+    }
 });
 </script>
 @endpush
