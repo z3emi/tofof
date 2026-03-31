@@ -141,41 +141,39 @@
             padding: 0.85rem 1.25rem 1.25rem 1.25rem;
         }
 
-        @media (prefers-color-scheme: dark) {
-            .global-confirm__dialog {
-                background: #1f2937;
-                color: #f8fafc;
-            }
+        .dark .global-confirm__dialog {
+            background: #1f2937;
+            color: #f8fafc;
+        }
 
-            .global-confirm__header {
-                border-bottom-color: rgba(148, 163, 184, 0.2);
-            }
+        .dark .global-confirm__header {
+            border-bottom-color: rgba(148, 163, 184, 0.2);
+        }
 
-            .global-confirm__title {
-                color: #f8fafc;
-            }
+        .dark .global-confirm__title {
+            color: #f8fafc;
+        }
 
-            .global-confirm__message {
-                color: #e2e8f0;
-            }
+        .dark .global-confirm__message {
+            color: #e2e8f0;
+        }
 
-            #global-confirm .btn.btn-light {
-                background: #334155;
-                color: #e2e8f0;
-            }
+        .dark #global-confirm .btn.btn-light {
+            background: #334155;
+            color: #e2e8f0;
+        }
 
-            #global-confirm .btn.btn-light:hover {
-                background: #475569;
-            }
+        .dark #global-confirm .btn.btn-light:hover {
+            background: #475569;
+        }
 
-            #global-confirm .btn.btn-danger {
-                background: #f87171;
-                box-shadow: 0 8px 16px rgba(248, 113, 113, 0.28);
-            }
+        .dark #global-confirm .btn.btn-danger {
+            background: #f87171;
+            box-shadow: 0 8px 16px rgba(248, 113, 113, 0.28);
+        }
 
-            #global-confirm .btn.btn-danger:hover {
-                background: #ef4444;
-            }
+        .dark #global-confirm .btn.btn-danger:hover {
+            background: #ef4444;
         }
     </style>
 
