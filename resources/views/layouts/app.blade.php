@@ -107,7 +107,7 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
-    <link rel="apple-touch-icon" href="{{ asset('sec-logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('logo.png') }}">
 
     <script>
       window.__tofofDeferredInstallPrompt = null;
@@ -134,8 +134,8 @@
           "name": "{{ $locale === 'ar' ? ($seo['site_title_ar'] ?? $seo['site_title'] ?? 'طفوف') : ($seo['site_title_en'] ?? $seo['site_title'] ?? 'Tofof') }}",
           "alternateName": "{{ $siteTitle }}",
           "url": "{{ $canonical ?? url('/') }}/",
-          "logo": "{{ asset('sec-logo.png') }}",
-          "image": "{{ asset('sec-logo.png') }}",
+          "logo": "{{ asset('logo.png') }}",
+          "image": "{{ asset('logo.png') }}",
           "telephone": "+9647744969024",
           "sameAs": [
             "https://www.instagram.com/tofof_watches",
@@ -1235,21 +1235,7 @@ html[dir="rtl"] .glass-indicator {
                     <i class="bi bi-moon-fill text-lg" :class="isDark ? 'bi-sun-fill' : 'bi-moon-fill'"></i>
                   </button>
 
-                  {{-- Login / Cart / Wishlist / Notifications --}}
-                  @auth
-                    <a href="{{ route('profile.show') }}" class="w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.my_account') }}">
-                        <i class="bi bi-person text-lg"></i>
-                    </a>
-                  @else
-                    <a href="{{ route('login') }}" title="{{ __('layout.login_register') }}" class="w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full text-white">
-                        <i class="bi bi-person text-lg"></i>
-                    </a>
-                  @endauth
-
-                  <a href="{{ route('cart.index') }}" class="relative w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.cart') }}">
-                    <i class="bi bi-cart2 text-lg"></i>
-                    <span x-show="cartCount > 0" x-text="cartCount" class="badge" style="display: none;"></span>
-                  </a>
+                  {{-- [Hidden on Mobile Header] Login / Cart / Profile --}}
 
                   <a href="{{ route('wishlist') }}" class="relative w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.wishlist') }}">
                     <i class="bi bi-heart text-lg"></i>
@@ -2778,7 +2764,7 @@ document.addEventListener('alpine:init', () => {
   <div class="ios-install-card w-full max-w-md p-5 md:p-6 text-right">
     <div class="flex items-center justify-between gap-3 mb-4">
       <div class="flex items-center gap-3">
-        <img src="{{ asset('sec-logo.png') }}" alt="Tofof" class="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 object-contain bg-white">
+        <img src="{{ asset('logo.png') }}" alt="Tofof" class="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 object-contain bg-white">
         <div>
           <p id="installGuideTitle" class="font-extrabold text-[#6d0e16] dark:text-[#f0b0ad] leading-none">تثبيت طفوف</p>
           <p id="installGuideSubTitle" class="text-xs text-gray-500 dark:text-gray-400 mt-1">شرح التثبيت على جهازك</p>
