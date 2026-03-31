@@ -435,12 +435,43 @@ public function homepage(Request $request)
 
     public function categories()
     {
-        $categories = Category::whereNull('parent_id')
-            ->with('children')
+        $fiatTree = \App\Models\PrimaryCategory::whereNull('parent_id')
+            ->with(['children' => function ($query) {
+                $query->withCount('products')->orderBy('name_ar', 'asc');
+            }])
             ->withCount('products')
+            ->orderBy('name_ar', 'asc')
             ->get();
 
-        return view('frontend.pages.categories', compact('categories'));
+        foreach ($fiatTree as $fia) {
+            if ($fia->children->isNotEmpty()) {
+                foreach ($fia->children as $subFia) {
+                    try {
+                        $product_ids = \Illuminate\Support\Facades\DB::table('primary_category_product')
+                            ->where('primary_category_id', $subFia->id)
+                            ->pluck('product_id');
+
+                        $brand_ids = \App\Models\Product::whereIn('id', $product_ids)
+                            ->whereNotNull('category_id')
+                            ->distinct()
+                            ->pluck('category_id');
+
+                        if ($brand_ids->isNotEmpty()) {
+                            $subFia->brands = \App\Models\Category::whereIn('id', $brand_ids)
+                                ->withCount('products')
+                                ->orderBy('name_ar', 'asc')
+                                ->get();
+                        } else {
+                            $subFia->brands = collect();
+                        }
+                    } catch (\Exception $e) {
+                        $subFia->brands = collect();
+                    }
+                }
+            }
+        }
+
+        return view('frontend.pages.categories', compact('fiatTree'));
     }
 
     public function paymentAndDelivery()
