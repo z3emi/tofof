@@ -30,13 +30,13 @@
                                value="{{ old('name_en', $product->name_en ?? '') }}">
                         @error('name_en')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-12">
                         <label for="description_ar" class="form-label">الوصف (عربي) <span class="text-danger">*</span></label>
                         <textarea class="form-control rich-editor @error('description_ar') is-invalid @enderror"
                                   id="description_ar" name="description_ar" rows="5" required>{{ old('description_ar', $product->description_ar ?? '') }}</textarea>
                         @error('description_ar')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-12">
                         <label for="description_en" class="form-label">Description (English)</label>
                         <textarea class="form-control rich-editor @error('description_en') is-invalid @enderror"
                                   id="description_en" name="description_en" rows="5">{{ old('description_en', $product->description_en ?? '') }}</textarea>
@@ -290,10 +290,83 @@
 {{-- Summernote CSS --}}
 <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
 <style>
-    .note-editor.note-frame { border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; background: #fff; }
-    .note-btn { background: #fff !important; border: 1px solid #eee !important; color: #333 !important; }
+    /* Force Summernote Editor to LTR */
+    .note-editor.note-frame { 
+        border: 1px solid #dee2e6; 
+        border-radius: 8px; 
+        overflow: hidden; 
+        background: #fff; 
+        direction: ltr !important; 
+        text-align: left !important; 
+    }
+    
+    /* Ensure all internal elements follow LTR */
+    .note-editor.note-frame * {
+        direction: ltr !important;
+        text-align: left !important;
+    }
+
+    .note-btn:not(.note-color-btn) { 
+        background: #fff !important; 
+        border: 1px solid #eee !important; 
+        color: #333 !important; 
+    }
     .note-btn:hover { background: #f8f9fa !important; }
     .note-modal-content { border-radius: 15px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    
+    /* FIX: Summernote Color Palette issues */
+    .note-color-palette {
+        width: 172px !important;
+        padding: 5px !important;
+    }
+    .note-color-row {
+        height: 20px !important;
+        display: flex !important;
+        margin-bottom: 2px !important;
+    }
+    .note-color-btn {
+        width: 18px !important;
+        height: 18px !important;
+        padding: 0 !important;
+        margin: 1px !important;
+        border: 1px solid #e0e0e0 !important;
+        display: inline-block !important;
+        cursor: pointer !important;
+        /* Do NOT set background-color here with !important as it will override the inline color */
+    }
+    
+    /* Custom Styling for the palette labels */
+    .note-color-palette .note-color-reset, 
+    .note-color-palette .note-color-select {
+        padding: 6px !important;
+        margin: 5px 0 !important;
+        width: 100% !important;
+        text-align: center !important;
+        background: #f8f9fa !important;
+        border: 1px solid #eee !important;
+        border-radius: 4px !important;
+        font-size: 11px !important;
+        color: #333 !important;
+        cursor: pointer !important;
+    }
+    .note-color-palette .note-color-reset:hover, 
+    .note-color-palette .note-color-select:hover {
+        background: #e9ecef !important;
+    }
+
+    /* Fix for toolbar button layout in RTL page */
+    .note-toolbar {
+        background: #f8f9fa !important;
+        border-bottom: 1px solid #eee !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-start !important;
+    }
+    
+    .note-btn-group {
+        margin-right: 5px !important;
+        margin-left: 0 !important;
+    }
 </style>
 @endpush
 
@@ -379,9 +452,9 @@
 <script>
 $(document).ready(function() {
     $('.rich-editor').summernote({
-        placeholder: 'أدخل الوصف هنا...',
+        placeholder: 'Enter description here...',
         tabsize: 2,
-        height: 200,
+        height: 250,
         toolbar: [
             ['style', ['style']],
             ['font', ['bold', 'underline', 'clear']],
@@ -390,8 +463,7 @@ $(document).ready(function() {
             ['table', ['table']],
             ['insert', ['link', 'picture']],
             ['view', ['fullscreen', 'codeview', 'help']]
-        ],
-        lang: 'ar-AR'
+        ]
     });
 });
 </script>
