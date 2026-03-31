@@ -1165,13 +1165,13 @@ html[dir="rtl"] .glass-indicator {
                             <span x-show="unreadCount > 0" x-text="unreadCount" class="badge" style="display: none;"></span>
                         </button>
                         <template x-teleport="body">
-                           <div x-show="dropdownOpen" @click.away="dropdownOpen = false" class="text-right notification-popup w-80" style="display: none;"
-                                x-init="$watch('dropdownOpen', (value) => { if (value) { $nextTick(() => { let rect = $refs.notificationContainerDesktop.getBoundingClientRect(); $el.style.top = `${rect.bottom + 8}px`; $el.style.left = `${rect.left}px`; }); } })">
-                                <div class="px-4 py-2 border-b font-bold">{{ __('layout.notifications') }}</div>
-                                <div class="py-1 max-h-96 overflow-y-auto">
-                                    <template x-if="notifications.length === 0"><p class="text-center text-gray-500 py-4">{{ __('layout.no_notifications') }}</p></template>
+                           <div x-show="dropdownOpen" @click.away="dropdownOpen = false" class="text-right notification-popup fixed z-[9999] w-80 bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-100" style="display: none;"
+                                x-init="$watch('dropdownOpen', (value) => { if (value) { $nextTick(() => { let rect = $refs.notificationContainerDesktop.getBoundingClientRect(); $el.style.top = `${rect.bottom + 12}px`; let safeLeft = rect.left; if (safeLeft + 320 > window.innerWidth) safeLeft = window.innerWidth - 330; $el.style.left = `${Math.max(10, safeLeft)}px`; }); } })">
+                                <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 font-bold text-gray-800 dark:text-gray-100">{{ __('layout.notifications') }}</div>
+                                <div class="py-1 max-h-[80vh] overflow-y-auto">
+                                    <template x-if="notifications.length === 0"><p class="text-center text-gray-500 py-6">{{ __('layout.no_notifications') }}</p></template>
                                     <template x-for="notification in notifications" :key="notification.id">
-                                        <a @click.prevent="markAsRead(notification)" :href="notification.data?.url || '#'" class="flex items-start px-4 py-3" :class="{ 'bg-gray-50 dark:bg-gray-900/40': !notification.read_at }">
+                                        <a @click.prevent="markAsRead(notification)" :href="notification.data?.url || '#'" class="flex items-start px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition" :class="{ 'bg-blue-50/50 dark:bg-gray-900/60': !notification.read_at }">
                                             <i class="bi ml-3 mt-1" :class="notification.data?.icon || 'bi-info-circle'"></i>
                                             <div><p class="text-sm" x-text="notification.data?.message"></p><small class="text-xs text-gray-500" x-text="timeAgo(notification.created_at)"></small></div>
                                         </a>
@@ -1186,11 +1186,46 @@ html[dir="rtl"] .glass-indicator {
 
             {{-- Mobile Header --}}
             <div class="container mx-auto lg:hidden flex flex-col px-4 text-white" dir="ltr">
-              <div class="flex w-full items-center justify-between min-h-[42px]">
-                <a href="{{ route('homepage') }}" class="flex items-center">
-                  <img src="{{ asset('sec-logo.png') }}" alt="logo" class="h-9 w-auto object-contain">
-                </a>
-                <div class="flex items-center gap-1.5 sm:gap-3">
+              <div class="flex w-full items-center justify-between min-h-[42px] relative">
+                
+                {{-- Left Side: Notifications --}}
+                <div class="flex items-center z-10 w-[70px]">
+                  @auth
+                  <div class="relative" x-data="userNotificationsComponent('{{ route('user.notifications.index') }}', '{{ route('user.notifications.markAsRead') }}')" x-init="fetchNotifications(); setInterval(() => fetchNotifications(), 60000)" x-ref="notificationContainerMobile">
+                    <button @click="dropdownOpen = !dropdownOpen" class="relative w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.notifications') }}">
+                      <i class="bi bi-bell text-lg"></i>
+                      <span x-show="unreadCount > 0" x-text="unreadCount" class="badge" style="display: none;"></span>
+                    </button>
+                    <template x-teleport="body">
+                        <div x-show="dropdownOpen" @click.away="dropdownOpen = false" class="text-right notification-popup fixed z-[9999] w-[90vw] max-w-sm bg-white dark:bg-gray-800 shadow-2xl rounded-xl border border-gray-100" style="display:none;"
+                             x-init="$watch('dropdownOpen', (value) => { if (value) { $nextTick(() => { let rect = $refs.notificationContainerMobile.getBoundingClientRect(); $el.style.top = `${rect.bottom + 12}px`; let safeLeft = Math.max(10, (window.innerWidth - $el.offsetWidth) / 2); $el.style.left = `${safeLeft}px`; }); } })">
+                          <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 font-bold text-gray-800 dark:text-gray-100">{{ __('layout.notifications') }}</div>
+                          <div class="py-1 max-h-[70vh] overflow-y-auto">
+                            <template x-if="notifications.length === 0"><p class="text-center text-gray-500 py-6">{{ __('layout.no_notifications') }}</p></template>
+                            <template x-for="notification in notifications" :key="notification.id">
+                              <a @click.prevent="markAsRead(notification)" :href="notification.data?.url || '#'" class="flex items-start px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition" :class="{ 'bg-blue-50/50 dark:bg-gray-900/60': !notification.read_at }">
+                                <i class="bi ml-3 mt-1" :class="notification.data?.icon || 'bi-info-circle'"></i>
+                                <div><p class="text-sm" x-text="notification.data?.message"></p><small class="text-xs text-gray-500" x-text="timeAgo(notification.created_at)"></small></div>
+                              </a>
+                            </template>
+                          </div>
+                        </div>
+                    </template>
+                  </div>
+                  @else
+                  <div class="w-9 h-9"></div>
+                  @endauth
+                </div>
+
+                {{-- Center: Logo --}}
+                <div class="flex-grow flex justify-center items-center">
+                  <a href="{{ route('homepage') }}" class="flex items-center">
+                    <img src="{{ asset('sec-logo.png') }}" alt="logo" class="h-9 w-auto object-contain">
+                  </a>
+                </div>
+
+                {{-- Right Side: Other Icons --}}
+                <div class="flex items-center justify-end gap-1.5 sm:gap-3 w-[70px] z-10">
                   {{-- Search Toggle --}}
                   <button
                     @click="mobileSearchOpen = !mobileSearchOpen; if (mobileSearchOpen) { $nextTick(() => document.getElementById('mobileSearchInput')?.focus()); } else { searchFocused = false; }"
@@ -1239,29 +1274,6 @@ html[dir="rtl"] .glass-indicator {
                     <span x-show="wishlistCount > 0" x-text="wishlistCount" class="badge" style="display: none;"></span>
                   </a>
 
-                  @auth
-                  <div class="relative" x-data="userNotificationsComponent('{{ route('user.notifications.index') }}', '{{ route('user.notifications.markAsRead') }}')" x-init="fetchNotifications(); setInterval(() => fetchNotifications(), 60000)" x-ref="notificationContainerMobile">
-                    <button @click="dropdownOpen = !dropdownOpen" class="relative w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.notifications') }}">
-                      <i class="bi bi-bell text-lg"></i>
-                      <span x-show="unreadCount > 0" x-text="unreadCount" class="badge" style="display: none;"></span>
-                    </button>
-                    <template x-teleport="body">
-                        <div x-show="dropdownOpen" @click.away="dropdownOpen = false" class="text-right notification-popup w-72 sm:w-80" style="display:none;"
-                             x-init="$watch('dropdownOpen', (value) => { if (value) { $nextTick(() => { let rect = $refs.notificationContainerMobile.getBoundingClientRect(); $el.style.top = `${rect.bottom + 8}px`; $el.style.left = `${rect.left}px`; }); } })">
-                          <div class="px-4 py-2 border-b font-bold">{{ __('layout.notifications') }}</div>
-                          <div class="py-1 max-h-96 overflow-y-auto">
-                            <template x-if="notifications.length === 0"><p class="text-center text-gray-500 py-4">{{ __('layout.no_notifications') }}</p></template>
-                            <template x-for="notification in notifications" :key="notification.id">
-                              <a @click.prevent="markAsRead(notification)" :href="notification.data?.url || '#'" class="flex items-start px-4 py-3" :class="{ 'bg-gray-50 dark:bg-gray-900/40': !notification.read_at }">
-                                <i class="bi ml-3 mt-1" :class="notification.data?.icon || 'bi-info-circle'"></i>
-                                <div><p class="text-sm" x-text="notification.data?.message"></p><small class="text-xs text-gray-500" x-text="timeAgo(notification.created_at)"></small></div>
-                              </a>
-                            </template>
-                          </div>
-                        </div>
-                    </template>
-                  </div>
-                  @endauth
                 </div>
               </div>
 
