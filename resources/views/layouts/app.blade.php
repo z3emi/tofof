@@ -1186,10 +1186,17 @@ html[dir="rtl"] .glass-indicator {
 
             {{-- Mobile Header --}}
             <div class="container mx-auto lg:hidden flex flex-col px-4 text-white" dir="ltr">
-              <div class="flex w-full items-center justify-between min-h-[42px] relative">
+              <div class="flex w-full items-center justify-between min-h-[42px] relative gap-4">
                 
-                {{-- Left Side: Notifications --}}
-                <div class="flex items-center z-10 w-[70px]">
+                {{-- Left Side: Logo --}}
+                <div class="flex items-center z-10">
+                  <a href="{{ route('homepage') }}" class="flex items-center">
+                    <img src="{{ asset('sec-logo.png') }}" alt="logo" class="h-9 w-auto object-contain">
+                  </a>
+                </div>
+
+                {{-- Right Side: Other Icons --}}
+                <div class="flex items-center justify-end gap-1 sm:gap-2.5 z-10">
                   @auth
                   <div class="relative" x-data="userNotificationsComponent('{{ route('user.notifications.index') }}', '{{ route('user.notifications.markAsRead') }}')" x-init="fetchNotifications(); setInterval(() => fetchNotifications(), 60000)" x-ref="notificationContainerMobile">
                     <button @click="dropdownOpen = !dropdownOpen" class="relative w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.notifications') }}">
@@ -1212,20 +1219,8 @@ html[dir="rtl"] .glass-indicator {
                         </div>
                     </template>
                   </div>
-                  @else
-                  <div class="w-9 h-9"></div>
                   @endauth
-                </div>
 
-                {{-- Center: Logo --}}
-                <div class="flex-grow flex justify-center items-center">
-                  <a href="{{ route('homepage') }}" class="flex items-center">
-                    <img src="{{ asset('sec-logo.png') }}" alt="logo" class="h-9 w-auto object-contain">
-                  </a>
-                </div>
-
-                {{-- Right Side: Other Icons --}}
-                <div class="flex items-center justify-end gap-1.5 sm:gap-3 w-[70px] z-10">
                   {{-- Search Toggle --}}
                   <button
                     @click="mobileSearchOpen = !mobileSearchOpen; if (mobileSearchOpen) { $nextTick(() => document.getElementById('mobileSearchInput')?.focus()); } else { searchFocused = false; }"
@@ -1267,13 +1262,10 @@ html[dir="rtl"] .glass-indicator {
                     <i class="bi bi-moon-fill text-lg" :class="isDark ? 'bi-sun-fill' : 'bi-moon-fill'"></i>
                   </button>
 
-                  {{-- [Hidden on Mobile Header] Login / Cart / Profile --}}
-
                   <a href="{{ route('wishlist') }}" class="relative w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.wishlist') }}">
                     <i class="bi bi-heart text-lg"></i>
                     <span x-show="wishlistCount > 0" x-text="wishlistCount" class="badge" style="display: none;"></span>
                   </a>
-
                 </div>
               </div>
 
