@@ -245,6 +245,7 @@
     $canGeneral = auth()->user()->can('edit-settings');
     $canFrontend = auth()->user()->can('edit-settings-frontend');
     $canSEO = auth()->user()->can('edit-settings-seo');
+    $canIntegrations = auth()->user()->can('manage-whatsapp');
     
     $activeTab = 'none';
     if ($canGeneral) {
@@ -253,6 +254,8 @@
         $activeTab = 'frontend';
     } elseif ($canSEO) {
         $activeTab = 'seo';
+    } elseif ($canIntegrations) {
+        $activeTab = 'integrations';
     }
 @endphp
 <div class="form-card">
@@ -283,6 +286,11 @@
             @can('edit-settings-seo')
             <li class="nav-item">
                 <button class="nav-link {{ $activeTab == 'seo' ? 'active' : '' }}" id="seo-tab" data-bs-toggle="tab" data-bs-target="#seo-tab-pane" type="button" role="tab">SEO</button>
+            </li>
+            @endcan
+            @can('manage-whatsapp')
+            <li class="nav-item">
+                <button class="nav-link {{ $activeTab == 'integrations' ? 'active' : '' }}" id="integrations-tab" data-bs-toggle="tab" data-bs-target="#integrations-tab-pane" type="button" role="tab">الربط البرمجي</button>
             </li>
             @endcan
         </ul>
@@ -526,6 +534,53 @@
                 </div>
 
 
+                @endcan
+
+                @can('manage-whatsapp')
+                <div class="tab-pane fade {{ $activeTab == 'integrations' ? 'show active' : '' }}" id="integrations-tab-pane" role="tabpanel" aria-labelledby="integrations-tab">
+                    <div class="row g-4">
+                        {{-- Telegram Settings --}}
+                        <div class="col-md-12">
+                            <div class="settings-group-card">
+                                <div class="settings-group-header d-flex align-items-center">
+                                    <i class="bi bi-telegram me-2 fs-5 text-info"></i>
+                                    <h6>إعدادات تليجرام (Telegram Notifications)</h6>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4">
+                                            <label class="form-label fw-bold small text-muted">بوت توكن (Bot Token)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="bi bi-key-fill text-muted"></i></span>
+                                                <input type="password" name="telegram_bot_token" class="form-control" value="{{ old('telegram_bot_token', $settings['telegram_bot_token'] ?? '') }}" placeholder="0000000000:AAHHHxxxx_xxxxxxxxxxxx">
+                                            </div>
+                                            <p class="text-muted small mt-2">تحصل عليه من @BotFather عند إنشاء البوت.</p>
+                                        </div>
+                                        <div class="col-md-3 mb-4">
+                                            <label class="form-label fw-bold small text-muted">ID كروب الطلبات (Orders ID)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="bi bi-cart-check text-muted"></i></span>
+                                                <input type="text" name="telegram_chat_id" class="form-control" value="{{ old('telegram_chat_id', $settings['telegram_chat_id'] ?? '') }}" placeholder="-100xxxxxxxxx">
+                                            </div>
+                                            <p class="text-muted small mt-2">معرف الكروب الخاص بالطلبات الجديدة.</p>
+                                        </div>
+                                        <div class="col-md-3 mb-4">
+                                            <label class="form-label fw-bold small text-muted">ID كروب النسخة الاحتياطية (Backup ID)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="bi bi-database-fill text-muted"></i></span>
+                                                <input type="text" name="telegram_backup_chat_id" class="form-control" value="{{ old('telegram_backup_chat_id', $settings['telegram_backup_chat_id'] ?? '') }}" placeholder="-100xxxxxxxxx">
+                                            </div>
+                                            <p class="text-muted small mt-2">معرف الكروب الخاص بنسخ قاعدة البيانات.</p>
+                                        </div>
+                                    </div>
+                                    <div class="alert bg-soft-info border-0 p-3 mb-0" style="border-radius:12px">
+                                        <i class="bi bi-info-circle-fill me-1"></i> يُرجى التأكد من إضافة البوت كـ "مسؤول" (Admin) داخل الكروبات المختارة لضمان وصول الإشعارات.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 @endcan
 
             </div> <!-- closes tab-content -->
@@ -861,6 +916,17 @@
         seoTitleInput.addEventListener('input', updateSEOPreview);
         seoDescInput.addEventListener('input', updateSEOPreview);
         updateSEOPreview();
+
+        // تفعيل التبويب من الرابط (e.g., ?tab=integrations)
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        if (tabParam) {
+            const tabTriggerEl = document.querySelector(`#${tabParam}-tab`);
+            if (tabTriggerEl) {
+                const tab = new bootstrap.Tab(tabTriggerEl);
+                tab.show();
+            }
+        }
     });
 </script>
 @endpush

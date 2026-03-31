@@ -11,6 +11,7 @@ class TelegramService
 {
     protected string $token;
     protected string $chatId;
+    protected string $backupChatId;
     /**
      * @var array<int, string>
      */
@@ -19,9 +20,11 @@ class TelegramService
 
     public function __construct()
     {
-        // اقرأ من config حتى يشتغل مع config:cache
-        $this->token     = (string) config('services.telegram.bot_token', env('TELEGRAM_BOT_TOKEN'));
-        $rawChatId       = (string) config('services.telegram.chat_id', env('TELEGRAM_CHAT_ID'));
+        // الأولوية دائماً للإعدادات من قاعدة البيانات (Settings Table) للتحكم من لوحة الإدارة
+        $this->token        = (string) \App\Models\Setting::getValue('telegram_bot_token', config('services.telegram.bot_token', env('TELEGRAM_BOT_TOKEN')));
+        $rawChatId          = (string) \App\Models\Setting::getValue('telegram_chat_id', config('services.telegram.chat_id', env('TELEGRAM_CHAT_ID')));
+        $this->backupChatId = (string) \App\Models\Setting::getValue('telegram_backup_chat_id', env('TELEGRAM_BACKUP_CHAT_ID', ''));
+        
         $this->chatIds   = $this->parseChatIds($rawChatId);
         $this->chatId    = $this->chatIds[0] ?? $rawChatId;
         $this->parseMode = (string) config('services.telegram.parse_mode', env('TELEGRAM_PARSE_MODE', 'HTML'));
@@ -48,9 +51,9 @@ class TelegramService
     }
 
     /** إرسال نص عام — يرجّع ok و message_id */
-    public function sendMessage(string $text, ?array $inlineKeyboard = null): array
+    public function sendMessage(string $text, ?array $inlineKeyboard = null, ?string $targetChatId = null): array
     {
-        $chatIds = $this->chatIds ?: array_filter([$this->chatId]);
+        $chatIds = $targetChatId ? [$targetChatId] : ($this->chatIds ?: array_filter([$this->chatId]));
 
         if (empty($chatIds)) {
             Log::warning('Telegram sendMessage skipped: no chat id configured.');
@@ -179,6 +182,19 @@ class TelegramService
         }
 
         return implode("\n", array_filter($lines));
+    }
+
+    /**
+     * إرسال رسالة إلى كروب النسخ الاحتياطي الخاص.
+     */
+    public function sendBackupMessage(string $text, ?array $inlineKeyboard = null): array
+    {
+        if (empty($this->backupChatId)) {
+            Log::warning('Telegram sendBackupMessage skipped: no backup chat id configured.');
+            return ['ok' => false, 'message_id' => null, 'response' => null];
+        }
+
+        return $this->sendMessage($text, $inlineKeyboard, $this->backupChatId);
     }
 
 

@@ -46,6 +46,11 @@ class SettingsController extends Controller
 
             // (اختياري مستقبلاً) رابط الأساس للكانونيكال
             'site_url',
+
+            // Telegram Settings
+            'telegram_bot_token',
+            'telegram_chat_id',
+            'telegram_backup_chat_id',
         ];
 
         foreach ($settingsKeys as $key) {

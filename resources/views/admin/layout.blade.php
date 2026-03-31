@@ -1036,6 +1036,13 @@
                                         <span>واتساب</span>
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.settings.index', ['tab' => 'integrations']) }}"
+                                    class="nav-link sub-link {{ request()->getQueryString() == 'tab=integrations' ? 'active' : '' }}">
+                                        <i class="bi bi-telegram"></i>
+                                        <span>تليجرام</span>
+                                    </a>
+                                </li>
                                 @endcan
 
                                 @can('manage-imports')
