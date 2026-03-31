@@ -1682,11 +1682,11 @@
                             item.classList.add('text-info');
                         }
                         else if (classes.includes('bi-pause')) {
-                            text = 'إيقاف مؤقت';
+                            text = text || 'إيقاف التفعيل';
                             item.classList.add('text-warning');
                         }
                         else if (classes.includes('bi-play')) {
-                            text = 'تفعيل / استمرار';
+                            text = text || 'تفعيل';
                             item.classList.add('text-success');
                         }
                         else if (classes.includes('bi-truck')) {

@@ -123,17 +123,46 @@
                             <td>
                                 <div class="d-flex justify-content-center gap-1">
                                     @can('edit-products')
-                                    <button type="button" class="btn btn-sm btn-outline-info rounded-3 px-2 py-1 edit-qty-trigger" 
-                                            data-id="{{ $product->id }}" 
-                                            data-name="{{ $product->name_ar }}" 
-                                            data-qty="{{ $qty }}"
-                                            title="تعديل الكمية">
-                                        <i class="bi bi-plus-slash-minus"></i>
-                                    </button>
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <button type="button" class="btn btn-sm btn-outline-info rounded-3 px-2 py-1 edit-qty-trigger" 
+                                                data-id="{{ $product->id }}" 
+                                                data-name="{{ $product->name_ar }}" 
+                                                data-qty="{{ $qty }}"
+                                                title="تعديل الكمية">
+                                            <i class="bi bi-plus-slash-minus"></i>
+                                        </button>
+                                        <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-sm btn-outline-primary rounded-3 px-2 py-1" title="تعديل المنتج"><i class="bi bi-pencil"></i></a>
+                                        
+                                        {{-- Toggle Button (Shows relevant action only) --}}
+                                        @if($product->is_active)
+                                            <form action="{{ route('admin.products.toggleStatus', $product->id) }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="status" value="0">
+                                                <button type="submit" class="btn btn-sm btn-outline-warning rounded-3 px-2 py-1" title="إيقاف التفعيل">
+                                                    <i class="bi bi-pause"></i>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <form action="{{ route('admin.products.toggleStatus', $product->id) }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="status" value="1">
+                                                <button type="submit" class="btn btn-sm btn-outline-success rounded-3 px-2 py-1" title="تفعيل">
+                                                    <i class="bi bi-play"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                        @can('delete-products')
+                                        <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('حذف؟')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1" title="حذف">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                        @endcan
+                                    </div>
                                     @endcan
-                                    <a href="{{ route('admin.products.edit', $product->id) }}" class="btn btn-sm btn-outline-primary rounded-3 px-2 py-1" title="تعديل المنتج"><i class="bi bi-pencil"></i></a>
-                                    <form action="{{ route('admin.products.toggleStatus', $product->id) }}" method="POST">@csrf<button type="submit" class="btn btn-sm {{ $product->is_active ? 'btn-outline-warning' : 'btn-outline-success' }} rounded-3 px-2 py-1" title="{{ $product->is_active ? 'إيقاف' : 'تفعيل' }}"><i class="bi {{ $product->is_active ? 'bi-pause' : 'bi-play' }}"></i></button></form>
-                                    <form action="{{ route('admin.products.destroy', $product->id) }}" method="POST" onsubmit="return confirm('حذف؟')">@csrf @method('DELETE')<button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1" title="حذف"><i class="bi bi-trash"></i></button></form>
                                 </div>
                             </td>
                         </tr>

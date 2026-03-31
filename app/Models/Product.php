@@ -32,6 +32,7 @@ class Product extends Model
     protected $casts = [
         'sale_starts_at' => 'datetime',
         'sale_ends_at' => 'datetime',
+        'is_active' => 'boolean',
     ];
 
     /**

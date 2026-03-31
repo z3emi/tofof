@@ -266,11 +266,16 @@ class ProductController extends Controller
     /**
      * Toggle the active status of the specified resource.
      */
-    public function toggleStatus(Product $product)
+    public function toggleStatus(Product $product, Request $request)
     {
-        $product->update(['is_active' => !$product->is_active]);
+        if ($request->has('status')) {
+            $product->update(['is_active' => $request->status == '1']);
+        } else {
+            $product->update(['is_active' => !$product->is_active]);
+        }
+        
         $message = $product->is_active ? 'تم تفعيل المنتج بنجاح.' : 'تم إيقاف المنتج بنجاح.';
-        return redirect()->route('admin.products.index')->with('success', $message);
+        return redirect()->back()->with('success', $message);
     }
 
     public function destroy(Product $product)
