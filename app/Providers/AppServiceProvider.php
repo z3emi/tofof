@@ -11,8 +11,10 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
+use Illuminate\Cache\RateLimiting\Limit;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,6 +32,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->repairMigrationsTableForConsole();
+
+        RateLimiter::for('api', function ($request) {
+            return Limit::perMinute(120)->by($request->user()?->id ?: $request->ip());
+        });
 
         // 1) روابط الصفحات Bootstrap 5
         Paginator::useBootstrapFive();

@@ -241,7 +241,7 @@ class OrderController extends Controller
             $isGift = $request->boolean('is_gift');
 
             $order = $this->createOrderWithRepair([
-                'user_id' => auth()->id(),
+                'user_id' => $user->id,
                 'customer_id' => $customer->id,
                 'governorate' => $addressPayload['governorate'],
                 'city' => $addressPayload['city'],
@@ -262,9 +262,9 @@ class OrderController extends Controller
             
             // بناء عناصر الطلب
             $orderItemsData = [];
-            foreach ($request->products as $productId => $productData) {
+            foreach ($request->products as $productData) {
                 $orderItemsData[] = [
-                    'product_id' => $productId,
+                    'product_id' => $productData['id'],
                     'quantity' => $productData['quantity'],
                     'price' => $productData['price'],
                 ];
@@ -411,9 +411,9 @@ class OrderController extends Controller
             $isGift = $request->boolean('is_gift');
 
             $newOrderItemsData = [];
-            foreach ($request->products as $productId => $productData) {
+            foreach ($request->products as $productData) {
                 $newOrderItemsData[] = [
-                    'product_id' => $productId,
+                    'product_id' => $productData['id'],
                     'quantity' => $productData['quantity'],
                     'price' => $productData['price'],
                 ];
