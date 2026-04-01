@@ -56,7 +56,7 @@ class OrderController extends Controller
         $this->middleware($permissionMiddleware . ':delete-orders', ['only' => ['destroy']]);
         $this->middleware($permissionMiddleware . ':view-trashed-orders', ['only' => ['trash']]);
         $this->middleware($permissionMiddleware . ':restore-orders', ['only' => ['restore']]);
-        $this->middleware($permissionMiddleware . ':force-delete-orders', ['only' => ['forceDelete']]);
+        $this->middleware($permissionMiddleware . ':force-delete-orders', ['only' => ['forceDelete', 'forceDeleteSelected', 'forceDeleteAll']]);
     }
 
     public function index(Request $request)
@@ -658,6 +658,35 @@ public function updateStatus(Request $request, Order $order, InventoryService $i
         $order = Order::onlyTrashed()->findOrFail($id);
         $order->forceDelete();
         return redirect()->route('admin.orders.trash')->with('success', 'تم حذف الطلب نهائياً.');
+    }
+
+    public function forceDeleteSelected(Request $request)
+    {
+        $validated = $request->validate([
+            'selected_ids' => 'required|array|min:1',
+            'selected_ids.*' => 'integer',
+        ]);
+
+        $deletedCount = Order::onlyTrashed()
+            ->whereIn('id', $validated['selected_ids'])
+            ->forceDelete();
+
+        if ($deletedCount === 0) {
+            return redirect()->route('admin.orders.trash')->with('error', 'لم يتم العثور على طلبات محذوفة للحذف.');
+        }
+
+        return redirect()->route('admin.orders.trash')->with('success', "تم حذف {$deletedCount} طلب نهائياً.");
+    }
+
+    public function forceDeleteAll()
+    {
+        $deletedCount = Order::onlyTrashed()->forceDelete();
+
+        if ($deletedCount === 0) {
+            return redirect()->route('admin.orders.trash')->with('error', 'سلة المحذوفات فارغة بالفعل.');
+        }
+
+        return redirect()->route('admin.orders.trash')->with('success', "تم حذف جميع الطلبات نهائياً ({$deletedCount}).");
     }
 
     public function invoice(Order $order)

@@ -396,6 +396,8 @@ Route::middleware(['auth:admin', 'can:view-admin-panel'])->prefix('admin')->name
     Route::prefix('orders')->name('orders.')->group(function () {
         Route::get('/trash', [OrderController::class, 'trash'])->name('trash')->middleware('can:view-trashed-orders');
         Route::post('/trash/{id}/restore', [OrderController::class, 'restore'])->name('restore')->middleware('can:restore-orders');
+        Route::delete('/trash/force-delete-selected', [OrderController::class, 'forceDeleteSelected'])->name('forceDeleteSelected')->middleware('can:force-delete-orders');
+        Route::delete('/trash/force-delete-all', [OrderController::class, 'forceDeleteAll'])->name('forceDeleteAll')->middleware('can:force-delete-orders');
         Route::delete('/trash/{id}/force-delete', [OrderController::class, 'forceDelete'])->name('forceDelete')->middleware('can:force-delete-orders');
         Route::post('/{order}/update-status', [OrderController::class, 'updateStatus'])->name('updateStatus')->middleware('can:edit-orders');
         Route::get('/{order}/invoice', [OrderController::class, 'invoice'])->name('invoice')->middleware('can:view-orders');
