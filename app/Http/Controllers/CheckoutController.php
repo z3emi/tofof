@@ -177,7 +177,7 @@ class CheckoutController extends Controller
             ]);
 
             if ($discountCodeId) {
-                DiscountCodeUsage::create([
+                $this->createDiscountCodeUsageWithRepair([
                     'discount_code_id' => $discountCodeId,
                     'order_id'         => $order->id,
                     'user_id'          => $user->id,
@@ -307,6 +307,21 @@ class CheckoutController extends Controller
             RepairsPrimaryKeyAutoIncrement::ensure('order_items');
 
             return OrderItem::create($attributes);
+        }
+    }
+
+    private function createDiscountCodeUsageWithRepair(array $attributes): DiscountCodeUsage
+    {
+        try {
+            return DiscountCodeUsage::create($attributes);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'discount_code_usages')) {
+                throw $exception;
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('discount_code_usages');
+
+            return DiscountCodeUsage::create($attributes);
         }
     }
 
