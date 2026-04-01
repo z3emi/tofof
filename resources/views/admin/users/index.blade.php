@@ -67,7 +67,6 @@
                         <th class="py-3" data-column-id="wallet">{!! \App\Support\Sort::link('wallet_balance', 'الرصيد') !!}</th>
                         <th class="py-3" data-column-id="tier">الفئة</th>
                         <th class="py-3" data-column-id="orders">{!! \App\Support\Sort::link('orders_count', 'الطلبات') !!}</th>
-                        <th class="py-3" data-column-id="type">النوع</th>
                         <th class="py-3" data-column-id="status">الحالة</th>
                         <th class="py-3" width="180" data-column-id="actions">الإجراءات</th>
                     </tr>
@@ -92,10 +91,6 @@
                             </td>
                             <td><span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">{{ $user->orders_count ?? 0 }}</span></td>
                             <td>
-                                @if($user->roles->isNotEmpty()) <span class="badge bg-primary">إداري</span>
-                                @else <span class="badge bg-light text-dark border">مستخدم</span> @endif
-                            </td>
-                            <td>
                                 @if($user->banned_at) <span class="badge bg-danger">محظور</span>
                                 @elseif(is_null($user->phone_verified_at)) <span class="badge bg-warning text-dark">غير مفعل</span>
                                 @else <span class="badge bg-success">نشط</span> @endif
@@ -104,6 +99,14 @@
                                 <div class="d-flex justify-content-center gap-1">
                                     <a href="{{ route('admin.users.show', $user->id) }}" class="btn btn-sm btn-outline-primary rounded-3 px-2 py-1"><i class="bi bi-eye"></i></a>
                                     <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-sm btn-outline-info rounded-3 px-2 py-1 text-dark"><i class="bi bi-pencil"></i></a>
+                                    @if(is_null($user->phone_verified_at))
+                                        <form action="{{ route('admin.users.directActivate', $user->id) }}" method="POST" onsubmit="return confirm('تفعيل المستخدم مباشرة بدون رمز تحقق؟')">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-outline-success rounded-3 px-2 py-1" title="تفعيل مباشر">
+                                                <i class="bi bi-play-fill"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                     @if($user->banned_at)
                                         <form action="{{ route('admin.users.unban', $user->id) }}" method="POST">@csrf<button type="submit" class="btn btn-sm btn-outline-success rounded-3 px-2 py-1" title="إلغاء الحظر"><i class="bi bi-unlock"></i></button></form>
                                     @else
@@ -114,7 +117,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="10" class="py-5 text-muted">لا يوجد مستخدمين لعرضهم.</td></tr>
+                        <tr><td colspan="9" class="py-5 text-muted">لا يوجد مستخدمين لعرضهم.</td></tr>
                     @endforelse
                 </tbody>
             </table>

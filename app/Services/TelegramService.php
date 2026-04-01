@@ -18,6 +18,8 @@ class TelegramService
     protected array $chatIds = [];
     protected string $parseMode;
 
+    protected bool $tokenLooksValid = false;
+
     public function __construct()
     {
         // الأولوية دائماً للإعدادات من قاعدة البيانات (Settings Table) للتحكم من لوحة الإدارة
@@ -28,6 +30,32 @@ class TelegramService
         $this->chatIds   = $this->parseChatIds($rawChatId);
         $this->chatId    = $this->chatIds[0] ?? $rawChatId;
         $this->parseMode = (string) config('services.telegram.parse_mode', env('TELEGRAM_PARSE_MODE', 'HTML'));
+        $this->tokenLooksValid = $this->hasUsableToken($this->token);
+    }
+
+    protected function hasUsableToken(string $token): bool
+    {
+        $token = trim($token);
+
+        if ($token === '') {
+            return false;
+        }
+
+        // Telegram bot token commonly looks like: 123456789:ABCDefGhI...
+        if (! str_contains($token, ':')) {
+            return false;
+        }
+
+        if (preg_match('/\s/', $token) === 1) {
+            return false;
+        }
+
+        return mb_strlen($token, 'UTF-8') >= 20;
+    }
+
+    protected function isValidChatId(string $chatId): bool
+    {
+        return preg_match('/^-?\d+$/', trim($chatId)) === 1;
     }
 
     /**
@@ -45,7 +73,7 @@ class TelegramService
         $parts = preg_split('/[\s,]+/', $normalized) ?: [];
 
         $parts = array_map(static fn ($part) => trim($part), $parts);
-        $parts = array_filter($parts, static fn ($part) => $part !== '');
+        $parts = array_filter($parts, static fn ($part) => $part !== '' && preg_match('/^-?\d+$/', $part) === 1);
 
         return array_values(array_unique($parts));
     }
@@ -53,7 +81,14 @@ class TelegramService
     /** إرسال نص عام — يرجّع ok و message_id */
     public function sendMessage(string $text, ?array $inlineKeyboard = null, ?string $targetChatId = null): array
     {
+        if (! $this->tokenLooksValid) {
+            Log::warning('Telegram sendMessage skipped: bot token is missing or invalid format.');
+
+            return ['ok' => false, 'message_id' => null, 'response' => null];
+        }
+
         $chatIds = $targetChatId ? [$targetChatId] : ($this->chatIds ?: array_filter([$this->chatId]));
+        $chatIds = array_values(array_filter($chatIds, fn ($chatId) => $this->isValidChatId((string) $chatId)));
 
         if (empty($chatIds)) {
             Log::warning('Telegram sendMessage skipped: no chat id configured.');

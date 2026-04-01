@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Carbon\Carbon;
 use App\Models\Order;
 use App\Models\Customer;
@@ -29,7 +27,7 @@ class UserController extends Controller
             $perPage = 10;
         }
 
-        $query = User::with('roles', 'permissions')
+        $query = User::query()
             ->withCount(['orders' => function ($query) {
                 // نعد الطلبات المكتملة (مُسلّمة) فقط لغرض الفئات
                 $query->where('status', 'delivered');
@@ -342,8 +340,22 @@ public function update(Request $request, User $user)
     
     public function inactive(Request $request)
     {
-        $perPage = (int) $request->input('per_page', 20);
+        $perPage = (int) $request->input('per_page', 10);
+        $allowedPageSizes = [10, 25, 50, 100];
+        if (! in_array($perPage, $allowedPageSizes, true)) {
+            $perPage = 10;
+        }
+
         $query = User::whereNull('phone_verified_at');
+
+        if ($request->filled('search')) {
+            $searchTerm = (string) $request->input('search');
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', "%{$searchTerm}%")
+                  ->orWhere('phone_number', 'like', "%{$searchTerm}%")
+                  ->orWhere('email', 'like', "%{$searchTerm}%");
+            });
+        }
 
         $allowedSorts = ['id', 'name', 'phone_number', 'created_at'];
         [$sortBy, $sortDir] = \App\Support\Sort::resolve($request, $allowedSorts, 'created_at');

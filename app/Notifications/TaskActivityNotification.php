@@ -6,8 +6,6 @@ use App\Models\Manager;
 use App\Models\Task;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use NotificationChannels\WebPush\WebPushChannel;
-use NotificationChannels\WebPush\WebPushMessage;
 
 class TaskActivityNotification extends Notification
 {
@@ -23,7 +21,8 @@ class TaskActivityNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database', WebPushChannel::class];
+        // Keep task notifications inside the in-app bell only.
+        return ['database'];
     }
 
     public function toArray(object $notifiable): array
@@ -34,18 +33,6 @@ class TaskActivityNotification extends Notification
             'message' => $this->message(),
             'url' => route('admin.tasks.board', ['focus' => $this->task->id]),
         ];
-    }
-
-    public function toWebPush(object $notifiable, ?object $notification = null): WebPushMessage
-    {
-        return (new WebPushMessage)
-            ->title('تحديث المهام')
-            ->body($this->message())
-            ->icon(url('/favicon.ico'))
-            ->action('open-task', 'عرض المهمة')
-            ->data([
-                'url' => route('admin.tasks.board', ['focus' => $this->task->id]),
-            ]);
     }
 
     private function message(): string

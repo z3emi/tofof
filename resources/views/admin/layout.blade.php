@@ -1419,7 +1419,7 @@
             isSubscribed: false,
             isEnabling: false,
             isDisabling: false,
-            buttonText: 'تفعيل إشعارات المتصفح',
+            buttonText: 'تفعيل إشعارات الطلبات',
 
             init() {
                 if (!this.isSupported) {
@@ -1430,7 +1430,7 @@
                     sw.pushManager.getSubscription().then(sub => {
                         if (sub) {
                             this.isSubscribed = true;
-                            this.buttonText = 'إلغاء تفعيل الإشعارات';
+                            this.buttonText = 'إلغاء إشعارات الطلبات';
                         }
                     });
                 });
@@ -1455,7 +1455,7 @@
                     }).then(sub => {
                         this.saveSubscription(sub);
                         this.isSubscribed = true;
-                        this.buttonText = 'إلغاء تفعيل الإشعارات';
+                        this.buttonText = 'إلغاء إشعارات الطلبات';
                     }).catch(e => {
                         console.error('Subscription failed:', e);
                         this.buttonText = 'فشل التفعيل';
@@ -1474,7 +1474,7 @@
                             sub.unsubscribe().then(() => {
                                 this.deleteSubscription(sub);
                                 this.isSubscribed = false;
-                                this.buttonText = 'تفعيل إشعارات المتصفح';
+                                this.buttonText = 'تفعيل إشعارات الطلبات';
                             });
                         }
                     }).catch(e => {

@@ -7,6 +7,8 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class AdminOrderStatusUpdated extends Notification
 {
@@ -29,7 +31,7 @@ class AdminOrderStatusUpdated extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database']; // We only need this for the admin panel bell
+        return ['database', WebPushChannel::class];
     }
 
     /**
@@ -46,4 +48,18 @@ class AdminOrderStatusUpdated extends Notification
             'message'  => "تم تحديث حالة الطلب #{$this->order->id} إلى '{$this->order->status}'",
         ];
     }
+
+    public function toWebPush(object $notifiable, ?object $notification = null): WebPushMessage
+    {
+        return (new WebPushMessage)
+            ->title('تحديث حالة الطلب #' . $this->order->id)
+            ->icon('/icons/icon-192.png')
+            ->body("تم تحديث حالة الطلب إلى: {$this->order->status}")
+            ->data([
+                'url' => url('/admin/orders/' . $this->order->id),
+                'order_id' => $this->order->id,
+                'type' => 'admin_order_status',
+            ]);
+    }
+
 }

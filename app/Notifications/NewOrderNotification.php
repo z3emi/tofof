@@ -7,6 +7,8 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class NewOrderNotification extends Notification
 {
@@ -29,8 +31,9 @@ class NewOrderNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', WebPushChannel::class];
     }
+
 
     /**
      * Get the array representation of the notification.
@@ -47,5 +50,20 @@ class NewOrderNotification extends Notification
             'icon'          => 'bi-cart-plus', // Bootstrap icon for new order
             'message'       => "طلب جديد #{$this->order->id} من العميل: {$customerName}",
         ];
+    }
+
+    public function toWebPush(object $notifiable, ?object $notification = null): WebPushMessage
+    {
+        $customerName = $this->order->customer->name ?? 'عميل غير مسجل';
+
+        return (new WebPushMessage)
+            ->title('طلب جديد #' . $this->order->id)
+            ->icon('/icons/icon-192.png')
+            ->body('تم استلام طلب جديد من: ' . $customerName)
+            ->data([
+                'url' => url('/admin/orders/' . $this->order->id),
+                'order_id' => $this->order->id,
+                'type' => 'new_order',
+            ]);
     }
 }
