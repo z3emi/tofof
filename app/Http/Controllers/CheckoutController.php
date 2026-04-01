@@ -19,6 +19,7 @@ use App\Models\Manager;
 use App\Notifications\NewOrderNotification;
 use App\Support\RepairsPrimaryKeyAutoIncrement;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class CheckoutController extends Controller
@@ -207,27 +208,34 @@ class CheckoutController extends Controller
             $order->update(['total_cost' => $totalCost]);
 
             $useWallet     = $request->boolean('use_wallet');
-            $walletBalance = (float)($user->wallet_balance ?? 0);
-            if ($useWallet && $walletBalance > 0 && $finalTotal > 0) {
-                $walletUsed = min($walletBalance, $finalTotal);
-                if ($walletUsed > 0) {
-                    $newBalance = $walletBalance - $walletUsed;
-                    WalletTransaction::create([
-                        'user_id'     => $user->id, 'type' => 'debit',
-                        'amount'      => $walletUsed,
-                        'description' => 'استخدام رصيد للطلب #' . $order->id,
-                        'balance_after' => $newBalance,
-                    ]);
-                    $user->update(['wallet_balance' => $newBalance]);
-                    $amountDue = max(0, $finalTotal - $walletUsed);
-                    $order->update([
-                        'total_amount'   => $amountDue,
-                        'payment_method' => $amountDue > 0 ? 'wallet+cod' : 'wallet',
-                        'payment_status' => $amountDue > 0 ? 'partially_paid' : 'paid',
-                    ]);
+            if ($useWallet && $finalTotal > 0) {
+                // ✅ قفل صف المستخدم منعاً للـ Race Condition عند طلبات متوازية
+                $userForUpdate = User::where('id', $user->id)->lockForUpdate()->first();
+                $walletBalance = (float)($userForUpdate->wallet_balance ?? 0);
+                
+                if ($walletBalance > 0) {
+                    $walletUsed = min($walletBalance, $finalTotal);
+                    if ($walletUsed > 0) {
+                        $newBalance = $walletBalance - $walletUsed;
+                        WalletTransaction::create([
+                            'user_id'     => $user->id, 'type' => 'debit',
+                            'amount'      => $walletUsed,
+                            'description' => 'استخدام رصيد للطلب #' . $order->id,
+                            'balance_after' => $newBalance,
+                        ]);
+                        $userForUpdate->update(['wallet_balance' => $newBalance]);
+                        $amountDue = max(0, $finalTotal - $walletUsed);
+                        $this->updateOrderWithAvailableColumns($order, [
+                            'total_amount'   => $amountDue,
+                            'payment_method' => $amountDue > 0 ? 'wallet+cod' : 'wallet',
+                            'payment_status' => $amountDue > 0 ? 'partially_paid' : 'paid',
+                        ], ['total_amount', 'payment_method', 'payment_status']);
+                    }
+                } else {
+                    $this->updateOrderWithAvailableColumns($order, ['payment_status' => 'unpaid'], ['payment_status']);
                 }
             } else {
-                $order->update(['payment_status' => 'unpaid']);
+                $this->updateOrderWithAvailableColumns($order, ['payment_status' => 'unpaid'], ['payment_status']);
             }
 
             $adminRoleNames = ['Super-Admin', 'Order-Manager'];
@@ -300,6 +308,35 @@ class CheckoutController extends Controller
 
             return OrderItem::create($attributes);
         }
+    }
+
+    private function updateOrderWithAvailableColumns(Order $order, array $attributes, array $keys): void
+    {
+        $allowedKeys = array_flip($this->getOrdersTableColumns());
+        $payload = [];
+
+        foreach ($keys as $key) {
+            if (isset($allowedKeys[$key]) && array_key_exists($key, $attributes)) {
+                $payload[$key] = $attributes[$key];
+            }
+        }
+
+        if (!empty($payload)) {
+            $order->update($payload);
+        }
+    }
+
+    private function getOrdersTableColumns(): array
+    {
+        static $columns = null;
+
+        if (is_array($columns)) {
+            return $columns;
+        }
+
+        $columns = Schema::getColumnListing('orders');
+
+        return $columns;
     }
 
     private function sanitizeSelectedOptions(array $selectedOptions): array

@@ -340,6 +340,23 @@
             const giftAddressPreviewText = document.getElementById('gift_address_preview_text');
             const checkoutSubmitButton = document.getElementById('checkout_submit_button');
             const checkoutSubmitHint = document.getElementById('checkout_submit_hint');
+            const checkoutForm = document.getElementById('checkout-form');
+            
+            // ✅ منع تكرار الطلب (Double-Submit Protection)
+            let isFormSubmitting = false;
+            if (checkoutForm && checkoutSubmitButton) {
+                checkoutForm.addEventListener('submit', function (e) {
+                    if (isFormSubmitting) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                    isFormSubmitting = true;
+                    checkoutSubmitButton.disabled = true;
+                    checkoutSubmitButton.style.opacity = '0.6';
+                    checkoutSubmitButton.innerHTML = '<i class="bi bi-hourglass-split"></i> جاري المعالجة...';
+                });
+            }
 
             function selectAddress(radio) {
                 document.querySelectorAll('.address-card').forEach(card => card.classList.remove('selected'));

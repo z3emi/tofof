@@ -26,10 +26,13 @@ class Order extends Model
         'gift_recipient_address_details',
         'gift_message',
         'total_amount',
+        'total_cost',
         'shipping_cost',
         'status',
         'discount_amount',     
         'discount_code_id',
+        'payment_method',
+        'payment_status',
     ];
 
     protected $casts = [
