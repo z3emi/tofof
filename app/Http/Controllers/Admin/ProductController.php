@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
 use App\Traits\HandlesImageUploads;
+use App\Support\RepairsPrimaryKeyAutoIncrement;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProductsExport;
 use Throwable;
@@ -144,7 +145,7 @@ class ProductController extends Controller
         try {
             // لا ندخل primary_categories مع create
             $data = $request->except(['images', 'primary_categories', 'primary_category_id']);
-            $product = Product::create($data);
+            $product = $this->createProductWithRepair($data);
 
             // ربط الفئات الجديدة (يدعم primary_categories[] أو primary_category_id الواحدة)
             $pcIds = $request->input('primary_categories', []);
@@ -396,6 +397,21 @@ class ProductController extends Controller
         })->toArray();
 
         return Excel::download(new ProductsExport($data), 'products.xlsx');
+    }
+
+    private function createProductWithRepair(array $attributes): Product
+    {
+        try {
+            return Product::create($attributes);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'products')) {
+                throw $exception;
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('products');
+
+            return Product::create($attributes);
+        }
     }
 
     private function syncProductOptionsAndCombinations(Product $product, Request $request): void

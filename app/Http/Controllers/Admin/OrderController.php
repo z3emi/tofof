@@ -62,7 +62,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         // عرض الطلبات المرتبطة بمستخدمين نشطين فقط (غير محذوفين)
-        $query = Order::with('customer', 'user');
+        $query = Order::with(['customer.user', 'user']);
         $sortBy = $request->input('sort_by', 'id');
         $sortDir = $request->input('sort_dir', 'desc');
 
