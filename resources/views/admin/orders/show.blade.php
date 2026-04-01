@@ -34,6 +34,14 @@
     }
     #orderLocationMap { height: 300px; z-index: 1; border-radius: 8px; }
     .small-muted { font-size: .85rem; color: #6c757d; }
+    .btn-delete-disabled {
+        background: #f1f3f5 !important;
+        border-color: #e5e7eb !important;
+        color: #9ca3af !important;
+        cursor: not-allowed;
+        pointer-events: none;
+        opacity: .75;
+    }
 </style>
 @endpush
 
@@ -72,7 +80,7 @@
                         </button>
                     </form>
                 @else
-                    <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="يمكن حذف الطلب فقط إذا كانت حالته ملغي أو مرتجع">
+                    <button type="button" class="btn btn-sm btn-delete-disabled" disabled aria-disabled="true" tabindex="-1" title="يمكن حذف الطلب فقط إذا كانت حالته ملغي أو مرتجع">
                         <i class="bi bi-trash-fill me-1"></i> حذف
                     </button>
                 @endif

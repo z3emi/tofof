@@ -533,6 +533,9 @@ public function updateStatus(Request $request, Order $order, InventoryService $i
     $newStatus = $request->status;
 
     if ($oldStatus === $newStatus) {
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'لم تتغير حالة الطلب.']);
+        }
         return redirect()->route('admin.orders.show', $order)->with('info', 'لم تتغير حالة الطلب.');
     }
 
@@ -582,10 +585,19 @@ public function updateStatus(Request $request, Order $order, InventoryService $i
 
         DB::commit();
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'تم تحديث حالة الطلب بنجاح.']);
+        }
+
         return redirect()->route('admin.orders.show', $order)->with('success', 'تم تحديث حالة الطلب بنجاح.');
 
     } catch (\Exception $e) {
         DB::rollBack();
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => false, 'message' => 'حدث خطأ: ' . $e->getMessage()], 500);
+        }
+
         return redirect()->back()->with('error', 'حدث خطأ: ' . $e->getMessage());
     }
 }
