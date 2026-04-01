@@ -4,45 +4,79 @@
 
 @push('styles')
 <style>
+    .form-card { border-radius: 0 !important; border: none !important; box-shadow: none !important; background: #fff; width: 100% !important; margin: 0 !important; }
+    .form-card-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%); padding: 2.5rem 3rem; color: white; border-radius: 0 !important; }
     .stat-card {
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        transition: all 0.3s ease-in-out;
         border: 0;
-        border-radius: .75rem !important;
+        border-radius: 15px !important;
         position: relative;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
     .stat-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+        box-shadow: 0 12px 25px rgba(0,0,0,0.1) !important;
+    }
+    .stat-card .card-body {
+        padding: 1.75rem;
+    }
+    .stat-card .fs-2 {
+        opacity: 0.8;
     }
     .text-purple { color: #6f42c1 !important; }
+    .table-container { 
+        border-radius: 15px; 
+        border: 1px solid #e2e8f0; 
+        overflow: hidden; 
+        background: #fff; 
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .table-container tbody tr:hover {
+        background-color: rgba(0,0,0,0.02) !important;
+    }
+    .search-input { 
+        border-radius: 12px; 
+        border: 1px solid #e2e8f0; 
+        padding: 0.8rem 1.2rem; 
+        background: #fafbff;
+    }
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #eef1f4 100%) !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 fw-bold">التقارير المالية</h1>
-        <form method="GET" action="{{ route('admin.reports.financial') }}" class="d-flex gap-2 align-items-center bg-white p-2 rounded-3 shadow-sm">
-            <select name="month" class="form-select form-select-sm">
+<div class="form-card">
+    <div class="form-card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2 class="mb-2 fw-bold text-white"><i class="bi bi-graph-up-arrow me-2"></i> التقارير المالية والتحليلات</h2>
+            <p class="mb-0 opacity-75 fs-6 text-white small">تحليل مفصل للمبيعات، الإيرادات، والأداء المالي للفترة المحددة.</p>
+        </div>
+        <form method="GET" action="{{ route('admin.reports.financial') }}" class="d-flex gap-2 align-items-center">
+            <select name="month" class="form-select form-select-sm search-input" style="width: 150px;">
                 @for ($m = 1; $m <= 12; $m++)
                     <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>
                         {{ date('F', mktime(0, 0, 0, $m, 10)) }}
                     </option>
                 @endfor
             </select>
-            <select name="year" class="form-select form-select-sm">
+            <select name="year" class="form-select form-select-sm search-input" style="width: 120px;">
                 @for ($y = date('Y'); $y >= date('Y') - 5; $y--)
                     <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>
                         {{ $y }}
                     </option>
                 @endfor
             </select>
-            <button type="submit" class="btn btn-sm btn-primary">تطبيق</button>
-            <a href="{{ route('admin.reports.financial.export', ['month' => $month, 'year' => $year]) }}" class="btn btn-sm btn-success" title="تصدير Excel" aria-label="تصدير Excel">
-                <i class="bi bi-file-earmark-excel"></i>
-            </a>
+            <button type="submit" class="btn text-white px-4 py-2 fw-bold" style="background:var(--primary-dark); border-radius:12px; white-space:nowrap;">تطبيق</button>
+            <a href="{{ route('admin.reports.financial.export', ['month' => $month, 'year' => $year]) }}" class="btn btn-outline-light p-2 d-inline-flex align-items-center justify-content-center" style="width:40px; height:40px; border-radius:10px" title="تصدير إكسل"><i class="bi bi-file-earmark-excel"></i></a>
         </form>
     </div>
+
+    <div class="p-4 p-lg-5">
 
     <div class="row g-4 mb-4">
     <div class="row g-4 mb-4">
@@ -144,7 +178,7 @@
             </div>
         </div>
         @if($ordersList->hasPages())
-            <div class="card-footer bg-white d-flex justify-content-center pt-3 pb-1 border-top-0">
+            <div class="d-flex justify-content-center pt-3">
                 {{ $ordersList->links() }}
             </div>
         @endif

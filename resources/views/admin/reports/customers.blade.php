@@ -3,88 +3,106 @@
 
 @push('styles')
 <style>
-    :root {
-        --bg-light: #f9f5f1;
-        --color-primary: #cd8985;
-        --color-secondary: #dcaca9;
-        --color-accent: #be6661;
-        --color-white: #ffffff;
-        --color-beige: #eadbcd;
-    }
-
+    .form-card { border-radius: 0 !important; border: none !important; box-shadow: none !important; background: #fff; width: 100% !important; margin: 0 !important; }
+    .form-card-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%); padding: 2.5rem 3rem; color: white; border-radius: 0 !important; }
+    .search-input { border-radius: 12px; border: 1px solid #e2e8f0; padding: 0.8rem 1.2rem; background: #fafbff; }
+    
     .stat-card-customers {
-        background: linear-gradient(135deg, var(--bg-light), var(--color-beige));
-        border: 1px solid var(--color-beige);
-        transition: 0.3s;
+        background: linear-gradient(135deg, #f8f9fa 0%, #eef1f4 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 15px;
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
 
     .stat-card-customers:hover {
-        background: linear-gradient(135deg, var(--color-beige), var(--bg-light));
-        transform: translateY(-4px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+        background: linear-gradient(135deg, #eef1f4, #f8f9fa);
+        transform: translateY(-8px);
+        box-shadow: 0 12px 25px -5px rgba(0,0,0,0.1);
+        border-bottom: 4px solid var(--primary-dark);
     }
 
     .stat-card-customers .card-header {
-        background-color: var(--color-white);
-        color: var(--color-primary);
-        border-bottom: 1px solid var(--color-beige);
+        background-color: transparent !important;
+        color: var(--primary-dark);
+        border-bottom: 2px solid #e2e8f0 !important;
+        font-weight: 700;
     }
 
     .stat-card-customers .card-body .badge {
-        background-color: var(--color-secondary);
-        color: var(--color-white);
+        background-color: var(--primary-dark);
+        color: #fff;
         font-weight: 500;
         font-size: 0.9rem;
     }
 
     .filter-form {
-        background-color: var(--color-white);
-        border: 1px solid var(--color-secondary);
+        background-color: transparent;
+        border: none;
         border-radius: 8px;
-        padding: 0.5rem;
+        padding: 0;
     }
 
     .filter-form button {
-        background-color: var(--color-primary);
-        color: var(--color-white);
-        border: none;
+        background-color: transparent;
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 12px;
+        padding: 0.6rem 1.2rem;
+    }
+
+    .filter-form button:hover {
+        background-color: rgba(255,255,255,0.1);
+        border-color: rgba(255,255,255,0.5);
     }
 
     .table-hover tbody tr:hover {
-        background-color: rgba(205, 137, 133, 0.05);
+        background-color: rgba(0, 0, 0, 0.02) !important;
+    }
+
+    .table thead {
+        background-color: #f8f9fa;
+    }
+
+    .table thead th {
+        font-weight: 700;
+        color: var(--primary-dark);
+        border-bottom: 2px solid #e2e8f0;
     }
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 fw-bold">تقارير العملاء</h1>
+<div class="form-card">
+    <div class="form-card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2 class="mb-2 fw-bold text-white"><i class="bi bi-people-fill me-2"></i> تقارير العملاء والعلاقات</h2>
+            <p class="mb-0 opacity-75 fs-6 text-white small">تحليل سلوك العملاء، معدلات الشراء، والعملاء الأكثر قيمة.</p>
+        </div>
         <form method="GET" action="{{ route('admin.reports.customers') }}" class="d-flex gap-2 align-items-center filter-form">
-            <select name="month" class="form-select form-select-sm">
+            <select name="month" class="form-select form-select-sm search-input" style="width: 150px;">
                 @for ($m = 1; $m <= 12; $m++)
                     <option value="{{ $m }}" {{ ($month ?? now()->month) == $m ? 'selected' : '' }}>
                         {{ date('F', mktime(0, 0, 0, $m, 10)) }}
                     </option>
                 @endfor
             </select>
-            <select name="year" class="form-select form-select-sm">
+            <select name="year" class="form-select form-select-sm search-input" style="width: 120px;">
                 @for ($y = date('Y'); $y >= date('Y') - 5; $y--)
                     <option value="{{ $y }}" {{ ($year ?? now()->year) == $y ? 'selected' : '' }}>
                         {{ $y }}
                     </option>
                 @endfor
             </select>
-            <button type="submit" class="btn btn-sm">
+            <button type="submit" class="btn" style="background-color: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; padding: 0.6rem 1.2rem;">
                 <i class="bi bi-search me-1"></i> تطبيق
             </button>
-            <a href="{{ route('admin.reports.customers.export', ['month' => ($month ?? now()->month), 'year' => ($year ?? now()->year)]) }}" class="btn btn-sm btn-success" title="تصدير Excel" aria-label="تصدير Excel">
-                <i class="bi bi-file-earmark-excel"></i>
-            </a>
+            <a href="{{ route('admin.reports.customers.export', ['month' => ($month ?? now()->month), 'year' => ($year ?? now()->year)]) }}" class="btn btn-outline-light p-2 d-inline-flex align-items-center justify-content-center" style="width:40px; height:40px; border-radius:10px" title="تصدير إكسل"><i class="bi bi-file-earmark-excel"></i></a>
         </form>
     </div>
 
-    <div class="row g-4">
+    <div class="p-4 p-lg-5">
+        <div class="row g-4">
         <div class="col-lg-6">
             <div class="card stat-card-customers shadow-sm">
                 <div class="card-header">
@@ -184,6 +202,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </div>
 @endsection

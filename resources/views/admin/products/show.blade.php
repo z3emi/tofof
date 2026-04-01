@@ -61,7 +61,10 @@
         object-fit: cover;
         border: 1px solid #e2e8f0;
         background: #fff;
+        cursor: zoom-in;
+        transition: transform .2s ease;
     }
+    .thumb:hover { transform: scale(1.04); }
     .status-badge { border-radius: 8px; padding: 0.4rem 0.8rem; font-weight: 700; font-size: 0.8rem; color: #fff; }
     .bg-active { background: #198754; }
     .bg-inactive { background: #6c757d; }
@@ -143,6 +146,28 @@
             <div class="col-lg-8">
                 <div class="panel">
                     <div class="panel-header">
+                        <span><i class="bi bi-images me-1"></i> صور المنتج</span>
+                    </div>
+                    @if($product->images->isNotEmpty())
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach($product->images as $img)
+                                <button type="button"
+                                        class="btn p-0 border-0 bg-transparent product-image-trigger"
+                                        data-image-url="{{ asset('storage/' . $img->image_path) }}"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#productImageModal"
+                                        title="عرض الصورة">
+                                    <img src="{{ asset('storage/' . $img->image_path) }}" alt="Product image" class="thumb">
+                                </button>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-muted mb-0">لا توجد صور لهذا المنتج.</p>
+                    @endif
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
                         <span><i class="bi bi-type me-1"></i> الاسم والوصف</span>
                     </div>
                     <div class="mb-3 desc-block">
@@ -177,23 +202,6 @@
 
                 <div class="panel">
                     <div class="panel-header">
-                        <span><i class="bi bi-images me-1"></i> صور المنتج</span>
-                    </div>
-                    @if($product->images->isNotEmpty())
-                        <div class="d-flex flex-wrap gap-2">
-                            @foreach($product->images as $img)
-                                <a href="{{ asset('storage/' . $img->image_path) }}" target="_blank" rel="noopener">
-                                    <img src="{{ asset('storage/' . $img->image_path) }}" alt="Product image" class="thumb">
-                                </a>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-muted mb-0">لا توجد صور لهذا المنتج.</p>
-                    @endif
-                </div>
-
-                <div class="panel">
-                    <div class="panel-header">
                         <span><i class="bi bi-sliders me-1"></i> الخيارات والمتغيرات</span>
                     </div>
                     @if($product->options->isNotEmpty())
@@ -217,4 +225,32 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="productImageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content bg-dark border-0">
+            <div class="modal-header border-0">
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 text-center">
+                <img id="productImagePreview" src="" alt="Product image preview" style="max-width:100%; max-height:80vh; object-fit:contain;">
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const preview = document.getElementById('productImagePreview');
+
+    document.querySelectorAll('.product-image-trigger').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const imageUrl = btn.dataset.imageUrl || '';
+            if (preview) preview.src = imageUrl;
+        });
+    });
+});
+</script>
+@endpush

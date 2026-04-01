@@ -4,28 +4,41 @@
 
 @push('styles')
 <style>
+    .form-card { border-radius: 0 !important; border: none !important; box-shadow: none !important; background: #fff; width: 100% !important; margin: 0 !important; }
+    .form-card-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%); padding: 2.5rem 3rem; color: white; border-radius: 0 !important; }
+    .search-input { border-radius: 12px; border: 1px solid #e2e8f0; padding: 0.8rem 1.2rem; background: #fafbff; }
+    
     .stat-card {
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        border: 0;
-        border-radius: 1rem !important;
+        transition: all 0.3s ease-in-out;
+        border: 1px solid #e2e8f0;
+        border-radius: 15px !important;
         overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
     .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+        transform: translateY(-8px);
+        box-shadow: 0 12px 25px -5px rgba(0,0,0,0.1) !important;
     }
 
     .bg-warning-custom {
-        background-color: #fff3cd !important;
+        background: linear-gradient(135deg, #fff3cd 0%, #fff8e1 100%) !important;
+        border-bottom: 4px solid #ffc107;
     }
 
     .bg-danger-custom {
-        background-color: #f8d7da !important;
+        background: linear-gradient(135deg, #f8d7da 0%, #fde2e2 100%) !important;
+        border-bottom: 4px solid #dc3545;
     }
 
     .card-header {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-bottom: 1px solid #dee2e6;
+        background: linear-gradient(135deg, #f8f9fa 0%, #eef1f4 100%) !important;
+        border-bottom: 2px solid #e2e8f0 !important;
+        font-weight: 700;
+        color: var(--primary-dark);
+    }
+
+    .card-header h5 {
+        color: inherit;
     }
 
     .card-body {
@@ -35,7 +48,7 @@
     .badge {
         font-weight: 600;
         font-size: 0.9rem;
-        border-radius: 0.5rem;
+        border-radius: 0.6rem;
         padding: 0.4em 0.7em;
     }
 
@@ -44,37 +57,48 @@
         border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         padding: 0.75rem 1rem;
     }
+
+    .table thead th {
+        font-weight: 700;
+        color: var(--primary-dark);
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.02) !important;
+    }
 </style>
 @endpush
 
 @section('content')
-<div class="container-fluid">
-    {{-- فلتر الشهر والسنة --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 fw-bold">تقارير المخزون</h1>
-        <form method="GET" action="{{ route('admin.reports.stock') }}" class="d-flex gap-2 align-items-center bg-white p-2 rounded-3 shadow-sm">
-            <select name="month" class="form-select form-select-sm">
+<div class="form-card">
+    <div class="form-card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2 class="mb-2 fw-bold text-white"><i class="bi bi-inbox me-2"></i> تقارير حالة المخزون</h2>
+            <p class="mb-0 opacity-75 fs-6 text-white small">مراقبة المنتجات الراكدة والنافدة، والمنتجات الأكثر حركة في المستودع.</p>
+        </div>
+        <form method="GET" action="{{ route('admin.reports.stock') }}" class="d-flex gap-2 align-items-center">
+            <select name="month" class="form-select form-select-sm search-input" style="width: 150px;">
                 @for ($m = 1; $m <= 12; $m++)
                     <option value="{{ $m }}" {{ ($month ?? now()->month) == $m ? 'selected' : '' }}>
                         {{ date('F', mktime(0, 0, 0, $m, 10)) }}
                     </option>
                 @endfor
             </select>
-            <select name="year" class="form-select form-select-sm">
+            <select name="year" class="form-select form-select-sm search-input" style="width: 120px;">
                 @for ($y = date('Y'); $y >= date('Y') - 5; $y--)
                     <option value="{{ $y }}" {{ ($year ?? now()->year) == $y ? 'selected' : '' }}>
                         {{ $y }}
                     </option>
                 @endfor
             </select>
-            <button type="submit" class="btn btn-sm btn-primary">تطبيق</button>
-            <a href="{{ route('admin.reports.stock.export', ['month' => ($month ?? now()->month), 'year' => ($year ?? now()->year)]) }}" class="btn btn-sm btn-success" title="تصدير Excel" aria-label="تصدير Excel">
-                <i class="bi bi-file-earmark-excel"></i>
-            </a>
+            <button type="submit" class="btn text-white px-4 py-2 fw-bold" style="background:var(--primary-dark); border-radius:12px; white-space:nowrap;">تطبيق</button>
+            <a href="{{ route('admin.reports.stock.export', ['month' => ($month ?? now()->month), 'year' => ($year ?? now()->year)]) }}" class="btn btn-outline-light p-2 d-inline-flex align-items-center justify-content-center" style="width:40px; height:40px; border-radius:10px" title="تصدير إكسل"><i class="bi bi-file-earmark-excel"></i></a>
         </form>
     </div>
 
-    <div class="row g-4">
+    <div class="p-4 p-lg-5">
+        <div class="row g-4">
         {{-- المنتجات على وشك النفاد --}}
         <div class="col-lg-6">
             <div class="card stat-card bg-warning-custom shadow-sm h-100">
@@ -153,6 +177,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </div>
 @endsection
