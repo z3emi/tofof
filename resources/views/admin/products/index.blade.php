@@ -16,6 +16,7 @@
     .qty-high { background:#e8f5e9; color:#1b5e20; }
     .qty-mid { background:#fff3cd; color:#664d03; }
     .qty-low { background:#fde2e1; color:#a4161a; }
+    .product-open-row { cursor: pointer; }
 </style>
 @endpush
 
@@ -82,7 +83,7 @@
                 <tbody>
                     @forelse($products as $product)
                         @php $qty = (int)($product->available_quantity ?? 0); @endphp
-                        <tr>
+                        <tr class="product-open-row" data-href="{{ route('admin.products.show', $product->id) }}">
                             <td class="small text-muted">{{ $loop->iteration + ($products->perPage() * ($products->currentPage() - 1)) }}</td>
                             <td class="small text-muted">#{{ $product->id }}</td>
                             <td class="text-start">
@@ -303,6 +304,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const contextMenu = document.getElementById('context-menu');
             if (contextMenu) contextMenu.style.display = 'none';
         }
+    });
+
+    document.querySelectorAll('.product-open-row').forEach(function(row) {
+        row.addEventListener('dblclick', function(e) {
+            if (e.target.closest('a, button, form, input, select, textarea, label')) return;
+            const href = row.dataset.href;
+            if (href) window.location.href = href;
+        });
     });
 });
 </script>

@@ -353,6 +353,14 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
+        $product->loadMissing([
+            'images',
+            'category',
+            'primaryCategories.parent',
+            'options.values',
+            'optionCombinations.images',
+        ]);
+
         return view('admin.products.show', compact('product'));
     }
 

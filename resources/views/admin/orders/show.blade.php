@@ -5,23 +5,22 @@
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-    :root {
-        --primary-dark: #be6661;
-        --primary-medium: #cd8985;
-        --text-dark: #3a3a3a;
-    }
+    .form-card { border-radius: 0 !important; border: none !important; box-shadow: none !important; background: #fff; width: 100% !important; margin: 0 !important; }
+    .form-card-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%); padding: 2.5rem 3rem; color: white; border-radius: 0 !important; }
+    .table-container { border-radius: 15px; border: 1px solid #f1f5f9; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
     .panel {
         background-color: #ffffff;
-        border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        padding: 1.25rem;
+        border-radius: 14px;
+        border: 1px solid #edf2f7;
+        box-shadow: 0 8px 22px rgba(15,23,42,0.05);
+        padding: 1.35rem;
         margin-bottom: 1.5rem;
     }
     .panel-header {
         font-weight: bold;
         margin-bottom: 1rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 0.9rem;
+        border-bottom: 1px solid #eef2f7;
         color: var(--primary-dark);
         display: flex;
         align-items: center;
@@ -32,7 +31,7 @@
         align-items: center;
         gap: 0.5rem;
     }
-    #orderLocationMap { height: 300px; z-index: 1; border-radius: 8px; }
+    #orderLocationMap { height: 320px; z-index: 1; border-radius: 12px; border: 1px solid #e2e8f0; }
     .small-muted { font-size: .85rem; color: #6c757d; }
     .btn-delete-disabled {
         background: #f1f3f5 !important;
@@ -42,18 +41,37 @@
         pointer-events: none;
         opacity: .75;
     }
+    .status-badge { border-radius: 10px; padding: 0.45rem 0.8rem; font-weight: 700; font-size: 0.8rem; }
+    .bg-pending { background: #ffc107; color: #000; }
+    .bg-processing { background: #0dcaf0; color: #000; }
+    .bg-shipped { background: #0d6efd; color: #fff; }
+    .bg-delivered { background: #198754; color: #fff; }
+    .bg-returned { background: #dc3545; color: #fff; }
+    .bg-cancelled { background: #6c757d; color: #fff; }
+    .summary-list .list-group-item {
+        border-color: #eef2f7;
+        padding-top: .8rem;
+        padding-bottom: .8rem;
+        background: transparent;
+    }
+    .order-top-actions .btn {
+        border-radius: 10px;
+        font-weight: 700;
+        min-height: 38px;
+    }
+    .order-product-row { cursor: pointer; }
 </style>
 @endpush
 
 @section('content')
 @php
     $statusTexts = [
-        'pending' => ['text' => 'قيد الانتظار', 'color' => 'warning'],
-        'processing' => ['text' => 'قيد المعالجة', 'color' => 'info'],
-        'shipped' => ['text' => 'تم الشحن', 'color' => 'primary'],
-        'delivered' => ['text' => 'تم التوصيل', 'color' => 'success'],
-        'returned' => ['text' => 'مرتجع', 'color' => 'danger'],
-        'cancelled' => ['text' => 'ملغى', 'color' => 'secondary']
+        'pending' => ['text' => 'قيد الانتظار', 'color' => 'pending'],
+        'processing' => ['text' => 'قيد المعالجة', 'color' => 'processing'],
+        'shipped' => ['text' => 'تم الشحن', 'color' => 'shipped'],
+        'delivered' => ['text' => 'تم التوصيل', 'color' => 'delivered'],
+        'returned' => ['text' => 'مرتجع', 'color' => 'returned'],
+        'cancelled' => ['text' => 'ملغى', 'color' => 'cancelled']
     ];
     $statusInfo = $statusTexts[$order->status] ?? ['text' => $order->status, 'color' => 'dark'];
 
@@ -64,18 +82,21 @@
     $walletPaidAmount = max(0, $walletPaidAmount);
 @endphp
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>تفاصيل الطلب <span class="text-primary">#{{ $order->id }}</span></h3>
-        <div class="d-flex align-items-center gap-2">
-            <a href="{{ route('admin.orders.invoice', $order->id) }}" class="btn btn-sm btn-dark"><i class="bi bi-printer-fill me-1"></i> طباعة</a>
-            <a href="{{ route('admin.orders.edit', $order->id) }}" class="btn btn-sm btn-info"><i class="bi bi-pencil-fill me-1"></i> تعديل</a>
+<div class="form-card">
+    <div class="form-card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2 class="mb-2 fw-bold text-white"><i class="bi bi-receipt-cutoff me-2"></i> تفاصيل الطلب #{{ $order->id }}</h2>
+            <p class="mb-0 opacity-75 fs-6 text-white small">عرض حالة الطلب، المنتجات، بيانات العميل وموقع التوصيل.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap order-top-actions">
+            <a href="{{ route('admin.orders.invoice', $order->id) }}" class="btn btn-sm btn-light"><i class="bi bi-printer-fill me-1"></i> طباعة</a>
+            <a href="{{ route('admin.orders.edit', $order->id) }}" class="btn btn-sm btn-outline-light"><i class="bi bi-pencil-fill me-1"></i> تعديل</a>
             @can('delete-orders')
                 @if(in_array($order->status, ['cancelled', 'returned']))
                     <form action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" class="d-inline-block" onsubmit="return confirm('هل أنت متأكد من نقل الطلب إلى سلة المحذوفات؟');">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <button type="submit" class="btn btn-sm btn-danger">
                             <i class="bi bi-trash-fill me-1"></i> حذف
                         </button>
                     </form>
@@ -88,6 +109,7 @@
         </div>
     </div>
 
+    <div class="p-4 p-lg-5">
     <div class="row g-4">
         {{-- العمود الأيمن --}}
         <div class="col-lg-4">
@@ -103,7 +125,7 @@
                                 <option value="{{ $key }}" @selected($order->status == $key)>{{ $info['text'] }}</option>
                             @endforeach
                         </select>
-                        <button type="submit" class="btn btn-primary">حفظ</button>
+                        <button type="submit" class="btn text-white" style="background: var(--primary-dark);">حفظ</button>
                     </div>
                 </form>
             </div>
@@ -167,10 +189,10 @@
                 <div class="panel-header">
                     <div class="header-text"><i class="bi bi-file-earmark-text"></i><span>ملخص الطلب</span></div>
                 </div>
-                <ul class="list-group list-group-flush">
+                <ul class="list-group list-group-flush summary-list">
                     <li class="list-group-item d-flex justify-content-between">
                         <span>الحالة:</span>
-                        <span class="badge bg-{{ $statusInfo['color'] }}">{{ $statusInfo['text'] }}</span>
+                        <span class="badge status-badge bg-{{ $statusInfo['color'] }}">{{ $statusInfo['text'] }}</span>
                     </li>
 
                     {{-- المجموع الفرعي من عناصر الطلب (ممرر من الكنترولر) --}}
@@ -235,11 +257,12 @@
         <div class="col-lg-8">
             <div class="panel">
                 <div class="panel-header"><div class="header-text"><i class="bi bi-cart-check"></i><span>المنتجات المطلوبة</span></div></div>
+                <div class="table-container">
                 <div class="table-responsive">
-                    <table class="table align-middle">
+                    <table class="table mb-0 align-middle text-center">
                         <thead>
-                            <tr>
-                                <th>المنتج</th>
+                            <tr class="order-product-row" data-href="{{ $item->product ? route('admin.products.show', $item->product->id) : '' }}">
+                                <th class="text-start">المنتج</th>
                                 <th class="text-center">السعر</th>
                                 <th class="text-center">الكمية</th>
                                 <th class="text-end">الإجمالي</th>
@@ -252,8 +275,13 @@
                                     <div class="d-flex align-items-center">
                                         <img src="{{ $item->product?->firstImage ? asset('storage/' . $item->product->firstImage->image_path) : 'https://placehold.co/50x50?text=Img' }}"
                                              width="50" height="50" class="rounded me-2" style="object-fit:cover;">
-                                        <div>
+                                        <div class="text-start">
                                             <div>{{ $item->product->name_ar ?? 'منتج محذوف' }}</div>
+                                            <div class="small text-muted">
+                                                SKU: {{ optional($item->product)->sku ?: '—' }}
+                                                <span class="mx-1">|</span>
+                                                ID: {{ optional($item->product)->id ?: '—' }}
+                                            </div>
                                             @if(!empty($item->option_selections))
                                                 <div class="small text-muted mt-1">
                                                     @foreach($item->option_selections as $label => $value)
@@ -272,6 +300,7 @@
                         </tbody>
                     </table>
                 </div>
+                </div>
             </div>
 
             <div class="panel">
@@ -283,6 +312,7 @@
                 @endif
             </div>
         </div>
+    </div>
     </div>
 </div>
 @endsection
@@ -300,4 +330,15 @@
         });
     </script>
 @endif
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.order-product-row').forEach(function (row) {
+                row.addEventListener('dblclick', function (e) {
+                    if (e.target.closest('a, button, form, input, select, textarea, label')) return;
+                    const href = row.dataset.href;
+                    if (href) window.location.href = href;
+                });
+            });
+        });
+    </script>
 @endpush
