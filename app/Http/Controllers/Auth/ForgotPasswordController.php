@@ -45,6 +45,11 @@ class ForgotPasswordController extends Controller
 
         $user = User::where('phone_number', $request->phone_number)->first();
 
+        // Check if user exists before accessing properties
+        if (!$user) {
+            return back()->withErrors(['phone_number' => 'المستخدم غير موجود.']);
+        }
+
         // لا تسمح بإعادة التعيين لحساب غير مفعل
         if (is_null($user->phone_verified_at)) {
             return back()->withErrors(['phone_number' => 'هذا الحساب غير مفعل. يرجى إكمال عملية التسجيل أولاً.']);

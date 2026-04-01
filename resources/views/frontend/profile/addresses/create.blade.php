@@ -212,6 +212,9 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // التحميل المسبق لأسماء المحافظات للمطابقة
+      const governorateAliases = @json(config('locations.iraqi_governorate_aliases'));
+
       // تأخير بسيط لضمان اكتمال الرسم
       setTimeout(initMap, 80);
 
@@ -240,11 +243,14 @@
                         .bindPopup('اسحبني لتحديد الموقع الدقيق')
                         .openPopup();
 
-        function updateHidden(lat, lng){
+        function updateHidden(lat, lng, triggerGeocode = true){
           document.getElementById('latitude').value  = Number(lat).toFixed(6);
           document.getElementById('longitude').value = Number(lng).toFixed(6);
+          
+          if (triggerGeocode) {
+            reverseGeocode(lat, lng);
+          }
         }
-        if(!hasOld){ updateHidden(initialLat, initialLng); }
 
         marker.on('dragend', e=>{
           const {lat, lng} = e.target.getLatLng();
@@ -255,6 +261,79 @@
           marker.setLatLng(e.latlng);
           updateHidden(e.latlng.lat, e.latlng.lng);
         });
+
+        // وظيفة جلب البيانات من الإحداثيات
+        async function reverseGeocode(lat, lng) {
+          try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=ar`);
+            const data = await response.json();
+            
+            if (data && data.address) {
+              const addr = data.address;
+              
+              // 1. تحديد المحافظة
+              let state = addr.state || addr.province || addr.city || '';
+              state = state.replace('محافظة ', '').trim();
+              
+              let matchedGov = '';
+              for (const [alias, realName] of Object.entries(governorateAliases)) {
+                if (state.includes(alias) || alias.includes(state)) {
+                  matchedGov = realName;
+                  break;
+                }
+              }
+
+              if (matchedGov) {
+                const govSelect = document.getElementById('governorate');
+                govSelect.value = matchedGov;
+                govSelect.dispatchEvent(new Event('change'));
+              }
+
+              // 2. تحديث المنطقة/المدينة (مع تجنب أرقام المحلات "Mahalla")
+              const labels = [
+                addr.suburb, 
+                addr.city_district, 
+                addr.town, 
+                addr.neighbourhood, 
+                addr.quarter, 
+                addr.village, 
+                addr.city
+              ].filter(Boolean);
+
+              let areaLabel = '';
+              for (const label of labels) {
+                // إذا كان النص يحتوي على حروف عربية وليس مجرد رقم (مثل رقم المحلة 906)
+                if (label && !/^\d+$/.test(label.trim())) {
+                  areaLabel = label.trim();
+                  break;
+                }
+              }
+
+              // إذا لم نجد اسماً غير رقمي، نستخدم أول خيار متاح
+              if (!areaLabel && labels.length > 0) {
+                 areaLabel = labels[0];
+              }
+
+              if (areaLabel) {
+                 document.getElementById('city').value = areaLabel;
+              }
+
+              // 3. تفاصيل العنوان (الحي أو الشارع)
+              const road = addr.road || '';
+              const neighbourhood = addr.neighbourhood || addr.suburb || '';
+              if (road || neighbourhood) {
+                 const details = [road, neighbourhood].filter(Boolean).join('، ');
+                 // نملأها فقط إذا كانت فارغة أو إذا كانت قصيرة جداً
+                 const detailsInput = document.getElementById('address_details');
+                 if (!detailsInput.value || detailsInput.value.length < 5) {
+                    detailsInput.value = details;
+                 }
+              }
+            }
+          } catch (error) {
+            console.error('Error in reverse geocoding:', error);
+          }
+        }
 
         // زر "تحديد موقعي"
         const locateBtn = document.getElementById('get_location_btn');
@@ -284,7 +363,6 @@
       }
     });
 
-    // دوران أيقونة البتن (في حال ماكو Tailwind animate-spin)
     (function(){
       const css = document.createElement('style');
       css.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';

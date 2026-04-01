@@ -46,12 +46,30 @@
 .auth-alert{margin-bottom:1.25rem;border:1px solid rgba(239,68,68,.35);background:rgba(127,29,29,.2);color:#fecaca;padding:.85rem 1rem;font-size:.85rem;}
 .auth-success{margin-bottom:1.25rem;border:1px solid rgba(34,197,94,.35);background:rgba(20,83,45,.2);color:#bbf7d0;padding:.85rem 1rem;font-size:.85rem;}
 
+.otp-input{
+  width: 100%;
+  height: 54px !important;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 800;
+  background: var(--c-field-bg) !important;
+  border: 1px solid var(--c-field-border) !important;
+  color: var(--c-text) !important;
+  outline: none;
+  transition: all 0.2s;
+}
+.otp-input:focus{
+  border-color: #e31322 !important;
+  box-shadow: 0 0 0 2px rgba(227,19,34,.16) !important;
+  background: var(--c-field-bg) !important;
+}
+
 html:not(.dark) .auth-scope{background:#f5f7fb !important;}
 html:not(.dark) .auth-card{background:#fff !important;border-color:#e4e8f0 !important;box-shadow:0 18px 42px rgba(17,22,38,.14) !important;}
 html:not(.dark) .auth-card-header h2{color:#1c2230 !important;}
 html:not(.dark) .auth-card-header p{color:#6f7785 !important;}
 html:not(.dark) .auth-label{color:#646d7b !important;}
-html:not(.dark) .auth-field{background:#f3f5f9 !important;border-color:#e2e6ef !important;color:#1d2432 !important;}
+html:not(.dark) .auth-field, html:not(.dark) .otp-input{background:#f3f5f9 !important;border-color:#e2e6ef !important;color:#1d2432 !important;}
 html:not(.dark) .auth-foot a{color:#202737;}
 html:not(.dark) .auth-phone-chip{color:#6b7280;}
 html:not(.dark) .auth-alert{border-color:#fecaca;background:#fef2f2;color:#b91c1c;}
@@ -66,7 +84,40 @@ html:not(.dark) .auth-success{border-color:#86efac;background:#f0fdf4;color:#166
     <div class="auth-card mb-6"
          x-data="{
            showPassword:false,
-           showConfirmPassword:false
+           showConfirmPassword:false,
+           otpDigits: ['', '', '', '', '', ''],
+           otpCombined: '',
+           updateOtpCombined() {
+             this.otpCombined = this.otpDigits.join('');
+           },
+           onOtpInput(index, event) {
+             const value = (event.target.value || '').replace(/\D/g, '').slice(-1);
+             this.otpDigits[index] = value;
+             event.target.value = value;
+             this.updateOtpCombined();
+             if (value && index < 5) {
+               this.$refs['otp' + (index + 1)].focus();
+             }
+           },
+           onOtpKeydown(index, event) {
+             if (event.key === 'Backspace' && !this.otpDigits[index] && index > 0) {
+               this.$refs['otp' + (index - 1)].focus();
+             }
+           },
+           onOtpPaste(event) {
+             const pasted = (event.clipboardData || window.clipboardData)
+               .getData('text')
+               .replace(/\D/g, '')
+               .slice(0, 6);
+             if (!pasted) return;
+             event.preventDefault();
+             for (let i = 0; i < 6; i++) {
+               this.otpDigits[i] = pasted[i] || '';
+             }
+             this.updateOtpCombined();
+             const focusIndex = Math.min(pasted.length, 5);
+             this.$refs['otp' + focusIndex].focus();
+           }
          }">
 
       <div class="auth-card-header">
@@ -93,10 +144,31 @@ html:not(.dark) .auth-success{border-color:#86efac;background:#f0fdf4;color:#166
           @csrf
           <input type="hidden" name="phone_number" value="{{ session('phone_number_for_reset') }}">
 
+          <input type="hidden" name="otp" x-model="otpCombined">
+
           <div class="mb-5">
-            <label class="auth-label" for="otp">رمز التحقق</label>
-            <input id="otp" type="text" class="auth-field @error('otp') border-red-500 @enderror"
-                   name="otp" required autofocus placeholder="أدخل الرمز المرسل">
+            <label class="auth-label">رمز التحقق</label>
+            <div class="grid grid-cols-6 gap-2" dir="ltr" @paste="onOtpPaste($event)">
+              <input x-ref="otp0" type="text" maxlength="1" inputmode="numeric"
+                     class="otp-input @error('otp') border-red-500 @enderror"
+                     x-model="otpDigits[0]" @input="onOtpInput(0, $event)" @keydown="onOtpKeydown(0, $event)" autofocus>
+              <input x-ref="otp1" type="text" maxlength="1" inputmode="numeric"
+                     class="otp-input @error('otp') border-red-500 @enderror"
+                     x-model="otpDigits[1]" @input="onOtpInput(1, $event)" @keydown="onOtpKeydown(1, $event)">
+              <input x-ref="otp2" type="text" maxlength="1" inputmode="numeric"
+                     class="otp-input @error('otp') border-red-500 @enderror"
+                     x-model="otpDigits[2]" @input="onOtpInput(2, $event)" @keydown="onOtpKeydown(2, $event)">
+              <input x-ref="otp3" type="text" maxlength="1" inputmode="numeric"
+                     class="otp-input @error('otp') border-red-500 @enderror"
+                     x-model="otpDigits[3]" @input="onOtpInput(3, $event)" @keydown="onOtpKeydown(3, $event)">
+              <input x-ref="otp4" type="text" maxlength="1" inputmode="numeric"
+                     class="otp-input @error('otp') border-red-500 @enderror"
+                     x-model="otpDigits[4]" @input="onOtpInput(4, $event)" @keydown="onOtpKeydown(4, $event)">
+              <input x-ref="otp5" type="text" maxlength="1" inputmode="numeric"
+                     class="otp-input @error('otp') border-red-500 @enderror"
+                     x-model="otpDigits[5]" @input="onOtpInput(5, $event)" @keydown="onOtpKeydown(5, $event)">
+            </div>
+            <p class="text-xs text-gray-500 mt-2 dark:text-[#737b88]">أدخل الرمز المكون من 6 أرقام المرسل إليك.</p>
           </div>
 
           <div class="mb-5">
