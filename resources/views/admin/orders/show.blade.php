@@ -59,9 +59,24 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3>تفاصيل الطلب <span class="text-primary">#{{ $order->id }}</span></h3>
-        <div>
+        <div class="d-flex align-items-center gap-2">
             <a href="{{ route('admin.orders.invoice', $order->id) }}" class="btn btn-sm btn-dark"><i class="bi bi-printer-fill me-1"></i> طباعة</a>
             <a href="{{ route('admin.orders.edit', $order->id) }}" class="btn btn-sm btn-info"><i class="bi bi-pencil-fill me-1"></i> تعديل</a>
+            @can('delete-orders')
+                @if(in_array($order->status, ['cancelled', 'returned']))
+                    <form action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" class="d-inline-block" onsubmit="return confirm('هل أنت متأكد من نقل الطلب إلى سلة المحذوفات؟');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash-fill me-1"></i> حذف
+                        </button>
+                    </form>
+                @else
+                    <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="يمكن حذف الطلب فقط إذا كانت حالته ملغي أو مرتجع">
+                        <i class="bi bi-trash-fill me-1"></i> حذف
+                    </button>
+                @endif
+            @endcan
         </div>
     </div>
 
