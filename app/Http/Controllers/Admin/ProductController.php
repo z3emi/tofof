@@ -416,10 +416,38 @@ class ProductController extends Controller
                 throw $exception;
             }
 
+            if (DB::transactionLevel() > 0) {
+                return $this->createProductWithExplicitId($attributes);
+            }
+
             RepairsPrimaryKeyAutoIncrement::ensure('products');
 
-            return Product::create($attributes);
+            try {
+                return Product::create($attributes);
+            } catch (QueryException $retryException) {
+                if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($retryException, 'products')) {
+                    throw $retryException;
+                }
+
+                // Final safety net for imported schemas that still miss AUTO_INCREMENT.
+                $nextId = ((int) DB::table('products')->max('id')) + 1;
+
+                return Product::unguarded(function () use ($attributes, $nextId) {
+                    $payload = array_merge($attributes, ['id' => $nextId]);
+                    return Product::create($payload);
+                });
+            }
         }
+    }
+
+    private function createProductWithExplicitId(array $attributes): Product
+    {
+        $nextId = ((int) DB::table('products')->max('id')) + 1;
+
+        return Product::unguarded(function () use ($attributes, $nextId) {
+            $payload = array_merge($attributes, ['id' => $nextId]);
+            return Product::create($payload);
+        });
     }
 
     private function syncProductOptionsAndCombinations(Product $product, Request $request): void
@@ -435,7 +463,7 @@ class ProductController extends Controller
 
         $valueIdByClientKey = [];
         foreach ($normalizedOptions as $optionIndex => $optionPayload) {
-            $option = $product->options()->create([
+            $option = $this->createProductOptionWithRepair($product, [
                 'name_ar' => $optionPayload['name_ar'],
                 'name_en' => $optionPayload['name_en'],
                 'sort_order' => $optionIndex,
@@ -443,7 +471,7 @@ class ProductController extends Controller
             ]);
 
             foreach ($optionPayload['values'] as $valueIndex => $valuePayload) {
-                $value = $option->values()->create([
+                $value = $this->createProductOptionValueWithRepair($option, [
                     'value_ar' => $valuePayload['value_ar'],
                     'value_en' => $valuePayload['value_en'],
                     'sort_order' => $valueIndex,
@@ -485,7 +513,7 @@ class ProductController extends Controller
                 continue;
             }
 
-            $combination = $product->optionCombinations()->create([
+            $combination = $this->createProductOptionCombinationWithRepair($product, [
                 'combination_key' => $combinationKey,
                 'option_value_ids' => $valueIds,
             ]);
@@ -496,8 +524,96 @@ class ProductController extends Controller
 
             $imagePayload = $this->prepareCombinationImagePayload($product, $existingImageId);
             if (!empty($imagePayload)) {
-                $combination->images()->create($imagePayload);
+                $this->createProductOptionCombinationImageWithRepair($combination, $imagePayload);
             }
+        }
+    }
+
+    private function createProductOptionWithRepair(Product $product, array $attributes): \App\Models\ProductOption
+    {
+        try {
+            return $product->options()->create($attributes);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'product_options')) {
+                throw $exception;
+            }
+
+            if (DB::transactionLevel() > 0) {
+                $nextId = ((int) DB::table('product_options')->max('id')) + 1;
+
+                return \App\Models\ProductOption::unguarded(function () use ($product, $attributes, $nextId) {
+                    return $product->options()->create(array_merge($attributes, ['id' => $nextId]));
+                });
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('product_options');
+            return $product->options()->create($attributes);
+        }
+    }
+
+    private function createProductOptionValueWithRepair(\App\Models\ProductOption $option, array $attributes): \App\Models\ProductOptionValue
+    {
+        try {
+            return $option->values()->create($attributes);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'product_option_values')) {
+                throw $exception;
+            }
+
+            if (DB::transactionLevel() > 0) {
+                $nextId = ((int) DB::table('product_option_values')->max('id')) + 1;
+
+                return \App\Models\ProductOptionValue::unguarded(function () use ($option, $attributes, $nextId) {
+                    return $option->values()->create(array_merge($attributes, ['id' => $nextId]));
+                });
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('product_option_values');
+            return $option->values()->create($attributes);
+        }
+    }
+
+    private function createProductOptionCombinationWithRepair(Product $product, array $attributes): \App\Models\ProductOptionCombination
+    {
+        try {
+            return $product->optionCombinations()->create($attributes);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'product_option_combinations')) {
+                throw $exception;
+            }
+
+            if (DB::transactionLevel() > 0) {
+                $nextId = ((int) DB::table('product_option_combinations')->max('id')) + 1;
+
+                return \App\Models\ProductOptionCombination::unguarded(function () use ($product, $attributes, $nextId) {
+                    return $product->optionCombinations()->create(array_merge($attributes, ['id' => $nextId]));
+                });
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('product_option_combinations');
+            return $product->optionCombinations()->create($attributes);
+        }
+    }
+
+    private function createProductOptionCombinationImageWithRepair(\App\Models\ProductOptionCombination $combination, array $attributes): \App\Models\ProductOptionCombinationImage
+    {
+        try {
+            return $combination->images()->create($attributes);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'product_option_combination_images')) {
+                throw $exception;
+            }
+
+            if (DB::transactionLevel() > 0) {
+                $nextId = ((int) DB::table('product_option_combination_images')->max('id')) + 1;
+
+                return \App\Models\ProductOptionCombinationImage::unguarded(function () use ($combination, $attributes, $nextId) {
+                    return $combination->images()->create(array_merge($attributes, ['id' => $nextId]));
+                });
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('product_option_combination_images');
+            return $combination->images()->create($attributes);
         }
     }
 
@@ -587,6 +703,17 @@ class ProductController extends Controller
         } catch (Throwable $e) {
             if (! $this->isMissingDefaultIdError($e)) {
                 throw $e;
+            }
+
+            if (DB::transactionLevel() > 0) {
+                $nextId = ((int) DB::table('product_images')->max('id')) + 1;
+                \App\Models\ProductImage::unguarded(function () use ($product, $path, $nextId) {
+                    $product->images()->create([
+                        'id' => $nextId,
+                        'image_path' => $path,
+                    ]);
+                });
+                return;
             }
 
             Log::warning('Product image insert failed with missing default id; attempting schema repair.', [
