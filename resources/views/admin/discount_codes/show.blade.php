@@ -179,7 +179,7 @@ $statusLabels = [
                             $name     = $customer?->name ?? $user?->name ?? '—';
                             $phone    = $customer?->phone_number ?? '—';
                             $stLabel  = $statusLabels[$order->status] ?? ['text' => $order->status, 'class' => 'bg-secondary'];
-                            $afterDiscount = max(0, $order->total_amount - $order->discount_amount);
+                            $beforeDiscount = $order->total_amount + $order->discount_amount;
                         @endphp
                         <tr>
                             <td class="small text-muted">{{ $loop->iteration + ($orders->perPage() * ($orders->currentPage() - 1)) }}</td>
@@ -191,11 +191,11 @@ $statusLabels = [
                                 @endif
 
                             </td>
-                            <td class="fw-bold">{{ number_format($order->total_amount, 0) }} <small class="text-muted fw-normal">د.ع</small></td>
+                            <td class="fw-bold">{{ number_format($beforeDiscount, 0) }} <small class="text-muted fw-normal">د.ع</small></td>
                             <td>
                                 <span class="fw-bold text-danger">- {{ number_format($order->discount_amount, 0) }} <small class="text-muted fw-normal">د.ع</small></span>
                             </td>
-                            <td class="fw-bold text-success">{{ number_format($afterDiscount, 0) }} <small class="text-muted fw-normal">د.ع</small></td>
+                            <td class="fw-bold text-success">{{ number_format($order->total_amount, 0) }} <small class="text-muted fw-normal">د.ع</small></td>
                             <td>
                                 <span class="badge {{ $stLabel['class'] }} px-3 py-2 rounded-pill small">{{ $stLabel['text'] }}</span>
                             </td>
@@ -211,9 +211,9 @@ $statusLabels = [
                 <tfoot class="bg-light border-top">
                     <tr class="fw-bold small">
                         <td colspan="3" class="py-3 text-end text-muted">المجاميع:</td>
-                        <td class="py-3">{{ number_format($orders->sum('total_amount'), 0) }} <small class="text-muted fw-normal">د.ع</small></td>
+                        <td class="py-3">{{ number_format($orders->sum(fn($o) => $o->total_amount + $o->discount_amount), 0) }} <small class="text-muted fw-normal">د.ع</small></td>
                         <td class="py-3 text-danger">- {{ number_format($orders->sum('discount_amount'), 0) }} <small class="text-muted fw-normal">د.ع</small></td>
-                        <td class="py-3 text-success">{{ number_format($orders->sum(fn($o) => max(0, $o->total_amount - $o->discount_amount)), 0) }} <small class="text-muted fw-normal">د.ع</small></td>
+                        <td class="py-3 text-success">{{ number_format($orders->sum('total_amount'), 0) }} <small class="text-muted fw-normal">د.ع</small></td>
                         <td colspan="3"></td>
                     </tr>
                 </tfoot>
