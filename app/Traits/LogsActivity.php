@@ -52,10 +52,16 @@ trait LogsActivity
      */
     protected static function logActivity(Model $model, string $action)
     {
-        $userId = Auth::check() ? Auth::id() : null;
+        // سجل نشاطات لوحات الإدارة فقط: نربط السجل بالمدير المصادق عبر guard admin.
+        $managerId = Auth::guard('admin')->id();
+
+        // إذا لم يكن الطلب من مدير (مثل عمليات واجهة المستخدم)، لا نُسجّل في activity_logs.
+        if (!$managerId) {
+            return;
+        }
 
         ActivityLog::record([
-            'user_id'       => $userId,
+            'user_id'       => $managerId,
             'loggable_id'   => $model->id,
             'loggable_type' => get_class($model),
             'action'        => $action,

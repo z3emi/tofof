@@ -355,7 +355,7 @@ Route::middleware(['auth:admin', 'can:view-admin-panel'])->prefix('admin')->name
         Route::get('/import-quantity', [ImportController::class, 'importQuantityForm'])->name('import_quantity')->middleware('can:manage-imports');
         Route::post('/import-quantity', [ImportController::class, 'importQuantity'])->name('import_quantity.store')->middleware('can:manage-imports');
     });
-    Route::resource('products', AdminProductController::class)->middleware('can:view-products');
+    Route::resource('products', AdminProductController::class);
 
     Route::prefix('categories')->name('categories.')->group(function () {
         Route::get('/trash', [CategoryController::class, 'trash'])->name('trash')->middleware('can:view-categories');

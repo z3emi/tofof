@@ -205,8 +205,22 @@
                     <li class="list-group-item d-flex justify-content-between">
                         <span>كود الخصم:</span>
                         <span>
-                            @if(!empty($appliedDiscountCode))
-                                <span class="badge bg-light text-dark border">{{ $appliedDiscountCode }}</span>
+                            @if(!empty($appliedDiscountCode) && $discountCodeData)
+                                <div class="text-end">
+                                    <div>
+                                        <span class="badge bg-light text-dark border">{{ $appliedDiscountCode }}</span>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        @if($discountCodeData->type === 'percentage')
+                                            <div>نسبة: {{ $discountCodeData->value }}%</div>
+                                        @else
+                                            <div>مبلغ ثابت: {{ number_format($discountCodeData->value, 0) }} د.ع</div>
+                                        @endif
+                                        @if($discountCodeData->max_discount_amount)
+                                            <div>الحد الأقصى: {{ number_format($discountCodeData->max_discount_amount, 0) }} د.ع</div>
+                                        @endif
+                                    </div>
+                                </div>
                             @else
                                 <span class="text-muted">لم يُستخدم</span>
                             @endif
@@ -261,7 +275,7 @@
                 <div class="table-responsive">
                     <table class="table mb-0 align-middle text-center">
                         <thead>
-                            <tr class="order-product-row" data-href="{{ $item->product ? route('admin.products.show', $item->product->id) : '' }}">
+                            <tr>
                                 <th class="text-start">المنتج</th>
                                 <th class="text-center">السعر</th>
                                 <th class="text-center">الكمية</th>
@@ -270,7 +284,7 @@
                         </thead>
                         <tbody>
                             @foreach($order->items as $item)
-                            <tr>
+                            <tr class="order-product-row" data-href="{{ $item->product ? route('admin.products.show', $item->product->id) : '' }}">
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <img src="{{ $item->product?->firstImage ? asset('storage/' . $item->product->firstImage->image_path) : 'https://placehold.co/50x50?text=Img' }}"

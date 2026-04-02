@@ -334,18 +334,21 @@
     }
 </style>
 <style>
-    /* Force Summernote Editor to LTR */
-    .note-editor.note-frame { 
-        border: 1px solid #dee2e6; 
-        border-radius: 8px; 
-        overflow: hidden; 
-        background: #fff; 
-        direction: ltr !important; 
-        text-align: left !important; 
+    .note-editor.note-frame {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
     }
-    
-    /* Ensure all internal elements follow LTR */
-    .note-editor.note-frame * {
+
+    /* Arabic editor content should be RTL/right aligned */
+    .note-editor.rtl-editor .note-editable {
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    /* English editor content should be LTR/left aligned */
+    .note-editor.ltr-editor .note-editable {
         direction: ltr !important;
         text-align: left !important;
     }
@@ -541,7 +544,29 @@
 
 <script>
 $(document).ready(function() {
-    $('.rich-editor').summernote({
+    $('#description_ar').summernote({
+        placeholder: 'اكتب وصف المنتج بالعربي...',
+        tabsize: 2,
+        height: 250,
+        toolbar: [
+            ['style', ['style']],
+            ['font', ['bold', 'underline', 'clear']],
+            ['color', ['color']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['table', ['table']],
+            ['insert', ['link', 'picture']],
+            ['view', ['fullscreen', 'codeview', 'help']]
+        ],
+        callbacks: {
+            onInit: function() {
+                const $editor = $(this).next('.note-editor');
+                $editor.addClass('rtl-editor');
+                $editor.find('.note-editable').attr('dir', 'rtl').css('text-align', 'right');
+            }
+        }
+    });
+
+    $('#description_en').summernote({
         placeholder: 'Enter description here...',
         tabsize: 2,
         height: 250,
@@ -553,7 +578,14 @@ $(document).ready(function() {
             ['table', ['table']],
             ['insert', ['link', 'picture']],
             ['view', ['fullscreen', 'codeview', 'help']]
-        ]
+        ],
+        callbacks: {
+            onInit: function() {
+                const $editor = $(this).next('.note-editor');
+                $editor.addClass('ltr-editor');
+                $editor.find('.note-editable').attr('dir', 'ltr').css('text-align', 'left');
+            }
+        }
     });
 });
 </script>

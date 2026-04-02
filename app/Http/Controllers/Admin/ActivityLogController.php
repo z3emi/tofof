@@ -32,7 +32,7 @@ class ActivityLogController extends Controller
         $u = $request->user();
 
         // عدّل الأسماء حسب موديلاتك الموجودة فعلاً بالمشروع
-        if ($u->can('view-orders'))          $allowedBasenames[] = 'Order';
+        if ($u->can('view-orders') || $u->can('create-orders') || $u->can('edit-orders') || $u->can('delete-orders') || $u->can('restore-orders') || $u->can('force-delete-orders')) $allowedBasenames[] = 'Order';
         if ($u->can('view-products'))        $allowedBasenames[] = 'Product';
         if ($u->can('view-categories'))      $allowedBasenames[] = 'Category';
         if ($u->can('view-customers'))       $allowedBasenames[] = 'Customer';
@@ -46,6 +46,8 @@ class ActivityLogController extends Controller
             $allowedBasenames[] = 'Role';
             $allowedBasenames[] = 'Permission';
         }
+        if ($u->can('view-users'))           $allowedBasenames[] = 'Manager';   // أنشطة المدراء
+        if ($u->can('edit-settings'))        $allowedBasenames[] = 'Setting';   // تغييرات الإعدادات
 
         // أحداث الدخول/الخروج نسمح بها فقط للي عنده عرض المستخدمين
         $includeAuthEvents = $u->can('view-users');
@@ -65,10 +67,12 @@ class ActivityLogController extends Controller
         if (!$request->boolean('show_users_role_user')) {
             $query->where(function ($q) {
                 $q->whereNull('user_id')
+                  // إذا كان المدير موجوداً وليس لديه دور user فقط
                   ->orWhereHas('user.roles', function ($r) {
-                      // في هذا المشروع، المدراء هم الذين يقومون بالعمليات المسجلة
                       $r->where('name', '!=', 'user');
-                  });
+                  })
+                  // أو إذا كان المدير محذوفاً (لا يوجد في الجدول) — نبقي سجلاته مرئية
+                  ->orWhereDoesntHave('user');
             });
         }
 

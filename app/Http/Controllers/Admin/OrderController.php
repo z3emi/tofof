@@ -27,9 +27,30 @@ use App\Models\WalletTransaction;
 use Illuminate\Support\Facades\Notification;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\OrdersExport;
+use App\Models\ActivityLog;
 
 class OrderController extends Controller
 {
+    protected function logOrderActivity(Order $order, string $action, ?array $before = null, ?array $after = null): void
+    {
+        $managerId = auth('admin')->id();
+
+        if (! $managerId) {
+            return;
+        }
+
+        ActivityLog::record([
+            'user_id'       => $managerId,
+            'loggable_id'   => $order->id,
+            'loggable_type' => Order::class,
+            'action'        => $action,
+            'before'        => $before,
+            'after'         => $after,
+            'ip_address'    => request()->ip(),
+            'user_agent'    => request()->userAgent(),
+        ]);
+    }
+
     protected function preferFilled(...$values)
     {
         foreach ($values as $value) {
@@ -467,7 +488,8 @@ class OrderController extends Controller
         });
 
         // هل يوجد كوبون مفعّل؟
-        $appliedDiscountCode = $order->discountCode;
+        $appliedDiscountCode = $order->discountCode?->code;
+        $discountCodeData = $order->discountCode;
 
         // المبلغ الذي استُخدم من المحفظة (إن كنت تسجّله بهذه الصيغة)
         $walletUsed = 0.0;
@@ -514,6 +536,7 @@ class OrderController extends Controller
             'order',
             'subtotal',
             'appliedDiscountCode',
+            'discountCodeData',
             'walletUsed',
             'originalTotalBeforeWallet',
             'primaryAddress',
@@ -551,6 +574,9 @@ public function updateStatus(Request $request, Order $order, InventoryService $i
         }
 
         $order->update(['status' => $newStatus]);
+
+        // تسجيل صريح لضمان ظهور تغيّر الحالة في سجل المدراء حتى لو لم تعمل events لأي سبب.
+        $this->logOrderActivity($order, 'updated', ['status' => $oldStatus], ['status' => $newStatus]);
 
         // 1. الحفاظ على دالة إشعار التليجرام الخاصة بك
         try {
@@ -629,7 +655,18 @@ public function updateStatus(Request $request, Order $order, InventoryService $i
             return redirect()->back()->with('error', 'لا يمكن حذف الطلب إلا إذا كانت حالته "ملغي" أو "مرتجع".');
         }
 
+        $before = [
+            'id' => $order->id,
+            'status' => $order->status,
+            'customer_id' => $order->customer_id,
+            'total_amount' => $order->total_amount,
+        ];
+
         $order->delete();
+
+        // تسجيل صريح لحذف الطلب (soft delete) باسم المدير الحالي.
+        $this->logOrderActivity($order, 'deleted', $before, null);
+
         return redirect()->route('admin.orders.index')->with('success', 'تم نقل الطلب إلى سلة المحذوفات بنجاح.');
     }
 
