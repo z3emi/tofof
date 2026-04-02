@@ -96,6 +96,9 @@
                             </td>
                             <td>
                                 <div class="btn-group">
+                                    @can('view-discount-codes')
+                                        <a href="{{ route('admin.discount-codes.show', $code->id) }}" class="btn btn-sm btn-outline-secondary rounded-3 px-2 me-1" title="عرض التفاصيل"><i class="bi bi-eye"></i></a>
+                                    @endcan
                                     @can('edit-discount-codes')
                                         <a href="{{ route('admin.discount-codes.edit', $code->id) }}" class="btn btn-sm btn-outline-info rounded-3 px-2 me-1 text-dark" title="تعديل"><i class="bi bi-pencil"></i></a>
                                         <form action="{{ route('admin.discount-codes.toggleStatus', $code->id) }}" method="POST">@csrf<button type="submit" class="btn btn-sm {{ $code->is_active ? 'btn-outline-warning' : 'btn-outline-success' }} rounded-3 px-2 me-1" title="{{ $code->is_active ? 'إيقاف' : 'تفعيل' }}"><i class="bi {{ $code->is_active ? 'bi-pause' : 'bi-play' }}"></i></button></form>

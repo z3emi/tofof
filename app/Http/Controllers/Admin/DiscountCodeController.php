@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\DiscountCode;
 use App\Models\Category;
+use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -36,6 +37,25 @@ class DiscountCodeController extends Controller
             ->withQueryString();
 
         return view('admin.discount_codes.index', compact('discountCodes'));
+    }
+
+    public function show(Request $request, DiscountCode $discount_code)
+    {
+        $perPage = $request->input('per_page', 15);
+
+        $orders = Order::with(['customer', 'user'])
+            ->where('discount_code_id', $discount_code->id)
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $totalDiscount  = Order::where('discount_code_id', $discount_code->id)->sum('discount_amount');
+        $uniqueUsersCount = Order::where('discount_code_id', $discount_code->id)
+            ->whereNotNull('user_id')
+            ->distinct('user_id')
+            ->count('user_id');
+
+        return view('admin.discount_codes.show', compact('discount_code', 'orders', 'totalDiscount', 'uniqueUsersCount'));
     }
 
     public function create()
