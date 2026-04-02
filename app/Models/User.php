@@ -193,43 +193,57 @@ class User extends Authenticatable
         if (str_starts_with($normalized, 'storage/')) {
             $normalized = substr($normalized, 8);
         }
+        if (str_starts_with($normalized, 'storage/app/public/')) {
+            $normalized = substr($normalized, 19);
+        }
+        if (str_starts_with($normalized, 'app/public/')) {
+            $normalized = substr($normalized, 11);
+        }
         if (str_starts_with($normalized, 'public/')) {
             $normalized = substr($normalized, 7);
+        }
+
+        if ($normalized === '') {
+            return $this->getDefaultAvatarUrl();
         }
 
         // الحالة القياسية: public/storage -> storage/app/public
         $standardPublicPath = public_path('storage/' . $normalized);
         if (file_exists($standardPublicPath)) {
-            return asset('storage/' . $normalized);
+            return '/storage/' . $normalized;
         }
 
         // بعض الاستضافات تضع الملفات داخل public/storage/app/public مباشرةً.
         $directPublicStoragePath = public_path('storage/app/public/' . $normalized);
         if (file_exists($directPublicStoragePath)) {
-            return asset('storage/app/public/' . $normalized);
+            return '/storage/app/public/' . $normalized;
         }
 
-        return Storage::disk('public')->url($normalized);
+        if (Storage::disk('public')->exists($normalized)) {
+            return Storage::disk('public')->url($normalized);
+        }
+
+        return $this->getDefaultAvatarUrl();
     }
 
     protected function getDefaultAvatarUrl(): string
     {
         if (file_exists(public_path('storage/avatars/default.png'))) {
-            return asset('storage/avatars/default.png');
+            return '/storage/avatars/default.png';
         }
 
         if (file_exists(public_path('storage/avatars/default.jpg'))) {
-            return asset('storage/avatars/default.jpg');
+            return '/storage/avatars/default.jpg';
         }
 
         if (file_exists(public_path('storage/app/public/avatars/default.png'))) {
-            return asset('storage/app/public/avatars/default.png');
+            return '/storage/app/public/avatars/default.png';
         }
 
         if (file_exists(public_path('storage/app/public/avatars/default.jpg'))) {
-            return asset('storage/app/public/avatars/default.jpg');
+            return '/storage/app/public/avatars/default.jpg';
         }
 
-        return asset('storage/avatars/default.png');
+        return '/storage/avatars/default.png';
     }
 }

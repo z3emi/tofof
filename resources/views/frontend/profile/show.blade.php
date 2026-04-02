@@ -170,7 +170,7 @@
            src="{{ $avatar }}"
            alt="avatar"
            class="avatar"
-         onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.png') }}';">
+         onerror="this.onerror=null;this.src='/storage/avatars/default.png';">
       <label for="avatar" class="avatar-edit" title="{{ __('profile.edit_profile_btn') }}">
         <i class="bi bi-camera-fill"></i>
       </label>
