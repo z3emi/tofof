@@ -61,6 +61,8 @@ class AppServiceProvider extends ServiceProvider
                     'show_dashboard_notification',
                     'dashboard_notification_content',
                     'dashboard_notification_animation',
+                    'dashboard_notification_bg_color',
+                    'dashboard_notification_text_color',
                     'show_welcome_screen',
                     'welcome_screen_content',
                 ])->pluck('value', 'key');

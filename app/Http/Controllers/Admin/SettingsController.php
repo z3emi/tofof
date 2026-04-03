@@ -25,6 +25,8 @@ class SettingsController extends Controller
             'show_dashboard_notification',
             'dashboard_notification_content',
             'dashboard_notification_animation',
+            'dashboard_notification_bg_color',
+            'dashboard_notification_text_color',
             'show_welcome_screen',
             'welcome_screen_content',
             'maintenance_mode',
@@ -64,6 +66,9 @@ class SettingsController extends Controller
             } elseif ($key === 'free_shipping_threshold') {
                 $value = $request->input($key);
                 $value = is_numeric($value) ? max(0, (int) $value) : null;
+            } elseif (in_array($key, ['dashboard_notification_bg_color', 'dashboard_notification_text_color'], true)) {
+                $value = trim((string) $request->input($key, ''));
+                $value = preg_match('/^#(?:[0-9a-fA-F]{3}){1,2}$/', $value) ? strtoupper($value) : null;
             } else {
                 $value = $request->input($key);
             }

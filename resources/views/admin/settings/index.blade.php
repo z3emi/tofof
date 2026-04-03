@@ -462,6 +462,28 @@
                                                 <option value="scroll-right" @selected(old('dashboard_notification_animation', $settings['dashboard_notification_animation'] ?? 'none') == 'scroll-right')>تمرير مستمر جهة اليمين</option>
                                             </select>
                                         </div>
+                                        <div class="col-md-3 mt-3 mt-md-0">
+                                            <label class="small fw-bold text-muted mb-2" for="dashboard_notification_bg_color">لون الخلفية</label>
+                                            <input
+                                                type="color"
+                                                id="dashboard_notification_bg_color"
+                                                name="dashboard_notification_bg_color"
+                                                class="form-control form-control-color w-100"
+                                                value="{{ old('dashboard_notification_bg_color', $settings['dashboard_notification_bg_color'] ?? '#000000') }}"
+                                                title="لون خلفية شريط الإعلانات"
+                                            >
+                                        </div>
+                                        <div class="col-md-3 mt-3 mt-md-0">
+                                            <label class="small fw-bold text-muted mb-2" for="dashboard_notification_text_color">لون النص</label>
+                                            <input
+                                                type="color"
+                                                id="dashboard_notification_text_color"
+                                                name="dashboard_notification_text_color"
+                                                class="form-control form-control-color w-100"
+                                                value="{{ old('dashboard_notification_text_color', $settings['dashboard_notification_text_color'] ?? '#FFFFFF') }}"
+                                                title="لون نص شريط الإعلانات"
+                                            >
+                                        </div>
                                     </div>
                                 </div>
                             </div>

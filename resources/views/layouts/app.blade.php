@@ -1011,6 +1011,14 @@ html[dir="rtl"] .glass-indicator {
 
     <div class="sticky top-0 z-40">@if($sessionErrorMessage)<div x-data="{ show: true }" x-show="show" x-transition.opacity.duration.300ms class="bg-red-600 text-white"><div class="container mx-auto px-4 py-2 flex items-center justify-between gap-4 text-sm md:text-base"><span class="font-medium">{{ $sessionErrorMessage }}</span><button type="button" class="text-white/80 hover:text-white text-lg" @click="show = false">&times;</button></div></div>@endif 
         @if(isset($show_dashboard_notification) && $show_dashboard_notification == 'on' && !empty($dashboard_notification_content))
+          @php
+            $noticeBarBgColor = preg_match('/^#(?:[0-9a-fA-F]{3}){1,2}$/', $dashboard_notification_bg_color ?? '')
+              ? $dashboard_notification_bg_color
+              : '#000000';
+            $noticeBarTextColor = preg_match('/^#(?:[0-9a-fA-F]{3}){1,2}$/', $dashboard_notification_text_color ?? '')
+              ? $dashboard_notification_text_color
+              : '#FFFFFF';
+          @endphp
             <style>
                 @keyframes scrollLeft {
                     0% { transform: translateX(0); }
@@ -1043,13 +1051,14 @@ html[dir="rtl"] .glass-indicator {
                 }
             </style>
             <div x-data="{ show: true }" x-show="show" x-transition 
-                 class="bg-black text-white p-2 text-sm relative overflow-hidden {{ ($dashboard_notification_animation ?? 'none') === 'none' ? 'text-center' : '' }}">
+               style="background-color: {{ $noticeBarBgColor }}; color: {{ $noticeBarTextColor }};"
+               class="p-2 text-sm relative overflow-hidden {{ ($dashboard_notification_animation ?? 'none') === 'none' ? 'text-center' : '' }}">
                 <div class="notification-container">
                     <div class="{{ ($dashboard_notification_animation ?? 'none') !== 'none' ? 'animate-' . $dashboard_notification_animation : '' }}">
                         {!! $dashboard_notification_content !!}
                     </div>
                 </div>
-                <button @click="show = false" class="absolute top-1/2 left-4 -translate-y-1/2 text-xl z-20 hover:opacity-75 transition-opacity">&times;</button>
+              <button @click="show = false" class="absolute top-1/2 left-4 -translate-y-1/2 text-xl z-20 hover:opacity-75 transition-opacity" style="color: inherit;">&times;</button>
             </div>
         @endif
         <header id="mobileHeader" class="bg-[#6d0e16] py-3 border-b border-white/20 dark:border-white/15 shadow-md dark:shadow-black/40 relative overflow-visible">
