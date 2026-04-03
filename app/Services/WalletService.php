@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\WalletTransaction;
+use App\Support\RepairsPrimaryKeyAutoIncrement;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 class WalletService
@@ -18,20 +20,18 @@ class WalletService
             return;
         }
 
-        DB::transaction(function () use ($user, $amount, $description) {
-            $newBalance = (float)$user->wallet_balance + $amount;
+        try {
+            self::creditWithoutRepair($user, $amount, $description);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'wallet_transactions')) {
+                throw $exception;
+            }
 
-            WalletTransaction::create([
-                'user_id'       => $user->id,
-                'type'          => 'credit',
-                'amount'        => $amount,
-                'description'   => $description,
-                'balance_after' => $newBalance,
-            ]);
+            // Repair runs outside transactions because ALTER TABLE causes implicit commit in MySQL.
+            RepairsPrimaryKeyAutoIncrement::ensure('wallet_transactions');
 
-            $user->wallet_balance = $newBalance;
-            $user->save();
-        });
+            self::creditWithoutRepair($user, $amount, $description);
+        }
     }
 
     /**
@@ -43,20 +43,18 @@ class WalletService
             throw new \Exception('الرصيد في المحفظة غير كافٍ.');
         }
 
-        DB::transaction(function () use ($user, $amount, $description) {
-            $newBalance = (float)$user->wallet_balance - $amount;
+        try {
+            self::debitWithoutRepair($user, $amount, $description);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'wallet_transactions')) {
+                throw $exception;
+            }
 
-            WalletTransaction::create([
-                'user_id'       => $user->id,
-                'type'          => 'debit',
-                'amount'        => $amount,
-                'description'   => $description,
-                'balance_after' => $newBalance,
-            ]);
-            
-            $user->wallet_balance = $newBalance;
-            $user->save();
-        });
+            // Repair runs outside transactions because ALTER TABLE causes implicit commit in MySQL.
+            RepairsPrimaryKeyAutoIncrement::ensure('wallet_transactions');
+
+            self::debitWithoutRepair($user, $amount, $description);
+        }
     }
 
     /**
@@ -104,5 +102,41 @@ class WalletService
             // ✅ [إضافة هامة] تحديث الحالة لمنع منح المكافأة مرة أخرى أبداً لهذا المستخدم
             $customer->update(['referrer_bonus_awarded' => true]);
         }
+    }
+
+    private static function creditWithoutRepair(User $user, float $amount, string $description): void
+    {
+        DB::transaction(function () use ($user, $amount, $description) {
+            $newBalance = (float)$user->wallet_balance + $amount;
+
+            WalletTransaction::create([
+                'user_id'       => $user->id,
+                'type'          => 'credit',
+                'amount'        => $amount,
+                'description'   => $description,
+                'balance_after' => $newBalance,
+            ]);
+
+            $user->wallet_balance = $newBalance;
+            $user->save();
+        });
+    }
+
+    private static function debitWithoutRepair(User $user, float $amount, string $description): void
+    {
+        DB::transaction(function () use ($user, $amount, $description) {
+            $newBalance = (float)$user->wallet_balance - $amount;
+
+            WalletTransaction::create([
+                'user_id'       => $user->id,
+                'type'          => 'debit',
+                'amount'        => $amount,
+                'description'   => $description,
+                'balance_after' => $newBalance,
+            ]);
+
+            $user->wallet_balance = $newBalance;
+            $user->save();
+        });
     }
 }
