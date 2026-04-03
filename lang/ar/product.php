@@ -17,6 +17,7 @@ return [
     'out_of_stock'            => 'منتهي الكمية',
     'add_to_wishlist'         => 'أضف إلى المفضلة',
     'remove_from_wishlist'    => 'إزالة من المفضلة',
+    'discount_badge'          => 'خصم :percent%',
     'quantity'                => 'الكمية:',
     'trusted_delivery'        => '🚚 خدمة توصيل موثوقة داخل وخارج العراق',
     'fast_processing'         => '⚡ معالجة سريعة للطلبات لضمان وصولها بأفضل وقت',

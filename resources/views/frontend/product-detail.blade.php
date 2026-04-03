@@ -389,7 +389,7 @@
                                 $mainDiscount = round(100 - ($product->sale_price / $product->price * 100));
                             @endphp
                             <div class="absolute top-4 left-4 z-10 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg border border-white/20">
-                                -{{ $mainDiscount }}% {{ __('common.off') }}
+                                {{ __('product.discount_badge', ['percent' => $mainDiscount]) }}
                             </div>
                         @endif
 

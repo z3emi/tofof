@@ -17,6 +17,7 @@ return [
     'out_of_stock'            => 'Out of Stock',
     'add_to_wishlist'         => 'Add to Wishlist',
     'remove_from_wishlist'    => 'Remove from Wishlist',
+    'discount_badge'          => ':percent% OFF',
     'quantity'                => 'Quantity:',
     'trusted_delivery'        => '🚚 Trusted delivery inside and outside Iraq',
     'fast_processing'         => '⚡ Fast order processing for timely delivery',
