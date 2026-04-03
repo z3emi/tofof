@@ -71,7 +71,7 @@ class Setting extends Model
         $default = (bool) config('shop.shipping_enabled', true);
         $value = static::getValue('shipping_enabled', $default ? '1' : '0');
 
-        return (bool) ($value === '1' || $value === 1 || $value === true);
+        return static::toBoolean($value);
     }
 
     /**
@@ -81,7 +81,7 @@ class Setting extends Model
     {
         $value = static::getValue('free_shipping_enabled', '1');
 
-        return (bool) ($value === '1' || $value === 1 || $value === true);
+        return static::toBoolean($value);
     }
 
     /**
@@ -92,5 +92,20 @@ class Setting extends Model
         $value = static::getValue('maintenance_mode', 'off');
 
         return $value === 'on' || $value === '1' || $value === 1 || $value === true;
+    }
+
+    private static function toBoolean(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            return (int) $value === 1;
+        }
+
+        $normalized = strtolower(trim((string) $value));
+
+        return in_array($normalized, ['1', 'true', 'on', 'yes', 'enabled'], true);
     }
 }

@@ -381,8 +381,13 @@
                                 </div>
                                 <div class="card-body p-4">
                                     <div class="form-check form-switch mb-4">
-                                        <input class="form-check-input" type="checkbox" name="shipping_enabled" id="shipping_enabled" {{ old('shipping_enabled', $settings['shipping_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
+                                        <input class="form-check-input" type="checkbox" name="shipping_enabled" id="shipping_enabled" value="1" {{ old('shipping_enabled', $settings['shipping_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
                                         <label class="form-check-label fw-bold" for="shipping_enabled">تفعيل احتساب التوصيل في السلة</label>
+                                    </div>
+
+                                    <div class="form-check form-switch mb-4">
+                                        <input class="form-check-input" type="checkbox" name="free_shipping_enabled" id="free_shipping_enabled" value="1" {{ old('free_shipping_enabled', $settings['free_shipping_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
+                                        <label class="form-check-label fw-bold" for="free_shipping_enabled">تفعيل ميزة الشحن المجاني</label>
                                     </div>
                                     
                                     <div class="row g-3">

@@ -262,6 +262,7 @@
       shippingCost: {{ (float)$shippingCost }},
       baseShippingCost: {{ (float)$baseShippingCost }},
       freeShippingThreshold: {{ (int)$freeShippingThreshold }},
+      isShippingEnabled: {{ $isShippingEnabled ? 'true' : 'false' }},
       isFreeShippingEnabled: {{ $isFreeShippingEnabled ? 'true' : 'false' }},
       discountCode: "{{ session('discount_code', '') }}",
       feedbackMessage: "{{ session('discount_error') ?: (session('discount_code') ? __('cart.coupon_applied') . ' ' . session('discount_code') : '') }}",
@@ -358,6 +359,11 @@
           newTotal += this.itemLineTotal(it);
         }
         this.subtotal = newTotal;
+
+        if (!this.isShippingEnabled) {
+          this.shippingCost = 0;
+          return;
+        }
 
         const threshold = Math.max(0, parseFloat(this.freeShippingThreshold ?? 0));
         const baseShipping = Math.max(0, parseFloat(this.baseShippingCost ?? 0));
