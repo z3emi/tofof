@@ -167,7 +167,8 @@
                 </div>
                 <div class="col-6 text-end">
                     <p><strong>رقم الطلب:</strong> #{{ $order->id }}</p>
-                    <p><strong>تاريخ الطلب:</strong> {{ $order->created_at->format('Y/m/d H:i') }}</p>
+                    <p><strong>تاريخ الطلب:</strong> {{ $order->created_at->format('Y/m/d') }}</p>
+                    <p><strong>وقت الطلب:</strong> {{ $order->created_at->format('H:i') }}</p>
                 </div>
             </section>
 
@@ -185,17 +186,37 @@
                     </thead>
                     <tbody>
                         @foreach($order->items as $item)
+                        @php
+                            $product = $item->product;
+                            $productImageUrl = $product->image_url ?? null;
+                            if (empty($productImageUrl) && !empty(optional(optional($product)->firstImage)->image_path)) {
+                                $productImageUrl = asset('storage/' . optional(optional($product)->firstImage)->image_path);
+                            }
+                        @endphp
                         <tr>
                             <td class="text-center">{{ $loop->iteration }}</td>
                             <td>
-                                <div>{{ $item->product->name_ar ?? 'منتج محذوف' }}</div>
-                                @if(!empty($item->option_selections))
-                                    <div class="small text-muted mt-1">
-                                        @foreach($item->option_selections as $label => $value)
-                                            <div>{{ $label }}: {{ is_array($value) ? implode(', ', $value) : $value }}</div>
-                                        @endforeach
+                                <div class="d-flex align-items-center gap-2">
+                                    @if(!empty($productImageUrl))
+                                        <img
+                                            src="{{ $productImageUrl }}"
+                                            alt="{{ $product->name_ar ?? 'صورة المنتج' }}"
+                                            class="rounded border flex-shrink-0"
+                                            style="width: 52px; height: 52px; object-fit: cover;"
+                                        >
+                                    @endif
+
+                                    <div>
+                                        <div>{{ $product->name_ar ?? 'منتج محذوف' }}</div>
+                                        @if(!empty($item->option_selections))
+                                            <div class="small text-muted mt-1">
+                                                @foreach($item->option_selections as $label => $value)
+                                                    <div>{{ $label }}: {{ is_array($value) ? implode(', ', $value) : $value }}</div>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </div>
-                                @endif
+                                </div>
                             </td>
                             <td class="text-center">{{ optional($item->product)->sku ?: '—' }}</td>
                             <td class="text-center">{{ number_format($item->price, 0) }} د.ع</td>
