@@ -185,7 +185,7 @@ class CartController extends Controller
         }
 
         try {
-            $result = $discountService->apply($request->discount_code, $total);
+            $result = $discountService->apply($request->discount_code, $total, array_values($cart));
             session([
                 'discount_code'    => $request->discount_code,
                 'discount_value'   => $result['discount_amount'],

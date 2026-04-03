@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\QueryException;
+use App\Support\RepairsPrimaryKeyAutoIncrement;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\DiscountCodesExport;
 
@@ -94,8 +95,7 @@ class DiscountCodeController extends Controller
             $discountCode = $this->createDiscountCodeFromRequest($request);
         }
 
-        $discountCode->categories()->sync($request->input('categories', []));
-        $discountCode->products()->sync($request->input('products', []));
+        $this->syncDiscountCodeRelations($discountCode, $request);
 
         return redirect()->route('admin.discount-codes.index')->with('success', 'تم إنشاء كود الخصم بنجاح.');
     }
@@ -134,8 +134,7 @@ class DiscountCodeController extends Controller
             'expires_at'         => $request->expires_at,
         ]);
 
-        $discount_code->categories()->sync($request->input('categories', []));
-        $discount_code->products()->sync($request->input('products', []));
+        $this->syncDiscountCodeRelations($discount_code, $request);
 
         return redirect()->route('admin.discount-codes.index')->with('success', 'تم تحديث كود الخصم بنجاح.');
     }
@@ -246,5 +245,30 @@ class DiscountCodeController extends Controller
 
         $nextId = ((int) DB::table('discount_codes')->max('id')) + 1;
         DB::statement('ALTER TABLE `discount_codes` AUTO_INCREMENT = ' . max($nextId, 1));
+    }
+
+    private function syncDiscountCodeRelations(DiscountCode $discountCode, Request $request): void
+    {
+        try {
+            $discountCode->categories()->sync($request->input('categories', []));
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'category_discount_code')) {
+                throw $exception;
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('category_discount_code');
+            $discountCode->categories()->sync($request->input('categories', []));
+        }
+
+        try {
+            $discountCode->products()->sync($request->input('products', []));
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'discount_code_product')) {
+                throw $exception;
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('discount_code_product');
+            $discountCode->products()->sync($request->input('products', []));
+        }
     }
 }
