@@ -8,12 +8,12 @@
 
     <style>
       :root{
-        --brand:#cd8985;
-        --brand-dark:#be6661;
-        --brand-bg:#f9f5f1;
-        --hair:#f3ece5;
-        --soft:#efe4da;
-        --text:#4a3f3f;
+        --brand:#6d0e16;
+        --brand-dark:#500a10;
+        --brand-bg:#fdfaf9;
+        --hair:#f0e8e8;
+        --soft:#f5eeee;
+        --text:#1a1a1a;
       }
       html.dark{
         --brand-bg:#0b0f14;
@@ -22,19 +22,7 @@
         --text:#e5e7eb;
       }
 
-      /* سطح موحّد */
-      .surface{
-        background:#fff;
-        border-radius:16px;
-        box-shadow: 0 12px 30px rgba(205,137,133,.10), 0 6px 14px rgba(0,0,0,.06);
-        padding:1rem;
-        border:1px solid var(--hair);
-      }
-      @media (min-width:768px){ .surface{ padding:1.25rem 1.5rem; } }
-      html.dark .surface{
-        background:#0f172a !important;
-        box-shadow: 0 12px 30px rgba(0,0,0,.35), inset 0 0 0 1px var(--hair) !important;
-      }
+
 
       .page-title{ color:var(--text); font-weight:800; }
       .page-sub{ color:#7a6e6e; }
@@ -51,7 +39,7 @@
       .control:focus{
         outline: none;
         border-color: var(--brand);
-        box-shadow: 0 0 0 3px rgba(205,137,133,.18);
+        box-shadow: 0 0 0 3px rgba(109,14,22,.12);
       }
       .hint{ color:#9ca3af; font-size:.85rem; margin-top:.35rem; }
 
@@ -60,8 +48,8 @@
       }
       html.dark .control::placeholder{ color:#94a3af; }
       html.dark .control:focus{
-        border-color:#be6661 !important;
-        box-shadow: 0 0 0 3px rgba(190,102,97,.28);
+        border-color:#500a10 !important;
+        box-shadow: 0 0 0 3px rgba(109,14,22,.25);
       }
 
       /* أزرار */
@@ -85,17 +73,110 @@
       }
       html.dark .btn-secondary:hover{ background:#111827; }
 
+      /* بطاقة الخريطة - هوية برغندية */
+      .map-card{
+        margin: 0 0 1rem;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        padding: 0;
+      }
+      html.dark .map-card{
+        background: transparent;
+        border-color: transparent;
+      }
+
+      .map-head{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:.75rem;
+        flex-wrap:wrap;
+        margin-bottom:.65rem;
+      }
+      .map-title-wrap{ display:flex; flex-direction:column; gap:.15rem; }
+      .map-title{ color:var(--brand); font-weight:900; font-size:1rem; line-height:1.2; }
+      .map-sub{ color:#7a6e6e; font-size:.84rem; }
+      html.dark .map-sub{ color:#9ca3af; }
+
+      .map-shell{
+        padding: 0;
+        border-radius: 22px;
+        background: transparent;
+        border: 0;
+        position: relative;
+      }
+      html.dark .map-shell{
+        background: transparent;
+      }
+
       /* خريطة Leaflet */
       #map{
-        height: 300px; width: 100%;
+        height: 320px; width: 100%;
         background: var(--brand-bg);
-        border: 1px solid var(--hair);
-        border-radius: 12px;
-        margin: .75rem 0 0.75rem;
+        border: 2px solid rgba(109,14,22,.28);
+        border-radius: 22px;
+        margin: 0;
         z-index: 1;
-        box-shadow: inset 0 0 0 1px var(--hair);
+        box-shadow: 0 14px 30px rgba(109,14,22,.14);
       }
-      .leaflet-container{ position:relative !important; border-radius:12px; }
+      .leaflet-container{ position:relative !important; border-radius:22px; }
+      html.dark #map{ border-color: rgba(176,85,96,.45); }
+
+      /* زر تحديد موقعي داخل الخريطة */
+      .map-locate-btn{
+        position:absolute;
+        top:12px;
+        left:12px;
+        z-index: 600;
+      }
+
+      /* مؤشر التحديد الثابت في المنتصف */
+      .map-center-pin{
+        position:absolute;
+        top:50%;
+        left:0;
+        right:0;
+        margin-left:auto;
+        margin-right:auto;
+        transform: translateY(-100%) rotate(-45deg);
+        width: 30px;
+        height: 30px;
+        border-radius: 999px 999px 999px 0;
+        background: linear-gradient(145deg, #8c1c26 0%, #6d0e16 65%);
+        border: 2px solid #ffffff;
+        box-shadow: 0 8px 18px rgba(109,14,22,.35);
+        z-index: 550;
+        pointer-events: none;
+      }
+      .map-center-pin::before{
+        content:'';
+        position:absolute;
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background:#ffffff;
+        top:50%;
+        left:50%;
+        transform: translate(-50%, -50%);
+      }
+      .map-center-shadow{
+        position:absolute;
+        top:50%;
+        left:0;
+        right:0;
+        margin-left:auto;
+        margin-right:auto;
+        transform: translateY(4px);
+        width: 18px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(0,0,0,.22);
+        filter: blur(1px);
+        z-index: 540;
+        pointer-events: none;
+      }
+      html.dark .map-center-shadow{ background: rgba(0,0,0,.4); }
       .map-toolbar{
         display:flex; gap:.5rem; justify-content:flex-end; flex-wrap:wrap;
       }
@@ -108,11 +189,11 @@
       }
       .btn-ghost:hover{ background:var(--brand); color:#fff; box-shadow:none; }
       html.dark .btn-ghost{
-        background:#0b0f14; color:#f0b0ad; box-shadow: inset 0 0 0 1px #f0b0ad;
+        background:#0b0f14; color:#b05560; box-shadow: inset 0 0 0 1px #b05560;
       }
-      html.dark .btn-ghost:hover{ background:#cd8985; color:#0b0f14; box-shadow:none; }
+      html.dark .btn-ghost:hover{ background:#6d0e16; color:#fff; box-shadow:none; }
 
-      @media (max-width:640px){ #map{ height: 260px; } }
+      @media (max-width:640px){ #map{ height: 250px; } }
 
       /* أخطاء */
       .error{ color:#b91c1c; font-size:.85rem; margin-top:.3rem; font-weight:700; }
@@ -121,9 +202,9 @@
 @endpush
 
 @section('profile-content')
-<div class="surface">
+<div>
     <h2 class="text-xl md:text-2xl page-title mb-1">إضافة عنوان شحن جديد</h2>
-    <p class="page-sub text-sm md:text-base mb-4 md:mb-6">أدخلي بيانات العنوان بدقة لتحسين سرعة التوصيل</p>
+    <p class="page-sub text-sm md:text-base mb-4 md:mb-6">أدخل بيانات العنوان بدقة لتحسين سرعة التوصيل</p>
 
     {{-- رسائل الأخطاء العامة --}}
     @if ($errors->any())
@@ -138,12 +219,37 @@
         {{-- مهم: عنوان الرجوع بعد الحفظ (صفحة المصدر) --}}
         <input type="hidden" name="return_to" value="{{ request('return_to', url()->previous()) }}">
 
+        {{-- الخريطة أعلى النموذج --}}
+        <div class="map-card">
+          <div class="map-head">
+            <div class="map-title-wrap">
+              <div class="map-title">حدد الموقع على الخريطة</div>
+            </div>
+
+            <div class="map-toolbar"></div>
+          </div>
+
+          <div class="map-shell">
+            <button type="button" id="get_location_btn" class="btn-ghost map-locate-btn">
+              <i class="bi bi-crosshair2"></i> تحديد موقعي
+            </button>
+            <div id="map"></div>
+            <div class="map-center-pin" aria-hidden="true"></div>
+            <div class="map-center-shadow" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        {{-- قيم الإحداثيات المخفية --}}
+        <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude') }}">
+        <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude') }}">
+
         <div class="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
             {{-- المحافظة --}}
             <div class="field">
                 <label for="governorate" class="label">المحافظة</label>
                 <select id="governorate" name="governorate" required class="control">
                     <option value="">اختر المحافظة</option>
+                  <option value="غير محدد" {{ old('governorate') == 'غير محدد' ? 'selected' : '' }}>عدم التحديد</option>
                     @php
                         $governorates = config('locations.iraqi_governorates');
                     @endphp
@@ -175,24 +281,6 @@
             <input type="text" id="nearest_landmark" name="nearest_landmark" value="{{ old('nearest_landmark') }}" class="control" placeholder="مثال: قرب جامع الحبوبي">
             @error('nearest_landmark') <div class="error">{{ $message }}</div> @enderror
         </div>
-
-        <div style="height:1px; background:var(--hair); margin:1rem 0;"></div>
-
-        {{-- أدوات الخريطة --}}
-        <div class="map-toolbar">
-          <button type="button" id="get_location_btn" class="btn-ghost">
-            <i class="bi bi-geo-alt-fill"></i> تحديد موقعي الحالي
-          </button>
-        </div>
-
-        {{-- الخريطة --}}
-        <div id="map"></div>
-        <p class="hint">تحديد الموقع على الخريطة اختياري، لكنه يساعدنا في الوصول بشكل أسرع.</p>
-
-        {{-- قيم الإحداثيات المخفية --}}
-        <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude') }}">
-        <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude') }}">
-
         {{-- أزرار الإرسال --}}
         <div class="flex flex-col sm:flex-row justify-start gap-3 pt-3 md:pt-4">
             <button type="submit" class="btn-brand">
@@ -230,18 +318,12 @@
         const initialLng = hasOld ? oldLng : 44.3661;
         const initialZoom = hasOld ? 15 : 12;
 
-        const map = L.map('map', { scrollWheelZoom: true }).setView([initialLat, initialLng], initialZoom);
+        const map = L.map('map', { scrollWheelZoom: true, zoomControl: false }).setView([initialLat, initialLng], initialZoom);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; OpenStreetMap',
           subdomains: ['a','b','c']
         }).addTo(map);
-
-        // الماركر القابل للسحب
-        const marker = L.marker([initialLat, initialLng], { draggable:true, autoPan:true })
-                        .addTo(map)
-                        .bindPopup('اسحبني لتحديد الموقع الدقيق')
-                        .openPopup();
 
         function updateHidden(lat, lng, triggerGeocode = true){
           document.getElementById('latitude').value  = Number(lat).toFixed(6);
@@ -252,15 +334,14 @@
           }
         }
 
-        marker.on('dragend', e=>{
-          const {lat, lng} = e.target.getLatLng();
-          updateHidden(lat, lng);
+        // التحديد يتم من مركز الخريطة: المستخدم يحرّك الخريطة والمؤشر ثابت
+        map.on('moveend', ()=>{
+          const center = map.getCenter();
+          updateHidden(center.lat, center.lng);
         });
 
-        map.on('click', e=>{
-          marker.setLatLng(e.latlng);
-          updateHidden(e.latlng.lat, e.latlng.lng);
-        });
+        // تعبئة أولية للإحداثيات عند فتح الصفحة
+        updateHidden(initialLat, initialLng, hasOld);
 
         // وظيفة جلب البيانات من الإحداثيات
         async function reverseGeocode(lat, lng) {
@@ -348,7 +429,6 @@
           navigator.geolocation.getCurrentPosition(pos=>{
               const { latitude, longitude } = pos.coords;
               map.setView([latitude, longitude], 15);
-              marker.setLatLng([latitude, longitude]);
               updateHidden(latitude, longitude);
               this.innerHTML = originalHTML;
             }, err=>{

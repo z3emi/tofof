@@ -105,12 +105,41 @@
     }
 
     .wishlist-scope .empty-state { text-align: center; padding: 5rem 2rem; }
-    .wishlist-scope .empty-state i { font-size: 3.5rem; color: #d1d5db; margin-bottom: 1rem; display: block; }
+    .wishlist-scope .empty-state > i { font-size: 3.5rem; color: #d1d5db; margin-bottom: 1rem; display: block; }
     .wishlist-scope .btn-browse {
-        display: inline-flex; align-items: center; gap: 0.5rem; background: #6d0e16;
-        color: white; padding: 0.75rem 2rem; border-radius: 999px; font-weight: 700; text-decoration: none; transition: 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        height: 44px;
+        background: #6d0e16;
+        color: #ffffff;
+        padding: 0 0.75rem;
+        border-radius: 10px;
+        border: none;
+        font-weight: 700;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        text-decoration: none;
+        transition: 0.2s;
+        box-shadow: 0 8px 16px rgba(109, 14, 22, 0.15);
     }
-    .wishlist-scope .btn-browse:hover { background: #500a10; transform: scale(1.05); }
+    .wishlist-scope .btn-browse:hover { background: #500a10 !important; }
+    .wishlist-scope .btn-browse i {
+        font-size: 1rem;
+        line-height: 1;
+        margin: 0;
+        display: inline-block;
+    }
+    .wishlist-scope .btn-browse:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(109, 14, 22, 0.2), 0 10px 20px rgba(109, 14, 22, 0.18);
+    }
+    @media (max-width: 640px) {
+        .wishlist-scope .btn-browse {
+            width: 100%;
+        }
+    }
 
     /* Alpine Transition Fixes */
     .wishlist-scope [x-cloak] { display: none !important; }
@@ -129,7 +158,7 @@
             <i class="bi bi-heart"></i>
             <h3 class="text-xl font-bold mb-3">{{ __('profile.no_favorites') }}</h3>
             <p class="text-gray-500 mb-6">{{ __('profile.wishlist_empty_desc') }}</p>
-            <a href="{{ route('shop') }}" class="btn-browse">
+            <a href="{{ Route::has('shop') ? route('shop') : url('/shop') }}" class="btn-browse" data-fast-nav="true" aria-label="{{ __('profile.browse_store') }}">
                 <i class="bi bi-bag-plus"></i> {{ __('profile.browse_store') }}
             </a>
         </div>

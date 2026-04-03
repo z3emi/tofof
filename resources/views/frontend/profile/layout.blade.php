@@ -3,27 +3,29 @@
 
 @section('content')
 @php
-    // ألوان الهوية
-    $brand      = '#0F2A44';
-    $brandDark  = '#0A1D2F';
-    $brandBg    = '#E6E6E6';
-
+    // Official Tofof brand color
+    $brand = "#6d0e16"; // Deep Burgundy (Main Color)
+    $brandDark = "#500a10";
+    $accent = "#6d0e16"; // Secondary accent matches main
+    $brandBg = "#fdfaf9";
+    $textMain = "#1a1a1a";
+    
     // هل نحن في صفحة الملف الرئيسية؟
     $isProfileHome = request()->routeIs('profile.show');
 
-    // وضع التعديل على الموبايل (يفتح المحتوى بدلاً من قائمة الأزرار)
+    // وضع التعديل على الموبايل
     $forceEdit = request()->boolean('edit') || request('mode') === 'edit';
 
     // إن كنا في صفحة الملف الرئيسية ولم نطلب التعديل على الموبايل -> نُظهر القائمة فقط
     $showListOnMobile = $isProfileHome && !$forceEdit;
 
-    // بيانات المستخدم المختصرة للبطاقة
+    // بيانات المستخدم
     $u = auth()->user();
     $ordersCount = $u?->orders()->count() ?? 0;
     $tierLabel   = $u?->tier ?? '—';
     $wallet      = number_format($u?->wallet_balance ?? 0, 0);
 
-    // ===== مسار الصورة: استخدم الـ accessor avatar_url مع fallback تلقائي =====
+    // ===== مسار الصورة =====
     $avatarSrc = $u?->avatar_url ?? asset('storage/avatars/default.jpg');
 @endphp
 
@@ -33,185 +35,211 @@
 
             {{-- الشريط الجانبي (ديسكتوب) --}}
             <aside class="hidden lg:block w-full lg:w-1/4">
-                <nav
-                    class="bg-white rounded-lg shadow-sm border sticky top-4"
-                    style="border-color:#eadbcd; max-height: calc(100vh - 2rem); overflow:auto;"
-                >
-                    <ul class="py-3">
-                        <li>
-                            <a href="{{ route('profile.show') }}"
-                               class="menu-item {{ request()->routeIs('profile.show') ? 'is-active' : '' }}">
-                                <i class="bi bi-person-fill"></i>
-                                <span>{{ __('profile.my_profile') }}</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('profile.orders') }}"
-                               class="menu-item {{ request()->routeIs('profile.orders*') ? 'is-active' : '' }}">
-                                <i class="bi bi-box-seam"></i>
-                                <span>{{ __('profile.my_orders') }}</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('profile.addresses.index') }}"
-                               class="menu-item {{ request()->routeIs('profile.addresses*') ? 'is-active' : '' }}">
-                                <i class="bi bi-geo-alt-fill"></i>
-                                <span>{{ __('profile.shipping_addresses') }}</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('wallet.index') }}"
-                               class="menu-item {{ request()->routeIs('wallet.*') ? 'is-active' : '' }}">
-                                <i class="bi bi-wallet2"></i>
-                                <span>{{ __('profile.wallet') }}</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('wishlist') }}"
-                               class="menu-item {{ request()->routeIs('wishlist') ? 'is-active' : '' }}">
-                                <i class="bi bi-heart-fill"></i>
-                                <span>{{ __('profile.wishlist') }}</span>
-                            </a>
-                        </li>
-                    </ul>
-
-                    <div class="mt-2 p-3 border-t" style="border-color:#eadbcd">
-                        <a href="{{ route('logout') }}"
-                           class="menu-item danger"
-                           onclick="event.preventDefault(); document.getElementById('logout-form-desktop').submit();">
-                            <i class="bi bi-box-arrow-right"></i>
-                            <span>{{ __('profile.logout') }}</span>
-                        </a>
-                        <form id="logout-form-desktop" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
+                <div class="sticky top-6 flex flex-col gap-6">
+                    {{-- بطاقة مختصرة فخمة بالجانب --}}
+                    <div class="hidden bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-slate-100 text-center">
+                        <div class="relative mb-4 group">
+                            <div class="absolute -inset-1 bg-gradient-to-tr from-[{{ $brand }}] to-[{{ $accent }}] rounded-full blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
+                            <img src="{{ $avatarSrc }}" alt="avatar" class="relative w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg">
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-1">{{ $u?->name }}</h3>
+                        <p class="text-slate-500 text-sm mb-4 ltr">{{ $u?->phone_number }}</p>
+                        
+                        <div class="grid grid-cols-2 gap-3 w-full">
+                            <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100">
+                                <span class="block text-xs text-slate-400 font-medium mb-1">{{ __('profile.wallet') }}</span>
+                                <span class="block font-bold text-slate-800 text-sm">{{ $wallet }} <small class="font-normal">{{ __('profile.currency') }}</small></span>
+                            </div>
+                            <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100">
+                                <span class="block text-xs text-slate-400 font-medium mb-1">{{ __('profile.orders_stat') }}</span>
+                                <span class="block font-bold text-slate-800 text-sm">{{ $ordersCount }}</span>
+                            </div>
+                        </div>
                     </div>
-                </nav>
+
+                    <nav class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+                        <div class="p-3">
+                            <ul class="space-y-1">
+                                <li>
+                                    <a href="{{ route('profile.show') }}"
+                                       class="menu-item {{ request()->routeIs('profile.show') ? 'is-active' : '' }}">
+                                        <div class="icon-box"><i class="bi bi-person"></i></div>
+                                        <span>{{ __('profile.my_profile') }}</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('profile.orders') }}"
+                                       class="menu-item {{ request()->routeIs('profile.orders*') ? 'is-active' : '' }}">
+                                        <div class="icon-box"><i class="bi bi-bag"></i></div>
+                                        <span>{{ __('profile.my_orders') }}</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('profile.addresses.index') }}"
+                                       class="menu-item {{ request()->routeIs('profile.addresses*') ? 'is-active' : '' }}">
+                                        <div class="icon-box"><i class="bi bi-geo-alt"></i></div>
+                                        <span>{{ __('profile.shipping_addresses') }}</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('wallet.index') }}"
+                                       class="menu-item {{ request()->routeIs('wallet.*') ? 'is-active' : '' }}">
+                                        <div class="icon-box"><i class="bi bi-wallet2"></i></div>
+                                        <span>{{ __('profile.wallet') }}</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('wishlist') }}"
+                                       class="menu-item {{ request()->routeIs('wishlist') ? 'is-active' : '' }}">
+                                        <div class="icon-box"><i class="bi bi-heart"></i></div>
+                                        <span>{{ __('profile.wishlist') }}</span>
+                                    </a>
+                                </li>
+                            </ul>
+
+                            <div class="mt-4 pt-3 border-t border-slate-100 px-2">
+                                <a href="{{ route('logout') }}"
+                                   class="menu-item logout-btn"
+                                   onclick="event.preventDefault(); document.getElementById('logout-form-desktop').submit();">
+                                    <div class="icon-box"><i class="bi bi-box-arrow-right"></i></div>
+                                    <span>{{ __('profile.logout') }}</span>
+                                </a>
+                                <form id="logout-form-desktop" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
             </aside>
 
-            {{-- المحتوى الرئيسي: يظهر دائمًا على الديسكتوب، وعلى الموبايل يظهر فقط إن كان edit=1 --}}
-            <main class="w-full lg:w-3/4 bg-white rounded-lg shadow-sm border p-4 md:p-6 {{ $showListOnMobile ? 'profile-main--mobile-hidden' : '' }}">
+            {{-- المحتوى الرئيسي --}}
+            <main class="w-full lg:w-3/4 bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 p-6 md:p-8 {{ $showListOnMobile ? 'profile-main--mobile-hidden' : '' }}">
+                {{-- زر العودة (موبايل فقط) --}}
+                @if(!$isProfileHome)
+                <div class="lg:hidden mb-5">
+                    <a href="{{ route('profile.show') }}"
+                       class="inline-flex items-center gap-2 text-[{{ $brand }}] font-bold text-sm bg-slate-50 hover:bg-slate-100 border border-slate-100 px-4 py-2.5 rounded-2xl transition-all active:scale-95">
+                        <i class="bi bi-arrow-right text-base"></i>
+                        العودة للحساب
+                    </a>
+                </div>
+                @endif
                 @yield('profile-content')
             </main>
         </div>
 
-        {{-- قائمة الجوال (تظهر فقط في صفحة الملف الرئيسية عندما لا يكون edit=1) --}}
+        {{-- قائمة الجوال --}}
         @if($showListOnMobile)
-        <section class="lg:hidden space-y-4">
+        <section class="lg:hidden space-y-6">
 
-            {{-- ===== بطــاقة المعلومات المختصرة (الصورة + الاسم + الرقم + الإحصائيات) ===== --}}
-            <div class="info-card">
-                <div class="flex items-center gap-3">
-                    <img src="{{ $avatarSrc }}" alt="avatar" class="w-14 h-14 rounded-2xl object-cover border"
-                         style="border-color:{{$brand}}">
+            {{-- ===== بطــاقة المعلومات المختصرة ===== --}}
+            <div class="relative overflow-hidden bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-slate-50">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-slate-50 to-white rounded-full -mr-16 -mt-16 -z-10"></div>
+                
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-[{{ $brand }}]/10 rounded-2xl blur-sm transform scale-110"></div>
+                        <img src="{{ $avatarSrc }}" alt="avatar" class="relative w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-md">
+                    </div>
                     <div class="min-w-0">
-                        <div class="font-extrabold text-[#4a3f3f] truncate">{{ $u?->name }}</div>
-                        <a href="{{ route('profile.show', ['edit' => 1]) }}"
-                           class="text-sm text-[#6b7280] ltr hover:text-[{{$brandDark}}] transition"
-                           title="{{ __('profile.edit_profile_btn') }}">
-                           {{ $u?->phone_number }}
-                        </a>
+                        <div class="font-black text-[{{ $brand }}] text-lg truncate">{{ $u?->name }}</div>
+                        <span class="text-sm text-slate-400 font-medium ltr">{{ $u?->phone_number }}</span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-2 mt-3">
-                    <div class="stat">
-                        <b>{{ number_format($ordersCount) }}</b>
-                        <small>{{ __('profile.orders_stat') }}</small>
+                <div class="grid grid-cols-3 gap-3 mb-6 font-tajawal">
+                    <div class="bg-slate-50/80 backdrop-blur-sm rounded-2xl p-3 text-center border border-slate-100">
+                        <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">{{ __('profile.orders_stat') }}</span>
+                        <span class="block font-black text-slate-800">{{ $ordersCount }}</span>
                     </div>
-                    <div class="stat">
-                        <b>{{ $tierLabel }}</b>
-                        <small>{{ __('profile.tier_stat') }}</small>
+                    <div class="bg-slate-50/80 backdrop-blur-sm rounded-2xl p-3 text-center border border-slate-100">
+                        <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">{{ __('profile.tier_stat') }}</span>
+                        <span class="block font-black text-[{{ $brand }}]">{{ $tierLabel }}</span>
                     </div>
-                    <div class="stat">
-                        <b>{{ $wallet }} {{ __('profile.currency') }}</b>
-                        <small>{{ __('profile.balance_stat') }}</small>
+                    <div class="bg-slate-50/80 backdrop-blur-sm rounded-2xl p-3 text-center border border-slate-100">
+                        <span class="block text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">{{ __('profile.balance_stat') }}</span>
+                        <span class="block font-black text-slate-800 text-xs">{{ $wallet }}</span>
                     </div>
                 </div>
 
-                <a href="{{ route('profile.show', ['edit' => 1]) }}" class="btn-brand block text-center mt-3">
+                <a href="{{ route('profile.show', ['edit' => 1]) }}" class="flex items-center justify-center gap-2 w-full bg-[{{ $brand }}] hover:bg-[{{ $brandDark }}] text-white font-bold py-3.5 px-6 rounded-2xl transition-all shadow-lg shadow-[{{ $brand }}]/20 active:scale-[0.98]">
+                    <i class="bi bi-pencil-square"></i>
                     {{ __('profile.edit_profile_btn') }}
                 </a>
             </div>
             {{-- ===== /بطاقة المعلومات المختصرة ===== --}}
 
             {{-- قائمة عناصر مثل واجهة التطبيق --}}
-            <div class="bg-white border rounded-2xl overflow-hidden shadow-sm" style="border-color:#eadbcd">
-                <a href="{{ route('profile.addresses.index') }}" class="app-item border-b">
-                    <span class="app-icon"><i class="bi bi-geo-alt"></i></span>
-                    <div class="flex-1"><div class="app-title">{{ __('profile.my_addresses') }}</div></div>
-                    <i class="bi bi-chevron-left text-gray-400"></i>
+            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-50 overflow-hidden">
+                <a href="{{ route('profile.addresses.index') }}" class="mobile-nav-item border-b border-slate-50">
+                    <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-geo-alt"></i></div>
+                    <div class="flex-1 font-bold text-slate-700">{{ __('profile.my_addresses') }}</div>
+                    <i class="bi bi-chevron-left text-slate-200"></i>
                 </a>
 
-                <a href="{{ route('profile.orders') }}" class="app-item border-b">
-                    <span class="app-icon"><i class="bi bi-box-seam"></i></span>
-                    <div class="flex-1"><div class="app-title">{{ __('profile.my_orders') }}</div></div>
-                    <i class="bi bi-chevron-left text-gray-400"></i>
+                <a href="{{ route('profile.orders') }}" class="mobile-nav-item border-b border-slate-50">
+                    <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-bag"></i></div>
+                    <div class="flex-1 font-bold text-slate-700">{{ __('profile.my_orders') }}</div>
+                    <i class="bi bi-chevron-left text-slate-200"></i>
                 </a>
 
-                <a href="{{ route('wallet.index') }}" class="app-item border-b">
-                    <span class="app-icon"><i class="bi bi-wallet2"></i></span>
-                    <div class="flex-1"><div class="app-title">{{ __('profile.wallet') }}</div></div>
-                    <i class="bi bi-chevron-left text-gray-400"></i>
+                <a href="{{ route('wallet.index') }}" class="mobile-nav-item border-b border-slate-50">
+                    <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-wallet2"></i></div>
+                    <div class="flex-1 font-bold text-slate-700">{{ __('profile.wallet') }}</div>
+                    <i class="bi bi-chevron-left text-slate-200"></i>
                 </a>
 
-                <a href="{{ route('wishlist') }}" class="app-item border-b">
-                    <span class="app-icon" style="color:{{$brandDark}}"><i class="bi bi-heart-fill"></i></span>
-                    <div class="flex-1"><div class="app-title">{{ __('profile.wishlist') }}</div></div>
-                    <i class="bi bi-chevron-left text-gray-400"></i>
+                <a href="{{ route('wishlist') }}" class="mobile-nav-item border-b border-slate-50">
+                    <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-heart"></i></div>
+                    <div class="flex-1 font-bold text-slate-700">{{ __('profile.wishlist') }}</div>
+                    <i class="bi bi-chevron-left text-slate-200"></i>
                 </a>
 
                 <form action="{{ route('logout') }}" method="POST" class="m-0">
                     @csrf
-                    <button type="submit" class="app-item !text-red-600 hover:!bg-red-50">
-                        <span class="app-icon !bg-red-100 !text-red-600">
-                            <i class="bi bi-box-arrow-right"></i>
-                        </span>
-                        <span class="flex-1 app-title">{{ __('profile.logout') }}</span>
-                        <i class="bi bi-chevron-left text-gray-400"></i>
+                    <button type="submit" class="mobile-nav-item w-full text-red-600 hover:bg-red-50/30">
+                        <div class="icon bg-red-50 text-red-600"><i class="bi bi-box-arrow-right"></i></div>
+                        <span class="flex-1 font-bold text-right">{{ __('profile.logout') }}</span>
+                        <i class="bi bi-chevron-left text-red-200"></i>
                     </button>
                 </form>
             </div>
 
-            {{-- ===== روابط معلومات طفوف (موبايل فقط) ===== --}}
-            <div class="info-links-card">
-                <div class="info-links-heading">
-                    <i class="bi bi-info-circle-fill"></i>
-                    <span>حول طفوف</span>
+            {{-- ===== روابط معلومات طفوف مودرن ===== --}}
+            <div class="space-y-3">
+                <div class="flex items-center gap-2 px-2">
+                    <div class="w-1 h-4 bg-[{{ $brand }}] rounded-full"></div>
+                    <h4 class="font-black text-slate-400 text-sm tracking-tight uppercase">حول طفوف</h4>
                 </div>
-                <div class="bg-white border rounded-2xl overflow-hidden shadow-sm" style="border-color:#eadbcd">
-                    <a href="{{ route('about.us') }}" class="app-item border-b" data-fast-nav="true">
-                        <span class="app-icon" style="background:#f0f4ff"><i class="bi bi-people-fill" style="color:#3b5bdb"></i></span>
-                        <div class="flex-1"><div class="app-title">من نحن</div></div>
-                        <i class="bi bi-chevron-left text-gray-400"></i>
+                
+                <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-50 overflow-hidden">
+                    <a href="{{ route('about.us') }}" class="mobile-nav-item border-b border-slate-50" data-fast-nav="true">
+                        <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-people"></i></div>
+                        <div class="flex-1 font-bold text-slate-700 px-1">من نحن</div>
+                        <i class="bi bi-chevron-left text-slate-200"></i>
                     </a>
 
-                    <a href="{{ route('privacy.policy') }}" class="app-item border-b" data-fast-nav="true">
-                        <span class="app-icon" style="background:#f0fdf4"><i class="bi bi-shield-lock-fill" style="color:#16a34a"></i></span>
-                        <div class="flex-1"><div class="app-title">سياسة الخصوصية</div></div>
-                        <i class="bi bi-chevron-left text-gray-400"></i>
+                    <a href="{{ route('privacy.policy') }}" class="mobile-nav-item border-b border-slate-50" data-fast-nav="true">
+                        <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-shield-check"></i></div>
+                        <div class="flex-1 font-bold text-slate-700 px-1">سياسة الخصوصية</div>
+                        <i class="bi bi-chevron-left text-slate-200"></i>
                     </a>
 
-                    <a href="{{ Route::has('payment.delivery') ? route('payment.delivery') : url('/payment-delivery') }}" class="app-item border-b" data-fast-nav="true">
-                        <span class="app-icon" style="background:#fff7ed"><i class="bi bi-credit-card-2-front-fill" style="color:#ea580c"></i></span>
-                        <div class="flex-1"><div class="app-title">طرق الدفع والتوصيل</div></div>
-                        <i class="bi bi-chevron-left text-gray-400"></i>
+                    <a href="{{ Route::has('payment.delivery') ? route('payment.delivery') : url('/payment-delivery') }}" class="mobile-nav-item border-b border-slate-50" data-fast-nav="true">
+                        <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-truck"></i></div>
+                        <div class="flex-1 font-bold text-slate-700 px-1">طرق الدفع والتوصيل</div>
+                        <i class="bi bi-chevron-left text-slate-200"></i>
                     </a>
 
-                    <a href="{{ route('faq') }}" class="app-item border-b" data-fast-nav="true">
-                        <span class="app-icon" style="background:#fdf4ff"><i class="bi bi-patch-question-fill" style="color:#9333ea"></i></span>
-                        <div class="flex-1"><div class="app-title">الأسئلة الشائعة</div></div>
-                        <i class="bi bi-chevron-left text-gray-400"></i>
+                    <a href="{{ route('faq') }}" class="mobile-nav-item border-b border-slate-50" data-fast-nav="true">
+                        <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-question-circle"></i></div>
+                        <div class="flex-1 font-bold text-slate-700 px-1">الأسئلة الشائعة</div>
+                        <i class="bi bi-chevron-left text-slate-200"></i>
                     </a>
 
-                    <a href="{{ route('blog.index') }}" class="app-item border-b" data-fast-nav="true">
-                        <span class="app-icon" style="background:#fef9c3"><i class="bi bi-journal-richtext" style="color:#ca8a04"></i></span>
-                        <div class="flex-1"><div class="app-title">المدونة</div></div>
-                        <i class="bi bi-chevron-left text-gray-400"></i>
-                    </a>
-
-                    <a href="{{ route('return.policy') }}" class="app-item" data-fast-nav="true">
-                        <span class="app-icon" style="background:#fff1f2"><i class="bi bi-arrow-repeat" style="color:#e11d48"></i></span>
-                        <div class="flex-1"><div class="app-title">سياسة الاستبدال / الارجاع</div></div>
-                        <i class="bi bi-chevron-left text-gray-400"></i>
+                    <a href="{{ route('return.policy') }}" class="mobile-nav-item" data-fast-nav="true">
+                        <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-arrow-left-right"></i></div>
+                        <div class="flex-1 font-bold text-slate-700 px-1">سياسة الاستبدال / الارجاع</div>
+                        <i class="bi bi-chevron-left text-slate-200"></i>
                     </a>
                 </div>
             </div>
@@ -224,271 +252,128 @@
 </div>
 
 <style>
-    /* متغيرات عامة + دارك */
-    :root{
+    :root {
         --brand: {{ $brand }};
-        --brand-dark: {{ $brandDark }};
-        --brand-bg: {{ $brandBg }};
-
-        /* أساس الثيم */
-        --surface:#ffffff;
-        --text:#4a3f3f;
-        --text-soft:#6b7280;
-        --border:#eadbcd;
-        --bg-soft:#f9f5f1;
-        --soft:#f3ece5;
+        --accent: {{ $brand }};
+        --brand-bg: #fdfaf9;
+        --text: {{ $textMain }};
+        --surface: #ffffff;
+        --bg-main: #fcfcfc;
+        --border-soft: #f1f5f9;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    html.dark{
-        --surface:#0f172a;
-        --text:#e5e7eb;
-        --text-soft:#9ca3af;
-        --border:#1f2937;
-        --bg-soft:rgba(55,65,81,.35);
-        --soft:rgba(55,65,81,.35);
+
+    html.dark {
+        --surface: #0f172a;
+        --bg-main: #0b1120;
+        --border-soft: #1e293b;
+    }
+
+    body {
+        background-color: var(--bg-main);
     }
 
     .ltr { direction: ltr; }
 
-    /* توحيد شكل بحث الهيدر مثل الرئيسية (دون تغيير HTML) */
-    header .container.mx-auto.hidden.md\:flex form .flex.w-full,
-    header .container.mx-auto.md\:hidden form .flex.w-full{
-      background: var(--surface) !important;
-      border: 1px solid var(--border) !important;
-      border-radius: 999px !important;
-      overflow: hidden !important;
-      transition: border-color .2s ease, box-shadow .2s ease;
-    }
-    header form input[name="query"]{
-      color: var(--text) !important; background: transparent !important;
-    }
-    header form input[name="query"]::placeholder{ color: var(--text-soft) !important; }
-    header form button{ background: transparent !important; color: var(--brand) !important; }
-    header form button:hover{ color: var(--brand-dark) !important; }
-    header form .flex.w-full:focus-within{
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 25%, transparent) !important;
-      border-color: var(--brand-dark) !important;
-    }
-
-    /* أزرار الهوية */
-    .btn-brand{
-        background: var(--brand);
-        color:#fff;
-        font-weight:700;
-        padding:.625rem 1rem;
-        border-radius:.75rem;
-        text-align:center;
-        transition: .2s ease;
-        display:inline-block;
-    }
-    .btn-brand:hover{ background: var(--brand-dark); color:#fff; }
-
-    /* عناصر القائمة الجانبية (ديسكتوب) */
-    .menu-item{
-        display:flex; align-items:center; gap:.6rem;
-        padding:.9rem 1rem;
-        margin:.35rem .75rem;
-        color: var(--text);
-        background: var(--surface);
-        border:1px solid var(--border);
-        border-radius:.6rem;
-        transition: background .2s, color .2s, border-color .2s;
-        height: 52px;
-    }
-    .menu-item i{ font-size:1.05rem; }
-    .menu-item:hover{
-        background: var(--bg-soft);
-        color: var(--brand-dark);
-        border-color: var(--brand);
-    }
-    .menu-item.is-active{
-        background: var(--brand);
-        color:#fff;
-        border-color: var(--brand);
-    }
-    .menu-item.is-active i{ color:#fff; }
-    .menu-item.danger{
-        border-color:#fecaca; color:#e11d48; background: var(--surface);
-    }
-    .menu-item.danger:hover{ background:#fff1f2; border-color:#fca5a5; }
-
-    /* بطاقة المعلومات (موبايل) */
-    .info-card{
-        background: var(--surface);
-        border:1px solid var(--border);
-        border-radius:16px;
-        padding:1rem;
-        box-shadow:0 8px 22px rgba(0,0,0,.08);
-        color: var(--text);
-    }
-
-    /* عناصر قائمة التطبيق (موبايل) */
-    .app-item{
-        display:flex; align-items:center; gap:.75rem;
-        padding: 1rem;
-        color: var(--text);
-        transition: background .18s ease;
-        border-color: var(--border) !important;
-        background: var(--surface);
-    }
-    .app-item:hover{ background: var(--bg-soft); }
-    .app-icon{
-        width: 44px; height:44px;
-        display:grid; place-items:center;
-        background: #f7e3e1;
-        color: var(--text);
-        border-radius: 12px;
-        flex: 0 0 44px;
-    }
-    .app-title{ font-weight:600; color: var(--text); }
-
-    /* أخفي المحتوى فقط على الشاشات الصغيرة عندما يجب إظهار القائمة */
-    @media (max-width: 1023px){
-        .profile-main--mobile-hidden{ display: none !important; }
-    }
-
-    /* ===== روابط معلومات طفوف (موبايل) ===== */
-    .info-links-card{
-        margin-top: .25rem;
-    }
-    .info-links-heading{
+    /* Desktop Sidebar Menu Items */
+    .menu-item {
         display: flex;
         align-items: center;
-        gap: .45rem;
+        gap: 12px;
+        padding: 10px 14px;
+        border-radius: 18px;
+        color: #64748b;
         font-weight: 700;
-        font-size: .88rem;
-        color: var(--text-soft);
-        padding: .25rem .25rem .6rem;
-        letter-spacing: .02em;
-        text-transform: uppercase;
-    }
-    .info-links-heading i{ font-size: .95rem; color: var(--brand); }
-
-    /* شارات الإحصائيات داخل info-card */
-    .stat{
-        text-align:center; background:#fafafa; border:1px solid #f1e6da;
-        border-radius:12px; padding:.45rem .35rem;
-    }
-    .stat b{ display:block; font-size:.95rem; color:var(--text); font-weight:800; line-height:1.1; }
-    .stat small{ display:block; margin-top:2px; font-weight:700; font-size:.78rem; color:var(--text-soft); }
-
-    /* ======= Dark overrides عامة لتغطية الخلفيات البيضاء والحدود الثابتة ======= */
-    html.dark .bg-white{ background-color: var(--surface) !important; }
-    html.dark [style*="border-color:#eadbcd"]{ border-color: var(--border) !important; }
-    html.dark .border{ border-color: var(--border) !important; }
-    html.dark .text-[#4a3f3f]{ color: var(--text) !important; }
-    html.dark .text-[#6b7280]{ color: var(--text-soft) !important; }
-
-    html.dark .info-card,
-    html.dark .app-item,
-    html.dark .menu-item{
-        background: var(--surface) !important;
-        border-color: var(--border) !important;
-        color: var(--text) !important;
-        box-shadow: 0 8px 22px rgba(0,0,0,.28) !important;
-    }
-    html.dark .app-item:hover{ background: rgba(55,65,81,.35) !important; }
-    html.dark .app-icon{
-        background: rgba(59, 130, 246, 0.15) !important;
-        color: var(--text) !important;
+        transition: var(--transition);
+        margin-bottom: 4px;
     }
 
-    html.dark .stat{
-        background: rgba(55,65,81,.35) !important;
-        border-color: var(--border) !important;
+    .icon-box {
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f5f9;
+        border-radius: 12px;
+        font-size: 1.15rem;
+        transition: var(--transition);
+        border: 1px solid #e2e8f0;
     }
 
-    html.dark .shadow-sm{ box-shadow: 0 6px 16px rgba(0,0,0,.35) !important; }
-    /* توحيد قياس زر تسجيل الخروج (ديسكتوب داخل الـborder-t) */
-nav .mt-2 .menu-item{
-  margin: .35rem .75rem !important;
-  height: 52px !important;
-  padding: .9rem 1rem !important;
-  display: flex; align-items: center; gap: .6rem;
-}
+    .menu-item:not(.is-active):hover {
+        background: #f1f5f9;
+        color: var(--brand);
+    }
 
-/* توحيد قياس عناصر الموبايل (الأزرار والروابط) */
-.app-item{
-  min-height: 52px;              /* نفس ارتفاع باقي العناصر */
-  line-height: 1.25;              /* لتفادي تمدد النص */
-}
+    .menu-item:not(.is-active):hover .icon-box {
+        background: white;
+        border-color: var(--brand);
+        color: var(--brand);
+    }
 
-/* خصوصًا button داخل الفورم بالموبايل */
-button.app-item{
-  width: 100%;
-  border: 0;
-  background: var(--surface);
-  -webkit-appearance: none;
-  appearance: none;
-}
+    .menu-item.is-active {
+        background: var(--brand);
+        color: white;
+        box-shadow: 0 10px 20px -5px rgba(109, 14, 22, 0.3);
+    }
 
-/* أيقونات العناصر تبقى بقياس ثابت */
-.app-item .bi{ font-size: 1.05rem; }
-/* ====== 1) زر تسجيل الخروج: إلغاء التوسيط وتوحيد القياس ====== */
-nav .mt-2 .menu-item.danger{
-  justify-content: flex-start !important;  /* مو بالنص */
-  text-align: right !important;
-  height: 52px !important;
-  padding: .9rem 1rem !important;
-}
+    .menu-item.is-active .icon-box {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
 
-/* موبايل: الزر داخل الفورم يتصرف مثل بقية العناصر */
-button.app-item{
-  justify-content: flex-start !important; /* مو بالنص */
-  text-align: right !important;
-  width: 100%;
-  border: 0;
-  background: var(--surface);
-  appearance: none;
-}
+    .logout-btn {
+        color: #ef4444;
+    }
+    .logout-btn .icon-box {
+        color: #ef4444;
+        background: #fef2f2;
+        border-color: #fee2e2;
+    }
+    .logout-btn:hover {
+        background: #fef2f2 !important;
+        color: #dc2626 !important;
+    }
 
-/* ====== 2) Hover / Hold / Active للقائمة الجانبية (ديسكتوب) ====== */
-.menu-item:hover{
-  background: var(--bg-soft);
-  border-color: var(--brand);
-  color: var(--brand-dark);
-}
-.menu-item:active{
-  background: color-mix(in srgb, var(--brand) 12%, var(--surface));
-}
+    /* Mobile Nav Items */
+    .mobile-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        transition: var(--transition);
+        background: white;
+    }
 
-/* حالة الصفحة الحالية */
-.menu-item.is-active{
-  background: var(--brand);
-  color: #fff;
-  border-color: var(--brand);
-}
-.menu-item.is-active i{ color:#fff; }
+    .mobile-nav-item .icon {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16px;
+        font-size: 1.25rem;
+    }
 
-/* دارك: تفاعلات أوضح */
-html.dark .menu-item:hover{
-  background: color-mix(in srgb, var(--brand) 10%, var(--surface));
-  border-color: var(--brand);
-  color: var(--text);
-}
-html.dark .menu-item:active{
-  background: color-mix(in srgb, var(--brand) 18%, var(--surface));
-}
-html.dark .menu-item.is-active{
-  background: linear-gradient(180deg, var(--brand) 0%, var(--brand-dark) 100%);
-  border-color: color-mix(in srgb, var(--brand) 60%, var(--brand-dark) 40%);
-  color: #fff;
-  box-shadow: 0 8px 24px rgba(0,0,0,.35);
-}
+    .mobile-nav-item:active {
+        background: #f1f5f9;
+        transform: scale(0.98);
+    }
 
-/* ====== 3) Hover / Hold / Active لقائمة التطبيق (موبايل) ====== */
-.app-item:hover{ background: var(--bg-soft); }
-.app-item:active{ background: color-mix(in srgb, var(--brand-bg) 65%, var(--surface)); }
+    /* Dark Mode Overrides */
+    html.dark .bg-white { background-color: var(--surface) !important; }
+    html.dark .bg-slate-50 { background-color: rgba(241, 245, 249, 0.05) !important; }
+    html.dark .border-slate-50 { border-color: var(--border-soft) !important; }
+    html.dark .text-slate-800 { color: #f1f5f9 !important; }
+    html.dark .text-slate-700 { color: #e2e8f0 !important; }
+    html.dark .text-slate-600 { color: #cbd5e1 !important; }
+    html.dark .text-slate-500 { color: #94a3b8 !important; }
+    html.dark .shadow-xl { shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important; }
 
-html.dark .app-item:hover{ background: color-mix(in srgb, var(--brand) 8%, var(--surface)); }
-html.dark .app-item:active{ background: color-mix(in srgb, var(--brand) 16%, var(--surface)); }
-
-/* حالة الصفحة الحالية للموبايل */
-.app-item.is-active{
-  background: var(--brand);
-  color: #fff;
-}
-.app-item.is-active .app-icon{ background: rgba(255,255,255,.15); color:#fff; }
-.app-item.is-active i.bi-chevron-left{ color:#fff; opacity:.85; }
-
+    @media (max-width: 1023px) {
+        .profile-main--mobile-hidden { display: none !important; }
+    }
 </style>
 @endsection

@@ -4,30 +4,30 @@
 @push('styles')
 <style>
   :root{
-    --brand:#cd8985;
-    --brand-dark:#be6661;
-    --hair:#f2e9e1;
-    --text:#4a3f3f;
+    --brand:#6d0e16;
+    --brand-dark:#500a10;
+    --hair:#f0e8e8;
+    --text:#1a1a1a;
     --surface:#ffffff;
-    --bg:#fffaf9;
-    --muted:#7a6e6e;
-    --rail:#eeeeee;
-    --progress:#be6661;
+    --bg:#fcfcfc;
+    --muted:#6b7280;
+    --rail:#e5e7eb;
+    --progress:#6d0e16;
     --chip-gray-bg:#F6F7F9;
     --chip-gray-text:#374151;
     --chip-danger-bg:#FFECEF;
     --chip-danger-text:#8F1D1D;
   }
   html.dark{
-    --brand:#d1a3a4;
-    --brand-dark:#f0b0ad;
+    --brand:#b05560;
+    --brand-dark:#d17080;
     --hair:#1f2937;
     --text:#e5e7eb;
     --surface:#0f172a;
     --bg:#0b0f14;
     --muted:#9ca3af;
     --rail:#263142;
-    --progress:#f0b0ad;
+    --progress:#b05560;
     --chip-gray-bg:#0e1624;
     --chip-gray-text:#cbd5e1;
     --chip-danger-bg:rgba(244,63,94,.14);
@@ -48,7 +48,7 @@
   .step-label{ font-size:.78rem; color:#6b7280; font-weight:600; white-space:nowrap; }
   html.dark .step-label{ color:var(--muted); }
   .step.completed .step-circle{ background:#eafbf0; color:#166534; box-shadow: inset 0 0 0 2px #fff, 0 6px 14px rgba(22,101,52,.15); }
-  .step.active .step-circle{ background:var(--brand); color:#fff; box-shadow: inset 0 0 0 2px #fff, 0 6px 14px rgba(205,137,133,.25); }
+  .step.active .step-circle{ background:var(--brand); color:#fff; box-shadow: inset 0 0 0 2px #fff, 0 6px 14px rgba(109,14,22,.25); }
   .step.completed .step-label, .step.active .step-label{ color:var(--text); }
   html.dark .step.completed .step-circle{ background:rgba(34,197,94,.12); color:#86efac; box-shadow: inset 0 0 0 1px var(--hair), 0 6px 14px rgba(0,0,0,.35); }
   html.dark .step.active .step-circle{ background:var(--brand); color:#111827; box-shadow: inset 0 0 0 1px var(--hair), 0 6px 14px rgba(0,0,0,.4); }
@@ -136,7 +136,7 @@
     @foreach($order->items as $item)
       <div class="product-item">
         <img
-          src="{{ $item->product?->firstImage ? asset('storage/' . $item->product->firstImage->image_path) : 'https://placehold.co/80x80/f9f5f1/cd8985?text=Img' }}"
+          src="{{ $item->product?->firstImage ? asset('storage/' . $item->product->firstImage->image_path) : 'https://placehold.co/80x80/fdfaf9/6d0e16?text=Img' }}"
           alt="{{ $item->product->name_translated ?? __('profile.deleted_product') }}"
           class="product-image"
         >

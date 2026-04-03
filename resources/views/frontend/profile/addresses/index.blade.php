@@ -4,37 +4,37 @@
 @push('styles')
 <style>:root {
         /* Brand palette */
-        --primary-color: #cd8985;
-        --primary-hover: #be6661;
-        --secondary-color: #eadbcd;
-        --accent-color: #f0c0b7;
+        --primary-color: #6d0e16;
+        --primary-hover: #500a10;
+        --secondary-color: #f0e8e8;
+        --accent-color: #a04050;
 
         /* Base (Light) */
-        --bg: #fffaf9;
-        --bg-soft: #f9f5f1;
+        --bg: #fcfcfc;
+        --bg-soft: #fdfaf9;
         --surface: #ffffff;
-        --card-bg: #f9f5f1;
-        --text: #3a3a3a;
-        --text-soft: #555;
-        --muted: #999;
-        --border: #eadbcd;
+        --card-bg: #fdfaf9;
+        --text: #1a1a1a;
+        --text-soft: #444;
+        --muted: #888;
+        --border: #e8dada;
 
         /* Badges */
         --new-badge-color: #4CAF50;
         --bestseller-badge-color: #FF9800;
         --sale-badge-color: #E53935;
 
-        /* Hero gradient (light) - أكثر شفافية */
-        --hero-start: rgba(249, 245, 241, 0.6);
-        --hero-end: rgba(234, 219, 205, 0.6);
+        /* Hero gradient (light) */
+        --hero-start: rgba(253, 250, 249, 0.6);
+        --hero-end: rgba(240, 232, 232, 0.6);
 
         /* Section gradient (light) */
-        --cat-grad-from: #fffaf9;
-        --cat-grad-to: #f9f2ee;
+        --cat-grad-from: #fcfcfc;
+        --cat-grad-to: #fdfaf9;
 
         /* Slider overlay */
-        --slider-overlay-from: rgba(190, 102, 97, 0.8);
-        --slider-overlay-to: rgba(205, 137, 133, 0.8);
+        --slider-overlay-from: rgba(80, 10, 16, 0.8);
+        --slider-overlay-to: rgba(109, 14, 22, 0.8);
     }
 
 html.dark {
@@ -47,7 +47,7 @@ html.dark {
         --muted: #94a3b8;
         --border: #1f2937;
 
-        /* Hero gradient (dark) - أكثر شفافية */
+        /* Hero gradient (dark) */
         --hero-start: rgba(15, 23, 42, 0.6);
         --hero-end: rgba(17, 24, 39, 0.6);
 
@@ -56,8 +56,8 @@ html.dark {
         --cat-grad-to: #0f172a;
 
         /* Slider overlay */
-        --slider-overlay-from: rgba(190, 102, 97, 0.75);
-        --slider-overlay-to: rgba(205, 137, 133, 0.75);
+        --slider-overlay-from: rgba(80, 10, 16, 0.75);
+        --slider-overlay-to: rgba(109, 14, 22, 0.75);
     }
 
 
@@ -83,11 +83,11 @@ html.dark {
   .address-card{
     position:relative;
     background:var(--surface); border-radius:16px; padding:1rem;
-    box-shadow: 0 12px 30px rgba(205,137,133,.10), 0 6px 14px rgba(0,0,0,.06), inset 0 0 0 1px var(--border);
+    box-shadow: 0 12px 30px rgba(109,14,22,.07), 0 6px 14px rgba(0,0,0,.06), inset 0 0 0 1px var(--border);
     transition: box-shadow .18s ease, transform .12s ease;
   }
   .address-card:hover{
-    box-shadow: 0 16px 36px rgba(205,137,133,.14), 0 8px 18px rgba(0,0,0,.08), inset 0 0 0 1px var(--soft);
+    box-shadow: 0 16px 36px rgba(109,14,22,.12), 0 8px 18px rgba(0,0,0,.08), inset 0 0 0 1px var(--border);
     transform: translateY(-1px);
   }
 
@@ -109,7 +109,7 @@ html.dark {
   /* حالة عدم وجود عناوين */
   .empty-state{
     text-align:center; padding:2rem 1rem; background:var(--surface); border-radius:16px;
-    box-shadow: 0 12px 30px rgba(205,137,133,.10), inset 0 0 0 1px var(--border);
+    box-shadow: 0 12px 30px rgba(109,14,22,.07), inset 0 0 0 1px var(--border);
   }
   .empty-state .icon{ font-size:3rem; color:#ddcfc2; }
 

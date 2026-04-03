@@ -4,22 +4,22 @@
 @push('styles')
 <style>
   :root{
-    --brand:#cd8985;
-    --brand-dark:#be6661;
-    --brand-bg:#f9f5f1;
-    --soft:#efe4da;
-    --hair:#f6efe9;
-    --text:#4a3f3f;
-    --muted:#7a6e6e;
+    --brand:#6d0e16;
+    --brand-dark:#500a10;
+    --brand-bg:#fdfaf9;
+    --soft:#f5eeee;
+    --hair:#f0e8e8;
+    --text:#1a1a1a;
+    --muted:#6b7280;
     --surface:#ffffff;
-    --bg:#fffaf9;
-    --border:#eadbcd;
+    --bg:#fcfcfc;
+    --border:#e8dada;
   }
   html.dark{
-    --brand:#d1a3a4;
-    --brand-dark:#f0b0ad;
+    --brand:#b05560;
+    --brand-dark:#d17080;
     --brand-bg:#0b0f14;
-    --soft:#2a3443;
+    --soft:#2a2030;
     --hair:#1f2937;
     --text:#e5e7eb;
     --muted:#cbd5e1;
@@ -45,7 +45,7 @@
     border-radius:16px;
     background:var(--surface);
     box-shadow:
-      0 14px 28px rgba(205,137,133,.12),
+      0 14px 28px rgba(109,14,22,.08),
       0 6px 12px rgba(0,0,0,.06),
       inset 0 0 0 1px var(--hair);
     transition: box-shadow .2s ease, transform .12s ease;
@@ -63,12 +63,12 @@
   .order-card::before{
     content:"";
     position:absolute; inset:0;
-    background: radial-gradient(120% 60% at 110% -10%, rgba(205,137,133,.06), transparent 50%),
+    background: radial-gradient(120% 60% at 110% -10%, rgba(109,14,22,.05), transparent 50%),
                 radial-gradient(100% 50% at -10% 0%, rgba(255,255,255,.8), transparent 40%);
     pointer-events:none;
   }
   html.dark .order-card::before{
-    background: radial-gradient(120% 60% at 110% -10%, rgba(240,176,173,.08), transparent 55%),
+    background: radial-gradient(120% 60% at 110% -10%, rgba(176,85,96,.06), transparent 55%),
                 radial-gradient(100% 50% at -10% 0%, rgba(255,255,255,.04), transparent 45%);
   }
 
@@ -82,7 +82,7 @@
   }
   .order-card:hover{
     box-shadow:
-      0 18px 36px rgba(205,137,133,.18),
+      0 18px 36px rgba(109,14,22,.14),
       0 8px 16px rgba(0,0,0,.08),
       inset 0 0 0 1px var(--soft);
     transform: translateY(-1px);
@@ -164,7 +164,7 @@
   /* الحالة الفارغة */
   .empty-state{
     text-align:center; padding:2rem 1rem; background:var(--surface); border-radius:16px;
-    box-shadow: 0 12px 30px rgba(205,137,133,.10), inset 0 0 0 1px var(--hair);
+    box-shadow: 0 12px 30px rgba(109,14,22,.07), inset 0 0 0 1px var(--hair);
   }
   html.dark .empty-state{
     box-shadow: 0 12px 30px rgba(0,0,0,.36), inset 0 0 0 1px var(--border);
@@ -278,7 +278,7 @@
             @foreach($order->items->take(8) as $item)
               @if($item->product)
                 <img
-                  src="{{ $item->product->firstImage ? asset('storage/' . $item->product->firstImage->image_path) : 'https://placehold.co/96x96/f9f5f1/cd8985?text=Img' }}"
+                  src="{{ $item->product->firstImage ? asset('storage/' . $item->product->firstImage->image_path) : 'https://placehold.co/96x96/fdfaf9/6d0e16?text=Img' }}"
                   alt="{{ $item->product->name_translated }}"
                   class="thumb"
                 >

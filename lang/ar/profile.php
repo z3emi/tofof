@@ -33,7 +33,7 @@ return [
     'orders_title'         => 'طلباتي',
     'orders_heading'       => 'سجل طلباتي',
     'orders_subheading'    => 'هنا يمكنك تتبّع جميع طلباتك الحالية والسابقة',
-    'no_orders'            => 'لم تقومي بأي طلبات بعد',
+    'no_orders'            => 'لا توجد اي طلبات',
     'start_shopping'       => 'ابدأ التسوق الآن',
     'order_number'         => 'طلب رقم #',
     'gift_badge'           => 'هدية',
