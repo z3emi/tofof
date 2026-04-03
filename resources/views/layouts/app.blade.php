@@ -107,7 +107,7 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
-    <link rel="apple-touch-icon" href="{{ asset('logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('applogo.jpg') }}">
 
     <script>
       window.__tofofDeferredInstallPrompt = null;

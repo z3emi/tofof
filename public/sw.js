@@ -1,6 +1,6 @@
-const CACHE_VERSION = 'tofof-pwa-v4';
+const CACHE_VERSION = 'tofof-pwa-v5';
 const STATIC_CACHE = `tofof-static-${CACHE_VERSION}`;
-const CORE_ASSETS = ['./', './manifest.webmanifest', './logo.png'];
+const CORE_ASSETS = ['./', './manifest.webmanifest', './applogo.jpg'];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
@@ -96,8 +96,8 @@ self.addEventListener('push', (event) => {
     event.waitUntil(
         self.registration.showNotification(data.title || 'Tofof', {
             body: data.body || 'لديك إشعار جديد',
-            icon: data.icon || '/logo.png',
-            badge: '/logo.png',
+            icon: data.icon || '/applogo.jpg',
+            badge: '/applogo.jpg',
             data: {
                 url: data.url || '/'
             }
