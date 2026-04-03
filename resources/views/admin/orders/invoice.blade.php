@@ -167,7 +167,7 @@
                 </div>
                 <div class="col-6 text-end">
                     <p><strong>رقم الطلب:</strong> #{{ $order->id }}</p>
-                    <p><strong>تاريخ الطلب:</strong> {{ $order->created_at->format('Y/m/d') }}</p>
+                    <p><strong>تاريخ الطلب:</strong> {{ $order->created_at->format('Y/m/d H:i') }}</p>
                 </div>
             </section>
 
