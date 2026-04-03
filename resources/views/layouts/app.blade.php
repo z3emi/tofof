@@ -2505,13 +2505,13 @@ document.addEventListener('alpine:init', () => {
     >
       <div class="flex items-center justify-between">
         <h3 class="text-lg font-extrabold text-gray-900 dark:text-gray-100">
-          طلب منتج غير متوفر
+          {{ __('layout.request_product_title') }}
         </h3>
         <button class="text-2xl leading-none text-gray-500" @click="open=false">&times;</button>
       </div>
 
       <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">
-        يرجى تعبئة التفاصيل أدناه لنقوم بتوفير المنتج لك في أقرب وقت ممكن.
+        {{ __('layout.request_product_intro') }}
       </p>
 
       <form class="mt-4 grid gap-3" @submit.prevent="
@@ -2532,36 +2532,36 @@ document.addEventListener('alpine:init', () => {
           })
         }).then(r=>r.json()).then(d=>{
           if(d.success){
-            successMsg = 'تم استلام طلبك، سنتواصل معك في أقرب وقت.';
+            successMsg = '{{ __('layout.request_product_success') }}';
             $refs.product_name.value='';
             $refs.brand.value='';
             $refs.link.value='';
             $refs.notes.value='';
             $refs.phone.value='';
           }else{
-            errorMsg = d.message || 'تعذر إرسال الطلب. يرجى المحاولة مرة أخرى.';
+            errorMsg = d.message || '{{ __('layout.request_product_submit_failed') }}';
           }
-        }).catch(()=>{ errorMsg='تعذر إرسال الطلب. يرجى المحاولة مرة أخرى.' })
+        }).catch(()=>{ errorMsg='{{ __('layout.request_product_submit_failed') }}' })
         .finally(()=>loading=false)
       ">
         <div>
           <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">
-            اسم المنتج <span class="text-red-500">*</span>
+            {{ __('layout.request_product_name') }} <span class="text-red-500">*</span>
           </label>
           <input x-ref="product_name" type="text" required
                  class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
-                 placeholder="مثال: ساعة رولكس، إكسسوارات، الخ.">
+                 placeholder="{{ __('layout.request_product_name_placeholder') }}">
         </div>
 
         <div class="grid sm:grid-cols-2 gap-3">
           <div>
-            <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">الماركة</label>
+            <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">{{ __('layout.request_product_brand') }}</label>
             <input x-ref="brand" type="text"
                    class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
-                   placeholder="مثال: رولكس، كاسيو، الخ.">
+                   placeholder="{{ __('layout.request_product_brand_placeholder') }}">
           </div>
           <div>
-            <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">رابط للمنتج ان وجد (اختياري)</label>
+            <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">{{ __('layout.request_product_link') }}</label>
             <input x-ref="link" type="url"
                    class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
                    placeholder="https://example.com/product">
@@ -2569,21 +2569,21 @@ document.addEventListener('alpine:init', () => {
         </div>
 
         <div>
-          <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">ملاحظات إضافية</label>
+          <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">{{ __('layout.request_product_notes') }}</label>
           <textarea x-ref="notes" rows="3"
                      class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 resize-y dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
-                     placeholder="مثال: يرجى توفير اللون الأسود، ويفضل التوصيل في أسرع وقت."></textarea>
+                     placeholder="{{ __('layout.request_product_notes_placeholder') }}"></textarea>
         </div>
 
         <div>
           <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">
-            رقم الهاتف / واتساب <span class="text-red-500">*</span>
+            {{ __('layout.request_product_phone') }} <span class="text-red-500">*</span>
           </label>
           <input x-ref="phone" type="tel" required
                  class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
                  placeholder="+9647xxxxxxxxx">
           <p class="text-xs text-gray-500 mt-1">
-            نستخدم هذا الرقم للتواصل معك عبر الواتساب لتوفير المنتج لك في أسرع وقت.
+            {{ __('layout.request_product_phone_help') }}
           </p>
         </div>
 
@@ -2591,14 +2591,14 @@ document.addEventListener('alpine:init', () => {
   <button type="submit" :disabled="loading"
           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-white disabled:opacity-70"
           style="background:#6d0e16;">
-    <span x-show="!loading"><i class="bi bi-send"></i> إرسال الطلب</span>
-    <span x-show="loading"><i class="bi bi-arrow-repeat animate-spin"></i> جاري الإرسال...</span>
+    <span x-show="!loading"><i class="bi bi-send"></i> {{ __('layout.request_product_submit') }}</span>
+    <span x-show="loading"><i class="bi bi-arrow-repeat animate-spin"></i> {{ __('layout.request_product_sending') }}</span>
   </button>
 
   <button type="button"
           class="px-4 py-2 rounded-xl border"
           @click="open=false">
-    إلغاء
+    {{ __('layout.cancel') }}
   </button>
 </div>
 

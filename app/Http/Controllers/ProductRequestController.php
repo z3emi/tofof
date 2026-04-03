@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProductRequest;
+use App\Support\RepairsPrimaryKeyAutoIncrement;
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -28,7 +30,16 @@ class ProductRequestController extends Controller
             $data['phone'] = '';
         }
 
-        $pr = ProductRequest::create($data);
+        try {
+            $pr = $this->createProductRequestWithRepair($data);
+        } catch (\Throwable $e) {
+            Log::warning('Product request save failed: '.$e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => __('layout.request_product_submit_failed_later'),
+            ], 500);
+        }
 
         // ====== Notifications (اختياري) ======
         // 1) Telegram
@@ -83,5 +94,20 @@ class ProductRequestController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    private function createProductRequestWithRepair(array $attributes): ProductRequest
+    {
+        try {
+            return ProductRequest::create($attributes);
+        } catch (QueryException $exception) {
+            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'product_requests')) {
+                throw $exception;
+            }
+
+            RepairsPrimaryKeyAutoIncrement::ensure('product_requests');
+
+            return ProductRequest::create($attributes);
+        }
     }
 }
