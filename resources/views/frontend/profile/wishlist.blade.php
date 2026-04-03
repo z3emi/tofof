@@ -157,7 +157,6 @@
         <div class="empty-state">
             <i class="bi bi-heart"></i>
             <h3 class="text-xl font-bold mb-3">{{ __('profile.no_favorites') }}</h3>
-            <p class="text-gray-500 mb-6">{{ __('profile.wishlist_empty_desc') }}</p>
             <a href="{{ Route::has('shop') ? route('shop') : url('/shop') }}" class="btn-browse" data-fast-nav="true" aria-label="{{ __('profile.browse_store') }}">
                 <i class="bi bi-bag-plus"></i> {{ __('profile.browse_store') }}
             </a>

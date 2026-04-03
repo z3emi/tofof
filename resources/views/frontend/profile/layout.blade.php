@@ -135,12 +135,12 @@
             <div class="relative overflow-hidden bg-white rounded-3xl p-6 shadow-xl shadow-slate-200/50 border border-slate-50">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-slate-50 to-white rounded-full -mr-16 -mt-16 -z-10"></div>
                 
-                <div class="flex items-center gap-4 mb-6">
+                <div class="flex flex-col items-center text-center mb-6">
                     <div class="relative">
-                        <div class="absolute inset-0 bg-[{{ $brand }}]/10 rounded-2xl blur-sm transform scale-110"></div>
-                        <img src="{{ $avatarSrc }}" alt="avatar" class="relative w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-md">
+                        <div class="absolute inset-0 bg-[{{ $brand }}]/10 rounded-full blur-sm transform scale-110"></div>
+                        <img src="{{ $avatarSrc }}" alt="avatar" class="relative w-20 h-20 rounded-full object-cover border-4 border-white shadow-md">
                     </div>
-                    <div class="min-w-0">
+                    <div class="min-w-0 mt-3">
                         <div class="font-black text-[{{ $brand }}] text-lg truncate">{{ $u?->name }}</div>
                         <span class="text-sm text-slate-400 font-medium ltr">{{ $u?->phone_number }}</span>
                     </div>
@@ -160,6 +160,23 @@
                         <span class="block font-black text-slate-800 text-xs">{{ $wallet }}</span>
                     </div>
                 </div>
+
+                @if(!empty($u?->referral_code))
+                <div class="mb-6 rounded-2xl border border-slate-100 bg-slate-50/80 p-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="min-w-0">
+                            <div class="text-[11px] text-slate-400 font-bold mb-1">{{ __('profile.referral_program') }}</div>
+                            <div id="mobileReferralCode" class="font-black text-[{{ $brand }}] tracking-wide ltr truncate">{{ $u->referral_code }}</div>
+                        </div>
+                        <button type="button"
+                                onclick="copyMobileReferralCode(event)"
+                                class="shrink-0 inline-flex items-center gap-1.5 bg-[{{ $brand }}] hover:bg-[{{ $brandDark }}] text-white font-bold text-xs px-3 py-2 rounded-xl transition-all active:scale-95">
+                            <i class="bi bi-clipboard"></i>
+                            نسخ
+                        </button>
+                    </div>
+                </div>
+                @endif
 
                 <a href="{{ route('profile.show', ['edit' => 1]) }}" class="flex items-center justify-center gap-2 w-full bg-[{{ $brand }}] hover:bg-[{{ $brandDark }}] text-white font-bold py-3.5 px-6 rounded-2xl transition-all shadow-lg shadow-[{{ $brand }}]/20 active:scale-[0.98]">
                     <i class="bi bi-pencil-square"></i>
@@ -376,4 +393,37 @@
         .profile-main--mobile-hidden { display: none !important; }
     }
 </style>
+
+@push('scripts')
+<script>
+    function copyMobileReferralCode(event) {
+        const text = document.getElementById('mobileReferralCode')?.innerText?.trim();
+        if (!text) return;
+
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = event.currentTarget;
+            const icon = btn.querySelector('i');
+            const label = btn.lastChild;
+
+            if (icon) {
+                icon.classList.remove('bi-clipboard');
+                icon.classList.add('bi-check-lg');
+            }
+            if (label && label.nodeType === Node.TEXT_NODE) {
+                label.textContent = ' تم';
+            }
+
+            setTimeout(() => {
+                if (icon) {
+                    icon.classList.remove('bi-check-lg');
+                    icon.classList.add('bi-clipboard');
+                }
+                if (label && label.nodeType === Node.TEXT_NODE) {
+                    label.textContent = ' نسخ';
+                }
+            }, 1400);
+        });
+    }
+</script>
+@endpush
 @endsection
