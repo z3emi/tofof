@@ -434,7 +434,7 @@ Route::middleware(['auth:admin', 'can:view-admin-panel', 'log.admin.activity'])-
     Route::post('managers/{manager}/force-logout', [ManagerController::class, 'forceLogout'])->name('managers.forceLogout')->middleware('can:edit-managers');
     Route::post('managers/force-logout-all', [ManagerController::class, 'forceLogoutAll'])->name('managers.forceLogoutAll')->middleware('can:edit-managers');
     Route::post('managers/{manager}/impersonate', [ManagerController::class, 'impersonate'])->name('managers.impersonate')->middleware('can:impersonate-managers');
-    Route::post('managers/stop-impersonate', [ManagerController::class, 'stopImpersonate'])->name('managers.stopImpersonate')->middleware('can:impersonate-managers');
+    Route::post('managers/stop-impersonate', [ManagerController::class, 'stopImpersonate'])->name('managers.stopImpersonate');
     Route::get('managers/{manager}/orders', [ManagerController::class, 'showOrders'])->name('managers.orders')->middleware('can:view-managers');
 
     // Users

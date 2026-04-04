@@ -14,8 +14,8 @@
     .pagination .page-item.active .page-link { background-color: var(--primary-dark); border-color: var(--primary-dark); color: #fff; }
     
     .selectable-row { cursor: pointer; transition: all 0.2s; }
-    .selectable-row:hover { background-color: rgba(109, 14, 22, 0.02) !important; }
-    .selectable-row.selected td { background-color: #fcecea !important; outline: 2px solid var(--primary-dark); }
+    .selectable-row:hover { background-color: rgba(0,0,0,0.02) !important; }
+    .selectable-row.selected { background-color: #fcecea !important; outline: 2px solid var(--primary-dark); outline-offset: -2px; }
 
     .search-box { border-radius: 12px; border: 1px solid #e2e8f0; padding: 0.75rem 1.2rem; background: #fafbff; }
 </style>
@@ -124,6 +124,14 @@
                                     @if($adminUser?->can('delete-managers') && !$isSelf)
                                         <form action="{{ route('admin.managers.destroy', $manager->id) }}" method="POST" class="d-inline">@csrf @method('DELETE')<button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1" title="حذف" onclick="return confirm('تأكيد الحذف للسلة؟')"><i class="bi bi-trash"></i></button></form>
                                     @endif
+                                    @if($adminUser?->can('impersonate-managers') && !$isSelf)
+                                        <form action="{{ route('admin.managers.impersonate', $manager->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-outline-dark rounded-3 px-2 py-1" title="انتحال المدير" onclick="return confirm('تأكيد تسجيل الدخول كـ {{ $manager->name }}؟')">
+                                                <i class="bi bi-person-badge"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -197,10 +205,6 @@
                 if(e.target.closest('a') || e.target.closest('button')) return;
                 document.querySelectorAll('.selectable-row').forEach(r => r.classList.remove('selected'));
                 this.classList.add('selected');
-            });
-            row.addEventListener('dblclick', function () {
-                const id = this.dataset.managerId;
-                if (id) window.location.href = `{{ url('admin/managers') }}/${id}/edit`;
             });
         });
     });

@@ -1228,8 +1228,13 @@
                                 </button>
                             </div>
                             @if(session()->has('impersonator_id'))
+                            @php
+                                $stopImpersonateRoute = session('impersonator_guard') === 'admin'
+                                    ? 'admin.managers.stopImpersonate'
+                                    : 'admin.users.stopImpersonate';
+                            @endphp
                             <li>
-                                <form action="{{ route('admin.users.stopImpersonate') }}" method="POST">
+                                <form action="{{ route($stopImpersonateRoute) }}" method="POST">
                                     @csrf
                                     <button class="dropdown-item text-warning" type="submit">
                                         <i class="bi bi-person-x me-2"></i> إيقاف الانتحال

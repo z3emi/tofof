@@ -588,7 +588,7 @@ class ManagerController extends Controller
         session(['impersonator_id' => Auth::guard('admin')->id(), 'impersonator_guard' => 'admin']);
         Auth::guard('admin')->login($manager);
 
-        return redirect('/')->with('success', 'تم تسجيل الدخول كمستخدم آخر.');
+        return redirect()->route('admin.dashboard')->with('success', 'تم تسجيل الدخول كمدير آخر.');
     }
 
     public function stopImpersonate()
