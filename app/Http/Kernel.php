@@ -72,6 +72,7 @@ class Kernel extends HttpKernel
         'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
         'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         'setlocale' => \App\Http\Middleware\SetLocale::class,
+        'log.admin.activity' => \App\Http\Middleware\LogAdminActivity::class,
     ];
         protected function schedule(Schedule $schedule): void
     {

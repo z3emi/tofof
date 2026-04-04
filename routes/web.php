@@ -54,7 +54,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('logout', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'logout'])->name('logout');
 });
 
-Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth:admin', 'log.admin.activity'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('orders/trash', [OrderController::class, 'trash'])->name('orders.trash');  // استخدم OrderController
     Route::resource('orders', OrderController::class);                                    // استخدم OrderController
 });
@@ -182,7 +182,7 @@ Route::get('/locale/{locale}', function ($locale, Request $request) {
 
 // ===== C) Public Frontend Routes =====
 Route::get('/', [PageController::class, 'homepage'])->name('homepage');
-Route::get('/home', [PageController::class, 'homepage'])->name('homepage');
+Route::get('/home', [PageController::class, 'homepage'])->name('home');
 Route::get('/shop', [PageController::class, 'shop'])->name('shop');
 Route::get('/product/{product}', [PageController::class, 'productDetail'])->name('product.detail');
 Route::get('/search', [ProductController::class, 'search'])->name('products.search');
@@ -301,7 +301,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // ===== E) Admin Panel Routes (Now Fully Protected) =====
-Route::middleware(['auth:admin', 'can:view-admin-panel'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth:admin', 'can:view-admin-panel', 'log.admin.activity'])->prefix('admin')->name('admin.')->group(function () {
 
     // Admin Profile
     Route::get('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'show'])->name('profile');

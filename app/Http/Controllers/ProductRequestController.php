@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\ProductRequest;
+use App\Services\TelegramService;
 use App\Support\RepairsPrimaryKeyAutoIncrement;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Http;
 
 class ProductRequestController extends Controller
 {
@@ -44,36 +44,13 @@ class ProductRequestController extends Controller
         // ====== Notifications (اختياري) ======
         // 1) Telegram
         try {
-            $botToken = config('services.telegram.bot_token');
-            $chatId   = config('services.telegram.chat_id');
-            if ($botToken && $chatId) {
-                $normalized = preg_replace("/\r\n?/", "\n", trim($chatId));
-                $chatIds = preg_split('/[\s,]+/', $normalized) ?: [];
-                $chatIds = array_values(array_filter(array_map('trim', $chatIds), static fn ($id) => $id !== ''));
+            $result = app(TelegramService::class)->sendMessage($this->formatTelegramProductRequestMessage($pr));
 
-                if (empty($chatIds)) {
-                    $chatIds = [$chatId];
-                }
-
-                $lines = [];
-                $lines[] = "🛍️ *طلب منتج غير متوفر*";
-                $lines[] = "• المنتج: *{$pr->product_name}*";
-                if (!empty($pr->brand)) $lines[] = "• الماركة: {$pr->brand}";
-                if (!empty($pr->link))  $lines[] = "• الرابط: {$pr->link}";
-                if (!empty($pr->phone)) $lines[] = "• الهاتف/واتساب: `{$pr->phone}`";
-                if (!empty($pr->notes)) $lines[] = "• ملاحظات: {$pr->notes}";
-                $lines[] = "— الوقت: ".$pr->created_at->format('Y-m-d H:i');
-
-                $text = implode("\n", $lines);
-
-                foreach ($chatIds as $singleChatId) {
-                    Http::asForm()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                        'chat_id' => $singleChatId,
-                        'text'    => $text,
-                        'parse_mode' => 'Markdown',
-                        'disable_web_page_preview' => true,
-                    ]);
-                }
+            if (! (bool) data_get($result, 'ok', false)) {
+                Log::warning('Product request Telegram notification not delivered.', [
+                    'product_request_id' => $pr->id,
+                    'response' => $result,
+                ]);
             }
         } catch (\Throwable $e) {
             Log::warning('Telegram notify failed: '.$e->getMessage());
@@ -109,5 +86,34 @@ class ProductRequestController extends Controller
 
             return ProductRequest::create($attributes);
         }
+    }
+
+    private function formatTelegramProductRequestMessage(ProductRequest $pr): string
+    {
+        $escape = static fn (?string $value): string => htmlspecialchars((string) ($value ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        $lines = [];
+        $lines[] = '🛍️ <b>طلب منتج غير متوفر</b>';
+        $lines[] = '• المنتج: <b>' . $escape($pr->product_name) . '</b>';
+
+        if (! empty($pr->brand)) {
+            $lines[] = '• الماركة: ' . $escape($pr->brand);
+        }
+
+        if (! empty($pr->link)) {
+            $lines[] = '• الرابط: ' . $escape($pr->link);
+        }
+
+        if (! empty($pr->phone)) {
+            $lines[] = '• الهاتف/واتساب: <code>' . $escape($pr->phone) . '</code>';
+        }
+
+        if (! empty($pr->notes)) {
+            $lines[] = '• ملاحظات: ' . $escape($pr->notes);
+        }
+
+        $lines[] = '— الوقت: ' . optional($pr->created_at)->format('Y-m-d H:i');
+
+        return implode("\n", $lines);
     }
 }
