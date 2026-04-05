@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\ProductReview;
+use App\Services\ReviewModerationService;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +13,10 @@ use Illuminate\Support\Facades\Schema;
 
 class ProductReviewController extends Controller
 {
+    public function __construct(private ReviewModerationService $moderationService)
+    {
+    }
+
     public function store(Request $request, Product $product)
     {
         $validated = $request->validate([
@@ -19,15 +24,17 @@ class ProductReviewController extends Controller
             'comment' => 'nullable|string|max:2000',
         ]);
 
+        $moderation = $this->moderationService->moderate($validated['comment'] ?? null);
+
         try {
-            $review = $this->upsertReview($product->id, (int) Auth::id(), $validated);
+            $review = $this->upsertReview($product->id, (int) Auth::id(), $validated, $moderation);
         } catch (QueryException $e) {
             if (! $this->isMissingDefaultIdError($e)) {
                 throw $e;
             }
 
             $this->repairProductReviewsIdColumn();
-            $review = $this->upsertReview($product->id, (int) Auth::id(), $validated);
+            $review = $this->upsertReview($product->id, (int) Auth::id(), $validated, $moderation);
         }
 
         // احسب واحفظ المتوسط/العدد في المنتج إذا الأعمدة موجودة
@@ -41,15 +48,27 @@ class ProductReviewController extends Controller
             ])->save();
         }
 
+        $status = (string) ($review->status ?? 'approved');
+        $isVisible = $status === 'approved';
+
+        $message = 'تم حفظ تقييمك بنجاح.';
+        if ($status === 'pending') {
+            $message = 'تم استلام تعليقك وسيتم مراجعته من الإدارة قبل النشر.';
+        } elseif ($status === 'rejected') {
+            $message = 'لم يتم نشر تعليقك تلقائيًا بسبب مخالفات في المحتوى.';
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'تم حفظ تقييمك بنجاح.',
+            'message' => $message,
             'review'  => [
                 'id'               => $review->id,
                 'user_name'        => $review->user->name ?? 'أنتِ',
                 'rating'           => (int) $review->rating,
                 'comment'          => $review->comment,
                 'created_at_human' => $review->created_at->diffForHumans(),
+                'status'           => $status,
+                'visible'          => $isVisible,
             ],
             'stats' => [
                 'avg'   => $avg,
@@ -58,18 +77,28 @@ class ProductReviewController extends Controller
         ]);
     }
 
-    private function upsertReview(int $productId, int $userId, array $validated): ProductReview
+    private function upsertReview(int $productId, int $userId, array $validated, array $moderation): ProductReview
     {
+        $payload = [
+            'rating'     => $validated['rating'],
+            'comment'    => $validated['comment'] ?? null,
+            'status'     => $moderation['status'] ?? 'approved',
+        ];
+
+        if (Schema::hasColumn('product_reviews', 'moderation_score')) {
+            $payload['moderation_score'] = (int) ($moderation['score'] ?? 0);
+        }
+
+        if (Schema::hasColumn('product_reviews', 'moderation_flags')) {
+            $payload['moderation_flags'] = $moderation['flags'] ?? [];
+        }
+
         return ProductReview::updateOrCreate(
             [
                 'product_id' => $productId,
                 'user_id'    => $userId,
             ],
-            [
-                'rating'     => $validated['rating'],
-                'comment'    => $validated['comment'] ?? null,
-                'status'     => 'approved',
-            ]
+            $payload
         );
     }
 
