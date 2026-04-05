@@ -135,11 +135,13 @@ class CartController extends Controller
 
         return response()->json([
             'success' => true,
-            'cartCount' => self::getCartCount()
+            'cartCount' => self::getCartCount(),
+            'discount_value' => (float) session()->get('discount_value', 0),
+            'discount_code' => (string) session()->get('discount_code', ''),
         ]);
     }
 
-    public function destroy(Request $request)
+    public function destroy(Request $request, DiscountService $discountService)
     {
         $request->validate([
             'row_id' => 'nullable|string',
@@ -159,8 +161,7 @@ class CartController extends Controller
         if ($rowId && isset($cart[$rowId])) {
             unset($cart[$rowId]);
             session()->put('cart', $cart);
-            // عند حذف أي منتج من السلة نحذف كود الخصم المستخدم لتفادي حسابات غير متزامنة.
-            session()->forget(['discount_code', 'discount_value', 'discount_code_id']);
+            $this->syncDiscountAfterCartChange($cart, $discountService);
         }
 
         return response()->json([
@@ -297,5 +298,45 @@ class CartController extends Controller
         }
 
         return $normalized;
+    }
+
+    private function syncDiscountAfterCartChange(array $cart, DiscountService $discountService): void
+    {
+        $discountCode = trim((string) session()->get('discount_code', ''));
+        if ($discountCode === '') {
+            return;
+        }
+
+        $total = 0.0;
+        $productIds = collect($cart)
+            ->pluck('product_id')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+
+        foreach ($cart as $details) {
+            $productId = (int) ($details['product_id'] ?? 0);
+            if (! isset($products[$productId])) {
+                continue;
+            }
+
+            $price = $products[$productId]->sale_price ?? $products[$productId]->price;
+            $total += ((float) $price) * max(1, (int) ($details['quantity'] ?? 1));
+        }
+
+        try {
+            $result = $discountService->apply($discountCode, $total, array_values($cart));
+            session([
+                'discount_code' => $discountCode,
+                'discount_value' => $result['discount_amount'],
+                'discount_code_id' => $result['discount_code_id'],
+            ]);
+        } catch (\Throwable $e) {
+            session()->forget(['discount_code', 'discount_value', 'discount_code_id']);
+        }
     }
 }

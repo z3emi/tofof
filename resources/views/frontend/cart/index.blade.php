@@ -333,6 +333,8 @@
         .then(data => {
           if(data.success) {
             delete this.cartItems[rowId];
+            this.discount = Number(data.discount_value || 0);
+            this.discountCode = data.discount_code || "";
             window.dispatchEvent(new CustomEvent("cart-updated", { detail: { cartCount: data.cartCount } }));
             this.recalculateTotal();
           }
