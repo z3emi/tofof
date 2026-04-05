@@ -42,6 +42,7 @@
   .order-tracker{ position:relative; margin:1.25rem 0; padding:0 .25rem; display:flex; justify-content:space-between; gap:.5rem; }
   .order-tracker .progress-rail{ position:absolute; top:22px; left:8%; width:84%; height:2px; background:var(--rail); z-index:0; }
   .order-tracker .progress-bar{ position:absolute; top:22px; left:8%; height:2px; background:var(--progress); z-index:1; width: calc(84% * (var(--p,0) / 100)); transition:width .25s ease; border-radius:2px; }
+  .order-tracker.is-delivered .progress-bar{ background:#16a34a; }
   .step{ width:25%; text-align:center; position:relative; z-index:2; }
   .step-circle{ width:2.4rem; height:2.4rem; border-radius:999px; display:grid; place-items:center; background:#f5f5f5; color:#9ca3af; margin:0 auto .45rem; box-shadow: inset 0 0 0 2px #fff, 0 4px 10px rgba(0,0,0,.06); transition:.2s ease; }
   html.dark .step-circle{ background:#0f172a; color:#94a3b8; box-shadow: inset 0 0 0 1px var(--hair), 0 4px 10px rgba(0,0,0,.35); }
@@ -49,9 +50,11 @@
   html.dark .step-label{ color:var(--muted); }
   .step.completed .step-circle{ background:#eafbf0; color:#166534; box-shadow: inset 0 0 0 2px #fff, 0 6px 14px rgba(22,101,52,.15); }
   .step.active .step-circle{ background:var(--brand); color:#fff; box-shadow: inset 0 0 0 2px #fff, 0 6px 14px rgba(109,14,22,.25); }
+  .step.delivered-active .step-circle{ background:#16a34a; color:#fff; box-shadow: inset 0 0 0 2px #fff, 0 6px 14px rgba(22,163,74,.28); }
   .step.completed .step-label, .step.active .step-label{ color:var(--text); }
   html.dark .step.completed .step-circle{ background:rgba(34,197,94,.12); color:#86efac; box-shadow: inset 0 0 0 1px var(--hair), 0 6px 14px rgba(0,0,0,.35); }
   html.dark .step.active .step-circle{ background:var(--brand); color:#111827; box-shadow: inset 0 0 0 1px var(--hair), 0 6px 14px rgba(0,0,0,.4); }
+  html.dark .step.delivered-active .step-circle{ background:rgba(34,197,94,.24); color:#86efac; box-shadow: inset 0 0 0 1px var(--hair), 0 6px 14px rgba(0,0,0,.4); }
   .product-item{ display:flex; gap:.9rem; align-items:center; padding:.8rem .9rem; border-radius:12px; background:var(--surface); box-shadow:0 6px 18px rgba(0,0,0,.05), inset 0 0 0 1px var(--hair); }
   html.dark .product-item{ box-shadow: 0 6px 18px rgba(0,0,0,.35), inset 0 0 0 1px var(--hair); }
   .product-image{ width:72px; height:72px; border-radius:12px; object-fit:cover; box-shadow: inset 0 0 0 1px var(--hair); background:#fff; }
@@ -112,13 +115,16 @@
       <span class="pill pill-danger"><i class="bi bi-arrow-return-left"></i> {{ __('profile.order_returned_msg') }}</span>
     </div>
   @else
-    <div class="order-tracker" style="--p: {{ $progress }};">
+    <div class="order-tracker {{ $order->status === 'delivered' ? 'is-delivered' : '' }}" style="--p: {{ $progress }};">
       <div class="progress-rail"></div>
       <div class="progress-bar"></div>
       @foreach([__('profile.tracker_pending'), __('profile.tracker_processing'), __('profile.tracker_shipped'), __('profile.tracker_delivered')] as $index => $label)
         @php
           $stateClass = ($currentStatusIndex !== false && $currentStatusIndex > $index) ? 'completed'
                        : (($currentStatusIndex !== false && $currentStatusIndex == $index) ? 'active' : 'pending');
+          if ($order->status === 'delivered' && $currentStatusIndex === $index) {
+              $stateClass .= ' delivered-active';
+          }
         @endphp
         <div class="step {{ $stateClass }}">
           <div class="step-circle">
