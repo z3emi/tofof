@@ -73,7 +73,7 @@
                 </thead>
                 <tbody>
                     @forelse($users as $user)
-                        <tr class="selectable-row @if($user->banned_at) table-danger @elseif($user->tier=='Gold') tier-gold @elseif($user->tier=='Silver') tier-silver @elseif($user->tier=='Bronze') tier-bronze @endif" data-user-id="{{ $user->id }}">
+                        <tr class="selectable-row @if($user->banned_at) table-danger @elseif($user->tier=='Gold') tier-gold @elseif($user->tier=='Silver') tier-silver @elseif($user->tier=='Bronze') tier-bronze @endif" data-user-id="{{ $user->id }}" data-user-name="{{ $user->name }}" data-user-wallet="{{ (float) $user->wallet_balance }}">
                             <td class="small text-muted">{{ $loop->iteration + ($users->perPage() * ($users->currentPage() - 1)) }}</td>
                             <td class="small text-muted">#{{ $user->id }}</td>
                             <td><img src="{{ $user->avatar_url }}" class="rounded-circle border" width="38" height="38" style="object-fit:cover" onerror="this.src='{{ asset('storage/avatars/default.jpg') }}'"></td>
@@ -112,6 +112,29 @@
                                     @else
                                         <form action="{{ route('admin.users.ban', $user->id) }}" method="POST">@csrf<button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1" title="حظر"><i class="bi bi-slash-circle"></i></button></form>
                                     @endif
+
+                                    {{-- إجراءات المحفظة للكلك الأيمن (تبقى مخفية من شريط الإجراءات) --}}
+                                    <button type="button"
+                                            class="context-menu-action d-none text-success"
+                                            title="إضافة رصيد"
+                                            data-wallet-action="deposit"
+                                            data-user-id="{{ $user->id }}"
+                                            data-user-name="{{ $user->name }}"
+                                            data-user-wallet="{{ (float) $user->wallet_balance }}"
+                                            data-wallet-url="{{ route('admin.wallet.deposit', $user->id) }}">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </button>
+                                    <button type="button"
+                                            class="context-menu-action d-none text-warning"
+                                            title="سحب رصيد"
+                                            data-wallet-action="withdraw"
+                                            data-user-id="{{ $user->id }}"
+                                            data-user-name="{{ $user->name }}"
+                                            data-user-wallet="{{ (float) $user->wallet_balance }}"
+                                            data-wallet-url="{{ route('admin.wallet.withdraw', $user->id) }}">
+                                        <i class="bi bi-dash-circle"></i>
+                                    </button>
+
                                     <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('حذف نهائي؟')">@csrf @method('DELETE')<button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1"><i class="bi bi-trash"></i></button></form>
                                 </div>
                             </td>
@@ -199,6 +222,42 @@
     </div>
 </div>
 
+{{-- Wallet Action Modal --}}
+<div class="modal fade" id="walletActionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:18px">
+            <form id="walletActionForm" method="POST" data-no-loader="true">
+                @csrf
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="fw-bold mb-0" id="walletActionModalTitle">إجراء على الرصيد</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-3">
+                    <div class="small text-muted mb-2">المستخدم</div>
+                    <div class="fw-bold mb-3" id="walletActionUserName">-</div>
+
+                    <div class="small text-muted mb-2">الرصيد الحالي</div>
+                    <div class="badge bg-dark mb-3" id="walletActionCurrentBalance">0 د.ع</div>
+
+                    <div class="mb-3">
+                        <label for="walletAmount" class="form-label fw-bold">المبلغ</label>
+                        <input type="number" step="0.01" min="0.01" class="form-control search-input" id="walletAmount" name="amount" required>
+                    </div>
+
+                    <div class="mb-0">
+                        <label for="walletNote" class="form-label fw-bold">الوصف</label>
+                        <textarea class="form-control search-input" id="walletNote" name="note" rows="3" placeholder="اكتب وصف العملية (اختياري)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn text-white" id="walletActionSubmitBtn" style="background:var(--primary-dark)">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.selectable-row').forEach(row => {
@@ -207,6 +266,62 @@
                 document.querySelectorAll('.selectable-row').forEach(r => r.classList.remove('selected'));
                 this.classList.add('selected');
             });
+        });
+
+        const walletModalEl = document.getElementById('walletActionModal');
+        const walletForm = document.getElementById('walletActionForm');
+        const walletTitle = document.getElementById('walletActionModalTitle');
+        const walletUserName = document.getElementById('walletActionUserName');
+        const walletCurrentBalance = document.getElementById('walletActionCurrentBalance');
+        const walletSubmitBtn = document.getElementById('walletActionSubmitBtn');
+        const walletAmount = document.getElementById('walletAmount');
+        const walletNote = document.getElementById('walletNote');
+
+        if (!walletModalEl || !walletForm) {
+            return;
+        }
+
+        const walletModal = new bootstrap.Modal(walletModalEl);
+
+        document.addEventListener('click', function (event) {
+            const trigger = event.target.closest('.context-menu-action[data-wallet-action]');
+            if (!trigger) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const actionType = trigger.dataset.walletAction;
+            const actionUrl = trigger.dataset.walletUrl;
+            const userName = trigger.dataset.userName || '-';
+            const currentBalance = Number(trigger.dataset.userWallet || 0);
+
+            walletForm.action = actionUrl;
+            walletAmount.value = '';
+            walletNote.value = '';
+
+            walletUserName.textContent = userName;
+            walletCurrentBalance.textContent = `${Math.round(currentBalance).toLocaleString('en-US')} د.ع`;
+
+            if (actionType === 'withdraw') {
+                walletTitle.textContent = 'سحب رصيد من محفظة المستخدم';
+                walletSubmitBtn.textContent = 'تأكيد السحب';
+                walletSubmitBtn.classList.remove('btn-success');
+                walletSubmitBtn.classList.add('btn-warning');
+                walletSubmitBtn.style.color = '#111';
+            } else {
+                walletTitle.textContent = 'إضافة رصيد إلى محفظة المستخدم';
+                walletSubmitBtn.textContent = 'تأكيد الإضافة';
+                walletSubmitBtn.classList.remove('btn-warning');
+                walletSubmitBtn.classList.add('btn-success');
+                walletSubmitBtn.style.color = '#fff';
+            }
+
+            walletModal.show();
+        });
+
+        walletModalEl.addEventListener('shown.bs.modal', function () {
+            walletAmount.focus();
         });
     });
 </script>
