@@ -37,7 +37,7 @@
         .dark .cat-toggle-btn:hover { background: #374151; }
 
         .cat-thumb{
-            width:36px;height:36px;border-radius:.6rem;overflow:hidden;flex-shrink:0;
+            width:36px;height:36px;border-radius:9999px;overflow:hidden;flex-shrink:0;
             background:#f4e3e3;border:1px solid #ead6d6;display:flex;align-items:center;justify-content:center
         }
         .cat-thumb img{ width:100%;height:100%;object-fit:cover }
@@ -131,7 +131,7 @@
                     class="filter-title">
                 <span class="flex items-center gap-3">
                     <i class="bi bi-tags-fill text-lg"></i>
-                    <span>{{ __('shop.filters') }}</span>
+                    <span>{{ __('shop.brands') }}</span>
                 </span>
                 <i class="bi bi-chevron-down transform transition-transform duration-300" :class="{ 'rotate-180': open }"></i>
             </button>
@@ -197,7 +197,7 @@
                     class="filter-title">
                 <span class="flex items-center gap-3">
                     <i class="bi bi-tag-fill text-lg"></i>
-                    <span>{{ __('shop.matching_sections') }}</span>
+                    <span>{{ __('shop.categories') }}</span>
                 </span>
                 <i class="bi bi-chevron-down transform transition-transform duration-300" :class="{ 'rotate-180': open }"></i>
             </button>

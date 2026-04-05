@@ -165,7 +165,18 @@
     .filter-section:last-of-type { border-bottom: none; padding-bottom: 0; }
     .filter-title { display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 1.125rem; font-weight: 700; color: #6d0e16; transition: color 0.2s ease-in-out; }
     .filter-title:hover { color: var(--primary-color); }
-    .filter-category-item { display: block; padding: 0.5rem 0.75rem; font-size: 0.875rem; color: #4b5563; border-radius: 0.5rem; transition: all 0.2s ease-in-out; text-decoration: none; }
+    .filter-category-item {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        color: #4b5563;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease-in-out;
+        text-decoration: none;
+        width: 100%;
+    }
     .filter-category-item:hover { background-color: #f9fafb; color: var(--primary-color); }
     .filter-category-item.is-child { font-size: 0.825rem; padding-top: 0.4rem; padding-bottom: 0.4rem; }
     .filter-category-item.active { background-color: #fef2f2; color: var(--primary-color); font-weight: 600; }
