@@ -10,10 +10,12 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use App\Models\Setting;
+use Illuminate\Support\Carbon;
 use ZipArchive;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
 use Illuminate\Support\Facades\Artisan;
+use Throwable;
 
 
 class BackupController extends Controller
@@ -723,6 +725,9 @@ class BackupController extends Controller
 
     public function storeSettings(Request $request)
     {
+        $previousEnabled = Setting::getValue('backup_daily_enabled', 'off');
+        $previousTime = Setting::getValue('backup_daily_time', '03:00');
+
         $settingsKeys = [
             'backup_daily_enabled',
             'backup_daily_time',
@@ -735,6 +740,49 @@ class BackupController extends Controller
             $value = $request->has($key) ? ($request->input($key) === 'on' ? 'on' : $request->input($key)) : 'off';
             Setting::updateOrCreate(['key' => $key], ['value' => $value]);
         }
+
+        $enabledNow = Setting::getValue('backup_daily_enabled', 'off') === 'on';
+        $timeNow = (string) Setting::getValue('backup_daily_time', '03:00');
+        if (!preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $timeNow)) {
+            $timeNow = '03:00';
+            Setting::updateOrCreate(['key' => 'backup_daily_time'], ['value' => $timeNow]);
+        }
+
+        if ($enabledNow && ($previousEnabled !== 'on' || $previousTime !== $timeNow)) {
+            $now = now();
+            $scheduledAt = Carbon::today($now->getTimezone())->setTimeFromTimeString($timeNow);
+
+            $lastRunRaw = Setting::getValue('backup_last_auto_run_at');
+            $lastRunAt = null;
+            if (is_string($lastRunRaw) && trim($lastRunRaw) !== '') {
+                try {
+                    $lastRunAt = Carbon::parse($lastRunRaw);
+                } catch (Throwable $exception) {
+                    $lastRunAt = null;
+                }
+            }
+
+            $alreadySatisfiedForToday = $lastRunAt
+                && $lastRunAt->isSameDay($now)
+                && $lastRunAt->gte($scheduledAt);
+
+            $shouldRunNow = $now->gte($scheduledAt) && !$alreadySatisfiedForToday;
+            if ($shouldRunNow) {
+                $exitCode = Artisan::call('backup:database-sql');
+                if ($exitCode === 0) {
+                    Setting::updateOrCreate(
+                        ['key' => 'backup_last_auto_run_at'],
+                        ['value' => now()->toDateTimeString()]
+                    );
+                } else {
+                    Log::warning('Immediate automatic backup after settings save failed.', [
+                        'exit_code' => $exitCode,
+                        'output' => Artisan::output(),
+                    ]);
+                }
+            }
+        }
+
         return redirect()->back()->with('success', 'تم حفظ إعدادات النسخ الاحتياطي بنجاح.');
     }
 

@@ -43,6 +43,7 @@ class Kernel extends HttpKernel
             // تأكد من أن هذا السطر موجود هنا
             \App\Http\Middleware\CheckMaintenanceMode::class,
             \App\Http\Middleware\AutoLoginFromPersistentCookie::class,
+            \App\Http\Middleware\RunAutomaticBackupWithoutCron::class,
         ],
 
         'api' => [

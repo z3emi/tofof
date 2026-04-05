@@ -14,8 +14,8 @@ use Throwable;
 
 class RunAutomaticBackupWithoutCron
 {
-    private const REQUEST_THROTTLE_KEY = 'backups:auto:request-throttle';
     private const EXECUTION_LOCK_KEY = 'backups:auto:execution-lock';
+    private const EXECUTION_LOCK_DB_KEY = 'backup_auto_lock_until';
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -32,7 +32,7 @@ class RunAutomaticBackupWithoutCron
             return;
         }
 
-        if (!Cache::add(self::EXECUTION_LOCK_KEY, 1, now()->addMinutes(30))) {
+        if (!$this->acquireExecutionLock()) {
             return;
         }
 
@@ -57,17 +57,12 @@ class RunAutomaticBackupWithoutCron
                 'error' => $exception->getMessage(),
             ]);
         } finally {
-            Cache::forget(self::EXECUTION_LOCK_KEY);
+            $this->releaseExecutionLock();
         }
     }
 
     private function shouldAttemptNow(): bool
     {
-        // Reduces database reads and heavy checks to once every minute at most.
-        if (!Cache::add(self::REQUEST_THROTTLE_KEY, 1, now()->addMinute())) {
-            return false;
-        }
-
         $enabled = Setting::getValue('backup_daily_enabled', 'off') === 'on';
         if (!$enabled) {
             return false;
@@ -86,8 +81,55 @@ class RunAutomaticBackupWithoutCron
         }
 
         $lastRunAt = $this->parseDateTime(Setting::getValue('backup_last_auto_run_at'));
+        if (!$lastRunAt) {
+            return true;
+        }
 
-        return !$lastRunAt || !$lastRunAt->isSameDay($now);
+        if (!$lastRunAt->isSameDay($now)) {
+            return true;
+        }
+
+        // If schedule time changed later in the same day, allow another run when due.
+        return $lastRunAt->lt($scheduledAt);
+    }
+
+    private function acquireExecutionLock(): bool
+    {
+        try {
+            if (Cache::add(self::EXECUTION_LOCK_KEY, 1, now()->addMinutes(30))) {
+                return true;
+            }
+        } catch (Throwable $exception) {
+            Log::warning('Automatic backup cache lock unavailable; using DB lock fallback.', [
+                'error' => $exception->getMessage(),
+            ]);
+        }
+
+        $lockUntil = $this->parseDateTime(Setting::getValue(self::EXECUTION_LOCK_DB_KEY));
+        if ($lockUntil && $lockUntil->isFuture()) {
+            return false;
+        }
+
+        Setting::updateOrCreate(
+            ['key' => self::EXECUTION_LOCK_DB_KEY],
+            ['value' => now()->addMinutes(30)->toDateTimeString()]
+        );
+
+        return true;
+    }
+
+    private function releaseExecutionLock(): void
+    {
+        try {
+            Cache::forget(self::EXECUTION_LOCK_KEY);
+        } catch (Throwable $exception) {
+            // Ignore cache release failures; DB lock release below still runs.
+        }
+
+        Setting::updateOrCreate(
+            ['key' => self::EXECUTION_LOCK_DB_KEY],
+            ['value' => now()->subMinute()->toDateTimeString()]
+        );
     }
 
     private function parseDateTime($value): ?Carbon

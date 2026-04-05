@@ -5,8 +5,11 @@ namespace App\Console\Commands;
 use App\Services\DatabaseBackupService;
 use App\Services\TelegramService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use Throwable;
 use ZipArchive;
 
@@ -27,6 +30,7 @@ class GenerateDatabaseBackup extends Command
         $directory = $this->resolveDirectory($this->option('directory'));
         $fileName = $this->resolveFilename($this->option('filename'));
         $relativePath = $directory === '' ? $fileName : $directory . '/' . $fileName;
+        $backupFormat = 'ZIP';
 
         try {
             $sql = $databaseBackupService->generateSqlDump();
@@ -40,16 +44,31 @@ class GenerateDatabaseBackup extends Command
                 $disk->makeDirectory($directory);
             }
 
-            $absoluteZipPath = $disk->path($relativePath);
-            $sqlEntryName = pathinfo($relativePath, PATHINFO_FILENAME) . '.sql';
+            $zipCreated = false;
+            if (class_exists(ZipArchive::class)) {
+                $absoluteZipPath = $disk->path($relativePath);
+                $sqlEntryName = pathinfo($relativePath, PATHINFO_FILENAME) . '.sql';
 
-            $zip = new ZipArchive();
-            if ($zip->open($absoluteZipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-                throw new \RuntimeException('تعذر إنشاء ملف ZIP للنسخة الاحتياطية.');
+                $zip = new ZipArchive();
+                if ($zip->open($absoluteZipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+                    $zip->addFromString($sqlEntryName, $sql);
+                    $this->addPublicStorageToZip($zip);
+                    $zip->close();
+                    $zipCreated = true;
+                } else {
+                    Log::warning('ZIP backup creation failed, falling back to SQL backup.', [
+                        'relative_path' => $relativePath,
+                    ]);
+                }
+            } else {
+                Log::warning('ZipArchive extension is not available; falling back to SQL backup file.');
             }
 
-            $zip->addFromString($sqlEntryName, $sql);
-            $zip->close();
+            if (!$zipCreated) {
+                $relativePath = preg_replace('/\.zip$/i', '.sql', $relativePath) ?: ($relativePath . '.sql');
+                $disk->put($relativePath, $sql);
+                $backupFormat = 'SQL';
+            }
         } catch (Throwable $exception) {
             $this->error('تعذر إنشاء النسخة الاحتياطية: ' . $exception->getMessage());
             Log::error('Automatic SQL backup failed.', [
@@ -64,7 +83,8 @@ class GenerateDatabaseBackup extends Command
         $this->line("المسار الكامل: {$absolutePath}");
 
         $caption = sprintf(
-            "نسخة احتياطية ZIP جديدة\nالملف: %s\nالوقت: %s",
+            "نسخة احتياطية %s جديدة\nالملف: %s\nالوقت: %s",
+            $backupFormat,
             basename($relativePath),
             now()->format('Y-m-d H:i:s')
         );
@@ -107,5 +127,35 @@ class GenerateDatabaseBackup extends Command
         }
 
         return ltrim($fileName, '/\\');
+    }
+
+    private function addPublicStorageToZip(ZipArchive $zip): void
+    {
+        $publicStoragePath = storage_path('app/public');
+        if (!File::isDirectory($publicStoragePath)) {
+            return;
+        }
+
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($publicStoragePath, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::LEAVES_ONLY
+        );
+
+        $baseLength = strlen($publicStoragePath);
+        foreach ($files as $file) {
+            if (!$file->isFile()) {
+                continue;
+            }
+
+            $absolutePath = $file->getRealPath();
+            if (!is_string($absolutePath) || $absolutePath === '') {
+                continue;
+            }
+
+            $relativePath = 'storage/' . ltrim(substr($absolutePath, $baseLength), '/\\');
+            $relativePath = str_replace('\\', '/', $relativePath);
+
+            $zip->addFile($absolutePath, $relativePath);
+        }
     }
 }
