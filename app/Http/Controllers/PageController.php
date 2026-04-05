@@ -78,7 +78,7 @@ public function homepage(Request $request)
         ->withCount(['products as products_count' => function($q) {
             $q->where('is_active', true);
         }])
-        ->orderByDesc('products_count')
+        ->ordered()
         ->get();
 
     // 5) فئات رئيسية (pc)
@@ -86,7 +86,7 @@ public function homepage(Request $request)
         ->withCount(['products as products_count' => function($q) {
             $q->where('is_active', true);
         }])
-        ->orderByDesc('products_count')
+        ->ordered()
         ->get();
 
     // 6) قائمة التنقّل
@@ -96,19 +96,19 @@ public function homepage(Request $request)
             'children' => function($q) {
                 $q->withCount(['products as products_count' => function($qq) {
                     $qq->where('is_active', true);
-                }]);
+                }])->ordered();
             },
             'children.children' => function($q) {
                 $q->withCount(['products as products_count' => function($qq) {
                     $qq->where('is_active', true);
-                }]);
+                }])->ordered();
             },
         ])
         ->withCount(['products as products_count' => function($q) {
             $q->where('is_active', true);
         }])
         ->whereNull('parent_id')
-        ->orderByDesc('products_count')
+        ->ordered()
         ->get();
 
     // 7) المفضّلة
@@ -316,11 +316,13 @@ public function homepage(Request $request)
         // فلاتر
         $brands = PrimaryCategory::with(['children' => fn($q) => $q->withCount('products')])
             ->withCount('products')
+            ->ordered()
             ->get();
             
         $categories = Category::whereNull('parent_id')
             ->with(['children' => fn($q) => $q->withCount('products')])
             ->withCount('products')
+            ->ordered()
             ->get();
 
         foreach ($categories as $cat) {
@@ -437,10 +439,10 @@ public function homepage(Request $request)
     {
         $fiatTree = \App\Models\PrimaryCategory::whereNull('parent_id')
             ->with(['children' => function ($query) {
-                $query->withCount('products')->orderBy('name_ar', 'asc');
+                $query->withCount('products')->ordered();
             }])
             ->withCount('products')
-            ->orderBy('name_ar', 'asc')
+            ->ordered()
             ->get();
 
         foreach ($fiatTree as $fia) {
@@ -459,7 +461,7 @@ public function homepage(Request $request)
                         if ($brand_ids->isNotEmpty()) {
                             $subFia->brands = \App\Models\Category::whereIn('id', $brand_ids)
                                 ->withCount('products')
-                                ->orderBy('name_ar', 'asc')
+                                ->ordered()
                                 ->get();
                         } else {
                             $subFia->brands = collect();
@@ -496,8 +498,9 @@ public function homepage(Request $request)
 
         $categories = Category::whereIn('id', $categoryIds)
             ->whereNull('parent_id')
-            ->with('children')
+            ->with(['children' => fn ($query) => $query->ordered()])
             ->withCount('products')
+            ->ordered()
             ->get();
 
         return response()->json($categories);

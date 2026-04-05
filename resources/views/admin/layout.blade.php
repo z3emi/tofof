@@ -1294,6 +1294,9 @@
         // Show loader on form submissions
         document.querySelectorAll('form').forEach(form => {
             form.addEventListener('submit', function() {
+                if (this.classList.contains('js-move-form') || this.dataset.noLoader === 'true') {
+                    return;
+                }
                 loader.style.display = 'flex';
             });
         });
@@ -1693,6 +1696,14 @@
                         else if (classes.includes('bi-play')) {
                             text = text || 'تفعيل';
                             item.classList.add('text-success');
+                        }
+                        else if (classes.includes('bi-arrow-up')) {
+                            text = text || 'تصعيد';
+                            item.classList.add('text-info');
+                        }
+                        else if (classes.includes('bi-arrow-down')) {
+                            text = text || 'تنزيل';
+                            item.classList.add('text-info');
                         }
                         else if (classes.includes('bi-truck')) {
                             text = 'شحن الطلب';

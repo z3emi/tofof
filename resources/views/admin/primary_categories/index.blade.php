@@ -26,6 +26,20 @@ $flatItems = flatten_pri_cats($roots->sortBy('sort_order'));
     .table-container { border-radius: 15px; border: 1px solid #f1f5f9; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
     .search-input { border-radius: 12px; border: 1px solid #e2e8f0; padding: 0.8rem 1.2rem; background: #fafbff; }
     .cat-img { width:42px; height:42px; border-radius:10px; object-fit:cover; border:1px solid #eee; background:#fff; margin-right: 12px; }
+    #primary_categories_table tbody tr { transition: background-color .18s ease; }
+    #primary_categories_table tbody tr.row-moved { animation: slideInUp .4s ease-out; }
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+            background-color: #fff8e1;
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+            background-color: transparent;
+        }
+    }
 </style>
 @endpush
 
@@ -81,7 +95,7 @@ $flatItems = flatten_pri_cats($roots->sortBy('sort_order'));
                 </thead>
                 <tbody>
                     @forelse($flatItems as $node)
-                        <tr class="text-center">
+                        <tr class="text-center" data-item-id="{{ $node->id }}" data-level="{{ $node->level }}" data-parent-id="{{ $node->parent_id ?? '' }}">
                             <td class="small text-muted">{{ $loop->iteration }}</td>
                             <td class="small text-muted">#{{ $node->id }}</td>
                             <td class="text-start">
@@ -108,6 +122,18 @@ $flatItems = flatten_pri_cats($roots->sortBy('sort_order'));
                             <td>
                                 <div class="d-flex justify-content-center gap-1">
                                     @can('edit-primary-categories') 
+                                        <form action="{{ route('admin.primary-categories.move', [$node->id, 'up']) }}" method="POST" class="js-move-form" data-direction="up">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary rounded-3 px-2 py-1" title="تصعيد">
+                                                <i class="bi bi-arrow-up"></i>
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('admin.primary-categories.move', [$node->id, 'down']) }}" method="POST" class="js-move-form" data-direction="down">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary rounded-3 px-2 py-1" title="تنزيل">
+                                                <i class="bi bi-arrow-down"></i>
+                                            </button>
+                                        </form>
                                         <a href="{{ route('admin.primary-categories.edit', $node->id) }}" class="btn btn-sm btn-outline-primary rounded-3 px-2 py-1" title="تعديل"><i class="bi bi-pencil"></i></a> 
                                     
                                         @if($node->is_active)
@@ -202,3 +228,156 @@ $flatItems = flatten_pri_cats($roots->sortBy('sort_order'));
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const table = document.getElementById('primary_categories_table');
+    if (!table) return;
+    const tbody = table.querySelector('tbody');
+    const globalLoader = document.getElementById('global-loader');
+
+    const refreshRowNumbers = () => {
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach((row, index) => {
+            const seqCell = row.querySelector('td:first-child');
+            if (seqCell) seqCell.textContent = String(index + 1);
+        });
+    };
+
+    const swapSortCellText = (rowA, rowB) => {
+        const sortCellA = rowA.querySelector('td:nth-child(5) .small');
+        const sortCellB = rowB.querySelector('td:nth-child(5) .small');
+        if (!sortCellA || !sortCellB) return;
+        const tmp = sortCellA.textContent;
+        sortCellA.textContent = sortCellB.textContent;
+        sortCellB.textContent = tmp;
+    };
+
+    const getLevel = (row) => Number(row.dataset.level || 0);
+    const getParentId = (row) => row.dataset.parentId || '';
+
+    const getRowBlock = (row) => {
+        const level = getLevel(row);
+        const block = [row];
+        let cursor = row.nextElementSibling;
+
+        while (cursor && getLevel(cursor) > level) {
+            block.push(cursor);
+            cursor = cursor.nextElementSibling;
+        }
+
+        return block;
+    };
+
+    const moveBlockUp = (row, siblingRow) => {
+        const block = getRowBlock(row);
+        block.forEach((node) => {
+            tbody.insertBefore(node, siblingRow);
+        });
+    };
+
+    const moveBlockDown = (row, siblingRow) => {
+        const block = getRowBlock(row);
+        const siblingBlock = getRowBlock(siblingRow);
+        const afterSiblingBlock = siblingBlock[siblingBlock.length - 1].nextSibling;
+
+        block.forEach((node) => {
+            tbody.insertBefore(node, afterSiblingBlock);
+        });
+    };
+
+    const getSiblingRows = (row) => {
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const level = getLevel(row);
+        const parentId = getParentId(row);
+
+        return rows.filter((item) => getLevel(item) === level && getParentId(item) === parentId);
+    };
+
+    const sendMoveRequest = async (row, direction) => {
+        const form = row.querySelector(`form.js-move-form[data-direction="${direction}"]`);
+        if (!form) return false;
+
+        const formData = new FormData(form);
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            body: formData
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || payload.ok === false) {
+            throw new Error(payload.message || 'فشل تحديث الترتيب');
+        }
+
+        return true;
+    };
+
+    const moveOneStep = async (row, direction) => {
+        const siblings = getSiblingRows(row);
+        const index = siblings.indexOf(row);
+        if (index === -1) return false;
+
+        const swapIndex = direction === 'up' ? index - 1 : index + 1;
+        const sibling = siblings[swapIndex];
+        if (!sibling) return false;
+
+        await sendMoveRequest(row, direction);
+
+        if (direction === 'up') {
+            moveBlockUp(row, sibling);
+        } else {
+            moveBlockDown(row, sibling);
+        }
+
+        swapSortCellText(row, sibling);
+        return true;
+    };
+
+    const pulseMovedRows = (...rows) => {
+        rows.forEach((row) => {
+            row.classList.remove('row-moved');
+            void row.offsetWidth;
+            row.classList.add('row-moved');
+            setTimeout(() => row.classList.remove('row-moved'), 430);
+        });
+    };
+
+    table.addEventListener('submit', async function (event) {
+        const form = event.target.closest('form.js-move-form');
+        if (!form) return;
+
+        event.preventDefault();
+
+        const row = form.closest('tr');
+        if (!row) return;
+
+        const direction = form.dataset.direction;
+
+        const submitButton = form.querySelector('button[type="submit"]');
+        if (submitButton) submitButton.disabled = true;
+
+        try {
+            await moveOneStep(row, direction);
+            refreshRowNumbers();
+            const sibling = direction === 'up' ? row.nextElementSibling : row.previousElementSibling;
+            if (sibling) pulseMovedRows(row, sibling);
+        } catch (error) {
+            if (window.showToast) {
+                window.showToast(error.message || 'فشل تحديث الترتيب', 'danger');
+            } else {
+                alert(error.message || 'فشل تحديث الترتيب');
+            }
+        } finally {
+            if (globalLoader) globalLoader.style.display = 'none';
+            if (submitButton) submitButton.disabled = false;
+        }
+    });
+
+});
+</script>
+@endpush

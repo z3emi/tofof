@@ -1,23 +1,6 @@
 @php
-    // ترتيب الأقسام تنازلياً حسب عدد المنتجات
+    // استخدم ترتيب الكنترولر (sort_order) بدون إعادة فرز داخل الواجهة.
     $sortedCategories = $categories;
-
-    try {
-        if ($categories instanceof \Illuminate\Support\Collection) {
-            $sortedCategories = $categories
-                ->sortByDesc(function ($cat) {
-                    // يفضّل استخدام withCount('products') في الكنترولر
-                    // هنا نتعامل مرنًا:
-                    if (isset($cat->products_count)) {
-                        return (int) $cat->products_count;
-                    }
-                    return method_exists($cat, 'products') ? (int) $cat->products()->count() : 0;
-                })
-                ->values();
-        }
-    } catch (\Throwable $e) {
-        // إبقاء الترتيب كما هو إذا حدث خطأ
-    }
 @endphp
 @php
     // This defines the variable as an empty array if it doesn't exist, preventing errors.
@@ -741,17 +724,7 @@
             ->ordered()
             ->get();
 
-    // ترتيب تنازلي حسب عدد المنتجات (نفس منطقك فوق)
-    try {
-        if ($primaryCategories2 instanceof \Illuminate\Support\Collection) {
-            $primaryCategories2 = $primaryCategories2
-                ->sortByDesc(function ($pc) {
-                    if (isset($pc->products_count)) return (int) $pc->products_count;
-                    return method_exists($pc, 'products') ? (int) $pc->products()->count() : 0;
-                })
-                ->values();
-        }
-    } catch (\Throwable $e) {}
+    // استخدم ترتيب الكنترولر (sort_order) بدون إعادة فرز داخل الواجهة.
 @endphp
 
 @if($primaryCategories2->count())
@@ -851,8 +824,10 @@
             {{-- الزر الأيسر: يرجع/للخلف (prev) --}}
             <button
                 class="brand-nav hidden md:flex absolute left-4 pos-mid z-[10001]"
-                :class="{'brand-nav-active': canGoLeft, 'brand-nav-disabled': !canGoLeft}"
-                :disabled="!canGoLeft"
+                :class="{'brand-nav-active': canGoLeft}"
+                x-show="canGoLeft"
+                x-cloak
+                x-transition.opacity.duration.200ms
                 type="button" aria-label="{{ __('common.prev') }}"
                 @click="goLeft()">
                 <i class="bi bi-chevron-left text-2xl"></i>
@@ -861,8 +836,10 @@
             {{-- الزر الأيمن: يتقدم/للأمام (next) --}}
             <button
                 class="brand-nav hidden md:flex absolute right-4 pos-mid z-[10001]"
-                :class="{'brand-nav-active': canGoRight, 'brand-nav-disabled': !canGoRight}"
-                :disabled="!canGoRight"
+                :class="{'brand-nav-active': canGoRight}"
+                x-show="canGoRight"
+                x-cloak
+                x-transition.opacity.duration.200ms
                 type="button" aria-label="{{ __('common.next') }}"
                 @click="goRight()">
                 <i class="bi bi-chevron-right text-2xl"></i>
@@ -1244,20 +1221,18 @@
     {{-- Buttons --}}
     {{-- الزر الأيسر: يرجع/للخلف (prev) --}}
     <button type="button" x-cloak class="cat-side-nav-glass inline-flex absolute top-1/2 left-4 -translate-y-1/2 z-[5]"
-            :class="{'cat-nav-active': showLeftButton, 'cat-nav-disabled': !showLeftButton}"
-            :disabled="!showLeftButton"
-            x-show="!isMobile"
-            x-transition
+            :class="{'cat-nav-active': showLeftButton}"
+            x-show="!isMobile && showLeftButton"
+            x-transition.opacity.duration.200ms
             aria-label="{{ __('common.prev') }}"
             @click="goLeft()">
         <i class="bi bi-chevron-left text-base md:text-lg"></i>
     </button>
     {{-- الزر الأيمن: يتقدم/للأمام (next) --}}
     <button type="button" x-cloak class="cat-side-nav-glass inline-flex absolute top-1/2 right-4 -translate-y-1/2 z-[5]"
-            :class="{'cat-nav-active': showRightButton, 'cat-nav-disabled': !showRightButton}"
-            :disabled="!showRightButton"
-            x-show="!isMobile"
-            x-transition
+            :class="{'cat-nav-active': showRightButton}"
+            x-show="!isMobile && showRightButton"
+            x-transition.opacity.duration.200ms
             aria-label="{{ __('common.next') }}"
             @click="goRight()">
         <i class="bi bi-chevron-right text-base md:text-lg"></i>

@@ -47,6 +47,13 @@
     </div>
 
     <div class="col-md-3">
+        <label class="form-label fw-bold small text-muted">التسلسل (الترتيب)</label>
+        <input type="number" name="sort_order" class="form-control @error('sort_order') is-invalid @enderror"
+               value="{{ old('sort_order', $item->sort_order) }}" min="1" placeholder="اتركه فارغًا للتلقائي">
+        @error('sort_order') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+    </div>
+
+    <div class="col-md-3">
         <label class="form-label fw-bold small text-muted d-block">الحالة</label>
         <input type="hidden" name="is_active" value="0">
         <div class="form-check form-switch pt-2">

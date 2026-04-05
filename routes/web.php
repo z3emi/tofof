@@ -364,6 +364,8 @@ Route::middleware(['auth:admin', 'can:view-admin-panel', 'log.admin.activity'])-
         Route::delete('/{id}/force-delete', [CategoryController::class, 'forceDelete'])->name('forceDelete')->middleware('can:edit-categories');
         Route::get('/export', [CategoryController::class, 'exportExcel'])->name('export')->middleware('can:view-categories');
         Route::post('/{category}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('toggleStatus')->middleware('can:edit-categories');
+        Route::post('/{category}/move/{direction}', [CategoryController::class, 'move'])->name('move')->middleware('can:edit-categories');
+        Route::post('/reorder', [CategoryController::class, 'reorder'])->name('reorder')->middleware('can:edit-categories');
     });
     Route::resource('categories', CategoryController::class)->except(['show'])->middleware('can:view-categories');
 
@@ -550,6 +552,10 @@ Route::middleware(['auth:admin']) // أضف صلاحياتك مثل can:manage-c
         Route::resource('primary-categories', PrimaryCategoryController::class);
         Route::post('primary-categories/{primary_category}/toggle-status', [PrimaryCategoryController::class, 'toggleStatus'])
          ->name('primary-categories.toggleStatus');
+        Route::post('primary-categories/{primary_category}/move/{direction}', [PrimaryCategoryController::class, 'move'])
+         ->name('primary-categories.move');
+        Route::post('primary-categories/reorder', [PrimaryCategoryController::class, 'reorder'])
+         ->name('primary-categories.reorder');
              Route::get('primary-categories/{primary_category}/children', [PrimaryCategoryController::class, 'children'])
          ->name('primary-categories.children');
     });

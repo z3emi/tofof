@@ -18,10 +18,12 @@ class Category extends Model
         'slug',
         'image',
         'parent_id',
+        'sort_order',
         'is_active',
     ];
 
     protected $casts = [
+        'sort_order' => 'integer',
         'is_active' => 'boolean',
     ];
 
@@ -32,7 +34,15 @@ class Category extends Model
 
     public function children()
     {
-        return $this->hasMany(Category::class, 'parent_id')->with('children')->withCount('products');
+        return $this->hasMany(Category::class, 'parent_id')
+            ->ordered()
+            ->with('children')
+            ->withCount('products');
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort_order')->orderBy('id');
     }
 
     public function products()

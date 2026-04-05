@@ -18,7 +18,7 @@ class PrimaryCategoryController extends Controller
     {
         $search = $request->get('search');
         $allowedSorts = ['id', 'name_ar', 'sort_order', 'created_at'];
-        [$sortBy, $sortDir] = \App\Support\Sort::resolve($request, $allowedSorts, 'id');
+        [$sortBy, $sortDir] = \App\Support\Sort::resolve($request, $allowedSorts, 'sort_order', 'asc');
 
         $items = PrimaryCategory::query()
             ->when($search, function ($q) use ($search) {
@@ -67,6 +67,9 @@ class PrimaryCategoryController extends Controller
             $data['slug'] = Str::slug($data['name_en'] ?: $data['name_ar']);
         }
         $data['sort_order'] = $data['sort_order'] ?? 0;
+        if ($data['sort_order'] === 0) {
+            $data['sort_order'] = $this->nextSortOrder($data['parent_id'] ?? null);
+        }
 
         if ($request->hasFile('icon_file')) {
             $data['icon'] = $this->uploadAndConvertImage($request->file('icon_file'), 'primary_categories/icons');
@@ -89,6 +92,8 @@ class PrimaryCategoryController extends Controller
 
     public function update(Request $request, PrimaryCategory $primary_category)
     {
+        $oldParentId = $primary_category->parent_id ? (int) $primary_category->parent_id : null;
+
         $data = $request->validate([
             'name_ar'      => ['required','string','max:255'],
             'name_en'      => ['nullable','string','max:255'],
@@ -120,6 +125,9 @@ class PrimaryCategoryController extends Controller
             $data['slug'] = Str::slug($data['name_en'] ?: $data['name_ar']);
         }
         $data['sort_order'] = $data['sort_order'] ?? 0;
+        if ($data['sort_order'] === 0) {
+            $data['sort_order'] = $this->nextSortOrder($data['parent_id'] ?? null, $primary_category->id);
+        }
 
         // حذف اختياري
         if ($request->boolean('remove_icon') && $primary_category->icon) {
@@ -143,7 +151,170 @@ class PrimaryCategoryController extends Controller
 
         $primary_category->update($data);
 
+        $newParentId = isset($data['parent_id']) && $data['parent_id'] !== null ? (int) $data['parent_id'] : null;
+        $this->normalizeSortOrders($newParentId);
+        if ($newParentId !== $oldParentId) {
+            $this->normalizeSortOrders($oldParentId);
+        }
+
         return redirect()->route('admin.primary-categories.index')->with('success', 'تم تحديث الفئة بنجاح.');
+    }
+
+    public function move(Request $request, PrimaryCategory $primary_category, string $direction)
+    {
+        abort_unless(in_array($direction, ['up', 'down'], true), 404);
+
+        $parentId = $primary_category->parent_id ? (int) $primary_category->parent_id : null;
+
+        $siblings = PrimaryCategory::query()
+            ->where('parent_id', $parentId)
+            ->ordered()
+            ->get()
+            ->values();
+
+        $currentIndex = $siblings->search(fn (PrimaryCategory $item) => $item->is($primary_category));
+
+        if ($currentIndex === false) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['ok' => false, 'message' => 'تعذر العثور على العنصر.'], 422);
+            }
+            return redirect()->route('admin.primary-categories.index');
+        }
+
+        $swapIndex = $direction === 'up' ? $currentIndex - 1 : $currentIndex + 1;
+
+        if (! isset($siblings[$swapIndex])) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['ok' => false, 'message' => 'لا يمكن التحريك بهذا الاتجاه.'], 422);
+            }
+            return redirect()->route('admin.primary-categories.index');
+        }
+
+        $swapItem = $siblings[$swapIndex];
+        $currentSortOrder = (int) $primary_category->sort_order;
+
+        $primary_category->updateQuietly(['sort_order' => (int) $swapItem->sort_order]);
+        $swapItem->updateQuietly(['sort_order' => $currentSortOrder]);
+
+        $this->normalizeSortOrders($parentId);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'تم تحديث ترتيب الفئة.',
+                'moved_id' => $primary_category->id,
+                'swapped_id' => $swapItem->id,
+                'direction' => $direction,
+            ]);
+        }
+
+        return redirect()
+            ->route('admin.primary-categories.index')
+            ->with('success', 'تم تحديث ترتيب الفئة.');
+    }
+
+    public function reorder(Request $request)
+    {
+        if ($request->filled('order_ids')) {
+            $data = $request->validate([
+                'order_ids' => ['required', 'array', 'min:1'],
+                'order_ids.*' => ['integer', 'distinct', 'exists:primary_categories,id'],
+            ]);
+
+            $orderedIds = collect($data['order_ids'])->map(fn ($id) => (int) $id)->values()->all();
+            $first = PrimaryCategory::findOrFail($orderedIds[0]);
+            $parentId = $first->parent_id ? (int) $first->parent_id : null;
+
+            $countInGroup = PrimaryCategory::query()->where('parent_id', $parentId)->count();
+            if ($countInGroup !== count($orderedIds)) {
+                return response()->json(['ok' => false, 'message' => 'عدد العناصر المرسلة لا يطابق المجموعة.'], 422);
+            }
+
+            $items = PrimaryCategory::query()
+                ->where('parent_id', $parentId)
+                ->whereIn('id', $orderedIds)
+                ->get()
+                ->keyBy('id');
+
+            if ($items->count() !== count($orderedIds)) {
+                return response()->json(['ok' => false, 'message' => 'بعض العناصر خارج نفس المستوى.'], 422);
+            }
+
+            foreach ($orderedIds as $index => $id) {
+                $item = $items->get($id);
+                if (! $item) {
+                    continue;
+                }
+
+                $targetOrder = $index + 1;
+                if ((int) $item->sort_order !== $targetOrder) {
+                    $item->updateQuietly(['sort_order' => $targetOrder]);
+                }
+            }
+
+            $this->normalizeSortOrders($parentId);
+
+            return response()->json([
+                'ok' => true,
+                'message' => 'تم تحديث الترتيب بنجاح.',
+                'order_ids' => $orderedIds,
+            ]);
+        }
+
+        $data = $request->validate([
+            'moved_id' => ['required', 'integer', 'exists:primary_categories,id'],
+            'target_id' => ['required', 'integer', 'exists:primary_categories,id', 'different:moved_id'],
+            'position' => ['required', 'in:before,after'],
+        ]);
+
+        $moved = PrimaryCategory::findOrFail((int) $data['moved_id']);
+        $target = PrimaryCategory::findOrFail((int) $data['target_id']);
+
+        $movedParentId = $moved->parent_id ? (int) $moved->parent_id : null;
+        $targetParentId = $target->parent_id ? (int) $target->parent_id : null;
+
+        if ($movedParentId !== $targetParentId) {
+            return response()->json(['ok' => false, 'message' => 'السحب مسموح فقط ضمن نفس المستوى.'], 422);
+        }
+
+        $siblings = PrimaryCategory::query()
+            ->where('parent_id', $movedParentId)
+            ->ordered()
+            ->get()
+            ->values();
+
+        $orderedIds = $siblings->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+        $orderedIds = array_values(array_filter($orderedIds, fn ($id) => (int) $id !== (int) $moved->id));
+
+        $targetIndex = array_search((int) $target->id, $orderedIds, false);
+        if ($targetIndex === false) {
+            return response()->json(['ok' => false, 'message' => 'تعذر تحديد موضع الهدف.'], 422);
+        }
+
+        $insertIndex = $data['position'] === 'after' ? $targetIndex + 1 : $targetIndex;
+        array_splice($orderedIds, $insertIndex, 0, [(int) $moved->id]);
+
+        $itemsById = $siblings->keyBy('id');
+        foreach ($orderedIds as $index => $id) {
+            /** @var PrimaryCategory|null $item */
+            $item = $itemsById->get($id);
+            if (! $item) {
+                continue;
+            }
+
+            $targetOrder = $index + 1;
+            if ((int) $item->sort_order !== $targetOrder) {
+                $item->updateQuietly(['sort_order' => $targetOrder]);
+            }
+        }
+
+        $this->normalizeSortOrders($movedParentId);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'تم تحديث الترتيب بنجاح.',
+            'order_ids' => $orderedIds,
+        ]);
     }
 
     public function destroy(PrimaryCategory $primary_category)
@@ -230,5 +401,29 @@ public function children(\App\Models\PrimaryCategory $primary_category)
         })->toArray();
 
         return Excel::download(new PrimaryCategoriesExport($data), 'primary-categories.xlsx');
+    }
+
+    protected function nextSortOrder(?int $parentId, ?int $ignoreId = null): int
+    {
+        return (int) PrimaryCategory::query()
+            ->where('parent_id', $parentId)
+            ->when($ignoreId, fn ($q) => $q->whereKeyNot($ignoreId))
+            ->max('sort_order') + 1;
+    }
+
+    protected function normalizeSortOrders(?int $parentId): void
+    {
+        PrimaryCategory::query()
+            ->where('parent_id', $parentId)
+            ->ordered()
+            ->get()
+            ->values()
+            ->each(function (PrimaryCategory $item, int $index) {
+                $targetOrder = $index + 1;
+
+                if ((int) $item->sort_order !== $targetOrder) {
+                    $item->updateQuietly(['sort_order' => $targetOrder]);
+                }
+            });
     }
 }

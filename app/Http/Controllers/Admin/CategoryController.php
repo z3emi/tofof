@@ -66,10 +66,15 @@ class CategoryController extends Controller
             });
         }
 
-        $allowedSorts = ['id', 'name_ar', 'total_products_count', 'created_at'];
-        [$sortBy, $sortDir] = \App\Support\Sort::resolve($request, $allowedSorts, 'id');
+        $allowedSorts = ['id', 'name_ar', 'total_products_count', 'created_at', 'sort_order'];
+        [$sortBy, $sortDir] = \App\Support\Sort::resolve($request, $allowedSorts, 'sort_order', 'asc');
 
-        $categories = $query->orderBy($sortBy, $sortDir)->paginate($perPage)->withQueryString();
+        $categories = $query
+            ->orderBy($sortBy, $sortDir)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->paginate($perPage)
+            ->withQueryString();
 
         return view('admin.categories.index', compact('categories', 'sortBy', 'sortDir'));
     }
@@ -87,6 +92,7 @@ class CategoryController extends Controller
             'name_en'   => 'nullable|string|max:255',
             'image'     => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'parent_id' => 'nullable|exists:categories,id',
+            'sort_order' => 'nullable|integer|min:1',
             'is_active' => 'sometimes|boolean',
         ]);
 
@@ -94,14 +100,22 @@ class CategoryController extends Controller
 
         $path = $request->file('image')->store('categories', 'public');
 
+        $parentId = $request->filled('parent_id') ? (int) $request->parent_id : null;
+        $sortOrder = $request->filled('sort_order')
+            ? (int) $request->sort_order
+            : $this->nextSortOrder($parentId);
+
         Category::create([
             'name_ar'   => $request->name_ar,
             'name_en'   => $request->name_en,
             'slug'      => $slug,
             'image'     => $path,
-            'parent_id' => $request->parent_id,
+            'parent_id' => $parentId,
+            'sort_order' => $sortOrder,
             'is_active' => $request->boolean('is_active', true),
         ]);
+
+        $this->normalizeSortOrders($parentId);
 
         $this->flushCategoryCaches();
 
@@ -121,6 +135,7 @@ class CategoryController extends Controller
             'name_en'   => 'nullable|string|max:255',
             'image'     => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'parent_id' => 'nullable|exists:categories,id',
+            'sort_order' => 'nullable|integer|min:1',
             'is_active' => 'sometimes|boolean',
         ]);
 
@@ -132,12 +147,23 @@ class CategoryController extends Controller
             return back()->withErrors(['parent_id' => 'لا يمكن نقل القسم تحت أحد أبنائه.'])->withInput();
         }
 
+        $newParentId = $request->filled('parent_id') ? (int) $request->parent_id : null;
+        $oldParentId = $category->parent_id ? (int) $category->parent_id : null;
+
         $data = [
             'name_ar'   => $request->name_ar,
             'name_en'   => $request->name_en,
-            'parent_id' => $request->parent_id,
+            'parent_id' => $newParentId,
             'is_active' => $request->boolean('is_active'),
         ];
+
+        if ($request->filled('sort_order')) {
+            $data['sort_order'] = (int) $request->sort_order;
+        }
+
+        if ($newParentId !== $oldParentId && ! $request->filled('sort_order')) {
+            $data['sort_order'] = $this->nextSortOrder($newParentId, $category->id);
+        }
 
         if ($category->name_ar !== $request->name_ar) {
             $data['slug'] = $this->generateUniqueSlug($request->name_ar, $category->id);
@@ -152,9 +178,174 @@ class CategoryController extends Controller
 
         $category->update($data);
 
+        $this->normalizeSortOrders($newParentId);
+        if ($newParentId !== $oldParentId) {
+            $this->normalizeSortOrders($oldParentId);
+        }
+
         $this->flushCategoryCaches();
 
         return redirect()->route('admin.categories.index')->with('success', 'تم تحديث القسم بنجاح.');
+    }
+
+    public function move(Request $request, Category $category, string $direction)
+    {
+        abort_unless(in_array($direction, ['up', 'down'], true), 404);
+
+        $parentId = $category->parent_id ? (int) $category->parent_id : null;
+
+        $siblings = Category::query()
+            ->where('parent_id', $parentId)
+            ->ordered()
+            ->get()
+            ->values();
+
+        $currentIndex = $siblings->search(fn (Category $item) => $item->is($category));
+
+        if ($currentIndex === false) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['ok' => false, 'message' => 'تعذر العثور على العنصر.'], 422);
+            }
+            return redirect()->route('admin.categories.index');
+        }
+
+        $swapIndex = $direction === 'up' ? $currentIndex - 1 : $currentIndex + 1;
+
+        if (! isset($siblings[$swapIndex])) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['ok' => false, 'message' => 'لا يمكن التحريك بهذا الاتجاه.'], 422);
+            }
+            return redirect()->route('admin.categories.index');
+        }
+
+        $swapCategory = $siblings[$swapIndex];
+        $currentSortOrder = (int) $category->sort_order;
+
+        $category->updateQuietly(['sort_order' => (int) $swapCategory->sort_order]);
+        $swapCategory->updateQuietly(['sort_order' => $currentSortOrder]);
+
+        $this->normalizeSortOrders($parentId);
+        $this->flushCategoryCaches();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'تم تحديث ترتيب التصنيف.',
+                'moved_id' => $category->id,
+                'swapped_id' => $swapCategory->id,
+                'direction' => $direction,
+            ]);
+        }
+
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('success', 'تم تحديث ترتيب التصنيف.');
+    }
+
+    public function reorder(Request $request)
+    {
+        if ($request->filled('order_ids')) {
+            $data = $request->validate([
+                'order_ids' => ['required', 'array', 'min:1'],
+                'order_ids.*' => ['integer', 'distinct', 'exists:categories,id'],
+            ]);
+
+            $orderedIds = collect($data['order_ids'])->map(fn ($id) => (int) $id)->values()->all();
+            $first = Category::findOrFail($orderedIds[0]);
+            $parentId = $first->parent_id ? (int) $first->parent_id : null;
+
+            $countInGroup = Category::query()->where('parent_id', $parentId)->count();
+            if ($countInGroup !== count($orderedIds)) {
+                return response()->json(['ok' => false, 'message' => 'عدد العناصر المرسلة لا يطابق المجموعة.'], 422);
+            }
+
+            $items = Category::query()
+                ->where('parent_id', $parentId)
+                ->whereIn('id', $orderedIds)
+                ->get()
+                ->keyBy('id');
+
+            if ($items->count() !== count($orderedIds)) {
+                return response()->json(['ok' => false, 'message' => 'بعض العناصر خارج نفس المستوى.'], 422);
+            }
+
+            foreach ($orderedIds as $index => $id) {
+                $item = $items->get($id);
+                if (! $item) {
+                    continue;
+                }
+
+                $targetOrder = $index + 1;
+                if ((int) $item->sort_order !== $targetOrder) {
+                    $item->updateQuietly(['sort_order' => $targetOrder]);
+                }
+            }
+
+            $this->normalizeSortOrders($parentId);
+            $this->flushCategoryCaches();
+
+            return response()->json([
+                'ok' => true,
+                'message' => 'تم تحديث الترتيب بنجاح.',
+                'order_ids' => $orderedIds,
+            ]);
+        }
+
+        $data = $request->validate([
+            'moved_id' => ['required', 'integer', 'exists:categories,id'],
+            'target_id' => ['required', 'integer', 'exists:categories,id', 'different:moved_id'],
+            'position' => ['required', 'in:before,after'],
+        ]);
+
+        $moved = Category::findOrFail((int) $data['moved_id']);
+        $target = Category::findOrFail((int) $data['target_id']);
+
+        $movedParentId = $moved->parent_id ? (int) $moved->parent_id : null;
+        $targetParentId = $target->parent_id ? (int) $target->parent_id : null;
+
+        if ($movedParentId !== $targetParentId) {
+            return response()->json(['ok' => false, 'message' => 'السحب مسموح فقط ضمن نفس المستوى.'], 422);
+        }
+
+        $siblings = Category::query()
+            ->where('parent_id', $movedParentId)
+            ->ordered()
+            ->get()
+            ->values();
+
+        $orderedIds = $siblings->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+        $orderedIds = array_values(array_filter($orderedIds, fn ($id) => (int) $id !== (int) $moved->id));
+
+        $targetIndex = array_search((int) $target->id, $orderedIds, false);
+        if ($targetIndex === false) {
+            return response()->json(['ok' => false, 'message' => 'تعذر تحديد موضع الهدف.'], 422);
+        }
+
+        $insertIndex = $data['position'] === 'after' ? $targetIndex + 1 : $targetIndex;
+        array_splice($orderedIds, $insertIndex, 0, [(int) $moved->id]);
+
+        $itemsById = $siblings->keyBy('id');
+        foreach ($orderedIds as $index => $id) {
+            /** @var Category|null $item */
+            $item = $itemsById->get($id);
+            if (! $item) {
+                continue;
+            }
+
+            $targetOrder = $index + 1;
+            if ((int) $item->sort_order !== $targetOrder) {
+                $item->updateQuietly(['sort_order' => $targetOrder]);
+            }
+        }
+
+        $this->normalizeSortOrders($movedParentId);
+        $this->flushCategoryCaches();
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'تم تحديث الترتيب بنجاح.',
+            'order_ids' => $orderedIds,
+        ]);
     }
 
     public function destroy(Category $category)
@@ -256,6 +447,30 @@ class CategoryController extends Controller
             $current = Category::find($current->parent_id);
         }
         return false;
+    }
+
+    protected function nextSortOrder(?int $parentId, ?int $ignoreId = null): int
+    {
+        return (int) Category::query()
+            ->where('parent_id', $parentId)
+            ->when($ignoreId, fn ($q) => $q->whereKeyNot($ignoreId))
+            ->max('sort_order') + 1;
+    }
+
+    protected function normalizeSortOrders(?int $parentId): void
+    {
+        Category::query()
+            ->where('parent_id', $parentId)
+            ->ordered()
+            ->get()
+            ->values()
+            ->each(function (Category $item, int $index) {
+                $targetOrder = $index + 1;
+
+                if ((int) $item->sort_order !== $targetOrder) {
+                    $item->updateQuietly(['sort_order' => $targetOrder]);
+                }
+            });
     }
 
     public function exportExcel()

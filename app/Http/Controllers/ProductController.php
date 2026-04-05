@@ -18,7 +18,10 @@ class ProductController extends Controller
         $query = $request->input('query') ?: $request->input('q') ?: $request->input('search');
 
         // جلب الفئات الرئيسية مع الأبناء (للفلتر الجانبي)
-        $categoriesFilter = \App\Models\Category::with('children')->whereNull('parent_id')->get();
+        $categoriesFilter = \App\Models\Category::with(['children' => fn ($query) => $query->ordered()])
+            ->whereNull('parent_id')
+            ->ordered()
+            ->get();
 
         // 1. البحث عن البراندات (PrimaryCategory)
         $matchedBrands = collect();
