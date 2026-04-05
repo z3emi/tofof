@@ -74,7 +74,7 @@
                                 <option value="{{ $category->id }}"
                                     data-image="{{ $category->image_url }}"
                                     @selected(old('category_id', $product->category_id ?? '') == $category->id)>
-                                    {{ $category->name_ar }}
+                                    {{ $category->name_ar }}{{ method_exists($category, 'trashed') && $category->trashed() ? ' (محذوفة)' : '' }}
                                 </option>
                             @endforeach
                         </select>
@@ -93,10 +93,11 @@
                             ? $product->primaryCategories()->first()->id
                             : ''
                     );
+                    $selectedPrimaryFallback = old('primary_category_id_fallback', $selectedPrimary);
                     $preselectedParentId = '';
                     $preselectedChildId  = '';
-                    if ($selectedPrimary) {
-                        $selCat = PrimaryCategory::find($selectedPrimary);
+                    if ($selectedPrimaryFallback) {
+                        $selCat = PrimaryCategory::find($selectedPrimaryFallback);
                         if ($selCat) {
                             if ($selCat->parent_id) {
                                 $preselectedParentId = $selCat->parent_id;
@@ -110,7 +111,7 @@
 
                 <div class="mb-3">
                     <label class="form-label">الفئة الرئيسية</label>
-                    <select id="pc_parent" class="form-select select2-with-image">
+                    <select id="pc_parent" name="primary_category_id_fallback" class="form-select select2-with-image">
                         <option value="">-- اختر الفئة الرئيسية --</option>
                         @foreach($rootPrimaryCategories as $root)
                             <option value="{{ $root->id }}" 
@@ -130,7 +131,7 @@
                         <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
                 </div>
-                <input type="hidden" name="primary_category_id" id="primary_category_id" value="{{ $selectedPrimary }}">
+                <input type="hidden" name="primary_category_id" id="primary_category_id" value="{{ $selectedPrimaryFallback }}">
 
                 <hr class="my-3">
 
@@ -536,6 +537,14 @@
             loadChildren(parentSel.value, preChild);
         } else {
             syncFinal();
+        }
+
+        // Safety net: make sure the hidden field reflects current selections right before submit.
+        const formEl = parentSel?.closest('form');
+        if (formEl) {
+            formEl.addEventListener('submit', () => {
+                syncFinal();
+            });
         }
     });
 

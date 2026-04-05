@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Category; // الأقسام القديمة
 use App\Models\ProductImage;
 use App\Models\PrimaryCategory; // 👈 الفئة الجديدة (النسخة الثانية)
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Storage;
@@ -108,6 +109,7 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'category_id'     => 'required|integer|exists:categories,id',
             'name_ar'        => 'required|string|max:255',
             'name_en'        => 'nullable|string|max:255',
             'description_ar' => 'required|string',
@@ -125,6 +127,7 @@ class ProductController extends Controller
             'primary_categories'    => 'nullable|array',
             'primary_categories.*'  => 'integer|exists:primary_categories,id',
             'primary_category_id'   => 'nullable|integer|exists:primary_categories,id',
+            'primary_category_id_fallback' => 'nullable|integer|exists:primary_categories,id',
 
             'product_options' => 'nullable|array',
             'product_options.*.name_ar' => 'nullable|string|max:255',
@@ -143,14 +146,28 @@ class ProductController extends Controller
 
         DB::beginTransaction();
         try {
-            // لا ندخل primary_categories مع create
-            $data = $request->except(['images', 'primary_categories', 'primary_category_id']);
+            // احفظ فقط أعمدة جدول products لتجنب إدخال حقول النموذج المساعدة مثل _token و product_options.
+            $data = $request->only([
+                'category_id',
+                'name_ar',
+                'name_en',
+                'description_ar',
+                'description_en',
+                'sku',
+                'price',
+                'sale_price',
+                'sale_starts_at',
+                'sale_ends_at',
+                'stock_quantity',
+            ]);
+            $data['is_active'] = $request->boolean('is_active');
             $product = $this->createProductWithRepair($data);
 
             // ربط الفئات الجديدة (يدعم primary_categories[] أو primary_category_id الواحدة)
             $pcIds = $request->input('primary_categories', []);
-            if (empty($pcIds) && $request->filled('primary_category_id')) {
-                $pcIds = [$request->primary_category_id];
+            $singlePrimaryId = $this->resolveSinglePrimaryCategoryId($request);
+            if (empty($pcIds) && !empty($singlePrimaryId)) {
+                $pcIds = [$singlePrimaryId];
             }
             $pcIds = array_values(array_unique(array_filter(array_map('intval', (array) $pcIds))));
             if (!empty($pcIds)) {
@@ -187,7 +204,13 @@ class ProductController extends Controller
             'optionCombinations.images',
         ]);
 
-        $categories = Category::all(); // القديمة
+        $categories = Category::query()->ordered()->get(); // القديمة
+        if ($product->category_id && !$categories->contains('id', $product->category_id)) {
+            $selectedCategory = Category::withTrashed()->find($product->category_id);
+            if ($selectedCategory) {
+                $categories->prepend($selectedCategory);
+            }
+        }
         $primaryCategories = PrimaryCategory::active()->ordered()->get(); // الجديدة
         // selectedPrimary ينقره بالـ Blade عبر $product->primaryCategories()->pluck('id')
         return view('admin.products.edit', compact('product', 'categories', 'primaryCategories'));
@@ -199,6 +222,7 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $request->validate([
+            'category_id'     => 'required|integer|exists:categories,id',
             'name_ar'        => 'required|string|max:255',
             'name_en'        => 'nullable|string|max:255',
             'description_ar' => 'required|string',
@@ -216,6 +240,7 @@ class ProductController extends Controller
             'primary_categories'    => 'nullable|array',
             'primary_categories.*'  => 'integer|exists:primary_categories,id',
             'primary_category_id'   => 'nullable|integer|exists:primary_categories,id',
+            'primary_category_id_fallback' => 'nullable|integer|exists:primary_categories,id',
 
             'product_options' => 'nullable|array',
             'product_options.*.name_ar' => 'nullable|string|max:255',
@@ -234,13 +259,27 @@ class ProductController extends Controller
 
         DB::beginTransaction();
         try {
-            $data = $request->except(['images', 'primary_categories', 'primary_category_id']);
+            $data = $request->only([
+                'category_id',
+                'name_ar',
+                'name_en',
+                'description_ar',
+                'description_en',
+                'sku',
+                'price',
+                'sale_price',
+                'sale_starts_at',
+                'sale_ends_at',
+                'stock_quantity',
+            ]);
+            $data['is_active'] = $request->boolean('is_active');
             $product->update($data);
 
             // تحديث ربط الفئات الجديدة (يدعم الطريقتين)
             $pcIds = $request->input('primary_categories', []);
-            if (empty($pcIds) && $request->filled('primary_category_id')) {
-                $pcIds = [$request->primary_category_id];
+            $singlePrimaryId = $this->resolveSinglePrimaryCategoryId($request);
+            if (empty($pcIds) && !empty($singlePrimaryId)) {
+                $pcIds = [$singlePrimaryId];
             }
             $pcIds = array_values(array_unique(array_filter(array_map('intval', (array) $pcIds))));
             $product->primaryCategories()->sync($pcIds);
@@ -432,10 +471,7 @@ class ProductController extends Controller
                 // Final safety net for imported schemas that still miss AUTO_INCREMENT.
                 $nextId = ((int) DB::table('products')->max('id')) + 1;
 
-                return Product::unguarded(function () use ($attributes, $nextId) {
-                    $payload = array_merge($attributes, ['id' => $nextId]);
-                    return Product::create($payload);
-                });
+                return $this->createModelWithExplicitId(Product::class, array_merge($attributes, ['id' => $nextId]));
             }
         }
     }
@@ -444,10 +480,44 @@ class ProductController extends Controller
     {
         $nextId = ((int) DB::table('products')->max('id')) + 1;
 
-        return Product::unguarded(function () use ($attributes, $nextId) {
-            $payload = array_merge($attributes, ['id' => $nextId]);
-            return Product::create($payload);
-        });
+        return $this->createModelWithExplicitId(Product::class, array_merge($attributes, ['id' => $nextId]));
+    }
+
+    /**
+     * Resolve single primary category from the two form inputs.
+     *
+     * - `primary_category_id` comes from JS (child or parent)
+     * - `primary_category_id_fallback` comes directly from parent select
+     *
+     * If both exist and differ, keep child only when it actually belongs to selected parent;
+     * otherwise trust fallback to avoid stale hidden input issues.
+     */
+    private function resolveSinglePrimaryCategoryId(Request $request): ?int
+    {
+        $primaryId = $request->input('primary_category_id');
+        $fallbackId = $request->input('primary_category_id_fallback');
+
+        $primaryId = filled($primaryId) ? (int) $primaryId : null;
+        $fallbackId = filled($fallbackId) ? (int) $fallbackId : null;
+
+        if ($primaryId === null && $fallbackId === null) {
+            return null;
+        }
+
+        if ($primaryId === null) {
+            return $fallbackId;
+        }
+
+        if ($fallbackId === null || $primaryId === $fallbackId) {
+            return $primaryId;
+        }
+
+        $primary = PrimaryCategory::find($primaryId);
+        if ($primary && (int) ($primary->parent_id ?? 0) === $fallbackId) {
+            return $primaryId;
+        }
+
+        return $fallbackId;
     }
 
     private function syncProductOptionsAndCombinations(Product $product, Request $request): void
@@ -542,7 +612,14 @@ class ProductController extends Controller
                 $nextId = ((int) DB::table('product_options')->max('id')) + 1;
 
                 return \App\Models\ProductOption::unguarded(function () use ($product, $attributes, $nextId) {
-                    return $product->options()->create(array_merge($attributes, ['id' => $nextId]));
+                    if ((int) $product->id <= 0) {
+                        throw new \RuntimeException('Invalid product id while creating product option.');
+                    }
+
+                    return $this->createModelWithExplicitId(\App\Models\ProductOption::class, array_merge($attributes, [
+                        'id' => $nextId,
+                        'product_id' => (int) $product->id,
+                    ]));
                 });
             }
 
@@ -564,7 +641,14 @@ class ProductController extends Controller
                 $nextId = ((int) DB::table('product_option_values')->max('id')) + 1;
 
                 return \App\Models\ProductOptionValue::unguarded(function () use ($option, $attributes, $nextId) {
-                    return $option->values()->create(array_merge($attributes, ['id' => $nextId]));
+                    if ((int) $option->id <= 0) {
+                        throw new \RuntimeException('Invalid product option id while creating option value.');
+                    }
+
+                    return $this->createModelWithExplicitId(\App\Models\ProductOptionValue::class, array_merge($attributes, [
+                        'id' => $nextId,
+                        'product_option_id' => (int) $option->id,
+                    ]));
                 });
             }
 
@@ -586,7 +670,14 @@ class ProductController extends Controller
                 $nextId = ((int) DB::table('product_option_combinations')->max('id')) + 1;
 
                 return \App\Models\ProductOptionCombination::unguarded(function () use ($product, $attributes, $nextId) {
-                    return $product->optionCombinations()->create(array_merge($attributes, ['id' => $nextId]));
+                    if ((int) $product->id <= 0) {
+                        throw new \RuntimeException('Invalid product id while creating option combination.');
+                    }
+
+                    return $this->createModelWithExplicitId(\App\Models\ProductOptionCombination::class, array_merge($attributes, [
+                        'id' => $nextId,
+                        'product_id' => (int) $product->id,
+                    ]));
                 });
             }
 
@@ -608,7 +699,14 @@ class ProductController extends Controller
                 $nextId = ((int) DB::table('product_option_combination_images')->max('id')) + 1;
 
                 return \App\Models\ProductOptionCombinationImage::unguarded(function () use ($combination, $attributes, $nextId) {
-                    return $combination->images()->create(array_merge($attributes, ['id' => $nextId]));
+                    if ((int) $combination->id <= 0) {
+                        throw new \RuntimeException('Invalid option combination id while creating combination image.');
+                    }
+
+                    return $this->createModelWithExplicitId(\App\Models\ProductOptionCombinationImage::class, array_merge($attributes, [
+                        'id' => $nextId,
+                        'product_option_combination_id' => (int) $combination->id,
+                    ]));
                 });
             }
 
@@ -707,12 +805,12 @@ class ProductController extends Controller
 
             if (DB::transactionLevel() > 0) {
                 $nextId = ((int) DB::table('product_images')->max('id')) + 1;
-                \App\Models\ProductImage::unguarded(function () use ($product, $path, $nextId) {
-                    $product->images()->create([
+
+                $this->createModelWithExplicitId(\App\Models\ProductImage::class, [
                         'id' => $nextId,
+                        'product_id' => (int) $product->id,
                         'image_path' => $path,
                     ]);
-                });
                 return;
             }
 
@@ -765,5 +863,21 @@ class ProductController extends Controller
             DB::statement('ALTER TABLE `product_images` MODIFY `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT');
             DB::statement('ALTER TABLE `product_images` AUTO_INCREMENT = ' . max($nextId, 1));
         }
+    }
+
+    /**
+     * Persist a model with explicit id without using insertGetId.
+     * This avoids returning id=0 when AUTO_INCREMENT is missing on imported schemas.
+     */
+    private function createModelWithExplicitId(string $modelClass, array $attributes): Model
+    {
+        return $modelClass::unguarded(function () use ($modelClass, $attributes) {
+            /** @var Model $model */
+            $model = new $modelClass($attributes);
+            $model->incrementing = false;
+            $model->save();
+
+            return $model;
+        });
     }
 }

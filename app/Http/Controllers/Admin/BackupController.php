@@ -482,7 +482,7 @@ class BackupController extends Controller
                 $this->normalizeRestoredMediaPaths();
             }
 
-            return redirect()->route('admin.login')->with('success', 'تم استعادة النسخة الاحتياطية بنجاح. يرجى تسجيل الدخول مرة أخرى إلى لوحة التحكم.');
+            return redirect('/admin/login')->with('success', 'تم استعادة النسخة الاحتياطية بنجاح. يرجى تسجيل الدخول مرة أخرى إلى لوحة التحكم.');
         } catch (\Exception $e) {
             Log::error("Backup restore failed: " . $e->getMessage());
             return redirect()->back()->with('error', 'فشلت عملية الاستعادة: ' . $e->getMessage());
@@ -651,6 +651,7 @@ class BackupController extends Controller
             ['table' => 'homepage_slides', 'column' => 'background_image', 'allowExternal' => true],
             ['table' => 'posts', 'column' => 'image', 'allowExternal' => false],
             ['table' => 'users', 'column' => 'avatar', 'allowExternal' => true],
+            ['table' => 'managers', 'column' => 'avatar', 'allowExternal' => true],
             ['table' => 'managers', 'column' => 'profile_photo_path', 'allowExternal' => true],
             ['table' => 'managers', 'column' => 'housing_card_path', 'allowExternal' => true],
             ['table' => 'managers', 'column' => 'nationality_card_path', 'allowExternal' => true],
