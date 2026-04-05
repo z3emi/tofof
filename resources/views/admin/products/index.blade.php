@@ -32,6 +32,9 @@
                 <div class="col-toggle-place"></div>
                 <a href="{{ route('admin.products.export', request()->all()) }}" class="btn btn-outline-info p-2 d-inline-flex align-items-center justify-content-center" style="width:40px; height:40px; border-radius:10px" title="تصدير إكسل"><i class="bi bi-file-earmark-excel"></i></a>
                 <a href="{{ route('admin.products.trash') }}" class="btn btn-outline-danger p-2 d-inline-flex align-items-center justify-content-center" style="width:40px; height:40px; border-radius:10px" title="المهملات"><i class="bi bi-trash"></i></a>
+                @can('manage-reviews')
+                    <a href="{{ route('admin.reviews.index') }}" class="btn btn-outline-primary p-2 d-inline-flex align-items-center justify-content-center" style="width:40px; height:40px; border-radius:10px" title="التعليقات"><i class="bi bi-chat-left-text"></i></a>
+                @endcan
             @endcan
             @can('create-products')
                 <a href="{{ route('admin.products.create') }}" class="btn btn-light px-4 fw-bold text-brand"><i class="bi bi-plus-circle me-1"></i> إضافة منتج</a>

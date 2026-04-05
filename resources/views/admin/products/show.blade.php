@@ -77,6 +77,53 @@
         font-weight: 700;
         padding: .35rem .65rem;
     }
+    .review-item {
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: #f8fafc;
+        padding: .85rem;
+    }
+    .review-user {
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+    }
+    .review-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid #dbe4ef;
+        background: #fff;
+    }
+    .review-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: .75rem;
+        flex-wrap: wrap;
+        margin-bottom: .55rem;
+    }
+    .review-comment {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: .7rem;
+        white-space: pre-line;
+    }
+    .admin-reply-box {
+        background: #eef6ff;
+        border: 1px dashed #93c5fd;
+        border-radius: 10px;
+        padding: .7rem;
+        white-space: pre-line;
+    }
+    .review-reply-form {
+        display: none;
+    }
+    .review-reply-form.is-visible {
+        display: block;
+    }
     @media (max-width: 992px) {
         .info-grid { grid-template-columns: 1fr; }
     }
@@ -221,6 +268,118 @@
                         <p class="text-muted mb-0">لا توجد خيارات مسجلة لهذا المنتج.</p>
                     @endif
                 </div>
+
+                @can('manage-reviews')
+                <div class="panel">
+                    <div class="panel-header">
+                        <span><i class="bi bi-chat-dots me-1"></i> تعليقات المنتج ({{ $reviews->count() }})</span>
+                    </div>
+
+                    @if($reviews->isEmpty())
+                        <p class="text-muted mb-0">لا توجد تعليقات لهذا المنتج حاليًا.</p>
+                    @else
+                        <div class="d-flex flex-column gap-3">
+                            @foreach($reviews as $review)
+                                <div class="review-item">
+                                    <div class="review-head">
+                                        <div class="review-user">
+                                            @php
+                                                $reviewUser = $review->user;
+                                                $avatar = $reviewUser?->avatar_url ?: asset('storage/avatars/default.png');
+                                            @endphp
+                                            <img src="{{ $avatar }}" alt="{{ $reviewUser?->name ?? 'User' }}" class="review-avatar" onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.png') }}';">
+                                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                <span class="fw-bold">{{ $reviewUser?->name ?? 'مستخدم محذوف' }}</span>
+                                                <span class="badge bg-warning text-dark">{{ (int) $review->rating }}/5</span>
+
+                                                @if($review->status === 'approved')
+                                                    <span class="badge bg-success">موافق عليه</span>
+                                                @elseif($review->status === 'pending')
+                                                    <span class="badge bg-secondary">قيد المراجعة</span>
+                                                @else
+                                                    <span class="badge bg-danger">مرفوض</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">{{ optional($review->created_at)->format('Y-m-d H:i') }}</small>
+                                    </div>
+
+                                    <div class="review-comment mb-2">{{ $review->comment ?: 'لا يوجد نص تعليق.' }}</div>
+
+                                    @if(!empty($review->admin_reply))
+                                        <div class="admin-reply-box mb-2">
+                                            <div class="fw-bold text-primary mb-1">رد الأدمن</div>
+                                            <div>{{ $review->admin_reply }}</div>
+                                        </div>
+
+                                        <form method="POST"
+                                              action="{{ route('admin.products.reviews.reply.destroy', ['product' => $product->id, 'review' => $review->id]) }}"
+                                              class="mb-2"
+                                              onsubmit="return confirm('هل تريد حذف رد الأدمن فقط؟');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">حذف رد الأدمن</button>
+                                        </form>
+                                    @endif
+
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        @if($review->status !== 'approved')
+                                            <form method="POST" action="{{ route('admin.reviews.updateStatus', $review->id) }}">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="approved">
+                                                <button type="submit" class="btn btn-sm btn-success">موافقة</button>
+                                            </form>
+                                        @endif
+
+                                        @if($review->status !== 'rejected')
+                                            <form method="POST" action="{{ route('admin.reviews.updateStatus', $review->id) }}">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="rejected">
+                                                <button type="submit" class="btn btn-sm btn-outline-warning">رفض</button>
+                                            </form>
+                                        @endif
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary review-reply-toggle"
+                                                data-review-id="{{ $review->id }}">
+                                            <i class="bi bi-reply-fill me-1"></i> رد
+                                        </button>
+
+                                        <form method="POST" action="{{ route('admin.products.reviews.destroy', ['product' => $product->id, 'review' => $review->id]) }}" onsubmit="return confirm('هل أنت متأكد من حذف هذا التعليق؟');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash me-1"></i> حذف
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <form method="POST"
+                                          action="{{ route('admin.products.reviews.reply', ['product' => $product->id, 'review' => $review->id]) }}"
+                                          class="review-reply-form mt-2"
+                                          id="reply-form-{{ $review->id }}">
+                                        @csrf
+                                        <label class="form-label small text-muted">رد الأدمن</label>
+                                        <textarea name="admin_reply" rows="2" class="form-control form-control-sm" placeholder="اكتب ردًا على التعليق...">{{ $review->admin_reply }}</textarea>
+                                        <div class="mt-2 d-flex gap-2 flex-wrap">
+                                            <button type="submit" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-check2-circle me-1"></i> حفظ الرد
+                                            </button>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-secondary review-reply-cancel"
+                                                    data-review-id="{{ $review->id }}">
+                                                إلغاء
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+                @endcan
             </div>
         </div>
     </div>
@@ -249,6 +408,35 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.addEventListener('click', function () {
             const imageUrl = btn.dataset.imageUrl || '';
             if (preview) preview.src = imageUrl;
+        });
+    });
+
+    document.querySelectorAll('.review-reply-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const id = btn.dataset.reviewId;
+            const form = document.getElementById('reply-form-' + id);
+            if (!form) return;
+
+            const isVisible = form.classList.contains('is-visible');
+
+            document.querySelectorAll('.review-reply-form').forEach(function (f) {
+                f.classList.remove('is-visible');
+            });
+
+            if (!isVisible) {
+                form.classList.add('is-visible');
+                const textarea = form.querySelector('textarea[name="admin_reply"]');
+                if (textarea) textarea.focus();
+            }
+        });
+    });
+
+    document.querySelectorAll('.review-reply-cancel').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const id = btn.dataset.reviewId;
+            const form = document.getElementById('reply-form-' + id);
+            if (!form) return;
+            form.classList.remove('is-visible');
         });
     });
 });

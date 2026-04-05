@@ -14,11 +14,16 @@ class ProductReview extends Model
         'user_id',
         'rating',
         'comment',
+        'admin_reply',
         'status', // approved | pending | rejected
+        'moderation_score',
+        'moderation_flags',
     ];
 
     protected $casts = [
         'rating' => 'integer',
+        'moderation_score' => 'integer',
+        'moderation_flags' => 'array',
     ];
 
     public function product()

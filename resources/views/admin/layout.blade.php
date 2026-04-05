@@ -894,7 +894,7 @@
                         </a>
                     </li>
                     @endcan
-                    
+
                     @can('view-primary-categories')
                     <li class="nav-item">
                         <a href="{{ route('admin.primary-categories.index') }}" class="nav-link {{ request()->routeIs('admin.primary-categories.*') ? 'active' : '' }}">

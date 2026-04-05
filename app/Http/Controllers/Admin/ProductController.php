@@ -18,6 +18,7 @@ use App\Traits\HandlesImageUploads;
 use App\Support\RepairsPrimaryKeyAutoIncrement;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProductsExport;
+use App\Models\ProductReview;
 use Throwable;
 
 class ProductController extends Controller
@@ -400,7 +401,13 @@ class ProductController extends Controller
             'optionCombinations.images',
         ]);
 
-        return view('admin.products.show', compact('product'));
+        $reviews = ProductReview::query()
+            ->with('user')
+            ->where('product_id', $product->id)
+            ->latest()
+            ->get();
+
+        return view('admin.products.show', compact('product', 'reviews'));
     }
 
     /**

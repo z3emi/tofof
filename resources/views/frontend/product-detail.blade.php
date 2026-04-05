@@ -587,6 +587,12 @@
                                     </div>
                                 </div>
                                 @if($r->comment)<p class="mt-2 text-sm text-gray-700">{{ $r->comment }}</p>@endif
+                                @if(!empty($r->admin_reply))
+                                    <div class="mt-2 rounded border p-3" style="border-color:#bfdbfe; background:#eff6ff;">
+                                        <div class="text-xs font-semibold text-blue-700 mb-1">رد الإدارة</div>
+                                        <p class="text-sm text-gray-700 mb-0" style="white-space: pre-line;">{{ $r->admin_reply }}</p>
+                                    </div>
+                                @endif
                             </div>
                         @empty
                             <p class="text-sm text-gray-600">{{ __('product.no_reviews') }} 🤍</p>
@@ -913,7 +919,9 @@
                         errorsBox.classList.remove('hidden');
                         return;
                     }
-                    appendReviewCard(data.review.id, data.review.user_name, data.review.rating, data.review.comment, data.review.created_at_human, true, form.dataset.userAvatar);
+                    if (data.review && data.review.visible) {
+                        appendReviewCard(data.review.id, data.review.user_name, data.review.rating, data.review.comment, data.review.created_at_human, true, form.dataset.userAvatar);
+                    }
                     if (data.stats) updateStats(data.stats.avg, data.stats.count);
                     successBox.textContent = data.message || '{{ __('product.saved_success') }}';
                     successBox.classList.remove('hidden');
