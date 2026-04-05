@@ -69,7 +69,8 @@
                     </div>
                     <div class="col-md-4">
                         <label for="max_uses_per_user" class="form-label fw-bold small">أقصى استخدام للمستخدم الواحد</label>
-                        <input type="number" class="form-control" style="border-radius:12px; padding:0.8rem" id="max_uses_per_user" name="max_uses_per_user" value="{{ old('max_uses_per_user') }}" placeholder="بلا حدود">
+                        <input type="number" class="form-control" style="border-radius:12px; padding:0.8rem" id="max_uses_per_user" name="max_uses_per_user" value="{{ old('max_uses_per_user', 1) }}" placeholder="بلا حدود">
+                        <small class="text-muted d-block mt-1">الافتراضي 1. أدخل 0 أو اتركه فارغاً ليكون بلا حدود.</small>
                     </div>
                     <div class="col-md-4">
                         <label for="expires_at" class="form-label fw-bold small">تاريخ ووقت الانتهاء (اختياري)</label>
@@ -90,7 +91,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-4" id="order_count_condition_wrapper">
                         <label for="order_count_operator" class="form-label fw-bold small">شرط عدد الطلبات الموصلة</label>
                         <div class="input-group">
                             <select class="form-select" id="order_count_operator" name="order_count_operator">
@@ -102,7 +103,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-4" id="amount_condition_wrapper">
                         <label for="amount_operator" class="form-label fw-bold small">شرط إجمالي مبلغ الطلبات الموصلة</label>
                         <div class="input-group">
                             <select class="form-select" id="amount_operator" name="amount_operator">
@@ -232,11 +233,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const audienceMode = document.getElementById('audience_mode');
     const usersWrapper = document.getElementById('target_users_wrapper');
+    const orderCountConditionWrapper = document.getElementById('order_count_condition_wrapper');
+    const amountConditionWrapper = document.getElementById('amount_condition_wrapper');
     const toggleUsersSection = () => {
         usersWrapper.style.display = (audienceMode.value === 'selected' || $('#users').val()?.length) ? 'block' : 'none';
     };
-    audienceMode.addEventListener('change', toggleUsersSection);
+
+    const toggleEligibilityConditions = () => {
+        const shouldHide = audienceMode.value === 'all';
+        orderCountConditionWrapper.style.display = shouldHide ? 'none' : '';
+        amountConditionWrapper.style.display = shouldHide ? 'none' : '';
+    };
+
+    audienceMode.addEventListener('change', () => {
+        toggleUsersSection();
+        toggleEligibilityConditions();
+    });
+
     toggleUsersSection();
+    toggleEligibilityConditions();
 
     $('#select_all_categories').on('click', () => { $('#categories').val($('#categories option').map(function(){ return this.value; }).get()).trigger('change'); });
     $('#clear_all_categories').on('click', () => { $('#categories').val(null).trigger('change'); });
