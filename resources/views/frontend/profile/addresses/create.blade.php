@@ -1,6 +1,6 @@
 @extends('frontend.profile.layout')
 
-@section('title', 'إضافة عنوان جديد')
+@section('title', __('profile.add_new_address'))
 
 @push('styles')
     {{-- Leaflet CSS --}}
@@ -203,13 +203,13 @@
 
 @section('profile-content')
 <div>
-    <h2 class="text-xl md:text-2xl page-title mb-1">إضافة عنوان شحن جديد</h2>
-    <p class="page-sub text-sm md:text-base mb-4 md:mb-6">أدخل بيانات العنوان بدقة لتحسين سرعة التوصيل</p>
+    <h2 class="text-xl md:text-2xl page-title mb-1">{{ __('profile.add_new_shipping_address') }}</h2>
+    <p class="page-sub text-sm md:text-base mb-4 md:mb-6">{{ __('profile.addresses_create_subheading') }}</p>
 
     {{-- رسائل الأخطاء العامة --}}
     @if ($errors->any())
       <div style="background:#fff5f5; border:1px solid #fecaca; color:#7f1d1d; border-radius:12px; padding:.75rem .9rem; margin-bottom:1rem;">
-        يرجى التحقق من الحقول المدخلة أدناه.
+        {{ __('profile.check_fields_below') }}
       </div>
     @endif
 
@@ -223,7 +223,7 @@
         <div class="map-card">
           <div class="map-head">
             <div class="map-title-wrap">
-              <div class="map-title">حدد الموقع على الخريطة</div>
+              <div class="map-title">{{ __('profile.pick_location_on_map') }}</div>
             </div>
 
             <div class="map-toolbar"></div>
@@ -231,7 +231,7 @@
 
           <div class="map-shell">
             <button type="button" id="get_location_btn" class="btn-ghost map-locate-btn">
-              <i class="bi bi-crosshair2"></i> تحديد موقعي
+              <i class="bi bi-crosshair2"></i> {{ __('profile.locate_me') }}
             </button>
             <div id="map"></div>
             <div class="map-center-pin" aria-hidden="true"></div>
@@ -246,10 +246,10 @@
         <div class="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
             {{-- المحافظة --}}
             <div class="field">
-                <label for="governorate" class="label">المحافظة</label>
+                <label for="governorate" class="label">{{ __('profile.governorate_label') }}</label>
                 <select id="governorate" name="governorate" required class="control">
-                    <option value="">اختر المحافظة</option>
-                  <option value="غير محدد" {{ old('governorate') == 'غير محدد' ? 'selected' : '' }}>عدم التحديد</option>
+                    <option value="">{{ __('profile.select_governorate') }}</option>
+                  <option value="غير محدد" {{ old('governorate') == 'غير محدد' ? 'selected' : '' }}>{{ __('profile.not_specified') }}</option>
                     @php
                         $governorates = config('locations.iraqi_governorates');
                     @endphp
@@ -262,7 +262,7 @@
 
             {{-- المدينة --}}
             <div class="field">
-                <label for="city" class="label">المدينة / القضاء</label>
+                <label for="city" class="label">{{ __('profile.city_or_district') }}</label>
                 <input type="text" id="city" name="city" value="{{ old('city') }}" class="control" required>
                 @error('city') <div class="error">{{ $message }}</div> @enderror
             </div>
@@ -270,24 +270,24 @@
 
         {{-- تفاصيل العنوان --}}
         <div class="field">
-            <label for="address_details" class="label">تفاصيل العنوان</label>
-            <input type="text" id="address_details" name="address_details" value="{{ old('address_details') }}" class="control" placeholder="اسم الشارع، رقم الزقاق، رقم الدار" required>
+            <label for="address_details" class="label">{{ __('profile.address_details_label') }}</label>
+            <input type="text" id="address_details" name="address_details" value="{{ old('address_details') }}" class="control" placeholder="{{ __('profile.address_details_placeholder') }}" required>
             @error('address_details') <div class="error">{{ $message }}</div> @enderror
         </div>
 
         {{-- أقرب نقطة دالة --}}
         <div class="field">
-            <label for="nearest_landmark" class="label">أقرب نقطة دالة (اختياري)</label>
-            <input type="text" id="nearest_landmark" name="nearest_landmark" value="{{ old('nearest_landmark') }}" class="control" placeholder="مثال: قرب جامع الحبوبي">
+            <label for="nearest_landmark" class="label">{{ __('profile.nearest_landmark_optional') }}</label>
+            <input type="text" id="nearest_landmark" name="nearest_landmark" value="{{ old('nearest_landmark') }}" class="control" placeholder="{{ __('profile.nearest_landmark_placeholder') }}">
             @error('nearest_landmark') <div class="error">{{ $message }}</div> @enderror
         </div>
         {{-- أزرار الإرسال --}}
         <div class="flex flex-col sm:flex-row justify-start gap-3 pt-3 md:pt-4">
             <button type="submit" class="btn-brand">
-                <i class="bi bi-check2-circle"></i> حفظ العنوان
+              <i class="bi bi-check2-circle"></i> {{ __('profile.save_address') }}
             </button>
             <a href="{{ route('profile.addresses.index') }}" class="btn-secondary">
-                <i class="bi bi-arrow-right"></i> إلغاء
+              <i class="bi bi-arrow-right"></i> {{ __('profile.cancel') }}
             </a>
         </div>
     </form>

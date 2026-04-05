@@ -1,5 +1,5 @@
 @extends('frontend.profile.layout')
-@section('title', 'عناويني')
+@section('title', __('profile.my_addresses'))
 
 @push('styles')
 <style>:root {
@@ -171,14 +171,14 @@ html.dark .empty-state .icon { color: #6b7280 !important; }
 <div class="surface">
   <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4 md:mb-6 page-head">
       <div>
-        <h2 class="text-xl md:text-2xl"><br>عناوين الشحن</h2>
-        <p class="text-sm mt-1">أضف وأدر عناوين التوصيل الخاصة بك</p>
+        <h2 class="text-xl md:text-2xl"><br>{{ __('profile.addresses_title') }}</h2>
+        <p class="text-sm mt-1">{{ __('profile.addresses_subheading') }}</p>
       </div>
 
       @if($addresses->count() < 5)
         <a href="{{ route('profile.addresses.create') }}" class="btn-brand w-full md:w-auto justify-center">
           <i class="bi bi-plus-circle"></i>
-          إضافة عنوان جديد
+          {{ __('profile.add_new_address') }}
         </a>
       @endif
   </div>
@@ -186,9 +186,9 @@ html.dark .empty-state .icon { color: #6b7280 !important; }
   @if ($addresses->isEmpty())
     <div class="empty-state">
       <i class="bi bi-geo-alt icon"></i>
-      <p class="mt-3 text-[#7a6e6e]">لا توجد عناوين.</p>
+      <p class="mt-3 text-[#7a6e6e]">{{ __('profile.no_addresses_short') }}</p>
       <a href="{{ route('profile.addresses.create') }}" class="btn-brand mt-3">
-        <i class="bi bi-plus-circle"></i> إضافة عنوان جديد
+        <i class="bi bi-plus-circle"></i> {{ __('profile.add_new_address') }}
       </a>
     </div>
   @else
@@ -208,17 +208,17 @@ html.dark .empty-state .icon { color: #6b7280 !important; }
 
               @if($address->nearest_landmark)
                 <p class="address-hint mt-1">
-                  أقرب نقطة دالة: {{ $address->nearest_landmark }}
+                  {{ __('profile.nearest_landmark') }}: {{ $address->nearest_landmark }}
                 </p>
               @endif
             </div>
 
             <form action="{{ route('profile.addresses.destroy', $address->id) }}" method="POST"
-                  onsubmit="return confirm('هل أنتِ متأكدة من حذف هذا العنوان؟')">
+                  onsubmit="return confirm('{{ __('profile.confirm_delete_address') }}')">
               @csrf
               @method('DELETE')
-              <button type="submit" class="btn-delete" title="حذف العنوان">
-                <i class="bi bi-trash3"></i> حذف
+              <button type="submit" class="btn-delete" title="{{ __('profile.delete_address') }}">
+                <i class="bi bi-trash3"></i> {{ __('profile.delete_address') }}
               </button>
             </form>
           </div>

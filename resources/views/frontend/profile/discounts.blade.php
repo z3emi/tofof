@@ -1,5 +1,5 @@
 @extends('frontend.profile.layout')
-@section('title', 'أكواد الخصم')
+@section('title', __('profile.discount_codes'))
 
 @push('styles')
 <style>
@@ -33,13 +33,13 @@
 @section('profile-content')
 <div class="space-y-4">
   <div>
-    <h2 class="text-xl md:text-2xl font-black text-slate-800">أكواد الخصم الخاصة بي</h2>
-    <p class="text-sm text-slate-500 mt-1">هذه الأكواد مخصصة لك ويمكنك نسخها واستخدامها مباشرة أثناء الدفع.</p>
+    <h2 class="text-xl md:text-2xl font-black text-slate-800">{{ __('profile.discounts_heading') }}</h2>
+    <p class="text-sm text-slate-500 mt-1">{{ __('profile.discounts_subheading') }}</p>
   </div>
 
   @if($codes->isEmpty())
     <div class="bg-white border border-slate-100 rounded-2xl p-8 text-center text-slate-500">
-      لا توجد أكواد خصم متاحة لحسابك حالياً.
+      {{ __('profile.discounts_empty') }}
     </div>
   @else
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -51,25 +51,25 @@
         <div class="discount-card">
           <div class="flex items-center justify-between gap-2 mb-3">
             <span class="status-pill {{ $isInactive ? 'bg-gray-100 text-gray-700' : ($isExpired ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700') }}">
-              {{ $isInactive ? 'غير مفعل' : ($isExpired ? 'منتهي' : 'متاح') }}
+              {{ $isInactive ? __('profile.discounts_status_inactive') : ($isExpired ? __('profile.discounts_status_expired') : __('profile.discounts_status_available')) }}
             </span>
             <small class="text-slate-500">
-              {{ $code->expires_at ? 'ينتهي: ' . $code->expires_at->format('Y-m-d H:i') : 'بدون انتهاء' }}
+              {{ $code->expires_at ? __('profile.discounts_expires_at') . ' ' . $code->expires_at->format('Y-m-d H:i') : __('profile.discounts_no_expiry') }}
             </small>
           </div>
 
           <div class="flex items-center justify-between gap-3 mb-3">
             <div class="discount-code" id="discount-code-{{ $code->id }}">{{ $code->code }}</div>
-            <button type="button" class="px-3 py-2 rounded-xl bg-[#6d0e16] text-white text-sm font-bold" onclick="copyDiscountCode('discount-code-{{ $code->id }}', this)">نسخ</button>
+            <button type="button" class="px-3 py-2 rounded-xl bg-[#6d0e16] text-white text-sm font-bold" onclick="copyDiscountCode('discount-code-{{ $code->id }}', this)">{{ __('profile.copy') }}</button>
           </div>
 
           <div class="text-sm text-slate-700">
             @if($code->type === 'percentage')
-              خصم {{ rtrim(rtrim(number_format((float) $code->value, 2, '.', ''), '0'), '.') }}%
+              {{ __('profile.discounts_type_discount') }} {{ rtrim(rtrim(number_format((float) $code->value, 2, '.', ''), '0'), '.') }}%
             @elseif($code->type === 'fixed')
-              خصم {{ number_format((float) $code->value, 0) }} د.ع
+              {{ __('profile.discounts_type_discount') }} {{ number_format((float) $code->value, 0) }} {{ __('profile.currency') }}
             @else
-              شحن مجاني
+              {{ __('profile.discounts_type_free_shipping') }}
             @endif
           </div>
         </div>
@@ -85,7 +85,7 @@ function copyDiscountCode(elementId, button) {
 
   navigator.clipboard.writeText(text).then(() => {
     const prev = button.innerText;
-    button.innerText = 'تم النسخ';
+    button.innerText = '{{ __('profile.code_copied_short') }}';
     setTimeout(() => button.innerText = prev, 1200);
   });
 }

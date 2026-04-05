@@ -6,50 +6,97 @@
 <style>
   :root{
     --wallet-brand:#6d0e16;
-    --wallet-brand-2:#8f1a23;
+    --wallet-brand-2:#b62533;
+    --wallet-brand-3:#3f0910;
     --wallet-surface:#ffffff;
-    --wallet-text:#142133;
-    --wallet-muted:#667085;
-    --wallet-border:#e7ddd2;
-    --wallet-soft:#f7f3ee;
+    --wallet-text:#1f2937;
+    --wallet-muted:#64748b;
+    --wallet-border:#e6dcd3;
+    --wallet-soft:#f9f4ef;
+    --wallet-soft-2:#fffaf7;
     --wallet-good:#15803d;
-    --wallet-bad:#b42318;
-    --wallet-shadow:0 14px 36px rgba(10, 24, 40, 0.08);
+    --wallet-bad:#b91c1c;
+    --wallet-shadow:0 16px 44px rgba(14, 18, 28, 0.08);
   }
 
   html.dark{
     --wallet-surface:#0f172a;
     --wallet-text:#e5e7eb;
-    --wallet-muted:#9ca3af;
-    --wallet-border:#223148;
-    --wallet-soft:#111b2d;
-    --wallet-shadow:0 18px 44px rgba(0, 0, 0, 0.34);
+    --wallet-muted:#9fb0c9;
+    --wallet-border:#233349;
+    --wallet-soft:#101a2b;
+    --wallet-soft-2:#0d1523;
+    --wallet-shadow:0 22px 48px rgba(0, 0, 0, 0.34);
   }
 
-  .wallet-shell{ display:grid; gap:16px; }
+  .wallet-shell{
+    position:relative;
+    display:grid;
+    gap:18px;
+    isolation:isolate;
+  }
+
+  .wallet-shell::before,
+  .wallet-shell::after{
+    content:"";
+    position:absolute;
+    z-index:-1;
+    border-radius:999px;
+    filter:blur(36px);
+    pointer-events:none;
+  }
+
+  .wallet-shell::before{
+    width:170px;
+    height:170px;
+    top:-16px;
+    inset-inline-start:-20px;
+    background:rgba(182, 37, 51, 0.13);
+  }
+
+  .wallet-shell::after{
+    width:180px;
+    height:180px;
+    bottom:-20px;
+    inset-inline-end:-10px;
+    background:rgba(109, 14, 22, 0.11);
+  }
+
   .wallet-hero{
     position:relative;
     overflow:hidden;
-    border-radius:20px;
-    border:1px solid color-mix(in srgb, var(--wallet-brand) 22%, var(--wallet-border));
+    border-radius:24px;
+    border:1px solid rgba(255,255,255,.22);
     background:
-      radial-gradient(130% 100% at 100% 0%, rgba(255,255,255,.2), transparent 60%),
-      linear-gradient(140deg, var(--wallet-brand) 0%, var(--wallet-brand-2) 65%, #4d0a10 100%);
+      radial-gradient(140% 100% at 100% 0%, rgba(255,255,255,.25), transparent 55%),
+      radial-gradient(120% 120% at 0% 100%, rgba(255,255,255,.12), transparent 50%),
+      linear-gradient(145deg, var(--wallet-brand) 0%, var(--wallet-brand-2) 58%, var(--wallet-brand-3) 100%);
     color:#fff;
-    padding:20px;
+    padding:24px;
     box-shadow:var(--wallet-shadow);
   }
 
   .wallet-hero::after{
     content:"";
     position:absolute;
-    inset:auto -42px -52px auto;
-    width:170px;
-    height:170px;
+    inset:auto -46px -64px auto;
+    width:184px;
+    height:184px;
     border-radius:999px;
     border:1px solid rgba(255,255,255,.24);
     background:rgba(255,255,255,.08);
     transform:rotate(8deg);
+  }
+
+  .wallet-hero::before{
+    content:"";
+    position:absolute;
+    inset:-50px auto auto -55px;
+    width:200px;
+    height:200px;
+    border-radius:999px;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.2);
   }
 
   .wallet-topline{
@@ -65,21 +112,28 @@
     gap:6px;
     border:1px solid rgba(255,255,255,.3);
     border-radius:999px;
-    background:rgba(255,255,255,.1);
-    padding:6px 12px;
+    background:rgba(255,255,255,.14);
+    padding:6px 13px;
     font-weight:800;
     font-size:.82rem;
+    backdrop-filter:blur(4px);
   }
 
   .wallet-balance{
-    font-size:2rem;
+    font-size:2.2rem;
     font-weight:900;
     line-height:1.1;
     letter-spacing:.2px;
-    margin-top:10px;
+    margin-top:12px;
+    text-wrap:balance;
   }
 
-  .wallet-note{ color:rgba(255,255,255,.88); margin-top:8px; font-size:.92rem; }
+  .wallet-note{
+    color:rgba(255,255,255,.9);
+    margin-top:10px;
+    font-size:.94rem;
+    max-width:56ch;
+  }
 
   .wallet-stats{
     display:grid;
@@ -94,9 +148,20 @@
   .stat-card{
     background:var(--wallet-surface);
     border:1px solid var(--wallet-border);
-    border-radius:16px;
-    padding:16px;
+    border-radius:18px;
+    padding:16px 16px 15px;
     box-shadow:var(--wallet-shadow);
+    position:relative;
+    overflow:hidden;
+  }
+
+  .stat-card::after{
+    content:"";
+    position:absolute;
+    inset:auto 12px 0 12px;
+    height:4px;
+    border-radius:10px;
+    background:linear-gradient(90deg, rgba(109,14,22,.15), rgba(109,14,22,.45));
   }
 
   .stat-head{
@@ -108,21 +173,29 @@
     font-size:.9rem;
   }
 
-  .stat-head i{ font-size:1.1rem; }
+  .stat-head i{ font-size:1.1rem; color:var(--wallet-brand); }
   .stat-value{ font-size:1.65rem; font-weight:900; margin-top:10px; color:var(--wallet-text); }
   .is-credit{ color:var(--wallet-good); }
   .is-debit{ color:var(--wallet-bad); }
 
   .wallet-panel{
-    background:var(--wallet-surface);
+    background:
+      linear-gradient(180deg, var(--wallet-soft-2), var(--wallet-soft-2)) padding-box,
+      linear-gradient(180deg, rgba(109,14,22,.22), rgba(109,14,22,.02)) border-box;
     border:1px solid var(--wallet-border);
-    border-radius:16px;
+    border-radius:18px;
     box-shadow:var(--wallet-shadow);
-    padding:14px;
+    padding:15px;
   }
 
-  .wallet-panel-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
-  .wallet-panel-title{ font-size:1.05rem; font-weight:900; color:var(--wallet-text); }
+  .wallet-panel-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .wallet-panel-title{ font-size:1.05rem; font-weight:900; color:var(--wallet-text); letter-spacing:.2px; }
   .wallet-panel-sub{ color:var(--wallet-muted); font-size:.86rem; }
 
   .table-wrap{ overflow-x:auto; }
@@ -134,6 +207,7 @@
     overflow:hidden;
     border:1px solid var(--wallet-border);
     border-radius:14px;
+    background:var(--wallet-surface);
   }
 
   .wallet-table th{
@@ -144,6 +218,9 @@
     font-weight:900;
     padding:12px 12px;
     border-bottom:1px solid var(--wallet-border);
+    position:sticky;
+    top:0;
+    z-index:1;
   }
 
   .wallet-table td{
@@ -155,6 +232,7 @@
   }
 
   .wallet-table tbody tr:last-child td{ border-bottom:none; }
+  .wallet-table tbody tr:hover{ background:color-mix(in srgb, var(--wallet-soft) 58%, transparent); }
 
   .tx-type,
   .tx-amount{
@@ -178,27 +256,68 @@
   html.dark .tx-type.debit,
   html.dark .tx-amount.debit{ background:rgba(248,113,113,.14); color:#fecaca; }
 
-  .tx-card-list{ display:grid; gap:10px; }
+  .tx-card-list{ display:grid; gap:12px; }
 
   .tx-card{
     border:1px solid var(--wallet-border);
     background:var(--wallet-surface);
-    border-radius:14px;
+    border-radius:16px;
     box-shadow:var(--wallet-shadow);
-    padding:12px;
+    padding:14px;
     display:grid;
-    gap:8px;
+    gap:12px;
+    position:relative;
+    overflow:hidden;
   }
 
-  .tx-card-top,
-  .tx-card-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-  .tx-label{ color:var(--wallet-muted); font-size:.82rem; font-weight:700; }
-  .tx-value{ color:var(--wallet-text); font-weight:800; font-size:.92rem; }
+  .tx-card::before{
+    content:"";
+    position:absolute;
+    inset:0 auto 0 0;
+    width:4px;
+    background:linear-gradient(180deg, rgba(109,14,22,.85), rgba(109,14,22,.35));
+  }
+
+  .tx-card-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .tx-meta-grid{
+    display:grid;
+    gap:8px;
+    grid-template-columns:1fr;
+  }
+
+  .tx-meta-pill{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    border:1px solid var(--wallet-border);
+    border-radius:12px;
+    background:var(--wallet-soft-2);
+    padding:8px 10px;
+  }
+
+  .tx-description{
+    border:1px dashed var(--wallet-border);
+    border-radius:12px;
+    background:var(--wallet-soft-2);
+    padding:10px;
+  }
+
+  .tx-label{ color:var(--wallet-muted); font-size:.8rem; font-weight:700; }
+  .tx-value{ color:var(--wallet-text); font-weight:800; font-size:.92rem; text-align:left; }
+  .tx-value.is-text{ text-align:right; line-height:1.55; }
 
   .empty-wallet{
     border:1px dashed var(--wallet-border);
-    border-radius:14px;
-    padding:22px 14px;
+    border-radius:16px;
+    padding:24px 14px;
     text-align:center;
     color:var(--wallet-muted);
     background:var(--wallet-soft);
@@ -216,6 +335,10 @@
     min-width:2.35rem;
   }
 
+  .pagination .page-item .page-link:hover{
+    background:color-mix(in srgb, var(--wallet-brand) 13%, var(--wallet-soft)) !important;
+  }
+
   .pagination .page-item.active .page-link{
     background:var(--wallet-brand) !important;
     color:#fff !important;
@@ -223,8 +346,20 @@
   }
 
   @media (max-width: 767.98px){
+    .wallet-shell{ gap:14px; }
     .wallet-hero{ padding:16px; border-radius:16px; }
-    .wallet-balance{ font-size:1.65rem; }
+    .wallet-balance{ font-size:1.78rem; }
+    .wallet-note{ font-size:.88rem; }
+    .wallet-panel{ padding:12px; border-radius:16px; }
+    .wallet-panel-title{ font-size:1rem; }
+    .tx-card{ padding:12px; border-radius:14px; }
+    .tx-card-top{ gap:8px; }
+    .tx-type,
+    .tx-amount{ font-size:.78rem; padding:5px 9px; }
+    .tx-label{ font-size:.76rem; }
+    .tx-value{ font-size:.88rem; }
+    .tx-meta-pill{ padding:7px 9px; border-radius:11px; }
+    .tx-description{ padding:9px; }
   }
 </style>
 @endpush
@@ -292,28 +427,30 @@
               </span>
             </div>
 
-            <div class="tx-card-row">
-              <span class="tx-label">{{ __('wallet.date') }}</span>
-              <span class="tx-value">
-                {{ optional($tx->created_at)->timezone(config('app.timezone','Asia/Baghdad'))->format('Y-m-d H:i') }}
-              </span>
+            <div class="tx-meta-grid">
+              <div class="tx-meta-pill">
+                <span class="tx-label">{{ __('wallet.date') }}</span>
+                <span class="tx-value">
+                  {{ optional($tx->created_at)->timezone(config('app.timezone','Asia/Baghdad'))->format('Y-m-d H:i') }}
+                </span>
+              </div>
+
+              <div class="tx-meta-pill">
+                <span class="tx-label">{{ __('wallet.order_number') }}</span>
+                <span class="tx-value">
+                  @php $orderRef = $tx->order_id ?? $tx->related_order_id; @endphp
+                  @if(!empty($orderRef))
+                    #{{ $orderRef }}
+                  @else
+                    —
+                  @endif
+                </span>
+              </div>
             </div>
 
-            <div class="tx-card-row">
+            <div class="tx-description">
               <span class="tx-label">{{ __('wallet.description') }}</span>
-              <span class="tx-value">{{ $tx->description ?: '—' }}</span>
-            </div>
-
-            <div class="tx-card-row">
-              <span class="tx-label">{{ __('wallet.order_number') }}</span>
-              <span class="tx-value">
-                @php $orderRef = $tx->order_id ?? $tx->related_order_id; @endphp
-                @if(!empty($orderRef))
-                  #{{ $orderRef }}
-                @else
-                  —
-                @endif
-              </span>
+              <div class="tx-value is-text mt-1">{{ $tx->description ?: '—' }}</div>
             </div>
           </div>
           @endforeach

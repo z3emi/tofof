@@ -78,7 +78,7 @@
                                     <a href="{{ route('profile.discounts') }}"
                                        class="menu-item {{ request()->routeIs('profile.discounts') ? 'is-active' : '' }}">
                                         <div class="icon-box"><i class="bi bi-ticket-perforated"></i></div>
-                                        <span>أكواد الخصم</span>
+                                        <span>{{ __('profile.discount_codes') }}</span>
                                     </a>
                                 </li>
                                 <li>
@@ -208,7 +208,7 @@
 
                 <a href="{{ route('profile.discounts') }}" class="mobile-nav-item border-b border-slate-50">
                     <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-ticket-perforated"></i></div>
-                    <div class="flex-1 font-bold text-slate-700">أكواد الخصم</div>
+                    <div class="flex-1 font-bold text-slate-700">{{ __('profile.discount_codes') }}</div>
                     <i class="bi bi-chevron-left text-slate-200"></i>
                 </a>
 
