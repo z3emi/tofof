@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -58,6 +59,7 @@ class BackupController extends Controller
             $sqlContent = $this->getDatabaseDump();
             $fileName = $this->backupFolderName . '/db-backup-' . date('Y-m-d-His') . '.sql';
             $this->disk->put($fileName, $sqlContent);
+            $this->sendManualBackupToTelegram($fileName, 'DB');
 
             return redirect()->route('admin.backups.index')
                 ->with('success', 'تم إنشاء نسخة احتياطية لقاعدة البيانات بنجاح.');
@@ -105,6 +107,7 @@ class BackupController extends Controller
 
             $zip->close();
             @unlink($tempSqlPath);
+            $this->sendManualBackupToTelegram($zipFileName, 'FULL');
 
             return redirect()->route('admin.backups.index')
                 ->with('success', 'تم إنشاء نسخة احتياطية كاملة بنجاح.');
@@ -747,6 +750,36 @@ class BackupController extends Controller
             return response('Scheduler executed successfully.' . "\n\n" . Artisan::output());
         } catch (\Exception $e) {
             return response('Error running scheduler: ' . $e->getMessage(), 500);
+        }
+    }
+
+    private function sendManualBackupToTelegram(string $relativePath, string $type): void
+    {
+        try {
+            /** @var TelegramService $telegram */
+            $telegram = app(TelegramService::class);
+
+            $caption = sprintf(
+                "نسخة احتياطية يدوية (%s)\nالملف: %s\nالوقت: %s",
+                $type,
+                basename($relativePath),
+                now()->format('Y-m-d H:i:s')
+            );
+
+            $result = $telegram->sendBackupFile($relativePath, $caption);
+            if (!((bool) data_get($result, 'ok', false))) {
+                Log::warning('Manual backup created but Telegram delivery failed.', [
+                    'type' => $type,
+                    'relative_path' => $relativePath,
+                    'telegram_response' => data_get($result, 'response'),
+                ]);
+            }
+        } catch (\Throwable $exception) {
+            Log::warning('Manual backup Telegram delivery exception.', [
+                'type' => $type,
+                'relative_path' => $relativePath,
+                'error' => $exception->getMessage(),
+            ]);
         }
     }
 }

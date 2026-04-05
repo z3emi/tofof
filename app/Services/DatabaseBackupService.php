@@ -9,6 +9,18 @@ class DatabaseBackupService
 {
     public function exportDatabase()
     {
+        $sqlDump = $this->generateSqlDump();
+
+        $filename = 'backup_' . now()->format('Y_m_d_His') . '.sql';
+        $path = storage_path("app/backups/{$filename}");
+        File::ensureDirectoryExists(storage_path('app/backups'));
+        File::put($path, $sqlDump);
+
+        return $path;
+    }
+
+    public function generateSqlDump(): string
+    {
         $tables = DB::select('SHOW TABLES');
         $dbName = env('DB_DATABASE');
         $tableKey = 'Tables_in_' . $dbName;
@@ -48,11 +60,6 @@ class DatabaseBackupService
 
         $sqlDump .= "SET FOREIGN_KEY_CHECKS = 1;\n";
 
-        $filename = 'backup_' . now()->format('Y_m_d_His') . '.sql';
-        $path = storage_path("app/backups/{$filename}");
-        File::ensureDirectoryExists(storage_path('app/backups'));
-        File::put($path, $sqlDump);
-
-        return $path;
+        return $sqlDump;
     }
 }

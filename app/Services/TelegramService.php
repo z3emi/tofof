@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 use App\Models\ContactMessage;
 
@@ -22,14 +23,16 @@ class TelegramService
 
     public function __construct()
     {
-        // الأولوية دائماً للإعدادات من قاعدة البيانات (Settings Table) للتحكم من لوحة الإدارة
-        $this->token        = (string) \App\Models\Setting::getValue('telegram_bot_token', config('services.telegram.bot_token', env('TELEGRAM_BOT_TOKEN')));
-        $rawChatId          = (string) \App\Models\Setting::getValue('telegram_chat_id', config('services.telegram.chat_id', env('TELEGRAM_CHAT_ID')));
-        $this->backupChatId = (string) \App\Models\Setting::getValue('telegram_backup_chat_id', env('TELEGRAM_BACKUP_CHAT_ID', ''));
-        
+        // الاعتماد فقط على الإعدادات المحفوظة من لوحة الإدارة.
+        $this->token        = trim((string) \App\Models\Setting::getValue('telegram_bot_token', ''));
+        $rawChatId          = trim((string) \App\Models\Setting::getValue('telegram_chat_id', ''));
         $this->chatIds   = $this->parseChatIds($rawChatId);
         $this->chatId    = $this->chatIds[0] ?? $rawChatId;
-        $this->parseMode = (string) config('services.telegram.parse_mode', env('TELEGRAM_PARSE_MODE', 'HTML'));
+
+        $rawBackupChatId = trim((string) \App\Models\Setting::getValue('telegram_backup_chat_id', ''));
+        $this->backupChatId = $rawBackupChatId !== '' ? $rawBackupChatId : (string) $this->chatId;
+
+        $this->parseMode = 'HTML';
         $this->tokenLooksValid = $this->hasUsableToken($this->token);
     }
 
@@ -230,6 +233,77 @@ class TelegramService
         }
 
         return $this->sendMessage($text, $inlineKeyboard, $this->backupChatId);
+    }
+
+    /**
+     * Send backup file to the dedicated backup Telegram chat.
+     */
+    public function sendBackupFile(string $relativePath, ?string $caption = null): array
+    {
+        if (! $this->tokenLooksValid) {
+            Log::warning('Telegram sendBackupFile skipped: bot token is missing or invalid format.');
+
+            return ['ok' => false, 'message_id' => null, 'response' => null];
+        }
+
+        if (! $this->isValidChatId($this->backupChatId)) {
+            Log::warning('Telegram sendBackupFile skipped: no valid backup chat id configured.');
+
+            return ['ok' => false, 'message_id' => null, 'response' => null];
+        }
+
+        $disk = Storage::build([
+            'driver' => 'local',
+            'root' => storage_path('app'),
+        ]);
+
+        if (! $disk->exists($relativePath)) {
+            Log::warning('Telegram sendBackupFile skipped: file does not exist.', [
+                'relative_path' => $relativePath,
+            ]);
+
+            return ['ok' => false, 'message_id' => null, 'response' => null];
+        }
+
+        $absolutePath = $disk->path($relativePath);
+
+        try {
+            $response = Http::withOptions(['force_ip_resolve' => 'v4'])
+                ->timeout(60)
+                ->attach('document', fopen($absolutePath, 'r'), basename($absolutePath))
+                ->post("https://api.telegram.org/bot{$this->token}/sendDocument", [
+                    'chat_id' => $this->backupChatId,
+                    'caption' => $caption ?: 'نسخة احتياطية جديدة',
+                    'parse_mode' => $this->parseMode,
+                    'disable_content_type_detection' => true,
+                ]);
+
+            $json = $response->json();
+            $ok = $response->ok() && data_get($json, 'ok') === true;
+
+            if (! $ok) {
+                Log::warning('Telegram sendBackupFile failed', [
+                    'http_status' => $response->status(),
+                    'response' => $json,
+                    'relative_path' => $relativePath,
+                ]);
+            }
+
+            return [
+                'ok' => $ok,
+                'message_id' => $ok ? (int) data_get($json, 'result.message_id') : null,
+                'response' => $json,
+            ];
+        } catch (Throwable $exception) {
+            report($exception);
+
+            Log::warning('Telegram sendBackupFile exception', [
+                'error' => $exception->getMessage(),
+                'relative_path' => $relativePath,
+            ]);
+
+            return ['ok' => false, 'message_id' => null, 'response' => null];
+        }
     }
 
 

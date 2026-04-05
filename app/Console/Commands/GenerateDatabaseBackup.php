@@ -3,10 +3,12 @@
 namespace App\Console\Commands;
 
 use App\Services\DatabaseBackupService;
+use App\Services\TelegramService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
+use ZipArchive;
 
 class GenerateDatabaseBackup extends Command
 {
@@ -20,7 +22,7 @@ class GenerateDatabaseBackup extends Command
      */
     protected $description = 'Create a SQL backup that includes schema definitions and data.';
 
-    public function handle(DatabaseBackupService $databaseBackupService): int
+    public function handle(DatabaseBackupService $databaseBackupService, TelegramService $telegramService): int
     {
         $directory = $this->resolveDirectory($this->option('directory'));
         $fileName = $this->resolveFilename($this->option('filename'));
@@ -38,7 +40,16 @@ class GenerateDatabaseBackup extends Command
                 $disk->makeDirectory($directory);
             }
 
-            $disk->put($relativePath, $sql);
+            $absoluteZipPath = $disk->path($relativePath);
+            $sqlEntryName = pathinfo($relativePath, PATHINFO_FILENAME) . '.sql';
+
+            $zip = new ZipArchive();
+            if ($zip->open($absoluteZipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+                throw new \RuntimeException('تعذر إنشاء ملف ZIP للنسخة الاحتياطية.');
+            }
+
+            $zip->addFromString($sqlEntryName, $sql);
+            $zip->close();
         } catch (Throwable $exception) {
             $this->error('تعذر إنشاء النسخة الاحتياطية: ' . $exception->getMessage());
             Log::error('Automatic SQL backup failed.', [
@@ -51,6 +62,24 @@ class GenerateDatabaseBackup extends Command
         $absolutePath = storage_path('app/' . $relativePath);
         $this->info("تم إنشاء النسخة الاحتياطية: {$relativePath}");
         $this->line("المسار الكامل: {$absolutePath}");
+
+        $caption = sprintf(
+            "نسخة احتياطية ZIP جديدة\nالملف: %s\nالوقت: %s",
+            basename($relativePath),
+            now()->format('Y-m-d H:i:s')
+        );
+
+        $telegramResult = $telegramService->sendBackupFile($relativePath, $caption);
+        if (!((bool) data_get($telegramResult, 'ok', false))) {
+            Log::warning('SQL backup created but failed to send to Telegram.', [
+                'relative_path' => $relativePath,
+                'telegram_response' => data_get($telegramResult, 'response'),
+            ]);
+
+            $this->warn('تم إنشاء النسخة الاحتياطية، لكن فشل إرسالها إلى تلغرام.');
+        } else {
+            $this->info('تم إرسال النسخة الاحتياطية إلى تلغرام بنجاح.');
+        }
 
         return self::SUCCESS;
     }
@@ -71,7 +100,11 @@ class GenerateDatabaseBackup extends Command
     {
         $fileName = $fileName !== null && trim($fileName) !== ''
             ? trim($fileName)
-            : 'db-backup-' . now()->format('Y-m-d-His') . '.sql';
+            : 'db-backup-' . now()->format('Y-m-d-His') . '.zip';
+
+        if (!str_ends_with(strtolower($fileName), '.zip')) {
+            $fileName = pathinfo($fileName, PATHINFO_FILENAME) . '.zip';
+        }
 
         return ltrim($fileName, '/\\');
     }
