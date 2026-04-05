@@ -446,30 +446,26 @@ public function homepage(Request $request)
             ->get();
 
         foreach ($fiatTree as $fia) {
-            if ($fia->children->isNotEmpty()) {
-                foreach ($fia->children as $subFia) {
-                    try {
-                        $product_ids = \Illuminate\Support\Facades\DB::table('primary_category_product')
-                            ->where('primary_category_id', $subFia->id)
-                            ->pluck('product_id');
+            try {
+                $primaryIds = $fia->children->pluck('id')->push($fia->id)->unique()->values();
 
-                        $brand_ids = \App\Models\Product::whereIn('id', $product_ids)
-                            ->whereNotNull('category_id')
-                            ->distinct()
-                            ->pluck('category_id');
+                $productIds = \Illuminate\Support\Facades\DB::table('primary_category_product')
+                    ->whereIn('primary_category_id', $primaryIds)
+                    ->pluck('product_id');
 
-                        if ($brand_ids->isNotEmpty()) {
-                            $subFia->brands = \App\Models\Category::whereIn('id', $brand_ids)
-                                ->withCount('products')
-                                ->ordered()
-                                ->get();
-                        } else {
-                            $subFia->brands = collect();
-                        }
-                    } catch (\Exception $e) {
-                        $subFia->brands = collect();
-                    }
-                }
+                $categoryIds = \App\Models\Product::whereIn('id', $productIds)
+                    ->whereNotNull('category_id')
+                    ->distinct()
+                    ->pluck('category_id');
+
+                $fia->categories = $categoryIds->isNotEmpty()
+                    ? \App\Models\Category::whereIn('id', $categoryIds)
+                        ->withCount('products')
+                        ->ordered()
+                        ->get()
+                    : collect();
+            } catch (\Exception $e) {
+                $fia->categories = collect();
             }
         }
 

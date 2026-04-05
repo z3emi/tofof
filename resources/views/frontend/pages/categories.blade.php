@@ -165,8 +165,8 @@
     {{-- View 1: Main Category Grid --}}
     <div x-show="view == 'grid'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
         {{-- Header Info --}}
-        <div class="text-center pt-8 px-4">
-            <h1 class="text-2xl font-black text-brand-maroon">فئات وبراندات</h1>
+            <div class="text-center pt-8 px-4">
+                <h1 class="text-2xl font-black text-brand-maroon">الفئات</h1>
             <p class="text-sm text-text-muted mt-1">{{ __('اختر القسم الذي يروق لك لاكتشاف منتجاتنا') }}</p>
         </div>
 
@@ -210,36 +210,28 @@
         <div class="detail-body">
             @foreach ($fiatTree as $fia)
                 <div x-show="selectedId == '{{ $fia->id }}'">
-                    @if($fia->children && $fia->children->isNotEmpty())
-                        @foreach($fia->children as $subFia)
-                            <h3 class="sub-sec-title">{{ $subFia->name_translated }}</h3>
-                            <div class="brands-list">
-                                @if($subFia->brands && $subFia->brands->isNotEmpty())
-                                    @foreach($subFia->brands as $brand)
-                                        <a href="{{ route('shop', ['category' => $brand->slug]) }}" class="brand-row-item">
-                                            <div class="brand-row-icon">
-                                                @if($brand->image)
-                                                    <img src="{{ asset('storage/' . $brand->image) }}" alt="{{ $brand->name_translated }}">
-                                                @else
-                                                    <div class="w-full h-full flex items-center justify-center bg-gray-50 text-xs">🧴</div>
-                                                @endif
-                                            </div>
-                                            <span class="brand-row-name">{{ $brand->name_translated }}</span>
-                                            <span class="brand-row-count">{{ $brand->products_count }} {{ __('منتج') }}</span>
-                                            <i class="bi bi-chevron-left text-text-muted"></i>
-                                        </a>
-                                    @endforeach
-                                @else
-                                    <a href="{{ route('shop', ['brand' => $subFia->slug]) }}" class="p-4 bg-brand-soft rounded-2xl flex items-center gap-3 text-brand-maroon font-bold text-sm">
-                                        <i class="bi bi-grid-3x3-gap"></i> {{ __('تصفح كافة منتجات') }} {{ $subFia->name_translated }}
-                                    </a>
-                                @endif
-                            </div>
-                        @endforeach
+                    @if($fia->categories && $fia->categories->isNotEmpty())
+                        <h3 class="sub-sec-title">{{ __('الفئات المتاحة') }}</h3>
+                        <div class="brands-list">
+                            @foreach($fia->categories as $category)
+                                <a href="{{ route('shop', ['category' => $category->slug]) }}" class="brand-row-item">
+                                    <div class="brand-row-icon">
+                                        @if($category->image)
+                                            <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name_translated }}">
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center bg-gray-50 text-xs">🧴</div>
+                                        @endif
+                                    </div>
+                                    <span class="brand-row-name">{{ $category->name_translated }}</span>
+                                    <span class="brand-row-count">{{ $category->products_count }} {{ __('منتج') }}</span>
+                                    <i class="bi bi-chevron-left text-text-muted"></i>
+                                </a>
+                            @endforeach
+                        </div>
                     @else
                         <div class="py-20 text-center text-text-muted">
                             <i class="bi bi-box-seam text-6xl"></i>
-                            <p class="mt-4">{{ __('لا توجد براندات فرعية حالياً') }}</p>
+                            <p class="mt-4">{{ __('لا توجد فئات متاحة حالياً') }}</p>
                         </div>
                     @endif
                 </div>
