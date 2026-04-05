@@ -34,7 +34,7 @@
     ========================= */
     .home-scope {
         /* Brand palette */
-        --primary-color: #c32126;
+        --primary-color: #6d0e16;
         --primary-hover: #a61c20;
         --secondary-color: #ffffff;
         --accent-color: #ea7a7e;
@@ -312,7 +312,7 @@
         top:.6rem;
         right:.6rem;
         z-index:15;
-        background:#c32126;      /* لون البراند */
+        background:#6d0e16;      /* لون البراند */
         color:#fff;
         font-weight:800;
         font-size:.75rem;
@@ -369,6 +369,151 @@
     .home-scope .floating-1{ width:80px;height:80px; top:10%; right:5%; animation-delay:0s; }
     .home-scope .floating-2{ width:60px;height:60px; bottom:15%; left:8%; animation-delay:1s; }
     .home-scope .floating-3{ width:40px;height:40px; top:40%; right:15%; animation-delay:2s; }
+
+    /* ---------- Testimonials ---------- */
+    .home-scope .testimonials-section {
+        --testimonials-bg-a: #fcf9f9;
+        --testimonials-bg-b: #ffffff;
+        --testimonials-stroke: #efe2e3;
+        --testimonials-title: var(--primary-color);
+        background: #ffffff;
+        border-top: 1px solid rgba(195, 33, 38, 0.1);
+        border-bottom: 1px solid rgba(195, 33, 38, 0.08);
+    }
+    .home-scope .testimonials-title {
+        color: var(--testimonials-title);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+    .home-scope .testimonials-subtitle {
+        color: #7a6a6c;
+    }
+    .home-scope .testimonials-marquee {
+        position: relative;
+        overflow: hidden;
+        border-radius: 22px;
+        padding: 5px 0;
+        cursor: pointer;
+        outline: none;
+    }
+    .home-scope .testimonials-marquee::before,
+    .home-scope .testimonials-marquee::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 56px;
+        z-index: 2;
+        pointer-events: none;
+    }
+    .home-scope .testimonials-marquee::before {
+        right: 0;
+        background: linear-gradient(270deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0));
+    }
+    .home-scope .testimonials-marquee::after {
+        left: 0;
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0));
+    }
+    .home-scope .testimonials-track {
+        display: flex;
+        gap: 10px;
+        width: max-content;
+        direction: ltr;
+        will-change: transform;
+        transform: translate3d(0, 0, 0);
+    }
+    .home-scope .testimonial-card {
+        width: min(84vw, 320px);
+        min-height: 168px;
+        border-radius: 16px;
+        border: 1px solid var(--testimonials-stroke);
+        background: #f2f3f5;
+        box-shadow: 0 8px 22px rgba(58, 20, 20, 0.08);
+        padding: 13px;
+        direction: rtl;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .home-scope .testimonial-card-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .home-scope .testimonial-avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #efdfdf;
+        box-shadow: 0 0 0 2px #fff;
+    }
+    .home-scope .testimonial-name {
+        color: var(--primary-color);
+        font-weight: 800;
+        font-size: 1.25rem;
+        line-height: 1.2;
+        margin: 0;
+    }
+    .home-scope .testimonial-role {
+        color: #8a7d7f;
+        font-size: 0.82rem;
+        margin: 2px 0 5px;
+    }
+    .home-scope .testimonial-stars {
+        display: inline-flex;
+        gap: 2px;
+        color: #f6c54a;
+        font-size: 0.84rem;
+    }
+    .home-scope .testimonial-text {
+        color: #54494b;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-top: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+        .home-scope .testimonials-marquee::before,
+        .home-scope .testimonials-marquee::after {
+            width: 12px;
+        }
+        .home-scope .testimonials-track {
+            gap: 8px;
+        }
+        .home-scope .testimonial-card {
+            width: min(70vw, 220px);
+            min-height: 126px;
+            border-radius: 12px;
+            padding: 8px;
+        }
+        .home-scope .testimonial-avatar {
+            width: 36px;
+            height: 36px;
+            border-width: 2px;
+        }
+        .home-scope .testimonial-name {
+            font-size: 0.9rem;
+        }
+        .home-scope .testimonial-role {
+            font-size: 0.66rem;
+        }
+        .home-scope .testimonial-text {
+            font-size: 0.75rem;
+            margin-top: 4px;
+            -webkit-line-clamp: 2;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .home-scope .testimonials-track {
+            transform: none !important;
+        }
+    }
 
     /* =========================
         SHOP PRODUCT CARD OVERRIDES (make home = shop)
@@ -685,7 +830,7 @@
                             @if($slide->click_type !== 'image' && (!empty($slide->button_text) || !empty($slide->button_text_en)))
                                 <div class="-mt-2 w-full flex justify-center">
                                     <a href="{{ $slide->button_url ?? '#' }}" 
-                                       class="inline-block bg-white text-[#c32126] px-6 py-2 rounded-full font-bold text-base hover:bg-gray-100 transition shadow-lg mx-auto">
+                                       class="inline-block bg-white text-[#6d0e16] px-6 py-2 rounded-full font-bold text-base hover:bg-gray-100 transition shadow-lg mx-auto">
                                         @if(app()->getLocale() === 'en' && !empty($slide->button_text_en))
                                             {{ $slide->button_text_en }}
                                         @else
@@ -885,12 +1030,12 @@
                     <img src="{{ $thumb }}" class="w-full h-full object-cover object-center"
                          alt="{{ $pc->name_translated }}" width="112" height="112">
                 @else
-                    <div class="w-full h-full grid place-items-center text-[#c32126] bg-white">
+                    <div class="w-full h-full grid place-items-center text-[#6d0e16] bg-white">
                         <i class="bi bi-tags" style="font-size:1.6rem;"></i>
                     </div>
                 @endif
             </div>
-            <h3 class="category-name mt-1 md:mt-2 text-base font-semibold group-hover:text-[#c32126]">{{ $pc->name_translated }}</h3>
+            <h3 class="category-name mt-1 md:mt-2 text-base font-semibold group-hover:text-[#6d0e16]">{{ $pc->name_translated }}</h3>
         </a>
     @endif
 @endforeach
@@ -940,7 +1085,7 @@
 
         /* حالة الزر النشط (يوجد تنقل) */
         .brand-nav-active {
-            color: #c32126;
+            color: #6d0e16;
             background: rgba(255, 255, 255, 0.4);
             border-color: rgba(234, 219, 205, 0.9);
         }
@@ -1061,7 +1206,7 @@
                 @if($slide->click_type !== 'image' && ($slide->button_text || $slide->button_text_en))
                     <div class="-mt-2">
                         <a href="{{ $slide->button_url ?: '#' }}"
-                           class="inline-block bg-white text-[#c32126] px-5 py-1.5 rounded-full font-bold text-sm hover:bg-gray-100 transition">
+                           class="inline-block bg-white text-[#6d0e16] px-5 py-1.5 rounded-full font-bold text-sm hover:bg-gray-100 transition">
                           @if(app()->getLocale() === 'en' && !empty($slide->button_text_en))
                               {{ $slide->button_text_en }}
                           @else
@@ -1206,12 +1351,12 @@
                         @if($thumb)
                             <img src="{{ $thumb }}" class="w-full h-full object-cover object-center" alt="{{ $category->name_translated }}" width="112" height="112">
                         @else
-                            <div class="w-full h-full grid place-items-center text-[#c32126] bg-white">
+                            <div class="w-full h-full grid place-items-center text-[#6d0e16] bg-white">
                                 <i class="bi bi-tags" style="font-size:1.6rem;"></i>
                             </div>
                         @endif
                     </div>
-                    <h3 class="category-name mt-1 md:mt-2 text-base font-semibold group-hover:text-[#c32126]">{{ $category->name_translated }}</h3>
+                    <h3 class="category-name mt-1 md:mt-2 text-base font-semibold group-hover:text-[#6d0e16]">{{ $category->name_translated }}</h3>
                 </a>
             @endforeach
 
@@ -1277,7 +1422,7 @@
 
         /* حالة الزر النشط (يوجد تنقل) */
         .cat-nav-active {
-            color: #c32126;
+            color: #6d0e16;
             background: rgba(255, 255, 255, 0.4);
             border-color: rgba(234, 219, 205, 0.9);
         }
@@ -1621,7 +1766,7 @@
                             @endif
                             @if($slide->click_type !== 'image' && ($slide->button_text || $slide->button_text_en))
                                 <div class="-mt-2">
-                                    <a href="{{ $slide->button_url ?: '#' }}" class="inline-block bg-white text-[#c32126] px-5 py-1.5 rounded-full font-bold text-sm hover:bg-gray-100 transition">
+                                    <a href="{{ $slide->button_url ?: '#' }}" class="inline-block bg-white text-[#6d0e16] px-5 py-1.5 rounded-full font-bold text-sm hover:bg-gray-100 transition">
                                         @if(app()->getLocale() === 'en' && !empty($slide->button_text_en))
                                             {{ $slide->button_text_en }}
                                         @else
@@ -2095,6 +2240,82 @@
 </section>
 @endif
 
+@php
+    $homepageTestimonials = ($featuredReviews ?? collect())->values();
+    $halfTestimonials = (int) ceil($homepageTestimonials->count() / 2);
+    $topTestimonials = $homepageTestimonials->take($halfTestimonials);
+    $bottomTestimonials = $homepageTestimonials->slice($halfTestimonials);
+    if ($bottomTestimonials->isEmpty()) {
+        $bottomTestimonials = $topTestimonials;
+    }
+@endphp
+
+@if($homepageTestimonials->isNotEmpty())
+<section class="testimonials-section py-6 md:py-8" dir="rtl">
+    <div class="container mx-auto px-4">
+        <div class="mb-4 md:mb-5 text-center">
+            <h2 class="testimonials-title text-xl md:text-3xl">آراء العملاء</h2>
+        </div>
+
+        <div class="space-y-4 md:space-y-5">
+            <div class="testimonials-marquee" data-marquee data-speed-multiplier="0.88" data-start-offset="-120" role="button" tabindex="0" aria-label="إيقاف أو تشغيل حركة آراء العملاء">
+                <div class="testimonials-track testimonials-track-to-right">
+                    @foreach($topTestimonials as $review)
+                        @php
+                            $testimonialName = $review->user?->name ?: 'عميل متجر توفف';
+                            $testimonialAvatar = $review->user?->avatar_url ?: asset('storage/avatars/default.png');
+                            $testimonialProduct = $review->product?->name_ar ?: ($review->product?->name_en ?: 'عميل موثوق');
+                        @endphp
+                        <article class="testimonial-card">
+                            <header class="testimonial-card-head">
+                                <img src="{{ $testimonialAvatar }}" alt="{{ $testimonialName }}" class="testimonial-avatar" onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.png') }}';">
+                                <div>
+                                    <h3 class="testimonial-name">{{ $testimonialName }}</h3>
+                                    <p class="testimonial-role">{{ $testimonialProduct }}</p>
+                                    <div class="testimonial-stars" aria-label="{{ (int) $review->rating }} من 5">
+                                        @for($i=1; $i<=5; $i++)
+                                            <i class="bi {{ $i <= (int) $review->rating ? 'bi-star-fill' : 'bi-star' }}"></i>
+                                        @endfor
+                                    </div>
+                                </div>
+                            </header>
+                            <p class="testimonial-text">{{ \Illuminate\Support\Str::limit((string) $review->comment, 180) }}</p>
+                        </article>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="testimonials-marquee" data-marquee role="button" tabindex="0" aria-label="إيقاف أو تشغيل حركة آراء العملاء">
+                <div class="testimonials-track testimonials-track-to-right">
+                    @foreach($bottomTestimonials as $review)
+                        @php
+                            $testimonialName = $review->user?->name ?: 'عميل متجر توفف';
+                            $testimonialAvatar = $review->user?->avatar_url ?: asset('storage/avatars/default.png');
+                            $testimonialProduct = $review->product?->name_ar ?: ($review->product?->name_en ?: 'عميل موثوق');
+                        @endphp
+                        <article class="testimonial-card">
+                            <header class="testimonial-card-head">
+                                <img src="{{ $testimonialAvatar }}" alt="{{ $testimonialName }}" class="testimonial-avatar" onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.png') }}';">
+                                <div>
+                                    <h3 class="testimonial-name">{{ $testimonialName }}</h3>
+                                    <p class="testimonial-role">{{ $testimonialProduct }}</p>
+                                    <div class="testimonial-stars" aria-label="{{ (int) $review->rating }} من 5">
+                                        @for($i=1; $i<=5; $i++)
+                                            <i class="bi {{ $i <= (int) $review->rating ? 'bi-star-fill' : 'bi-star' }}"></i>
+                                        @endfor
+                                    </div>
+                                </div>
+                            </header>
+                            <p class="testimonial-text">{{ \Illuminate\Support\Str::limit((string) $review->comment, 180) }}</p>
+                        </article>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+@endif
+
 @push('styles')
 <style>
   /* ===== Home Blog (6 posts, 2 per row on mobile, square image) ===== */
@@ -2150,7 +2371,7 @@
 <section class="home-blog container mx-auto px-4 py-12">
     <div class="flex items-end justify-between mb-6">
         <h2 class="text-2xl md:text-3xl font-extrabold">{{ __('home.from_blog') }}</h2>
-        <a href="{{ url('/blog') }}" class="text-sm font-semibold text-[#c32126] hover:underline">{{ __('home.view_all_articles') }}</a>
+        <a href="{{ url('/blog') }}" class="text-sm font-semibold text-[#6d0e16] hover:underline">{{ __('home.view_all_articles') }}</a>
     </div>
 
     {{-- شبكة: هاتف = عمودين، من md وفوق = 3 أعمدة (إجمالي 6 عناصر) --}}
@@ -2314,6 +2535,187 @@
                 setTimeout(() => { if (!this.isDragging) this.$refs.sliderContainer.style.transition = ''; }, 400);
             }
         }));
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        document.querySelectorAll('[data-marquee]').forEach((marquee) => {
+            const track = marquee.querySelector('.testimonials-track');
+            if (!track) {
+                return;
+            }
+
+            const seedNodes = Array.from(track.children).map((node) => node.cloneNode(true));
+            if (seedNodes.length === 0) {
+                return;
+            }
+
+            const isLeftTrack = track.classList.contains('testimonials-track-to-left');
+            const direction = isLeftTrack ? -1 : 1;
+            const speedMultiplier = Number(marquee.dataset.speedMultiplier || '1') || 1;
+            const startOffset = Number(marquee.dataset.startOffset || '0') || 0;
+            let isPausedByHover = false;
+            let rafId = null;
+            let lastTs = 0;
+            let offset = 0;
+            let resizeTimeout = null;
+
+            const getSpeed = () => (window.innerWidth <= 768 ? 34 : 46) * speedMultiplier; // px / second
+            const getGap = () => {
+                const style = window.getComputedStyle(track);
+                const gapValue = parseFloat(style.columnGap || style.gap || '0');
+                return Number.isFinite(gapValue) ? gapValue : 0;
+            };
+
+            const getForwardStep = () => {
+                const first = track.children[0];
+                const second = track.children[1];
+                if (!first) {
+                    return 0;
+                }
+
+                if (!second) {
+                    return first.getBoundingClientRect().width + getGap();
+                }
+
+                return second.getBoundingClientRect().left - first.getBoundingClientRect().left;
+            };
+
+            const getBackwardStep = () => {
+                const count = track.children.length;
+                const last = track.children[count - 1];
+                const prev = track.children[count - 2];
+                if (!last) {
+                    return 0;
+                }
+
+                if (!prev) {
+                    return last.getBoundingClientRect().width + getGap();
+                }
+
+                return last.getBoundingClientRect().left - prev.getBoundingClientRect().left;
+            };
+
+            const ensureFilledTrack = () => {
+                track.innerHTML = '';
+
+                seedNodes.forEach((node) => {
+                    track.appendChild(node.cloneNode(true));
+                });
+
+                const minWidth = marquee.clientWidth * 3.4;
+                let safety = 0;
+                while (track.scrollWidth < minWidth && safety < 8) {
+                    seedNodes.forEach((node) => {
+                        track.appendChild(node.cloneNode(true));
+                    });
+                    safety++;
+                }
+
+                offset = startOffset;
+
+                if (isLeftTrack) {
+                    recycleForLeft();
+                } else {
+                    recycleForRight();
+                }
+
+                track.style.transform = 'translate3d(0,0,0)';
+                track.style.transform = `translate3d(${offset}px,0,0)`;
+            };
+
+            const isPaused = () => isPausedByHover || marquee.classList.contains('is-paused');
+
+            const recycleForLeft = () => {
+                let threshold = getForwardStep();
+                while (threshold > 0 && -offset >= threshold) {
+                    const first = track.firstElementChild;
+                    if (!first) {
+                        break;
+                    }
+
+                    track.appendChild(first);
+                    offset += threshold;
+                    threshold = getForwardStep();
+                }
+            };
+
+            const recycleForRight = () => {
+                let threshold = getBackwardStep();
+                while (threshold > 0 && offset >= threshold) {
+                    const last = track.lastElementChild;
+                    if (!last) {
+                        break;
+                    }
+
+                    track.insertBefore(last, track.firstElementChild);
+                    offset -= threshold;
+                    threshold = getBackwardStep();
+                }
+            };
+
+            const animate = (ts) => {
+                if (!lastTs) {
+                    lastTs = ts;
+                }
+
+                const dt = (ts - lastTs) / 1000;
+                lastTs = ts;
+
+                if (!prefersReducedMotion && !isPaused()) {
+                    offset += direction * getSpeed() * dt;
+
+                    if (isLeftTrack) {
+                        recycleForLeft();
+                    } else {
+                        recycleForRight();
+                    }
+
+                    track.style.transform = `translate3d(${offset}px,0,0)`;
+                }
+
+                rafId = window.requestAnimationFrame(animate);
+            };
+
+            ensureFilledTrack();
+
+            marquee.addEventListener('mouseenter', () => {
+                isPausedByHover = true;
+            });
+
+            marquee.addEventListener('mouseleave', () => {
+                isPausedByHover = false;
+            });
+
+            marquee.addEventListener('click', () => {
+                marquee.classList.toggle('is-paused');
+            });
+
+            marquee.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    marquee.classList.toggle('is-paused');
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                if (resizeTimeout) {
+                    clearTimeout(resizeTimeout);
+                }
+                resizeTimeout = setTimeout(() => {
+                    ensureFilledTrack();
+                }, 120);
+            });
+
+            rafId = window.requestAnimationFrame(animate);
+
+            marquee.addEventListener('remove', () => {
+                if (rafId) {
+                    cancelAnimationFrame(rafId);
+                }
+            });
+        });
     });
 </script>
 @endpush

@@ -521,8 +521,12 @@ Route::middleware(['auth:admin', 'can:view-admin-panel', 'log.admin.activity'])-
     // Review Management
     Route::get('/reviews', [ReviewAdminController::class, 'index'])
         ->name('reviews.index')->middleware('can:manage-reviews');
+    Route::post('/reviews/fake', [ReviewAdminController::class, 'storeFake'])
+        ->name('reviews.fake.store')->middleware('can:manage-reviews');
     Route::patch('/reviews/{review}/status', [ReviewAdminController::class, 'updateStatus'])
         ->name('reviews.updateStatus')->middleware('can:manage-reviews');
+    Route::patch('/reviews/{review}/featured', [ReviewAdminController::class, 'toggleFeatured'])
+        ->name('reviews.toggleFeatured')->middleware('can:manage-reviews');
     Route::delete('/products/{product}/reviews/{review}', [ReviewAdminController::class, 'destroy'])
         ->name('products.reviews.destroy')->middleware('can:manage-reviews');
     Route::post('/products/{product}/reviews/{review}/reply', [ReviewAdminController::class, 'reply'])

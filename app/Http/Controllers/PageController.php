@@ -6,6 +6,7 @@ use App\Models\HomepageSlide;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\PrimaryCategory;
+use App\Models\ProductReview;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
@@ -24,6 +25,7 @@ public function homepage(Request $request)
     $promoPrimarySlides = collect();
     $promoSecondarySlides = collect();
     $homepageSlides = collect();
+    $featuredReviews = collect();
 
     // 1) جديد المتجر
     $newProducts = Product::query()
@@ -172,6 +174,18 @@ public function homepage(Request $request)
         $promoSecondarySlides = HomepageSlide::defaultSlidesForSection(HomepageSlide::SECTION_PROMO_SECONDARY);
     }
 
+    if (Schema::hasTable('product_reviews') && Schema::hasColumn('product_reviews', 'show_on_homepage')) {
+        $featuredReviews = ProductReview::query()
+            ->with(['user:id,name,avatar', 'product:id,name_ar,name_en'])
+            ->where('status', 'approved')
+            ->where('show_on_homepage', true)
+            ->whereNotNull('comment')
+            ->where('comment', '!=', '')
+            ->latest()
+            ->take(24)
+            ->get();
+    }
+
     return view('frontend.homepage', compact(
         'newProducts',
         'saleProducts',
@@ -182,7 +196,8 @@ public function homepage(Request $request)
         'favoriteProductIds',
         'heroSlides',
         'promoPrimarySlides',
-        'promoSecondarySlides'
+        'promoSecondarySlides',
+        'featuredReviews'
     ));
 }
 

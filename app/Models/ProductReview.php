@@ -16,12 +16,14 @@ class ProductReview extends Model
         'comment',
         'admin_reply',
         'status', // approved | pending | rejected
+        'show_on_homepage',
         'moderation_score',
         'moderation_flags',
     ];
 
     protected $casts = [
         'rating' => 'integer',
+        'show_on_homepage' => 'boolean',
         'moderation_score' => 'integer',
         'moderation_flags' => 'array',
     ];
