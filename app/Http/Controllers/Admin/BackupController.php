@@ -482,7 +482,7 @@ class BackupController extends Controller
                 $this->normalizeRestoredMediaPaths();
             }
 
-            return redirect()->route('admin.backups.index')->with('success', 'تم استعادة النسخة الاحتياطية بنجاح.');
+            return redirect()->route('admin.login')->with('success', 'تم استعادة النسخة الاحتياطية بنجاح. يرجى تسجيل الدخول مرة أخرى إلى لوحة التحكم.');
         } catch (\Exception $e) {
             Log::error("Backup restore failed: " . $e->getMessage());
             return redirect()->back()->with('error', 'فشلت عملية الاستعادة: ' . $e->getMessage());
