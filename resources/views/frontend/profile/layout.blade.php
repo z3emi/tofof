@@ -75,6 +75,13 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="{{ route('profile.discounts') }}"
+                                       class="menu-item {{ request()->routeIs('profile.discounts') ? 'is-active' : '' }}">
+                                        <div class="icon-box"><i class="bi bi-ticket-perforated"></i></div>
+                                        <span>أكواد الخصم</span>
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="{{ route('profile.addresses.index') }}"
                                        class="menu-item {{ request()->routeIs('profile.addresses*') ? 'is-active' : '' }}">
                                         <div class="icon-box"><i class="bi bi-geo-alt"></i></div>
@@ -196,6 +203,12 @@
                 <a href="{{ route('profile.orders') }}" class="mobile-nav-item border-b border-slate-50">
                     <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-bag"></i></div>
                     <div class="flex-1 font-bold text-slate-700">{{ __('profile.my_orders') }}</div>
+                    <i class="bi bi-chevron-left text-slate-200"></i>
+                </a>
+
+                <a href="{{ route('profile.discounts') }}" class="mobile-nav-item border-b border-slate-50">
+                    <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-ticket-perforated"></i></div>
+                    <div class="flex-1 font-bold text-slate-700">أكواد الخصم</div>
                     <i class="bi bi-chevron-left text-slate-200"></i>
                 </a>
 

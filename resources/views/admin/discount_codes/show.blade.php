@@ -49,6 +49,12 @@ $statusLabels = [
                 <a href="{{ route('admin.discount-codes.edit', $discount_code->id) }}" class="btn btn-outline-light px-4 fw-bold d-inline-flex align-items-center">
                     <i class="bi bi-pencil me-1"></i> تعديل الكود
                 </a>
+                <form method="POST" action="{{ route('admin.discount-codes.send', $discount_code->id) }}" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-warning px-4 fw-bold d-inline-flex align-items-center">
+                        <i class="bi bi-send me-1"></i> إرسال الكود للمستهدفين
+                    </button>
+                </form>
             @endcan
         </div>
     </div>
@@ -111,6 +117,110 @@ $statusLabels = [
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div class="row g-3 mb-5">
+            <div class="col-12">
+                <h6 class="fw-bold text-muted small text-uppercase mb-3">الاستهداف وشروط الأهلية</h6>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="small text-muted mb-1">نوع الجمهور</div>
+                    <div class="fw-bold">
+                        @if($discount_code->audience_mode === 'eligible')
+                            مستخدمون مطابقون للشروط
+                        @elseif($discount_code->audience_mode === 'selected')
+                            مستخدمون محددون
+                        @else
+                            جميع المستخدمين
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="small text-muted mb-1">شرط الطلبات الموصلة</div>
+                    <div class="fw-bold">
+                        @if($discount_code->order_count_operator && $discount_code->order_count_threshold !== null)
+                            {{ $discount_code->order_count_operator === 'gte' ? '>= ' : '<= ' }}{{ $discount_code->order_count_threshold }}
+                        @else
+                            بدون شرط
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="small text-muted mb-1">شرط إجمالي المبلغ</div>
+                    <div class="fw-bold">
+                        @if($discount_code->amount_operator && $discount_code->amount_threshold !== null)
+                            {{ $discount_code->amount_operator === 'gte' ? '>= ' : '<= ' }}{{ number_format((float) $discount_code->amount_threshold, 0) }} د.ع
+                        @else
+                            بدون شرط
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <div class="small text-muted mb-2">المستخدمون المحددون</div>
+                    @if($discount_code->targetUsers->isEmpty())
+                        <span class="text-muted small">لا يوجد مستخدمون محددون</span>
+                    @else
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach($discount_code->targetUsers as $targetUser)
+                                <span class="badge bg-light text-dark border">{{ $targetUser->name }}</span>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <div class="small text-muted mb-2">البراندات المشمولة</div>
+                    @if($discount_code->targetPrimaryCategories->isEmpty())
+                        <span class="text-muted small">لا يوجد تقييد براند</span>
+                    @else
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach($discount_code->targetPrimaryCategories as $brand)
+                                <span class="badge bg-light text-dark border">{{ $brand->name_ar }}</span>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container shadow-sm border overflow-hidden mb-4">
+            <div class="p-3 border-bottom bg-light fw-bold">آخر سجلات الإرسال</div>
+            @if($deliveryLogs->isEmpty())
+                <div class="p-4 text-muted text-center">لا توجد سجلات إرسال بعد.</div>
+            @else
+                <table class="table mb-0 align-middle text-center">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>#</th>
+                            <th>المستخدم</th>
+                            <th>القناة</th>
+                            <th>الحالة</th>
+                            <th>وقت الإرسال</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($deliveryLogs as $log)
+                            <tr>
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $log->user?->name ?? '—' }}</td>
+                                <td>{{ $log->channel }}</td>
+                                <td>
+                                    <span class="badge {{ $log->status === 'sent' ? 'bg-success' : 'bg-danger' }}">{{ $log->status }}</span>
+                                </td>
+                                <td>{{ $log->sent_at ? $log->sent_at->format('Y-m-d H:i') : '—' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
         </div>
 
         {{-- ====== إحصائيات الاستخدام ====== --}}

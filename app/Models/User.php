@@ -175,6 +175,16 @@ class User extends Authenticatable
         return $this->hasMany(WalletTransaction::class, 'user_id')->latest();
     }
 
+    public function targetedDiscountCodes()
+    {
+        return $this->belongsToMany(DiscountCode::class, 'discount_code_user');
+    }
+
+    public function discountCodeDeliveryLogs()
+    {
+        return $this->hasMany(DiscountCodeDeliveryLog::class, 'user_id');
+    }
+
     public function getAvatarUrlAttribute(): string
     {
         $val = trim((string) $this->avatar);

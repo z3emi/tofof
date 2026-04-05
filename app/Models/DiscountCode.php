@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\LogsActivity;
+use App\Models\User;
+use App\Models\PrimaryCategory;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -25,6 +27,14 @@ class DiscountCode extends Model
         'max_uses',
         'max_uses_per_user',
         'is_active',
+        'audience_mode',
+        'order_count_operator',
+        'order_count_threshold',
+        'amount_operator',
+        'amount_threshold',
+        'notify_via_bell',
+        'notify_via_push',
+        'sent_at',
     ];
 
     protected $casts = [
@@ -34,6 +44,11 @@ class DiscountCode extends Model
         'max_discount_amount' => 'float',
         'max_uses'            => 'int',
         'max_uses_per_user'   => 'int',
+        'order_count_threshold' => 'int',
+        'amount_threshold'      => 'float',
+        'notify_via_bell'       => 'bool',
+        'notify_via_push'       => 'bool',
+        'sent_at'               => 'datetime',
     ];
 
     // لو عندك جدول usages قديم — نتركه كما هو
@@ -56,6 +71,21 @@ class DiscountCode extends Model
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'category_discount_code');
+    }
+
+    public function targetUsers()
+    {
+        return $this->belongsToMany(User::class, 'discount_code_user');
+    }
+
+    public function targetPrimaryCategories()
+    {
+        return $this->belongsToMany(PrimaryCategory::class, 'discount_code_primary_category');
+    }
+
+    public function deliveryLogs()
+    {
+        return $this->hasMany(DiscountCodeDeliveryLog::class);
     }
 
     public function isExpired(): bool

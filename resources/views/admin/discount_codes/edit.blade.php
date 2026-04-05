@@ -79,9 +79,84 @@
             </div>
 
             <div class="mb-5">
+                <h5 class="form-section-title">الاستهداف وشروط الأهلية</h5>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <label for="audience_mode" class="form-label fw-bold small">طريقة اختيار المستهدفين</label>
+                        <select class="form-select" style="border-radius:12px; padding:0.8rem" id="audience_mode" name="audience_mode">
+                            <option value="all" @selected(old('audience_mode', $discount_code->audience_mode ?? 'all') === 'all')>جميع المستخدمين</option>
+                            <option value="eligible" @selected(old('audience_mode', $discount_code->audience_mode) === 'eligible')>المستخدمون المطابقون للشروط</option>
+                            <option value="selected" @selected(old('audience_mode', $discount_code->audience_mode) === 'selected')>مستخدمون محددون فقط</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="order_count_operator" class="form-label fw-bold small">شرط عدد الطلبات الموصلة</label>
+                        <div class="input-group">
+                            <select class="form-select" id="order_count_operator" name="order_count_operator">
+                                <option value="">بدون شرط</option>
+                                <option value="gte" @selected(old('order_count_operator', $discount_code->order_count_operator) === 'gte')>أكبر من أو يساوي</option>
+                                <option value="lte" @selected(old('order_count_operator', $discount_code->order_count_operator) === 'lte')>أقل من أو يساوي</option>
+                            </select>
+                            <input type="number" min="0" class="form-control" id="order_count_threshold" name="order_count_threshold" value="{{ old('order_count_threshold', $discount_code->order_count_threshold) }}" placeholder="عدد الطلبات">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="amount_operator" class="form-label fw-bold small">شرط إجمالي مبلغ الطلبات الموصلة</label>
+                        <div class="input-group">
+                            <select class="form-select" id="amount_operator" name="amount_operator">
+                                <option value="">بدون شرط</option>
+                                <option value="gte" @selected(old('amount_operator', $discount_code->amount_operator) === 'gte')>أكبر من أو يساوي</option>
+                                <option value="lte" @selected(old('amount_operator', $discount_code->amount_operator) === 'lte')>أقل من أو يساوي</option>
+                            </select>
+                            <input type="number" min="0" step="0.01" class="form-control" id="amount_threshold" name="amount_threshold" value="{{ old('amount_threshold', $discount_code->amount_threshold) }}" placeholder="المبلغ">
+                        </div>
+                    </div>
+
+                    <div class="col-md-6" id="target_users_wrapper">
+                        @php $selUsers = old('users', $discount_code->targetUsers->pluck('id')->toArray()); @endphp
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label for="users" class="form-label fw-bold small mb-0">مستخدمون محددون (الكود يعمل لهم فقط)</label>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary" id="select_all_users">الكل</button>
+                                <button type="button" class="btn btn-outline-secondary" id="clear_all_users">مسح</button>
+                            </div>
+                        </div>
+                        <select multiple class="form-select select2-users" id="users" name="users[]">
+                            @foreach($users as $user)
+                                <option value="{{ $user->id }}" @selected(in_array($user->id, $selUsers))>
+                                    {{ $user->name }}{{ $user->phone_number ? ' - ' . $user->phone_number : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <h5 class="form-section-title">قنوات الإشعار عند الإرسال</h5>
+                <div class="row g-4">
+                    <div class="col-md-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="notify_via_bell" name="notify_via_bell" value="1" @checked(old('notify_via_bell', $discount_code->notify_via_bell ?? true))>
+                            <label class="form-check-label fw-bold" for="notify_via_bell">إشعار الجرس (داخل الموقع)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="notify_via_push" name="notify_via_push" value="1" @checked(old('notify_via_push', $discount_code->notify_via_push ?? true))>
+                            <label class="form-check-label fw-bold" for="notify_via_push">Web Push</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-5">
                 <h5 class="form-section-title">الشمولية</h5>
                 <div class="row g-4">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label for="categories" class="form-label fw-bold small mb-0">الأقسام المشمولة</label>
                             <div class="btn-group btn-group-sm">
@@ -98,7 +173,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label for="products" class="form-label fw-bold small mb-0">منتجات محددة</label>
                             <div class="btn-group btn-group-sm">
@@ -111,6 +186,23 @@
                             @foreach($products as $product)
                                 <option value="{{ $product->id }}" @selected(in_array($product->id, $selProds))>
                                     {{ $product->name_ar }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        @php $selPrimary = old('primary_categories', $discount_code->targetPrimaryCategories->pluck('id')->toArray()); @endphp
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label for="primary_categories" class="form-label fw-bold small mb-0">البراندات المشمولة (PrimaryCategory)</label>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary" id="select_all_primary_categories">الكل</button>
+                                <button type="button" class="btn btn-outline-secondary" id="clear_all_primary_categories">مسح</button>
+                            </div>
+                        </div>
+                        <select multiple class="form-select select2-primary-categories" id="primary_categories" name="primary_categories[]">
+                            @foreach($primaryCategories as $primaryCategory)
+                                <option value="{{ $primaryCategory->id }}" @selected(in_array($primaryCategory->id, $selPrimary))>
+                                    {{ $primaryCategory->name_ar }}
                                 </option>
                             @endforeach
                         </select>
@@ -137,11 +229,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     $('.select2-categories').select2({ width: '100%', dir: 'rtl', placeholder: 'اختر الأقسام...' });
     $('.select2-products').select2({ width: '100%', dir: 'rtl', placeholder: 'اختر المنتجات...' });
+    $('.select2-users').select2({ width: '100%', dir: 'rtl', placeholder: 'اختر المستخدمين...' });
+    $('.select2-primary-categories').select2({ width: '100%', dir: 'rtl', placeholder: 'اختر البراندات...' });
+
+    const audienceMode = document.getElementById('audience_mode');
+    const usersWrapper = document.getElementById('target_users_wrapper');
+    const toggleUsersSection = () => {
+        usersWrapper.style.display = (audienceMode.value === 'selected' || $('#users').val()?.length) ? 'block' : 'none';
+    };
+    audienceMode.addEventListener('change', toggleUsersSection);
+    toggleUsersSection();
 
     $('#select_all_categories').on('click', () => { $('#categories').val($('#categories option').map(function(){ return this.value; }).get()).trigger('change'); });
     $('#clear_all_categories').on('click', () => { $('#categories').val(null).trigger('change'); });
     $('#select_all_products').on('click', () => { $('#products').val($('#products option').map(function(){ return this.value; }).get()).trigger('change'); });
     $('#clear_all_products').on('click', () => { $('#products').val(null).trigger('change'); });
+    $('#select_all_users').on('click', () => { $('#users').val($('#users option').map(function(){ return this.value; }).get()).trigger('change'); toggleUsersSection(); });
+    $('#clear_all_users').on('click', () => { $('#users').val(null).trigger('change'); toggleUsersSection(); });
+    $('#select_all_primary_categories').on('click', () => { $('#primary_categories').val($('#primary_categories option').map(function(){ return this.value; }).get()).trigger('change'); });
+    $('#clear_all_primary_categories').on('click', () => { $('#primary_categories').val(null).trigger('change'); });
 });
 </script>
 @endpush

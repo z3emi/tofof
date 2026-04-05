@@ -159,6 +159,8 @@ class CartController extends Controller
         if ($rowId && isset($cart[$rowId])) {
             unset($cart[$rowId]);
             session()->put('cart', $cart);
+            // عند حذف أي منتج من السلة نحذف كود الخصم المستخدم لتفادي حسابات غير متزامنة.
+            session()->forget(['discount_code', 'discount_value', 'discount_code_id']);
         }
 
         return response()->json([

@@ -20,6 +20,7 @@ use App\Notifications\NewOrderNotification;
 use App\Support\RepairsPrimaryKeyAutoIncrement;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class CheckoutController extends Controller
@@ -283,7 +284,10 @@ class CheckoutController extends Controller
     private function createOrderWithRepair(array $attributes): Order
     {
         try {
-            return Order::create($attributes);
+            $order = Order::create($attributes);
+            $this->purgeStaleOrderItemsForFreshOrder($order);
+
+            return $order;
         } catch (QueryException $exception) {
             if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'orders')) {
                 throw $exception;
@@ -291,8 +295,31 @@ class CheckoutController extends Controller
 
             RepairsPrimaryKeyAutoIncrement::ensure('orders');
 
-            return Order::create($attributes);
+            $order = Order::create($attributes);
+            $this->purgeStaleOrderItemsForFreshOrder($order);
+
+            return $order;
         }
+    }
+
+    /**
+     * حماية استباقية: الطلب الجديد يجب أن يبدأ بدون عناصر سابقة.
+     * إذا وجدنا عناصر قديمة بنفس order_id (نتيجة ترحيل/استيراد خاطئ)، نحذفها فورًا.
+     */
+    private function purgeStaleOrderItemsForFreshOrder(Order $order): void
+    {
+        $staleCount = OrderItem::where('order_id', $order->id)->count();
+        if ($staleCount <= 0) {
+            return;
+        }
+
+        OrderItem::where('order_id', $order->id)->delete();
+
+        Log::warning('Detected and removed stale order_items for a fresh order id.', [
+            'order_id' => $order->id,
+            'removed_items_count' => $staleCount,
+            'context' => 'checkout_create_order_guard',
+        ]);
     }
 
     private function createOrderItemWithRepair(array $attributes): OrderItem

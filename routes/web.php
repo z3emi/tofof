@@ -273,6 +273,7 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
     Route::get('/profile/orders', [ProfileController::class, 'orders'])->name('profile.orders');
     Route::get('/profile/orders/{order}', [ProfileController::class, 'showOrderDetails'])->name('profile.orders.show');
+    Route::get('/profile/discounts', [ProfileController::class, 'discounts'])->name('profile.discounts');
     Route::get('/account/wallet', [WalletController::class, 'index'])->name('wallet.index');
     
         Route::get('/my-notifications', [ProfileController::class, 'notifications'])->name('user.notifications.index');
@@ -456,6 +457,7 @@ Route::middleware(['auth:admin', 'can:view-admin-panel', 'log.admin.activity'])-
 
     // Discount Codes
     Route::post('discount-codes/{discount_code}/toggle-status', [DiscountCodeController::class, 'toggleStatus'])->name('discount-codes.toggleStatus')->middleware('can:edit-discount-codes');
+    Route::post('discount-codes/{discount_code}/send', [DiscountCodeController::class, 'sendToEligibleUsers'])->name('discount-codes.send')->middleware('can:edit-discount-codes');
     Route::get('/discount_codes/create', [DiscountCodeController::class, 'create'])->name('discount_codes.create')->middleware('can:edit-discount-codes');
     Route::get('/discount_codes/{discount_code}/edit', [DiscountCodeController::class, 'edit'])->name('discount_codes.edit')->middleware('can:edit-discount-codes');
 

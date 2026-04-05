@@ -13,6 +13,13 @@
     background: #6d0e16 !important;
     color: #fff !important;
   }
+  .text-brand-primary,
+  .hover\:text-brand-primary:hover {
+    color: #6d0e16 !important;
+  }
+  .focus\:ring-brand-primary:focus {
+    --tw-ring-color: #6d0e16 !important;
+  }
   .hover\:bg-brand-primary:hover,
   .hover\:bg-brand-dark:hover {
     background: #500a10 !important;
@@ -83,7 +90,7 @@
     color: #6d0e16;
   }
   .dark .price-total {
-    color: #f0b0ad;
+    color: #facc15;
   }
 </style>
 
@@ -117,13 +124,13 @@
                     <div class="space-y-4">
                         <template x-for="item in Object.values(cartItems)" :key="item.row_id">
                             <div class="bg-white cart-card shadow-sm p-4 flex gap-4 border border-gray-100">
-                                <a :href="`/product/${item.product.slug}`" class="w-24 h-24 flex-shrink-0">
+                                <a :href="productUrl(item)" class="w-24 h-24 flex-shrink-0">
                                     <img :src="item.product.first_image ? `/storage/${item.product.first_image.image_path}` : 'https://placehold.co/150x150?text=No+Image'" :alt="'{{ app()->getLocale() }}' === 'en' && item.product.name_en ? item.product.name_en : item.product.name_ar" class="w-full h-full object-cover rounded-xl">
                                 </a>
                                 <div class="flex flex-col flex-grow w-full">
                                     <div class="flex justify-between items-start">
                                         <div>
-                                            <a :href="`/product/${item.product.slug}`" class="font-bold text-lg text-brand-text hover:text-brand-primary" x-text="'{{ app()->getLocale() }}' === 'en' && item.product.name_en ? item.product.name_en : item.product.name_ar"></a>
+                                            <a :href="productUrl(item)" class="font-bold text-lg text-brand-text hover:text-brand-primary" x-text="'{{ app()->getLocale() }}' === 'en' && item.product.name_en ? item.product.name_en : item.product.name_ar"></a>
                                             <p class="text-sm text-gray-500">SKU: <span x-text="item.product.sku || 'N/A'"></span></p>
 
                                             <template x-if="item.selected_options && Object.keys(item.selected_options).length">
@@ -144,7 +151,7 @@
                                             </template>
 
                                             <template x-if="!isOut(item) && isOnSale(item.product)">
-                                              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold mt-2 ml-2" style="background:#6d0e16; color:#ffe4e6; border: 1px solid #cd8985;">
+                                              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold mt-2 ml-2" style="background:#6d0e16; color:#ffffff; border: 1px solid #8b1a24;">
                                                 <i class="bi bi-tag"></i> {{ __('common.discount') }}
                                               </span>
                                             </template>
@@ -163,7 +170,7 @@
                                             </div>
                                             
                                             <template x-if="showStockInfo(item)">
-                                              <p class="text-xs mt-1 text-right" style="color: #cd8985;"></p>
+                                              <p class="text-xs mt-1 text-right" style="color: #6d0e16;"></p>
                                             </template>
                                         </div>
 
@@ -410,6 +417,10 @@
       },
       formatPrice(price) {
         return new Intl.NumberFormat("en-US").format(price);
+      },
+      productUrl(item) {
+        const routeValue = item?.product?.slug || item?.product?.id || item?.product_id;
+        return routeValue ? `/product/${encodeURIComponent(routeValue)}` : '#';
       }
     };
   }

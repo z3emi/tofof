@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\DiscountCode;
 use App\Models\Order;
 use App\Models\Address;
 use App\Models\WalletTransaction; // ✅ تأكد من وجود هذا السطر
@@ -98,6 +99,24 @@ class ProfileController extends Controller
                         ->paginate(5);
 
         return view('frontend.profile.orders', compact('orders'));
+    }
+
+    public function discounts()
+    {
+        $user = Auth::user();
+
+        $codes = DiscountCode::query()
+            ->where(function ($query) use ($user) {
+                $query->whereHas('deliveryLogs', function ($q) use ($user) {
+                    $q->where('user_id', $user->id)->where('status', 'sent');
+                })->orWhereHas('targetUsers', function ($q) use ($user) {
+                    $q->where('users.id', $user->id);
+                });
+            })
+            ->latest()
+            ->get();
+
+        return view('frontend.profile.discounts', compact('codes'));
     }
 
     /**

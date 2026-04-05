@@ -5,17 +5,22 @@ namespace App\Services;
 use App\Models\DiscountCode;
 use App\Models\Order;
 use App\Models\Product;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 class DiscountService
 {
+    public function __construct(private DiscountEligibilityService $eligibilityService)
+    {
+    }
+
     /**
      * لا نغيّر التوقيع حتى يظل التوافق مع أكواد الطلبات.
      */
     public function apply(string $code, float $subtotal, array $items = []): array
     {
-        $discount = DiscountCode::with(['products:id', 'categories:id'])
+        $discount = DiscountCode::with(['products:id', 'categories:id', 'targetUsers:id', 'targetPrimaryCategories:id'])
             ->where('code', trim($code))
             ->first();
 
@@ -41,6 +46,23 @@ class DiscountService
                 ->count();
             if ($userUses >= $discount->max_uses_per_user) {
                 throw ValidationException::withMessages(['code' => 'لقد استخدمت هذا الكود مسبقًا.']);
+            }
+        }
+
+        if ($discount->targetUsers->isNotEmpty()) {
+            if (! $authUserId || ! $discount->targetUsers->contains('id', $authUserId)) {
+                throw ValidationException::withMessages(['code' => 'هذا الكود مخصص لمستخدمين محددين فقط.']);
+            }
+        }
+
+        if ($discount->order_count_threshold !== null || $discount->amount_threshold !== null) {
+            $authUser = Auth::user();
+            if (! $authUser) {
+                throw ValidationException::withMessages(['code' => 'يرجى تسجيل الدخول لاستخدام هذا الكود.']);
+            }
+
+            if (! $this->eligibilityService->isUserEligibleForDiscount($discount, $authUser)) {
+                throw ValidationException::withMessages(['code' => 'هذا الكود غير متاح لك بناءً على شروط الأهلية.']);
             }
         }
 
@@ -89,6 +111,30 @@ class DiscountService
 
             if ($eligibleSubtotal <= 0) {
                 throw ValidationException::withMessages(['code' => 'هذا الكود غير مشمول على المنتجات الموجودة في السلة.']);
+            }
+        }
+
+        if ($discount->targetPrimaryCategories->isNotEmpty()) {
+            $requiredPrimaryCategoryIds = $discount->targetPrimaryCategories->pluck('id')->map(fn ($id) => (int) $id)->all();
+            $eligibleItemProductIds = collect($items)
+                ->pluck('product_id')
+                ->map(fn ($id) => (int) $id)
+                ->filter(fn ($id) => $id > 0)
+                ->unique()
+                ->values()
+                ->all();
+
+            if (empty($eligibleItemProductIds)) {
+                throw ValidationException::withMessages(['code' => 'هذا الكود صالح فقط على براندات محددة.']);
+            }
+
+            $matchedBrandCount = DB::table('primary_category_product')
+                ->whereIn('product_id', $eligibleItemProductIds)
+                ->whereIn('primary_category_id', $requiredPrimaryCategoryIds)
+                ->count();
+
+            if ($matchedBrandCount <= 0) {
+                throw ValidationException::withMessages(['code' => 'هذا الكود صالح فقط على براندات محددة.']);
             }
         }
 
