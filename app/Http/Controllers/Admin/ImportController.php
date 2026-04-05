@@ -366,7 +366,9 @@ class ImportController extends Controller
             $spreadsheet = IOFactory::load(storage_path('app/' . $request->input('path')));
             $sheet = $spreadsheet->getActiveSheet();
             $rows = $sheet->toArray();
-            array_shift($rows); // إزالة الهيدر
+            if ($request->has('ignore_header')) {
+                array_shift($rows); // إزالة الهيدر
+            }
 
             $skuCol = (int)$request->input('sku_col');
             $qtyCol = (int)$request->input('qty_col');

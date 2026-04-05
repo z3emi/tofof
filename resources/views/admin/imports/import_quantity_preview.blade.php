@@ -48,6 +48,11 @@
         <input type="hidden" name="sku_col" id="sku_col_hidden" value="">
         <input type="hidden" name="qty_col" id="qty_col_hidden" value="">
 
+        <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" role="switch" id="ignoreHeader" name="ignore_header" checked>
+            <label class="form-check-label" for="ignoreHeader">تجاهل أول صف (Header)</label>
+        </div>
+
         <div class="alert alert-info import-alert mb-4">
             <i class="bi bi-info-circle me-2"></i>
             اختر العمود الخاص بـ <b>SKU (كود المنتج)</b> وعمود <b>الكمية (Quantity)</b> من القوائم المنسدلة في أعلى الجدول.
