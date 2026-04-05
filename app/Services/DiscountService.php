@@ -152,6 +152,7 @@ class DiscountService
             return [
                 'discount_code_id' => $discount->id,
                 'discount_amount'  => 0.0,
+                'targeting_text'   => $this->buildTargetingText($discount),
             ];
         }
 
@@ -170,6 +171,39 @@ class DiscountService
         return [
             'discount_code_id' => $discount->id,
             'discount_amount'  => $discountAmount,
+            'targeting_text'   => $this->buildTargetingText($discount),
         ];
+    }
+
+    private function buildTargetingText(DiscountCode $discount): string
+    {
+        $parts = [];
+
+        if ($discount->targetUsers->isNotEmpty()) {
+            $parts[] = 'مستخدمين محددين';
+        }
+
+        if ($discount->order_count_threshold !== null || $discount->amount_threshold !== null) {
+            $parts[] = 'المستخدمين المطابقين للشروط';
+        }
+
+        if ($discount->products->isNotEmpty()) {
+            $parts[] = 'منتجات محددة';
+        }
+
+        if ($discount->categories->isNotEmpty()) {
+            $parts[] = 'أقسام محددة';
+        }
+
+        if ($discount->targetPrimaryCategories->isNotEmpty()) {
+            $parts[] = 'براندات محددة';
+        }
+
+        if (empty($parts)) {
+            return 'مطبق على جميع منتجات السلة';
+        }
+
+        $uniqueParts = array_values(array_unique($parts));
+        return 'مستهدف على: ' . implode(' + ', $uniqueParts);
     }
 }

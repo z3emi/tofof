@@ -109,6 +109,7 @@ class CartController extends Controller
                 'cartCount' => self::getCartCount(),
                 'discount_value' => (float) session()->get('discount_value', 0),
                 'discount_code' => (string) session()->get('discount_code', ''),
+                'discount_targeting_text' => (string) session()->get('discount_targeting_text', ''),
                 ...$shippingPayload,
             ]);
         }
@@ -148,6 +149,7 @@ class CartController extends Controller
             'cartCount' => self::getCartCount(),
             'discount_value' => (float) session()->get('discount_value', 0),
             'discount_code' => (string) session()->get('discount_code', ''),
+            'discount_targeting_text' => (string) session()->get('discount_targeting_text', ''),
             ...$shippingPayload,
         ]);
     }
@@ -183,6 +185,7 @@ class CartController extends Controller
             'cartCount' => self::getCartCount(),
             'discount_value' => (float) session()->get('discount_value', 0),
             'discount_code' => (string) session()->get('discount_code', ''),
+            'discount_targeting_text' => (string) session()->get('discount_targeting_text', ''),
             ...$shippingPayload,
         ]);
     }
@@ -210,6 +213,7 @@ class CartController extends Controller
                 'discount_code'    => $request->discount_code,
                 'discount_value'   => $result['discount_amount'],
                 'discount_code_id' => $result['discount_code_id'],
+                'discount_targeting_text' => (string) ($result['targeting_text'] ?? ''),
             ]);
 
             $shippingPayload = $this->buildShippingPayload($total);
@@ -219,11 +223,12 @@ class CartController extends Controller
                 'message' => 'تم تطبيق كود الخصم بنجاح.',
                 'discount_value' => $result['discount_amount'],
                 'discount_code' => $request->discount_code,
+                'discount_targeting_text' => (string) ($result['targeting_text'] ?? ''),
                 ...$shippingPayload,
             ]);
 
         } catch (\Exception $e) {
-            session()->forget(['discount_code', 'discount_value', 'discount_code_id']);
+            session()->forget(['discount_code', 'discount_value', 'discount_code_id', 'discount_targeting_text']);
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         }
     }
@@ -234,7 +239,7 @@ class CartController extends Controller
         $subtotal = $this->calculateSubtotal($cart);
         $shippingPayload = $this->buildShippingPayload($subtotal);
 
-        session()->forget(['discount_code', 'discount_value', 'discount_code_id']);
+        session()->forget(['discount_code', 'discount_value', 'discount_code_id', 'discount_targeting_text']);
         return response()->json([
             'success' => true,
             'message' => 'تمت إزالة كوبون الخصم.',
@@ -362,9 +367,10 @@ class CartController extends Controller
                 'discount_code' => $discountCode,
                 'discount_value' => $result['discount_amount'],
                 'discount_code_id' => $result['discount_code_id'],
+                'discount_targeting_text' => (string) ($result['targeting_text'] ?? ''),
             ]);
         } catch (\Throwable $e) {
-            session()->forget(['discount_code', 'discount_value', 'discount_code_id']);
+            session()->forget(['discount_code', 'discount_value', 'discount_code_id', 'discount_targeting_text']);
         }
     }
 

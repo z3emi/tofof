@@ -244,12 +244,20 @@
                                 </form>
                             </template>
                             <template x-if="discount > 0">
-                                <div class="bg-green-100 text-green-800 p-2 rounded text-sm flex justify-between items-center">
-                                  <span>{{ __('cart.coupon_applied') }} <strong x-text="discountCode"></strong></span>
-                                  <button @click="removeDiscount" class="text-red-600 hover:text-red-800 font-bold" title="{{ __('cart.remove_coupon') }}">&times;</button>
+                                <div class="bg-green-100 text-green-800 p-2 rounded text-sm">
+                                  <div class="flex justify-between items-center">
+                                    <span>{{ __('cart.coupon_applied') }} <strong x-text="discountCode"></strong></span>
+                                    <button @click="removeDiscount" class="text-red-600 hover:text-red-800 font-bold" title="{{ __('cart.remove_coupon') }}">&times;</button>
+                                  </div>
+                                  <template x-if="discountTargetingText">
+                                    <div class="mt-1 text-xs font-semibold" style="color:#166534">
+                                      <i class="bi bi-check-circle-fill"></i>
+                                      <span x-text="discountTargetingText"></span>
+                                    </div>
+                                  </template>
                                 </div>
                             </template>
-                            <p x-show="feedbackMessage" :class="{ 'text-green-600': feedbackType === 'success', 'text-red-600': feedbackType === 'error' }" class="text-sm mt-2" x-text="feedbackMessage"></p>
+                            <p x-show="feedbackType === 'error' && feedbackMessage" class="text-sm mt-2 text-red-600" x-text="feedbackMessage"></p>
                         </div>
                     </div>
                 </div>
@@ -272,8 +280,9 @@
       isShippingEnabled: {{ $isShippingEnabled ? 'true' : 'false' }},
       isFreeShippingEnabled: {{ $isFreeShippingEnabled ? 'true' : 'false' }},
       discountCode: "{{ session('discount_code', '') }}",
-      feedbackMessage: "{{ session('discount_error') ?: (session('discount_code') ? __('cart.coupon_applied') . ' ' . session('discount_code') : '') }}",
-      feedbackType: "{{ session('discount_error') ? 'error' : (session('discount_code') ? 'success' : '') }}",
+      discountTargetingText: "{{ session('discount_targeting_text', '') }}",
+      feedbackMessage: "{{ session('discount_error', '') }}",
+      feedbackType: "{{ session('discount_error') ? 'error' : '' }}",
 
       getMax(item) {
         const q = (item?.product?.quantity ?? item?.product?.stock ?? item?.product?.stock_quantity ?? item?.product?.stock_qty ?? null);
@@ -335,6 +344,7 @@
             delete this.cartItems[rowId];
             this.discount = Number(data.discount_value || 0);
             this.discountCode = data.discount_code || "";
+            this.discountTargetingText = data.discount_targeting_text || "";
             this.syncShippingFromResponse(data);
             window.dispatchEvent(new CustomEvent("cart-updated", { detail: { cartCount: data.cartCount } }));
             this.recalculateTotal();
@@ -359,6 +369,7 @@
           if(data.success) {
             this.discount = Number(data.discount_value || 0);
             this.discountCode = data.discount_code || "";
+            this.discountTargetingText = data.discount_targeting_text || "";
             this.syncShippingFromResponse(data);
             window.dispatchEvent(new CustomEvent("cart-updated", { detail: { cartCount: data.cartCount } }));
           }
@@ -391,15 +402,18 @@
         })
         .then(res => res.json().then(data => ({status: res.status, body: data})))
         .then(({status, body}) => {
-          this.feedbackMessage = body.message;
           if (status === 200) {
-            this.feedbackType = "success";
+            this.feedbackType = "";
+            this.feedbackMessage = "";
             this.discount = body.discount_value;
             this.discountCode = body.discount_code;
+            this.discountTargetingText = body.discount_targeting_text || "";
             this.syncShippingFromResponse(body);
           } else {
             this.feedbackType = "error";
+            this.feedbackMessage = body.message || "{{ __('common.connection_error') }}";
             this.discount = 0;
+            this.discountTargetingText = "";
           }
         })
         .catch(() => {
@@ -417,9 +431,10 @@
           if(data.success) {
             this.discount = 0;
             this.discountCode = "";
+            this.discountTargetingText = "";
             this.syncShippingFromResponse(data);
-            this.feedbackMessage = data.message;
-            this.feedbackType = "success";
+            this.feedbackMessage = "";
+            this.feedbackType = "";
           }
         });
       },
