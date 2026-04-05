@@ -16,35 +16,179 @@ $statusLabels = [
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-    .page-wrapper { --sticky-top: 0px; }
+    :root {
+        --panel-border: #e7edf4;
+        --panel-muted: #64748b;
+        --panel-title: #334155;
+        --accent-soft: #f8eef1;
+        --accent-main: var(--primary-medium);
+        --accent-main-hover: var(--primary-dark);
+        --btn-radius: .7rem;
+    }
+
+    .form-card {
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: #fff;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+    .form-card-header {
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%);
+        padding: 2.5rem 3rem;
+        color: #fff;
+        border-radius: 0 !important;
+    }
+    .form-card-header h2 {
+        font-size: 1.7rem;
+        line-height: 1.25;
+    }
+    .form-card-header p { font-size: .95rem; }
+
+    .page-wrapper {
+        --sticky-top: 0px;
+        background: #fff;
+        border-radius: 0;
+        padding: 0;
+    }
     @media (min-width: 1200px) { .sticky-xl { position: sticky; top: var(--sticky-top); } }
 
-    .card { border-radius: .75rem; }
-    .map-container { height: 250px; border-radius: 0.375rem; margin-top: 1rem; z-index: 1; overflow: hidden; }
+    .card {
+        border-radius: 15px;
+        border: 1px solid var(--panel-border);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+        overflow: hidden;
+    }
+    .card-header {
+        background: #fff;
+        border-bottom: 1px solid var(--panel-border);
+        padding: .9rem 1rem;
+    }
+    .card-header h4 {
+        color: var(--panel-title);
+        font-size: 1.08rem;
+        font-weight: 700;
+    }
+    .card-body { padding: 1rem; }
+    .map-container {
+        height: 250px;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+        z-index: 1;
+        overflow: hidden;
+        border: 1px solid #edd6d4;
+    }
     .section-gap > * + * { margin-top: 1rem; }
+    .card-title { color: var(--panel-title); font-weight: 700; font-size: 1.08rem; }
+
+    .table-container {
+        border-radius: 15px;
+        border: 1px solid var(--panel-border);
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+
+    .table {
+        --bs-table-striped-bg: #f8fafc;
+        --bs-table-hover-bg: #f1f5f9;
+        margin-bottom: 0;
+        font-size: .92rem;
+    }
+    .table thead th {
+        background-color: #f8fafc !important;
+        color: #475569;
+        font-weight: 700;
+        border-bottom-width: 1px;
+        font-size: .85rem;
+        white-space: nowrap;
+    }
+    .table td, .table th {
+        vertical-align: middle;
+        border-color: var(--panel-border);
+    }
 
     .pagination { justify-content: center !important; gap: 0.4rem; margin-top: 1rem; }
     .pagination .page-item .page-link {
-        background-color: #f9f5f1 !important; color: #cd8985 !important; border-color: #cd8985 !important;
+        background-color: #fff !important; color: var(--accent-main) !important; border-color: #d6dbe2 !important;
         font-weight: 600; border-radius: 0.375rem; transition: background-color 0.3s, color 0.3s; box-shadow: none;
     }
-    .pagination .page-item .page-link:hover { background-color: #dcaca9 !important; color: #fff !important; border-color: #dcaca9 !important; }
-    .pagination .page-item.active .page-link { background-color: #cd8985 !important; border-color: #cd8985 !important; color: #fff !important; }
+    .pagination .page-item .page-link:hover { background-color: var(--accent-soft) !important; color: var(--accent-main) !important; border-color: #cfd6df !important; }
+    .pagination .page-item.active .page-link { background-color: var(--accent-main) !important; border-color: var(--accent-main) !important; color: #fff !important; }
 
     /* تلوين صفوف المحفظة على نفس منطق الطلبات */
     .wallet-row-credit { background-color: #e9f7ef !important; } /* أخضر فاتح */
     .wallet-row-debit  { background-color: #fdecea !important; } /* أحمر فاتح */
     
-    /* أزرار بالهوية البصرية */
-    .btn-brand {
-        background-color:#cd8985 !important;
-        border-color:#cd8985 !important;
-        color:#fff !important;
+    .btn {
+        border-radius: var(--btn-radius);
+        font-weight: 700;
+        transition: all .2s ease;
     }
-    .btn-brand-outline {
+    .btn-sm { font-size: .8rem; padding: .45rem .72rem; min-height: 34px; }
+
+    .btn-ui-primary {
+        background: linear-gradient(135deg, var(--accent-main) 0%, var(--accent-main-hover) 100%) !important;
+        border-color: var(--accent-main-hover) !important;
+        color:#fff !important;
+        box-shadow: 0 8px 18px rgba(109, 14, 22, .22);
+    }
+    .btn-ui-primary:hover {
+        filter: brightness(.97);
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(109, 14, 22, .28);
+    }
+    .btn-ui-primary:active { transform: translateY(0); box-shadow: 0 5px 12px rgba(109, 14, 22, .22); }
+
+    .btn-ui-outline {
         background-color:#fff !important;
-        border:1px solid #cd8985 !important;
-        color:#cd8985 !important;
+        border:1px solid color-mix(in srgb, var(--accent-main) 55%, #fff) !important;
+        color:var(--accent-main-hover) !important;
+    }
+    .btn-ui-outline:hover {
+        background: color-mix(in srgb, var(--accent-soft) 72%, #fff) !important;
+        border-color: var(--accent-main-hover) !important;
+        color: var(--accent-main-hover) !important;
+    }
+
+    .btn-ui-muted {
+        background: #fff !important;
+        border: 1px solid #d8dee7 !important;
+        color: #475569 !important;
+    }
+    .btn-ui-muted:hover {
+        background: #f8fafc !important;
+        border-color: #d7dee8 !important;
+    }
+
+    .btn-ui-header-light {
+        background: #fff !important;
+        color: var(--primary-dark) !important;
+        border: 1px solid rgba(255,255,255,.82) !important;
+        min-height: 40px;
+        font-size: .86rem;
+        padding: .52rem .95rem;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, .08);
+    }
+    .btn-ui-header-light:hover { background: #f8faff !important; transform: translateY(-1px); }
+    .btn-ui-header-outline {
+        background: transparent !important;
+        color: #fff !important;
+        border: 1px solid rgba(255,255,255,.75) !important;
+        min-height: 40px;
+        font-size: .86rem;
+        padding: .52rem .95rem;
+    }
+    .btn-ui-header-outline:hover { background: rgba(255,255,255,.12) !important; }
+
+    .btn-ui-primary:focus-visible,
+    .btn-ui-outline:focus-visible,
+    .btn-ui-muted:focus-visible,
+    .btn-ui-header-light:focus-visible,
+    .btn-ui-header-outline:focus-visible {
+        outline: 0;
+        box-shadow: 0 0 0 .22rem rgba(109, 14, 22, .18);
     }
 
     /* تمركز المحتوى داخل الأزرار + فجوة صغيرة بين الأيقونة والنص */
@@ -53,12 +197,91 @@ $statusLabels = [
     }
 
     /* لون الأيقونات يعتمد على نوع الزر */
-    .btn-brand i { color:#fff !important; }
-    .btn-brand-outline i { color:#cd8985 !important; }
+    .btn-ui-primary i,
+    .btn-ui-header-outline i { color:#fff !important; }
+    .btn-ui-outline i,
+    .btn-ui-muted i,
+    .btn-ui-header-light i { color: inherit !important; }
+
+    .summary-chip {
+        background: #f8fafc;
+        color: #475569;
+        border: 1px solid var(--panel-border);
+        border-radius: 999px;
+        padding: .18rem .62rem;
+        font-size: .74rem;
+        font-weight: 700;
+    }
+
+    .stat-soft {
+        border-radius: 12px;
+        border: 1px solid var(--panel-border);
+    }
+    .stat-soft-green { background: #f0fdf4; }
+    .stat-soft-red { background: #fef2f2; }
+    .stat-soft-amber { background: #fffbeb; }
+    .stat-soft .text-muted { color: var(--panel-muted) !important; }
+    .stat-soft .h5 { font-size: 1.12rem; }
+
+    .badge { font-size: .75rem; padding: .42rem .6rem; }
+    .id-badge { font-size: .75rem; color: #475569; background: #f8fafc; border: 1px solid var(--panel-border); }
+    .avatar-img { width: 108px; height: 108px; object-fit: cover; }
+    .avatar-img { border-radius: 50% !important; }
+    .wallet-title { color: #475569 !important; font-size: 1rem; font-weight: 700; }
+    .wallet-inline {
+        margin-top: .75rem;
+        padding: .65rem .85rem;
+        border: 1px solid var(--panel-border);
+        border-radius: .7rem;
+        background: #f8fafc;
+        text-align: center;
+    }
+    .wallet-inline .wallet-title { font-size: .92rem; }
+    .wallet-inline .wallet-balance-value { font-size: 1.35rem; }
+
+    .wallet-balance-value {
+        font-size: 1.9rem;
+        color: #0f172a;
+        line-height: 1;
+        letter-spacing: -.01em;
+    }
+
+    @media (max-width: 767.98px) {
+        .form-card-header { padding: 1.35rem 1rem; }
+        .form-card-header h2 { font-size: 1.22rem; }
+        .form-card-header p { font-size: .82rem; }
+        .page-wrapper { padding: 0; border-radius: 0; }
+        .wallet-balance-value { font-size: 1.42rem; }
+        .card-header h4 { font-size: .96rem; }
+        .avatar-img { width: 90px; height: 90px; }
+        .btn-sm { min-height: 32px; font-size: .76rem; }
+        .btn-ui-header-light,
+        .btn-ui-header-outline { min-height: 36px; font-size: .78rem; }
+    }
 </style>
 @endpush
 
 @section('content')
+<div class="form-card">
+    <div class="form-card-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h2 class="mb-2 fw-bold text-white">
+                <i class="bi bi-person-circle me-2"></i>
+                تفاصيل المستخدم: <span class="badge bg-white text-dark px-3 py-2">{{ $user->name }}</span>
+            </h2>
+            <p class="mb-0 opacity-75 fs-6 text-white small">نظرة كاملة على الملف الشخصي، الطلبات، العناوين، وكشف المحفظة.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.users.index') }}" class="btn btn-ui-header-light btn-center d-inline-flex align-items-center">
+                <i class="bi bi-arrow-right me-1"></i> القائمة
+            </a>
+            <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-ui-header-outline btn-center d-inline-flex align-items-center">
+                <i class="bi bi-pencil-square me-1"></i> تعديل المستخدم
+            </a>
+        </div>
+    </div>
+
+    <div class="p-4 p-lg-5">
 <div class="page-wrapper container-fluid px-0">
     <div class="row g-3 g-xl-4">
         {{-- العمود الأيسر --}}
@@ -69,21 +292,14 @@ $statusLabels = [
                 <div class="card shadow-sm">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4 class="mb-0"><i class="bi bi-person-circle me-2"></i>ملف المستخدم</h4>
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-brand btn-sm">
-                                <i class="bi bi-pencil-square"></i> تعديل
-                            </a>
-                            <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary btn-sm">
-                                <i class="bi bi-arrow-right"></i> القائمة
-                            </a>
-                        </div>
+                        <span class="badge id-badge">ID: {{ $user->id }}</span>
                     </div>
                     <div class="card-body text-center">
                         <div class="mb-3">
                             @php
                                 $src = $user->avatar_url;
                             @endphp
-                            <img src="{{ $src }}" alt="{{ $user->name }}" class="img-fluid rounded border" style="width: 100px; height: 100px; object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.jpg') }}';">
+                            <img src="{{ $src }}" alt="{{ $user->name }}" class="img-fluid rounded border avatar-img" onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.jpg') }}';">
                         </div>
                         <h5 class="card-title mb-2">{{ $user->name }}</h5>
 
@@ -102,6 +318,16 @@ $statusLabels = [
 
                         <p class="card-text mb-1"><strong>رقم الهاتف:</strong> {{ $user->phone_number }}</p>
                         <p class="card-text mb-2"><strong>البريد الإلكتروني:</strong> {{ $user->email ?? 'لا يوجد' }}</p>
+
+                        <div class="wallet-inline">
+                            <h6 class="mb-1 d-flex align-items-center justify-content-center wallet-title">
+                                <i class="bi bi-wallet2 me-2"></i> رصيد المحفظة
+                            </h6>
+                            <span class="fw-bold wallet-balance-value">
+                                {{ number_format($wallet_balance, 0) }}
+                                <small class="fs-6 text-muted">د.ع</small>
+                            </span>
+                        </div>
 
                         @if($user->governorate || $user->city || $user->address)
                             <div class="mt-3 pt-3 border-top text-start">
@@ -125,7 +351,7 @@ $statusLabels = [
                 <div class="card shadow-sm" x-data="{ showAddresses: false }">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4 class="mb-0"><i class="bi bi-geo-alt-fill me-2"></i>العناوين المحفوظة</h4>
-                        <button id="toggle-addresses-btn" @click="showAddresses = !showAddresses" class="btn btn-sm btn-outline-secondary">
+                        <button id="toggle-addresses-btn" @click="showAddresses = !showAddresses" class="btn btn-sm btn-ui-muted btn-center">
                             <span x-show="!showAddresses">عرض <i class="bi bi-chevron-down"></i></span>
                             <span x-show="showAddresses" style="display:none;">إخفاء <i class="bi bi-chevron-up"></i></span>
                         </button>
@@ -158,26 +384,15 @@ $statusLabels = [
                     </div>
                     <div class="card-body">
                         <p class="mb-2"><strong>إجمالي الطلبات:</strong> {{ $totalOrders }}</p>
-                        <ul class="list-unstyled small mb-2">
+                        <ul class="list-unstyled small mb-2 d-grid gap-1">
                             @foreach($orderCounts as $status => $count)
-                                <li>{{ $statusLabels[$status] ?? $status }}: {{ $count }}</li>
+                                <li class="d-flex justify-content-between align-items-center">
+                                    <span>{{ $statusLabels[$status] ?? $status }}</span>
+                                    <span class="summary-chip">{{ $count }}</span>
+                                </li>
                             @endforeach
                         </ul>
                         <p class="mb-0"><strong>مجموع المبالغ للطلبات المُوصلة:</strong> {{ number_format($deliveredAmount, 0) }} د.ع</p>
-                    </div>
-                </div>
-
-                {{-- رصيد المحفظة الحالي --}}
-                <div class="card shadow-sm border-0">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0 d-flex align-items-center" style="color:#be6661;">
-                            <i class="bi bi-wallet2 me-2"></i> رصيد المحفظة
-                        </h5>
-                        <span class="fw-bold" 
-                              style="font-size:2rem; color:#3a3a3a;">
-                            {{ number_format($wallet_balance, 0) }}
-                            <small class="fs-6" style="color:#555;">د.ع</small>
-                        </span>
                     </div>
                 </div>
 
@@ -193,15 +408,15 @@ $statusLabels = [
                     <form method="GET" action="{{ route('admin.users.show', $user->id) }}" class="ms-auto">
                         <div class="input-group input-group-sm" style="min-width: 280px;">
                             <input type="text" name="search" class="form-control" placeholder="ابحث برقم الطلب أو حالته..." value="{{ request('search') }}">
-                            <button type="submit" class="btn btn-primary d-flex align-items-center justify-content-center gap-1"
-                                    style="background-color:#cd8985; border-color:#cd8985; color:#fff;">
-                                <i class="bi bi-search" style="color:#fff;"></i> 
+                            <button type="submit" class="btn btn-sm btn-ui-primary btn-center">
+                                <i class="bi bi-search"></i>
                                 <span>بحث</span>
                             </button>
                         </div>
                     </form>
                 </div>
                 <div class="card-body">
+                    <div class="table-container">
                     <div class="table-responsive">
                         <table class="table table-bordered table-hover text-center align-middle">
                             <thead class="table-light">
@@ -234,7 +449,7 @@ $statusLabels = [
                                         </td>
                                         <td>{{ $order->created_at->format('Y-m-d') }}</td>
                                         <td>
-                                            <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-outline-primary px-2" title="عرض التفاصيل">
+                                            <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-ui-outline btn-center px-2" title="عرض التفاصيل">
                                                 <i class="bi bi-eye"></i>
                                             </a>
                                         </td>
@@ -244,6 +459,7 @@ $statusLabels = [
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
@@ -267,27 +483,24 @@ $statusLabels = [
             <div class="card shadow-sm mt-3">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h4 class="mb-0"><i class="bi bi-journal-text me-2"></i>كشف حساب المحفظة</h4>
-
-@php
-    // نحافظ على باراميترات الفلاتر الحالية بدون تغيير
-    $baseParams = request()->except(['wallet_view','wallet_page']);
-@endphp
-
-<div class="d-flex gap-2">
-    {{-- عرض مفصّل --}}
-    <a href="{{ route('admin.users.show', array_merge(['user' => $user->id, 'wallet_view' => 'page'], $baseParams)) }}"
-       class="btn btn-sm btn-brand">
-       <i class="bi bi-list-ul"></i>
-       <span>عرض مفصل</span>
-    </a>
-</div>
-
+                    @php
+                        // نحافظ على باراميترات الفلاتر الحالية بدون تغيير
+                        $baseParams = request()->except(['wallet_view','wallet_page']);
+                    @endphp
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('admin.users.show', array_merge(['user' => $user->id, 'wallet_view' => 'page'], $baseParams)) }}"
+                           class="btn btn-sm btn-ui-primary btn-center">
+                            <i class="bi bi-list-ul"></i>
+                            <span>عرض مفصل</span>
+                        </a>
+                    </div>
+                </div>
 
                 <div class="card-body">
                         {{-- كروت الإجماليات --}}
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
-                                <div class="card" style="background:#e9f7ef;">
+                                <div class="card stat-soft stat-soft-green">
                                     <div class="card-body">
                                         <div class="text-muted small">إجمالي الإيداعات</div>
                                         <div class="h5 m-0 fw-bold">{{ number_format($walletTotals->credits, 2) }} د.ع</div>
@@ -295,7 +508,7 @@ $statusLabels = [
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="card" style="background:#fdecea;">
+                                <div class="card stat-soft stat-soft-red">
                                     <div class="card-body">
                                         <div class="text-muted small">إجمالي السحوبات</div>
                                         <div class="h5 m-0 fw-bold">{{ number_format($walletTotals->debits, 2) }} د.ع</div>
@@ -303,7 +516,7 @@ $statusLabels = [
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="card" style="background:#fff3cd;">
+                                <div class="card stat-soft stat-soft-amber">
                                     <div class="card-body">
                                         <div class="text-muted small">الصافي ضمن الفترة</div>
                                         <div class="h5 m-0 fw-bold">{{ number_format($walletTotals->net, 2) }} د.ع</div>
@@ -340,9 +553,17 @@ $statusLabels = [
                                     <label class="form-label">بحث</label>
                                     <input type="text" name="wallet_q" value="{{ $walletSearch }}" class="form-control form-control-sm" placeholder="الوصف...">
                                 </div>
+                                <div class="col-12 col-md-2">
+                                    <button type="submit" class="btn btn-ui-primary btn-sm w-100 btn-center">
+                                        <i class="bi bi-funnel"></i>
+                                        <span>تصفية</span>
+                                    </button>
+                                </div>
                             @endif
+                        </form>
 
                         {{-- جدول الحركات --}}
+                        <div class="table-container">
                         <div class="table-responsive">
                             @php
                                 // === إضافة بسيطة: تراكمي لمعالجة الرصيد بعد العملية عند غيابه ===
@@ -392,6 +613,7 @@ $statusLabels = [
                                 </tbody>
                             </table>
                         </div>
+                        </div>
                         <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
                             <form method="GET" action="{{ route('admin.users.show', $user->id) }}" class="d-flex align-items-center">
                                 {{-- نحافظ على كل باراميترات الصفحة ونستبدل فقط wallet_per_page --}}
@@ -426,6 +648,8 @@ $statusLabels = [
             </div>
 
         </div>
+    </div>
+</div>
     </div>
 </div>
 @endsection
