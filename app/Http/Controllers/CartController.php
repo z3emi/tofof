@@ -71,7 +71,7 @@ class CartController extends Controller
         );
     }
 
-    public function store(Request $request)
+    public function store(Request $request, DiscountService $discountService)
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
@@ -98,19 +98,25 @@ class CartController extends Controller
         }
 
         session()->put('cart', $cart);
+        $this->syncDiscountAfterCartChange($cart, $discountService);
+        $subtotal = $this->calculateSubtotal($cart);
+        $shippingPayload = $this->buildShippingPayload($subtotal);
 
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => 'تم إضافة المنتج إلى السلة.',
-                'cartCount' => self::getCartCount()
+                'cartCount' => self::getCartCount(),
+                'discount_value' => (float) session()->get('discount_value', 0),
+                'discount_code' => (string) session()->get('discount_code', ''),
+                ...$shippingPayload,
             ]);
         }
 
         return redirect()->back()->with('success', 'تمت إضافة المنتج إلى السلة.');
     }
 
-    public function update(Request $request)
+    public function update(Request $request, DiscountService $discountService)
     {
         $request->validate([
             'row_id' => 'nullable|string',
@@ -131,13 +137,18 @@ class CartController extends Controller
         if ($rowId && isset($cart[$rowId])) {
             $cart[$rowId]['quantity'] = $request->quantity;
             session()->put('cart', $cart);
+            $this->syncDiscountAfterCartChange($cart, $discountService);
         }
+
+        $subtotal = $this->calculateSubtotal($cart);
+        $shippingPayload = $this->buildShippingPayload($subtotal);
 
         return response()->json([
             'success' => true,
             'cartCount' => self::getCartCount(),
             'discount_value' => (float) session()->get('discount_value', 0),
             'discount_code' => (string) session()->get('discount_code', ''),
+            ...$shippingPayload,
         ]);
     }
 
@@ -164,9 +175,15 @@ class CartController extends Controller
             $this->syncDiscountAfterCartChange($cart, $discountService);
         }
 
+        $subtotal = $this->calculateSubtotal($cart);
+        $shippingPayload = $this->buildShippingPayload($subtotal);
+
         return response()->json([
             'success' => true,
-            'cartCount' => self::getCartCount()
+            'cartCount' => self::getCartCount(),
+            'discount_value' => (float) session()->get('discount_value', 0),
+            'discount_code' => (string) session()->get('discount_code', ''),
+            ...$shippingPayload,
         ]);
     }
 
@@ -195,11 +212,14 @@ class CartController extends Controller
                 'discount_code_id' => $result['discount_code_id'],
             ]);
 
+            $shippingPayload = $this->buildShippingPayload($total);
+
             return response()->json([
                 'success' => true,
                 'message' => 'تم تطبيق كود الخصم بنجاح.',
                 'discount_value' => $result['discount_amount'],
-                'discount_code' => $request->discount_code
+                'discount_code' => $request->discount_code,
+                ...$shippingPayload,
             ]);
 
         } catch (\Exception $e) {
@@ -210,8 +230,16 @@ class CartController extends Controller
     
     public function removeDiscount(Request $request)
     {
+        $cart = $this->normalizeCart(session()->get('cart', []));
+        $subtotal = $this->calculateSubtotal($cart);
+        $shippingPayload = $this->buildShippingPayload($subtotal);
+
         session()->forget(['discount_code', 'discount_value', 'discount_code_id']);
-        return response()->json(['success' => true, 'message' => 'تمت إزالة كوبون الخصم.']);
+        return response()->json([
+            'success' => true,
+            'message' => 'تمت إزالة كوبون الخصم.',
+            ...$shippingPayload,
+        ]);
     }
 
     public function count()
@@ -338,5 +366,57 @@ class CartController extends Controller
         } catch (\Throwable $e) {
             session()->forget(['discount_code', 'discount_value', 'discount_code_id']);
         }
+    }
+
+    private function calculateSubtotal(array $cart): float
+    {
+        $subtotal = 0.0;
+        $productIds = collect($cart)
+            ->pluck('product_id')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($productIds)) {
+            return 0.0;
+        }
+
+        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+
+        foreach ($cart as $details) {
+            $productId = (int) ($details['product_id'] ?? 0);
+            if (! isset($products[$productId])) {
+                continue;
+            }
+
+            $price = $products[$productId]->sale_price ?? $products[$productId]->price;
+            $subtotal += ((float) $price) * max(1, (int) ($details['quantity'] ?? 1));
+        }
+
+        return $subtotal;
+    }
+
+    private function buildShippingPayload(float $subtotal): array
+    {
+        $baseShippingCost = Setting::shippingCost();
+        $freeShippingThreshold = Setting::freeShippingThreshold();
+        $isShippingEnabled = Setting::isShippingEnabled();
+        $isFreeShippingEnabled = Setting::isFreeShippingEnabled();
+
+        $shippingCost = 0.0;
+        if ($isShippingEnabled) {
+            $canUseFreeShipping = $isFreeShippingEnabled && $subtotal >= $freeShippingThreshold;
+            $shippingCost = $canUseFreeShipping ? 0.0 : (float) $baseShippingCost;
+        }
+
+        return [
+            'shipping_cost' => (float) $shippingCost,
+            'base_shipping_cost' => (float) $baseShippingCost,
+            'free_shipping_threshold' => (int) $freeShippingThreshold,
+            'is_shipping_enabled' => (bool) $isShippingEnabled,
+            'is_free_shipping_enabled' => (bool) $isFreeShippingEnabled,
+        ];
     }
 }

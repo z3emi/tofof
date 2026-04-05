@@ -335,6 +335,7 @@
             delete this.cartItems[rowId];
             this.discount = Number(data.discount_value || 0);
             this.discountCode = data.discount_code || "";
+            this.syncShippingFromResponse(data);
             window.dispatchEvent(new CustomEvent("cart-updated", { detail: { cartCount: data.cartCount } }));
             this.recalculateTotal();
           }
@@ -356,6 +357,9 @@
             }
           }
           if(data.success) {
+            this.discount = Number(data.discount_value || 0);
+            this.discountCode = data.discount_code || "";
+            this.syncShippingFromResponse(data);
             window.dispatchEvent(new CustomEvent("cart-updated", { detail: { cartCount: data.cartCount } }));
           }
           this.recalculateTotal();
@@ -392,6 +396,7 @@
             this.feedbackType = "success";
             this.discount = body.discount_value;
             this.discountCode = body.discount_code;
+            this.syncShippingFromResponse(body);
           } else {
             this.feedbackType = "error";
             this.discount = 0;
@@ -412,10 +417,29 @@
           if(data.success) {
             this.discount = 0;
             this.discountCode = "";
+            this.syncShippingFromResponse(data);
             this.feedbackMessage = data.message;
             this.feedbackType = "success";
           }
         });
+      },
+      syncShippingFromResponse(data) {
+        if (!data) return;
+        if (data.base_shipping_cost !== undefined) {
+          this.baseShippingCost = Number(data.base_shipping_cost || 0);
+        }
+        if (data.free_shipping_threshold !== undefined) {
+          this.freeShippingThreshold = Number(data.free_shipping_threshold || 0);
+        }
+        if (data.is_shipping_enabled !== undefined) {
+          this.isShippingEnabled = Boolean(data.is_shipping_enabled);
+        }
+        if (data.is_free_shipping_enabled !== undefined) {
+          this.isFreeShippingEnabled = Boolean(data.is_free_shipping_enabled);
+        }
+        if (data.shipping_cost !== undefined) {
+          this.shippingCost = Number(data.shipping_cost || 0);
+        }
       },
       formatPrice(price) {
         return new Intl.NumberFormat("en-US").format(price);

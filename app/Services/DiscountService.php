@@ -69,8 +69,9 @@ class DiscountService
         $eligibleSubtotal = $subtotal;
         $hasScopedProducts = $discount->products->isNotEmpty();
         $hasScopedCategories = $discount->categories->isNotEmpty();
+        $hasScopedBrands = $discount->targetPrimaryCategories->isNotEmpty();
 
-        if (($hasScopedProducts || $hasScopedCategories) && ! empty($items)) {
+        if (($hasScopedProducts || $hasScopedCategories || $hasScopedBrands) && ! empty($items)) {
             $allowedProductIds = $discount->products->pluck('id')->map(fn ($id) => (int) $id)->all();
             $allowedCategoryIds = $discount->categories->pluck('id')->map(fn ($id) => (int) $id)->all();
 
@@ -88,6 +89,20 @@ class DiscountService
                 ->get()
                 ->keyBy('id');
 
+            $brandMatchedProductIds = [];
+            if ($hasScopedBrands) {
+                $requiredPrimaryCategoryIds = $discount->targetPrimaryCategories->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+                $brandMatchedProductIds = DB::table('primary_category_product')
+                    ->whereIn('product_id', $itemProductIds)
+                    ->whereIn('primary_category_id', $requiredPrimaryCategoryIds)
+                    ->pluck('product_id')
+                    ->map(fn ($id) => (int) $id)
+                    ->unique()
+                    ->values()
+                    ->all();
+            }
+
             $eligibleSubtotal = 0.0;
 
             foreach ($items as $item) {
@@ -99,10 +114,20 @@ class DiscountService
                 }
 
                 $product = $products[$productId];
-                $eligibleByProduct = in_array($productId, $allowedProductIds, true);
-                $eligibleByCategory = in_array((int) ($product->category_id ?? 0), $allowedCategoryIds, true);
 
-                if (! $eligibleByProduct && ! $eligibleByCategory) {
+                $passesProductOrCategoryScope = true;
+                if ($hasScopedProducts || $hasScopedCategories) {
+                    $eligibleByProduct = in_array($productId, $allowedProductIds, true);
+                    $eligibleByCategory = in_array((int) ($product->category_id ?? 0), $allowedCategoryIds, true);
+                    $passesProductOrCategoryScope = $eligibleByProduct || $eligibleByCategory;
+                }
+
+                $passesBrandScope = true;
+                if ($hasScopedBrands) {
+                    $passesBrandScope = in_array($productId, $brandMatchedProductIds, true);
+                }
+
+                if (! $passesProductOrCategoryScope || ! $passesBrandScope) {
                     continue;
                 }
 
@@ -110,31 +135,11 @@ class DiscountService
             }
 
             if ($eligibleSubtotal <= 0) {
-                throw ValidationException::withMessages(['code' => 'هذا الكود غير مشمول على المنتجات الموجودة في السلة.']);
-            }
-        }
+                $message = $hasScopedBrands && ! $hasScopedProducts && ! $hasScopedCategories
+                    ? 'هذا الكود صالح فقط على براندات محددة.'
+                    : 'هذا الكود غير مشمول على المنتجات الموجودة في السلة.';
 
-        if ($discount->targetPrimaryCategories->isNotEmpty()) {
-            $requiredPrimaryCategoryIds = $discount->targetPrimaryCategories->pluck('id')->map(fn ($id) => (int) $id)->all();
-            $eligibleItemProductIds = collect($items)
-                ->pluck('product_id')
-                ->map(fn ($id) => (int) $id)
-                ->filter(fn ($id) => $id > 0)
-                ->unique()
-                ->values()
-                ->all();
-
-            if (empty($eligibleItemProductIds)) {
-                throw ValidationException::withMessages(['code' => 'هذا الكود صالح فقط على براندات محددة.']);
-            }
-
-            $matchedBrandCount = DB::table('primary_category_product')
-                ->whereIn('product_id', $eligibleItemProductIds)
-                ->whereIn('primary_category_id', $requiredPrimaryCategoryIds)
-                ->count();
-
-            if ($matchedBrandCount <= 0) {
-                throw ValidationException::withMessages(['code' => 'هذا الكود صالح فقط على براندات محددة.']);
+                throw ValidationException::withMessages(['code' => $message]);
             }
         }
 
