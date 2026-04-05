@@ -186,7 +186,7 @@ html.dark .empty-state .icon { color: #6b7280 !important; }
   @if ($addresses->isEmpty())
     <div class="empty-state">
       <i class="bi bi-geo-alt icon"></i>
-      <p class="mt-3 text-[#7a6e6e]">لم تقومي بإضافة أي عناوين بعد.</p>
+      <p class="mt-3 text-[#7a6e6e]">لا توجد عناوين.</p>
       <a href="{{ route('profile.addresses.create') }}" class="btn-brand mt-3">
         <i class="bi bi-plus-circle"></i> إضافة عنوان جديد
       </a>
