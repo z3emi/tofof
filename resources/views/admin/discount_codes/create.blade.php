@@ -50,11 +50,11 @@
                     </div>
                     <div class="col-md-6">
                         <label for="value" class="form-label fw-bold small">قيمة الخصم <span class="text-danger">*</span></label>
-                        <input type="number" step="0.01" class="form-control" style="border-radius:12px; padding:0.8rem" id="value" name="value" value="{{ old('value') }}" placeholder="أدخل القيمة الرقمية" required>
+                        <input type="number" step="0.01" min="0" max="99999999.99" class="form-control" style="border-radius:12px; padding:0.8rem" id="value" name="value" value="{{ old('value') }}" placeholder="أدخل القيمة الرقمية" required>
                     </div>
                     <div class="col-md-6" id="max_discount_amount_wrapper" style="display:none;">
                         <label for="max_discount_amount" class="form-label fw-bold small">الحد الأقصى لمبلغ الخصم (د.ع)</label>
-                        <input type="number" step="0.01" class="form-control" style="border-radius:12px; padding:0.8rem" id="max_discount_amount" name="max_discount_amount" value="{{ old('max_discount_amount') }}" placeholder="اختياري">
+                        <input type="number" step="0.01" min="0" max="99999999.99" class="form-control" style="border-radius:12px; padding:0.8rem" id="max_discount_amount" name="max_discount_amount" value="{{ old('max_discount_amount') }}" placeholder="اختياري">
                         <small class="text-muted small">يُطبق فقط عند اختيار "نسبة مئوية".</small>
                     </div>
                 </div>

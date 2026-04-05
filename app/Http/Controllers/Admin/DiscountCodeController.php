@@ -78,24 +78,34 @@ class DiscountCodeController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate($this->discountValidationRules());
+        $request->validate($this->discountValidationRules(), $this->discountValidationMessages());
 
         if ($request->input('audience_mode') === 'selected' && empty($request->input('users', []))) {
             return redirect()->back()->withErrors(['users' => 'يرجى اختيار مستخدم واحد على الأقل عند تحديد جمهور مخصص.'])->withInput();
         }
 
         try {
-            $discountCode = $this->createDiscountCodeFromRequest($request);
-        } catch (QueryException $e) {
-            if (! $this->isMissingIdDefaultError($e)) {
-                throw $e;
+            try {
+                $discountCode = $this->createDiscountCodeFromRequest($request);
+            } catch (QueryException $e) {
+                if (! $this->isMissingIdDefaultError($e)) {
+                    throw $e;
+                }
+
+                $this->repairDiscountCodesPrimaryKeyIfNeeded();
+                $discountCode = $this->createDiscountCodeFromRequest($request);
             }
 
-            $this->repairDiscountCodesPrimaryKeyIfNeeded();
-            $discountCode = $this->createDiscountCodeFromRequest($request);
-        }
+            $this->syncDiscountCodeRelations($discountCode, $request);
+        } catch (QueryException $e) {
+            if ($this->isNumericOutOfRangeError($e)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'القيمة المدخلة كبيرة جدًا. يرجى إدخال مبلغ أقل من 99,999,999.99');
+            }
 
-        $this->syncDiscountCodeRelations($discountCode, $request);
+            throw $e;
+        }
 
         return redirect()->route('admin.discount-codes.index')->with('success', 'تم إنشاء كود الخصم بنجاح.');
     }
@@ -116,14 +126,24 @@ class DiscountCodeController extends Controller
     {
         $rules = $this->discountValidationRules();
         $rules['code'] = 'required|string|unique:discount_codes,code,' . $discount_code->id;
-        $request->validate($rules);
+        $request->validate($rules, $this->discountValidationMessages());
 
         if ($request->input('audience_mode') === 'selected' && empty($request->input('users', []))) {
             return redirect()->back()->withErrors(['users' => 'يرجى اختيار مستخدم واحد على الأقل عند تحديد جمهور مخصص.'])->withInput();
         }
 
-        $discount_code->update($this->extractDiscountData($request));
-        $this->syncDiscountCodeRelations($discount_code, $request);
+        try {
+            $discount_code->update($this->extractDiscountData($request));
+            $this->syncDiscountCodeRelations($discount_code, $request);
+        } catch (QueryException $e) {
+            if ($this->isNumericOutOfRangeError($e)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'القيمة المدخلة كبيرة جدًا. يرجى إدخال مبلغ أقل من 99,999,999.99');
+            }
+
+            throw $e;
+        }
 
         return redirect()->route('admin.discount-codes.index')->with('success', 'تم تحديث كود الخصم بنجاح.');
     }
@@ -290,8 +310,8 @@ class DiscountCodeController extends Controller
         return [
             'code' => 'required|string|unique:discount_codes,code',
             'type' => 'required|in:fixed,percentage,free_shipping',
-            'value' => 'nullable|numeric|min:0|required_if:type,fixed,percentage',
-            'max_discount_amount' => 'nullable|numeric|min:0|required_if:type,percentage',
+            'value' => 'nullable|numeric|min:0|max:99999999.99|required_if:type,fixed,percentage',
+            'max_discount_amount' => 'nullable|numeric|min:0|max:99999999.99|required_if:type,percentage',
             'max_uses' => 'nullable|integer|min:1',
             'max_uses_per_user' => 'nullable|integer|min:1',
             'expires_at' => 'nullable|date',
@@ -311,6 +331,24 @@ class DiscountCodeController extends Controller
             'primary_categories' => 'array',
             'primary_categories.*' => 'exists:primary_categories,id',
         ];
+    }
+
+    private function discountValidationMessages(): array
+    {
+        return [
+            'value.max' => 'قيمة الخصم كبيرة جدًا. الحد الأقصى هو 99,999,999.99',
+            'max_discount_amount.max' => 'الحد الأقصى لمبلغ الخصم كبير جدًا. الحد المسموح هو 99,999,999.99',
+        ];
+    }
+
+    private function isNumericOutOfRangeError(QueryException $e): bool
+    {
+        $mysqlErrorCode = (int) ($e->errorInfo[1] ?? 0);
+        $message = strtolower($e->getMessage());
+
+        return $mysqlErrorCode === 1264
+            || str_contains($message, 'out of range value')
+            || str_contains($message, 'numeric value out of range');
     }
 
     private function isMissingIdDefaultError(QueryException $e): bool
