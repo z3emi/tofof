@@ -225,8 +225,21 @@
     /* =============================================================
         تنسيقات بطاقة المنتج الجديدة من الصفحة الرئيسية
     ================================================================ */
-    .product-page .product-card { background:#fff; border-radius:14px; border:2px solid transparent; box-shadow:0 4px 12px rgba(0,0,0,.05); transform:translateY(0); display: flex; flex-direction: column; }
-    .product-page .product-card:hover { transform:translateY(-6px); box-shadow:0 16px 30px rgba(0,0,0,.10); }
+    .product-page .product-card {
+        background:#fff;
+        border-radius:14px;
+        border:2px solid transparent;
+        box-shadow:0 4px 12px rgba(0,0,0,.05);
+        transform:translate3d(0,0,0);
+        transition: transform .35s cubic-bezier(.22,.61,.36,1), box-shadow .35s ease, border-color .25s ease;
+        will-change: transform, box-shadow;
+        display: flex;
+        flex-direction: column;
+    }
+    .product-page .product-card:hover {
+        transform:translate3d(0,-6px,0);
+        box-shadow:0 16px 30px rgba(0,0,0,.10);
+    }
     .product-page .product-content-link { display:flex; flex-direction:column; flex-grow:1; text-decoration:none; color:inherit; }
     .product-page .product-info { padding:12px; display:flex; flex-direction:column; gap:8px; text-align:center; flex-grow:1; }
     .product-page .product-title { font-weight:700; color:#2d2a2a; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:2.6em; word-break: break-word; }
@@ -285,6 +298,22 @@
             grid-template-columns: repeat(5, minmax(0, 1fr));
         }
     }
+
+    /* عرض عدد محدد: 5 افتراضيا، و6 فقط على الهاتف الصغير */
+    .product-page .related-products-grid > .product-card {
+        display: none;
+    }
+    .product-page .related-products-grid > .product-card:nth-child(-n+5) {
+        display: flex;
+    }
+    @media (max-width: 767px) {
+        .product-page .related-products-grid > .product-card {
+            display: none;
+        }
+        .product-page .related-products-grid > .product-card:nth-child(-n+6) {
+            display: flex;
+        }
+    }
     /* =============================================================
         تنسيق الزووم (Hover Zoom) للصورة الرئيسية
     ================================================================ */
@@ -295,6 +324,124 @@
     .image-zoom-container img {
         transition: transform 0.3s ease-out, transform-origin 0.1s ease-out;
         will-change: transform, transform-origin;
+    }
+
+    /* =============================================================
+        Reviews UI
+    ================================================================ */
+    .product-page .reviews-wrap { display: grid; gap: 0.9rem; }
+    .product-page .review-form-card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1rem;
+        background: linear-gradient(180deg, #ffffff, #fbfbfb);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+    }
+    .product-page .review-card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 0.95rem 1rem;
+        background: linear-gradient(180deg, #ffffff, #fafafa);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+    }
+    .product-page .review-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+    .product-page .review-user {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        min-width: 0;
+    }
+    .product-page .review-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+    .product-page .review-user-name {
+        font-weight: 800;
+        line-height: 1.15;
+        color: var(--text);
+    }
+    .product-page .review-user-time {
+        font-size: 0.78rem;
+        color: #9ca3af;
+        margin-top: 0.2rem;
+    }
+    .product-page .review-side {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+    .product-page .review-stars {
+        display: inline-flex;
+        align-items: center;
+        color: #d59e06;
+        gap: 2px;
+    }
+    .product-page .review-comment {
+        margin-top: 0.75rem;
+        font-size: 0.96rem;
+        line-height: 1.8;
+        color: var(--text);
+        white-space: pre-line;
+    }
+    .product-page .review-admin-reply {
+        margin-top: 0.7rem;
+        border-radius: 12px;
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        padding: 0.65rem 0.8rem;
+    }
+    .product-page .review-delete {
+        color: #dc2626;
+        font-size: 0.82rem;
+        font-weight: 700;
+        border: 0;
+        background: transparent;
+        padding: 0;
+    }
+    .product-page .review-delete:hover { text-decoration: underline; }
+    .product-page .review-textarea {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #fff;
+        padding: 0.62rem 0.72rem;
+        color: var(--text);
+    }
+    .product-page .review-textarea:focus {
+        outline: none;
+        border-color: rgba(109, 14, 22, 0.45);
+        box-shadow: 0 0 0 3px rgba(109, 14, 22, 0.12);
+    }
+    html.dark .product-page .review-form-card,
+    html.dark .product-page .review-card {
+        background: linear-gradient(180deg, #1f2937, #18202d);
+        border-color: #374151;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+    }
+    html.dark .product-page .review-textarea {
+        background: #111827;
+        border-color: #374151;
+        color: #f3f4f6;
+    }
+    html.dark .product-page .review-admin-reply {
+        background: rgba(30, 64, 175, 0.22);
+        border-color: rgba(96, 165, 250, 0.45);
+    }
+    @media (max-width: 640px) {
+        .product-page .review-card { padding: 0.85rem; }
+        .product-page .review-avatar { width: 38px; height: 38px; }
+        .product-page .review-user-name { font-size: 0.95rem; }
+        .product-page .review-comment { font-size: 0.9rem; }
     }
 </style>
 @endpush
@@ -534,7 +681,7 @@
                     @endphp
                     @auth
                         @if(!$userHasReviewed)
-                        <div class="border rounded-lg p-4 mb-6">
+                        <div class="review-form-card mb-6">
                             <h4 class="font-semibold mb-3" style="color:var(--text)">{{ __('product.rate_product') }}</h4>
                             <form id="review-form" method="POST" action="{{ url('/products/'.$product->id.'/reviews') }}" data-no-transition="true" x-data="{ rating: 5 }">
                                 @csrf
@@ -547,7 +694,7 @@
                                     @endfor
                                 </div>
                                 <input type="hidden" name="rating" x-model="rating">
-                                <textarea name="comment" rows="3" class="w-full border rounded p-2" placeholder="{{ __('product.comment_placeholder') }}"></textarea>
+                                <textarea name="comment" rows="3" class="review-textarea" placeholder="{{ __('product.comment_placeholder') }}"></textarea>
                                 <div class="mt-3 flex items-center gap-2">
                                     <button id="review-submit" class="bg-brand-primary text-white px-4 py-2 rounded hover:bg-brand-accent transition" type="submit">{{ __('product.submit_review') }}</button>
                                 </div>
@@ -562,33 +709,33 @@
                     @php
                         $reviews = $product->reviews()->with('user')->latest()->paginate(10);
                     @endphp
-                    <div id="reviews-list">
+                    <div id="reviews-list" class="reviews-wrap">
                         @forelse($reviews as $r)
-                            <div class="border rounded p-4 mb-3" id="review-card-{{ $r->id }}">
-                                <div class="flex items-start justify-between">
-                                    <div class="flex items-center gap-3">
-                                        <img src="{{ $r->user?->avatar_url ?? asset('storage/avatars/default.jpg') }}" alt="avatar" class="w-9 h-9 rounded-full object-cover border" style="border-color: var(--border);">
+                            <div class="review-card" id="review-card-{{ $r->id }}">
+                                <div class="review-card-head">
+                                    <div class="review-user">
+                                        <img src="{{ $r->user?->avatar_url ?? asset('storage/avatars/default.jpg') }}" alt="avatar" class="review-avatar">
                                         <div>
-                                            <div class="font-semibold" style="color:var(--text)">{{ $r->user?->name ?? __('product.user') }}</div>
-                                            <div class="text-xs text-gray-400 mt-0.5">{{ $r->created_at->diffForHumans() }}</div>
+                                            <div class="review-user-name">{{ $r->user?->name ?? __('product.user') }}</div>
+                                            <div class="review-user-time">{{ $r->created_at->diffForHumans() }}</div>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-2">
-                                        <div class="flex text-yellow-500">
+                                    <div class="review-side">
+                                        <div class="review-stars">
                                             @for($i=1; $i<=5; $i++)
                                                 <i class="bi {{ $i <= $r->rating ? 'bi-star-fill' : 'bi-star' }} ms-1"></i>
                                             @endfor
                                         </div>
                                         @auth
                                             @if($isAdmin || $r->user_id === auth()->id())
-                                                <button class="text-red-600 text-sm hover:underline" data-delete-review data-product-id="{{ $product->id }}" data-review-id="{{ $r->id }}">{{ __('product.delete') }}</button>
+                                                <button class="review-delete" data-delete-review data-product-id="{{ $product->id }}" data-review-id="{{ $r->id }}">{{ __('product.delete') }}</button>
                                             @endif
                                         @endauth
                                     </div>
                                 </div>
-                                @if($r->comment)<p class="mt-2 text-sm text-gray-700">{{ $r->comment }}</p>@endif
+                                @if($r->comment)<p class="review-comment">{{ $r->comment }}</p>@endif
                                 @if(!empty($r->admin_reply))
-                                    <div class="mt-2 rounded border p-3" style="border-color:#bfdbfe; background:#eff6ff;">
+                                    <div class="review-admin-reply">
                                         <div class="text-xs font-semibold text-blue-700 mb-1">رد الإدارة</div>
                                         <p class="text-sm text-gray-700 mb-0" style="white-space: pre-line;">{{ $r->admin_reply }}</p>
                                     </div>
@@ -625,11 +772,29 @@
         </div>
     </div>
 
-    @if($relatedProducts->isNotEmpty())
+    @php
+        $displayRelatedProducts = $relatedProducts;
+
+        // Fallback: if no related products are found, show other active products.
+        if ($displayRelatedProducts->isEmpty()) {
+            $displayRelatedProducts = \App\Models\Product::query()
+                ->where('is_active', true)
+                ->where('id', '!=', $product->id)
+                ->with(['images', 'firstImage'])
+                ->latest('id')
+                ->take(6)
+                ->get();
+        }
+
+        // Keep up to 6 products; CSS shows 5 on desktop.
+        $displayRelatedProducts = $displayRelatedProducts->take(6);
+    @endphp
+
+    @if($displayRelatedProducts->isNotEmpty())
     <div class="container mx-auto px-4 py-12 border-t border-gray-200 mt-12">
         <h2 class="text-3xl font-bold text-brand-dark mb-8 text-center">{{ __('product.you_may_like') }}</h2>
         <div class="related-products-grid">
-            @foreach($relatedProducts as $relatedProduct)
+            @foreach($displayRelatedProducts as $relatedProduct)
                 {{-- ===== Shop-identical Product Card ===== --}}
                 <div class="product-card"
                      x-data="{
@@ -957,12 +1122,12 @@
         });
 
         function appendReviewCard(id, name, rating, comment, createdHuman, mine = false, avatarUrl = null) {
-            const stars = Array.from({length:5}).map((_,i)=> `<i class="bi ${i+1 <= rating ? 'bi-star-fill' : 'bi-star'} ms-1 text-yellow-500"></i>`).join('');
-            const commentHtml = comment ? `<p class="mt-2 text-sm text-gray-700">${escapeHtml(comment)}</p>` : '';
-            const deleteBtn = mine ? `<button class="text-red-600 text-sm hover:underline" data-delete-review data-product-id="${id}" data-review-id="${id}">{{ __('product.delete') }}</button>` : '';
+            const stars = Array.from({length:5}).map((_,i)=> `<i class="bi ${i+1 <= rating ? 'bi-star-fill' : 'bi-star'}"></i>`).join('');
+            const commentHtml = comment ? `<p class="review-comment">${escapeHtml(comment)}</p>` : '';
+            const deleteBtn = mine ? `<button class="review-delete" data-delete-review data-product-id="{{ $product->id }}" data-review-id="${id}">{{ __('product.delete') }}</button>` : '';
             const safeAvatar = avatarUrl || '{{ auth()->user()?->avatar_url ?? asset('storage/avatars/default.jpg') }}';
-            const header = `<div class="flex items-start justify-between"><div class="flex items-center gap-3"><img src="${safeAvatar}" alt="avatar" class="w-9 h-9 rounded-full object-cover border" style="border-color: var(--border);"><div><div class="font-semibold" style="color:var(--text)">${escapeHtml(name)}</div><div class="text-xs text-gray-400 mt-0.5">${escapeHtml(createdHuman || '')}</div></div></div><div class="flex items-center gap-2"><div class="flex">${stars}</div>${deleteBtn}</div></div>`;
-            const card = `<div class="border rounded p-4 mb-3" id="review-card-${id}">${header}${commentHtml}</div>`;
+            const header = `<div class="review-card-head"><div class="review-user"><img src="${safeAvatar}" alt="avatar" class="review-avatar"><div><div class="review-user-name">${escapeHtml(name)}</div><div class="review-user-time">${escapeHtml(createdHuman || '')}</div></div></div><div class="review-side"><div class="review-stars">${stars}</div>${deleteBtn}</div></div>`;
+            const card = `<div class="review-card" id="review-card-${id}">${header}${commentHtml}</div>`;
             reviewsList.insertAdjacentHTML('afterbegin', card);
         }
 
