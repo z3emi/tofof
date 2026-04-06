@@ -1,13 +1,10 @@
 @php
-    // استخدم ترتيب الكنترولر (sort_order) بدون إعادة فرز داخل الواجهة.
     $sortedCategories = $categories;
 @endphp
 @php
-    // This defines the variable as an empty array if it doesn't exist, preventing errors.
     $favoriteProductIds = $favoriteProductIds ?? [];
 @endphp
 @php
-    // Convert hex to rgb for rgba
     if (!function_exists('hexToRgb')) {
         function hexToRgb($hex) {
             $hex = str_replace("#", "", $hex);
@@ -29,17 +26,15 @@
 
 @push('styles')
 <style>
-    /* =========================
-        THEME VARIABLES (scoped)
-    ========================= */
+    
     .home-scope {
-        /* Brand palette */
+        
         --primary-color: #6d0e16;
         --primary-hover: #a61c20;
         --secondary-color: #ffffff;
         --accent-color: #ea7a7e;
 
-        /* Base */
+        
         --bg: #ffffff;
         --bg-soft: #ffffff;
         --surface: #ffffff;
@@ -49,25 +44,23 @@
         --muted: #666666;
         --border: #e5e5e5;
 
-        /* Badges */
+        
         --new-badge-color: #4CAF50;
         --bestseller-badge-color: #FF9800;
         --sale-badge-color: #E53935;
 
-        /* Hero gradient */
+        
         --hero-start: rgba(255, 255, 255, 0.8);
         --hero-end: rgba(247, 247, 247, 0.8);
 
-        /* Section gradient */
+        
         --cat-grad-from: #ffffff;
         --cat-grad-to: #ffffff;
 
-        /* Slider overlay (now per-slide) */
+        
     }
 
-    /* =========================
-        DARK THEME OVERRIDES (scoped)
-    ========================= */
+    
     html.dark .home-scope {
         --bg: #0a0a0a;
         --bg-soft: #121212;
@@ -81,27 +74,25 @@
         --hero-end: rgba(18, 18, 18, 0.72);
         --cat-grad-from: #0a0a0a;
         --cat-grad-to: #121212;
-        /* Dark overrides for sliders now per-slide */
+        
         --secondary-color: #1a1a1a;
     }
 
-    /* =========================
-        GLOBAL (scoped)
-    ========================= */
+    
     .home-scope {
         background: var(--bg);
         color: var(--text);
         transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    /* Overrides (scoped) */
+    
     html.dark .home-scope .bg-white { background-color: var(--surface) !important; }
     html.dark .home-scope .bg-gray-50 { background-color: var(--bg-soft) !important; }
     html.dark .home-scope .text-[#333] { color: var(--text) !important; }
     html.dark .home-scope .text-gray-700 { color: var(--text) !important; }
     html.dark .home-scope .text-gray-500 { color: var(--muted) !important; }
 
-    /* ---------- Hero Styles (reused in slider) ---------- */
+    
     .home-scope .hero-title{ font-size:3.5rem; font-weight:800; color:var(--text); line-height:1.2; margin-bottom:1.5rem; transition: color 0.3s ease; }
     .home-scope .hero-title span{ background:linear-gradient(135deg, var(--primary-color), var(--primary-hover)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
     @media (max-width:1024px){ .home-scope .hero-title{ font-size:2.5rem; } }
@@ -109,7 +100,7 @@
     .home-scope .btn-hero-primary{ background:linear-gradient(135deg, var(--primary-color), var(--primary-hover)); color:#fff; padding:.6rem 1.7rem; border-radius:50px; font-weight:600; font-size:0.95rem; text-decoration:none; display:inline-block; transition:.3s; box-shadow:0 4px 15px rgba(205,137,133,.3); }
     .home-scope .btn-hero-primary:hover{ transform:translateY(-3px); box-shadow:0 8px 25px rgba(205,137,133,.4); }
 
-    /* ---------- NEW HEADER SLIDER STYLES ---------- */
+    
     .header-slider-overlay {
         position: absolute;
         inset: 0;
@@ -125,9 +116,9 @@
         align-items: center;
         justify-content: center;
         text-align: center;
-        padding: 1rem 2rem 4rem 2rem; /* Increased bottom padding to push content UP */
+        padding: 1rem 2rem 4rem 2rem; 
         color: #fff;
-        user-select: none; /* NEW */
+        user-select: none; 
     }
     .header-slider-content .hero-title,
     .header-slider-content .hero-subtitle {
@@ -135,19 +126,19 @@
         text-shadow: 0 2px 8px rgba(0,0,0,0.5);
     }
 
-    /* MOBILE FIX: Reduce spacing and font sizes on mobile for the slider */
+    
     @media (max-width: 640px) {
         .header-slider-content {
-            padding: 1rem 0.5rem 1.2rem 0.5rem; /* Reduced from 2.5rem bottom and 1rem sides */
+            padding: 1rem 0.5rem 1.2rem 0.5rem; 
         }
         .header-slider-content .hero-title {
-            font-size: 1.5rem; /* Reduced from 2rem to fit the smaller height */
+            font-size: 1.5rem; 
             line-height: 1.25;
-            margin-bottom: 0.5rem; /* Reduced margin */
+            margin-bottom: 0.5rem; 
         }
         .header-slider-content .hero-subtitle {
-            font-size: 0.9rem; /* Smaller subtitle */
-            margin-bottom: 1rem; /* Reduced margin */
+            font-size: 0.9rem; 
+            margin-bottom: 1rem; 
             line-height: 1.5;
         }
         .header-slider-content .btn-hero-primary {
@@ -156,11 +147,11 @@
         }
     }
 
-    /* ---------- Promo Slider (Generalized for all sliders) ---------- */
+    
     .home-scope .promo-slider{ position:relative; overflow:visible; border-radius:16px; margin: 0.75rem auto; background:var(--surface); transition: background 0.3s ease; }
     @media (min-width: 1024px) {
         .home-scope .promo-slider {
-            max-width: 1300px; /* تم تكبير عرض السلايدر في الكمبيوتر ليكون أوسع وأبرز */
+            max-width: 1300px; 
         }
     }
     .home-scope .slider-wrapper{ position:relative; width:100%; height:100%; overflow:hidden; border-radius:16px; }
@@ -171,27 +162,27 @@
         display:flex;
         align-items:center;
         overflow:hidden;
-        height: auto; /* الارتفاع سيتبع الصورة تلقائياً لتكون 'ذكية' */
+        height: auto; 
         min-height: 80px; 
         max-height: 480px;
     }
-    /* توحيد نسبة العرض إلى الارتفاع للسلايدرات الصغيرة أيضاً */
+    
     .promo-slider.shrinked .slide {
-        /* Keep secondary promo sliders visually compact across viewports */
+        
         aspect-ratio: auto;
         min-height: clamp(92px, 18vw, 170px);
         height: clamp(92px, 18vw, 170px);
         max-height: 170px;
     }
 
-    /* ستايل خاص بالسلايدر الرئيسي (Hero) لتوحيد الأبعاد في الهاتف والكمبيوتر بنفس النسبة */
+    
     .hero-slider .slide {
         width: 100%;
         aspect-ratio: 1920 / 700;
         position: relative;
         overflow: hidden;
     }
-    /* ستايل خاص بالسلايدرات الترويجية (أقل ارتفاعاً وأصغر عرضاً) */
+    
     .promo-primary-slider .slide {
         width: 100%;
         aspect-ratio: 1920 / 540;
@@ -214,10 +205,10 @@
         }
     }
     .home-scope .slide-bg{ 
-        position:relative; /* جعل الصورة هي المحرك للارتفاع */
+        position:relative; 
         width:100%; 
         height:auto; 
-        object-fit: contain; /* لضمان ظهور الصورة كاملة */
+        object-fit: contain; 
         z-index:0; 
         display: block;
     }
@@ -230,8 +221,8 @@
         user-select: none;
     }
         html[dir="rtl"] .home-scope .slide-content{ align-items:center !important; padding: 1.25rem 0 1.25rem 0 !important; text-align:center !important; }
-        /* اجبار محاذاة النص والزر في السلايدر للوسط دائماً */
-        /* تعميم محاذاة المنتصف على جميع السلايدرات */
+        
+        
         .slide-content, .slider-content, .slider-section .slide-content, .slider-wrapper .slide-content, .home-scope .slide-content {
             display: flex !important;
             flex-direction: column !important;
@@ -244,7 +235,7 @@
             align-self: center !important;
             max-width: 100% !important;
         }
-        /* تصغير نصوص وأزرار السلايدر لتناسب الارتفاع الأقل */
+        
         .home-scope .slide-content h2 {
             font-size: clamp(1rem, 1.8vw, 1.9rem) !important;
             line-height: 1.25;
@@ -295,24 +286,24 @@
     .home-scope .slider-nav:hover{ background:rgba(255,255,255,.3); }
     .home-scope .slider-prev{ left:10px; } .home-scope .slider-next{ right:10px; }
 
-    /* ---------- Sections ---------- */
+    
     .home-scope .section-header h2{ color: var(--text); transition: color 0.3s ease; }
     .home-scope .section-cats { background: linear-gradient(to bottom right, var(--cat-grad-from), var(--cat-grad-to)); position:relative; overflow:hidden; transition: background 0.3s ease; }
     
-    /* FIX: Category names color */
+    
     .home-scope .category-name {
-        color: var(--text); /* Use theme's main text color */
+        color: var(--text); 
         transition: color 0.3s ease;
     }
 
-    /* ---------- Product Card (old styles kept) ---------- */
-    /* شارة نسبة الخصم للمنتجات (نفس فكرة المفضلة) */
+    
+    
     .home-scope .product-sale-badge{
         position:absolute;
         top:.6rem;
         right:.6rem;
         z-index:15;
-        background:#6d0e16;      /* لون البراند */
+        background:#6d0e16;      
         color:#fff;
         font-weight:800;
         font-size:.75rem;
@@ -335,14 +326,14 @@
     border-radius:12px 12px 0 0;
 }
 
-/* إلغاء منطق 200% + 50% واستعمال طبقات متراكبة */
+
 .home-scope .product-image-slider{
     position: relative;
     width: 100%;
     height: 100%;
 }
 
-/* كل صورة تغطي الكارد كامل وتتحرك بس بالـ transform */
+
 .home-scope .product-image-slider img{
     position: absolute;
     inset: 0;
@@ -360,7 +351,7 @@
     @media (max-width:1024px){ .home-scope .products-grid{ grid-template-columns:repeat(3,1fr); gap:1rem; } }
     @media (max-width:640px){  .home-scope .products-grid{ grid-template-columns:repeat(2,1fr); gap:1rem; } }
 
-    /* ---------- Helpers ---------- */
+    
     .home-scope .no-scrollbar::-webkit-scrollbar{ display:none; }
     .home-scope .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
     .home-scope .floating-element{ position:absolute; border-radius:50%; background:linear-gradient(135deg, var(--primary-color), var(--accent-color)); opacity:.08; z-index:0; animation:float 6s ease-in-out infinite; transition: opacity 0.3s ease; }
@@ -370,7 +361,7 @@
     .home-scope .floating-2{ width:60px;height:60px; bottom:15%; left:8%; animation-delay:1s; }
     .home-scope .floating-3{ width:40px;height:40px; top:40%; right:15%; animation-delay:2s; }
 
-    /* ---------- Testimonials ---------- */
+    
     .home-scope .testimonials-section {
         --testimonials-bg-a: #fcf9f9;
         --testimonials-bg-b: #ffffff;
@@ -515,9 +506,7 @@
         }
     }
 
-    /* =========================
-        SHOP PRODUCT CARD OVERRIDES (make home = shop)
-        ========================= */
+    
     .home-scope .product-card { background:#fff; border-radius:14px; border:2px solid transparent; box-shadow:0 4px 12px rgba(0,0,0,.05); transform:translateY(0); }
     .home-scope .product-card:hover { transform:translateY(-6px); box-shadow:0 16px 30px rgba(0,0,0,.10); }
     .home-scope .product-content-link { display:flex; flex-direction:column; flex-grow:1; text-decoration:none; color:inherit; }
@@ -537,7 +526,7 @@
     .home-scope .btn-fav.favorited { background-color:#fee2e2; color:#ef4444; }
     .home-scope .no-products-message { background-color:#fff; border:1px solid #f3f4f6; }
 
-    /* دارك مود مثل المتجر (scoped) */
+    
     html.dark .home-scope .product-card { background-color:#1f2937; }
     html.dark .home-scope .product-title { color:#f9fafb; }
     html.dark .home-scope .btn-fav { background-color:#374151; color:#9ca3af; }
@@ -545,7 +534,7 @@
     html.dark .home-scope .btn-fav.favorited { background-color:rgba(205,137,133,.2); color:#f9a8d4; }
 </style>
 <style>
-  /* زر "منتهي الكمية" — غيّر لون الخلفية فقط */
+  
   .home-scope .product-card .btn-primary[disabled],
   .home-scope .product-card .btn-primary:disabled {
     background-color: #9CA3AF !important;
@@ -561,13 +550,11 @@
 @endpush
 @push('styles')
 <style>
-  /* Removed hardcoded brand overlay to respect admin settings */
+  
 
-  /* =========================
-     2) dots – ستايل زجاجي موحّد لكل السلايدرات
-     ========================= */
+  
   .slider-dots{
-    background: rgba(15, 23, 42, .35) !important; /* زجاجي خفيف */
+    background: rgba(15, 23, 42, .35) !important; 
     border: 1px solid rgba(255,255,255,.08);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
@@ -581,7 +568,7 @@
     border-color: rgba(255,255,255,.06);
   }
 
-  /* نقطة خاملة */
+  
   .slider-dots .dot{
     width: 10px !important;
     height: 10px !important;
@@ -593,20 +580,18 @@
     opacity: .85;
   }
 
-  /* نقطة مفعّلة – بيضاوية ناعمة */
+  
   .slider-dots .dot.active{
-    width: 24px !important; /* يعطيها شكل كبسولة */
+    width: 24px !important; 
     background: #ffffff !important;
     border-color: rgba(255,255,255,.65);
     opacity: 1;
   }
 
-  /* لمسة تفاعل بسيطة */
+  
   .slider-dots .dot:hover{ transform: translateY(-1px); }
 
-  /* =========================
-     3) موبايل – أصغر/أخف وما تتداخل مع النص
-     ========================= */
+  
   @media (max-width: 640px){
         .home-scope .promo-slider { margin-bottom: 30px !important; }
         .slider-dots{
@@ -649,14 +634,10 @@
         }
   }
 
-  /* اختياري: لو بعده يتقاطع مع الأزرار بالموبايل، زيد المسافة للأسفل */
-  /* @media (max-width: 640px){
-      .slider-dots{ bottom: 6px !important; }
-    } */
+  
+  
 
-  /* =========================
-     4) اتّساق النقاط داخل بطاقات المنتجات (لو حاب)
-     ========================= */
+  
   .product-dots .product-dot{
     width: 6px; height: 6px; opacity:.8;
     transition: width .22s ease, opacity .22s ease;
@@ -667,27 +648,27 @@
   @media (max-width: 640px){
     .product-dots{ transform: scale(.9); }
   }
-  /* ===== توحيد تباعد وأحجام الفئات ===== */
+  
 .section-cats .category-name {
   text-align: center;
-  white-space: normal;      /* يخلي النص يلف سطر ثاني */
-  word-break: break-word;   /* لو كلمة طويلة تنكسر */
+  white-space: normal;      
+  word-break: break-word;   
   line-height: 1.3;
-  max-width: 110px;         /* نفس عرض الدائرة */
-  min-height: 2.6em;        /* يضمن مساحة لسطرين */
+  max-width: 110px;         
+  min-height: 2.6em;        
   display: flex;
   align-items: center;
   justify-content: center;
   text-wrap: balance;
 }
 
-/* الأيقونات/الدائرة تبقى بنفس الحجم */
+
 .section-cats .flex.flex-col.items-center {
   min-width: 110px;
 }
-/* ====== فئات المتجر: نفس ارتفاع + الأيقونة تبقى دائرية ====== */
 
-/* ====== تعديل: منع السكول الداخلي ====== */
+
+
 .section-cats .flex.flex-col.items-center {
   width: 140px;
   min-width: 140px;
@@ -707,7 +688,7 @@
 }
 
 
-/* الأيقونة تبقى دائرية وتصغر في الجوال */
+
 .section-cats .w-28.h-28 {
   width: 7rem !important;
   height: 7rem !important;
@@ -715,12 +696,12 @@
 }
 @media (max-width: 640px) {
   .section-cats .w-28.h-28 {
-    width: 4.2rem !important; /* أصغر للجوال */
+    width: 4.2rem !important; 
     height: 4.2rem !important;
   }
 }
 
-/* العنوان يلتف ويأخذ سطرين بدون قص ويصغر في الجوال */
+
 .section-cats .category-name {
   max-width: 100%;
   margin-top: .75rem;
@@ -737,13 +718,13 @@
     margin-top: 0.5rem;
   }
 }
-/* منع أي scroll عمودي داخل صندوق الفئات */
+
 .section-cats .overflow-x-auto {
-  height: auto !important;      /* خليه يتحدد تلقائي */
-  overflow-y: visible !important;/* يلغي أي سحب عمودي */
+  height: auto !important;      
+  overflow-y: visible !important;
 }
 
-/* الأسهم النابضة التجميلية */
+
 @keyframes pulseSide {
   0% { transform: translateY(-50%) scale(1); opacity: 0.4; }
   50% { transform: translateY(-50%) scale(1.2); opacity: 0.8; }
@@ -751,13 +732,13 @@
 }
 .pulse-arrow {
   position: absolute;
-  top: 40%; /* مستوى الصورة تقريباً */
+  top: 40%; 
   z-index: 20;
   pointer-events: none;
   color: var(--primary-color);
   font-size: 1.2rem;
   animation: pulseSide 2s infinite ease-in-out;
-  display: none; /* مخفي افتراضياً */
+  display: none; 
 }
 @media (max-width: 640px) {
   .pulse-arrow { display: block; }
@@ -765,7 +746,7 @@
 .pulse-arrow-left { left: 5px; }
 .pulse-arrow-right { right: 5px; }
 
-/* تعطيل snap للشريط المتحرك تلقائيا حتى لا يثبت مكانه */
+
 .section-cats .overflow-x-auto.js-auto-bounce {
     scroll-snap-type: none !important;
     scroll-behavior: auto !important;
@@ -783,8 +764,8 @@
 @section('content')
 <div class="home-scope">
 
-{{-- Header Image Slider --}}
-{{-- Header Image Slider (Matching Second Slider Style) --}}
+
+
 @if(($heroSlides ?? collect())->isNotEmpty())
 <section class="container mx-auto px-4 mt-4">
     <div class="promo-slider hero-slider" x-data="carouselSlider({{ $heroSlides->count() }})">
@@ -859,17 +840,14 @@
 </section>
 @endif
 
-{{-- Categories Section (Using PrimaryCategory model) --}}
+
 @php
-    // تحميل الفئات لو ما ممرّرتها من الكنترولر
     $primaryCategories2 = $primaryCategories2
         ?? \App\Models\PrimaryCategory::query()
             ->active()
             ->withCount('products')
             ->ordered()
             ->get();
-
-    // استخدم ترتيب الكنترولر (sort_order) بدون إعادة فرز داخل الواجهة.
 @endphp
 
 @if($primaryCategories2->count())
@@ -948,8 +926,6 @@
                   this.el.addEventListener('mouseleave', () => this.pauseAutoTemporarily());
 
                   window.addEventListener('resize', () => { this.updateButtons(); });
-                  
-                  // Initialize buttons and let browser set the correct scroll position first
                   setTimeout(() => {
                       this.updateButtons();
                       this.startAutoScroll();
@@ -957,16 +933,12 @@
               }
          }"
          x-init="init()">
-
-    {{-- خلفيات خفيفة (نفس الستايل) --}}
-    <!-- Removed blurred blobs for unified white background -->
-
-    <div class="w-full text-center relative z-10">
+<div class="w-full text-center relative z-10">
 
 
         <div class="relative">
-            {{-- أزرار التنقل (نفس الأزرار) --}}
-            {{-- الزر الأيسر: يرجع/للخلف (prev) --}}
+            
+            
             <button
                 class="brand-nav hidden md:flex absolute left-4 pos-mid z-[10001]"
                 :class="{'brand-nav-active': canGoLeft}"
@@ -978,7 +950,7 @@
                 <i class="bi bi-chevron-left text-2xl"></i>
             </button>
 
-            {{-- الزر الأيمن: يتقدم/للأمام (next) --}}
+            
             <button
                 class="brand-nav hidden md:flex absolute right-4 pos-mid z-[10001]"
                 :class="{'brand-nav-active': canGoRight}"
@@ -990,25 +962,17 @@
                 <i class="bi bi-chevron-right text-2xl"></i>
             </button>
 
-            {{-- تلاشي ديكوري --}}
-            <div class="pointer-events-none hidden md:block absolute inset-y-0 left-0 w-24 z-[9998]"
-                 style="background:linear-gradient(90deg, var(--bg), transparent)"></div>
-            <div class="pointer-events-none hidden md:block absolute inset-y-0 right-0 w-24 z-[9998]"
-                 style="background:linear-gradient(270deg, var(--bg), transparent)"></div>
+            
 
-
-            {{-- الشريط القابل للتمرير --}}
-{{-- تم حذف "px-16" من هنا --}}
 <div class="overflow-x-auto no-scrollbar js-auto-bounce" x-ref="catScroll">
-    {{-- تم إضافة "pr-16" هنا لإضافة فراغ في نهاية القائمة فقط --}}
+    
     <div class="flex flex-row gap-[14px] md:gap-12 items-start w-max py-1 auto-bounce-track" x-ref="catTrack">
-        {{-- العربي: canPrev يرجع لليمين، canNext يتقدم لليسار --}}
+        
         <div class="pulse-arrow pulse-arrow-left" x-show="canGoLeft" x-cloak><i class="bi bi-chevron-left"></i></div>
         <div class="pulse-arrow pulse-arrow-right" x-show="canGoRight" x-cloak><i class="bi bi-chevron-right"></i></div>
 
 @foreach($primaryCategories2 as $pc)
     @php
-        // اعتبره رئيسي إذا ما عنده parent_id أو علاقة parent
         $isTopLevel = true;
         if (isset($pc->parent_id) && $pc->parent_id)  { $isTopLevel = false; }
         if (isset($pc->parent)    && $pc->parent)     { $isTopLevel = false; }
@@ -1021,7 +985,7 @@
                 : ($pc->icon ? asset('storage/'.$pc->icon) : null);
         @endphp
 
-{{-- هذا هو السطر الصحيح --}}
+
 <a href="{{ route('shop', ['brand' => $pc->slug]) }}"
    class="flex flex-col items-center min-w-[68px] md:min-w-[110px] group text-center transition-all duration-300">
             <div class="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-lg bg-white relative">
@@ -1044,7 +1008,7 @@
         </div>
     </div>
 
-    {{-- نفس تنسيقات الأزرار / المواضع المستعملة في سكشن الأقسام --}}
+    
     <style>
         .section-cats { --icon-size: 112px; --row-py: 16px; --btn-dy: 0px; }
         .pos-mid { top: calc(var(--row-py) + (var(--icon-size) / 2) + var(--btn-dy)); transform: translateY(-50%); }
@@ -1055,7 +1019,7 @@
         .section-cats .w-28.h-28 { width:7rem!important; height:7rem!important; border-radius:50%; }
         @media (max-width: 640px) { .section-cats .w-28.h-28 { width:4.2rem!important; height:4.2rem!important; } }
         
-        /* تنسيق أزرار التنقل للفئات الأولى (Primary Categories) */
+        
         .brand-nav {
             position: absolute;
             height: 48px;
@@ -1083,7 +1047,7 @@
             transition: all 0.3s ease;
         }
 
-        /* حالة الزر النشط (يوجد تنقل) */
+        
         .brand-nav-active {
             color: #6d0e16;
             background: rgba(255, 255, 255, 0.4);
@@ -1099,7 +1063,7 @@
             background: rgba(255, 255, 255, 0.9);
         }
 
-        /* حالة الزر المعطل (لا يوجد تنقل) */
+        
         .brand-nav-disabled {
             color: #999;
             background: rgba(200, 200, 200, 0.25);
@@ -1119,7 +1083,7 @@
             transform: none;
         }
 
-        /* الأيقونة */
+        
         .brand-nav i {
             font-size: 1.4rem;
             transition: all 0.3s ease;
@@ -1129,7 +1093,7 @@
             transform: scale(1.15);
         }
 
-        /* الوضع المظلم (Dark Mode) */
+        
         html.dark .brand-nav-active {
             color: #f0b0ad;
             background: rgba(15, 23, 42, 0.4);
@@ -1160,7 +1124,7 @@
 @endif
 
 
-{{-- Promo Slider 1 --}}
+
 @if(($promoPrimarySlides ?? collect())->isNotEmpty())
 <section class="container mx-auto px-4">
 
@@ -1235,7 +1199,7 @@
 </section>
 @endif
 
-{{-- Brands Section (Using Category model) --}}
+
 <section class="pt-2 pb-0 md:pt-4 md:pb-0 section-cats relative overflow-hidden"
          x-data="{
              el:null, track:null, showLeftButton:true, showRightButton:true, isMobile: false, step: 320,
@@ -1324,13 +1288,13 @@
          }"
          x-init="init()">
 
-    {{-- Header --}}
+    
 
     
     <div class="overflow-x-auto no-scrollbar js-auto-bounce" x-ref="catScroll">
-        {{-- تم استخدام !important هنا للتغلب على أي كود آخر --}}
+        
         <div class="flex flex-row gap-[14px] md:gap-12 items-start w-max py-1 auto-bounce-track" x-ref="catTrack">
-            {{-- الأسهم النابضة: تتبع نفس منطق الأزرار (showLeft لليسار و showRight لليمين) --}}
+            
             <div class="pulse-arrow pulse-arrow-left" x-show="showLeftButton" x-cloak><i class="bi bi-chevron-left"></i></div>
             <div class="pulse-arrow pulse-arrow-right" x-show="showRightButton" x-cloak><i class="bi bi-chevron-right"></i></div>
 
@@ -1363,8 +1327,8 @@
         </div>
     </div>
 
-    {{-- Buttons --}}
-    {{-- الزر الأيسر: يرجع/للخلف (prev) --}}
+    
+    
     <button type="button" x-cloak class="cat-side-nav-glass inline-flex absolute top-1/2 left-4 -translate-y-1/2 z-[5]"
             :class="{'cat-nav-active': showLeftButton}"
             x-show="!isMobile && showLeftButton"
@@ -1373,7 +1337,7 @@
             @click="goLeft()">
         <i class="bi bi-chevron-left text-base md:text-lg"></i>
     </button>
-    {{-- الزر الأيمن: يتقدم/للأمام (next) --}}
+    
     <button type="button" x-cloak class="cat-side-nav-glass inline-flex absolute top-1/2 right-4 -translate-y-1/2 z-[5]"
             :class="{'cat-nav-active': showRightButton}"
             x-show="!isMobile && showRightButton"
@@ -1383,7 +1347,7 @@
         <i class="bi bi-chevron-right text-base md:text-lg"></i>
     </button>
     
-    {{-- Styles --}}
+    
     <style>
         .section-cats .overflow-x-auto { scroll-snap-type: x mandatory; overflow-y: visible !important; }
         .section-cats .overflow-x-auto .flex>a { scroll-snap-align: start; }
@@ -1392,7 +1356,7 @@
         .section-cats .category-name { text-align:center; white-space:normal; word-break:break-word; line-height:1.35; min-height:2.7em; max-width:110px; margin-inline:auto; }
         @media (max-width: 640px) { .section-cats .category-name { font-size: 0.75rem!important; max-width: 75px!important; min-height: 2.2em; } }
         
-        /* تنسيق أزرار التنقل للبراندات (Brands Section) */
+        
         .cat-side-nav-glass {
             position: absolute;
             height: 48px;
@@ -1420,7 +1384,7 @@
             transition: all 0.3s ease;
         }
 
-        /* حالة الزر النشط (يوجد تنقل) */
+        
         .cat-nav-active {
             color: #6d0e16;
             background: rgba(255, 255, 255, 0.4);
@@ -1436,7 +1400,7 @@
             background: rgba(255, 255, 255, 0.9);
         }
 
-        /* حالة الزر المعطل (لا يوجد تنقل) */
+        
         .cat-nav-disabled {
             color: #999;
             background: rgba(200, 200, 200, 0.25);
@@ -1456,7 +1420,7 @@
             transform: none;
         }
 
-        /* الأيقونة */
+        
         .cat-side-nav-glass i {
             font-size: 1.3rem;
             transition: all 0.3s ease;
@@ -1466,7 +1430,7 @@
             transform: scale(1.15);
         }
         
-        /* الوضع المظلم (Dark Mode) */
+        
         html.dark .cat-nav-active {
             color: #f0b0ad;
             background: rgba(15, 23, 42, 0.4);
@@ -1497,11 +1461,10 @@
 
 
 
-{{-- New Products Section --}}
+
 @if($newProducts->isNotEmpty())
 <section class="py-6 lg:py-10 bg-white relative" dir="rtl">
-    <!-- Removed floating-3 -->
-    <div class="container mx-auto px-4 relative z-10">
+<div class="container mx-auto px-4 relative z-10">
         <div class="flex justify-between items-center mb-6">
             <div class="section-header relative">
                 <h2 class="text-3xl font-bold" style="color: var(--text);">{{ __('home.new_in_store') }}</h2>
@@ -1513,7 +1476,7 @@
 
         <div class="products-grid">
             @foreach($newProducts->take(14) as $product)
-                {{-- ===== Shop-identical Product Card (بدون شريط) ===== --}}
+                
                 <div class="product-card"
                      x-data="{
                          showAlt:false,
@@ -1581,7 +1544,7 @@
                        @touchend="handleTouchEnd($event, $el)">
 
                         <div class="product-image-container">
-                            {{-- شارة منتهي الكمية + شارة نسبة الخصم --}}
+                            
                             @php
                                 $isAvailable = ($product->stock_qty ?? $product->stock_quantity ?? 0) > 0;
                                 $isOnSale = $product->isOnSale();
@@ -1591,7 +1554,7 @@
                                 $secondImage = optional($product->images->get(1))->image_path;
                             @endphp
 
-                            {{-- منتهي الكمية --}}
+                            
                             @if(!$isAvailable)
                                 <div class="absolute inset-0 bg-black/60 z-10 flex items-center justify-center pointer-events-none">
                                     <span class="text-white font-bold tracking-wider text-sm border border-white/50 rounded-full px-3 py-1">
@@ -1600,14 +1563,14 @@
                                 </div>
                             @endif
 
-                            {{-- شارة نسبة الخصم --}}
+                            
                             @if($isOnSale && $isAvailable && $discountPercentage > 0)
                                 <div class="product-sale-badge">-{{ $discountPercentage }}%</div>
                             @endif
 
-                            {{-- ✅ سلايد بدون أي شريط جانبي --}}
+                            
                             <div class="product-image-slider">
-                                {{-- الصورة الأولى --}}
+                                
                                 @if ($product->firstImage)
                                     <img src="{{ asset('storage/'.$product->firstImage->image_path) }}"
                                          alt="{{ $product->name_translated }}" loading="lazy" width="600" height="600"
@@ -1628,7 +1591,7 @@
                                          }">
                                 @endif
 
-                                {{-- الصورة الثانية (تعكس الاتجاه) --}}
+                                
                                 @if ($secondImage)
                                     <img src="{{ asset('storage/'.$secondImage) }}"
                                          alt="{{ $product->name_translated }} (alt)" loading="lazy" width="600" height="600"
@@ -1722,13 +1685,13 @@
                         @endif
                     </div>
                 </div>
-                {{-- ===== /Shop-identical Product Card ===== --}}
+                
             @endforeach
         </div>
     </div>
 </section>
 @endif
-{{-- Promo Slider 2 --}}
+
 @if(($promoSecondarySlides ?? collect())->isNotEmpty())
 <section class="container mx-auto px-4">
     <div class="promo-slider promo-primary-slider" x-data="carouselSlider(2)">
@@ -1795,11 +1758,10 @@
 </section>
 @endif
 
-{{-- Sale Products Section --}}
+
 @if($saleProducts->isNotEmpty())
 <section class="py-12 bg-white relative" dir="rtl">
-    <!-- Removed floating-1 -->
-    <div class="container mx-auto px-4 relative z-10">
+<div class="container mx-auto px-4 relative z-10">
         <div class="flex justify-between items-center mb-6">
             <div class="section-header relative">
                 <h2 class="text-3xl font-bold" style="color: var(--text);">{{ __('home.featured_offers') }}</h2>
@@ -1808,7 +1770,7 @@
         </div>
         <div class="products-grid">
             @foreach($saleProducts->take(14) as $product)
-                {{-- ===== Shop-identical Product Card ===== --}}
+                
                 <div class="product-card"
                      x-data="{
                          showAlt:false,
@@ -1868,7 +1830,7 @@
                        @touchend="handleTouchEnd($event, $el)">
 
                         <div class="product-image-container">
-                            {{-- شارة منتهي الكمية + شارة نسبة الخصم --}}
+                            
                             @php
                                 $isAvailable = ($product->stock_qty ?? $product->stock_quantity ?? 0) > 0;
                                 $isOnSale = $product->isOnSale();
@@ -1878,7 +1840,7 @@
                                 $secondImage = optional($product->images->get(1))->image_path;
                             @endphp
 
-                            {{-- منتهي الكمية --}}
+                            
                             @if(!$isAvailable)
                                 <div class="absolute inset-0 bg-black/60 z-10 flex items-center justify-center pointer-events-none">
                                     <span class="text-white font-bold tracking-wider text-sm border border-white/50 rounded-full px-3 py-1">
@@ -1887,14 +1849,14 @@
                                 </div>
                             @endif
 
-                            {{-- شارة نسبة الخصم --}}
+                            
                             @if($isOnSale && $isAvailable && $discountPercentage > 0)
                                 <div class="product-sale-badge">-{{ $discountPercentage }}%</div>
                             @endif
 
-                            {{-- ✅ سلايد بدون أي شريط جانبي --}}
+                            
                             <div class="product-image-slider">
-                                {{-- الصورة الأولى --}}
+                                
                                 @if ($product->firstImage)
                                     <img src="{{ asset('storage/'.$product->firstImage->image_path) }}"
                                          alt="{{ $product->name_translated }}" loading="lazy" width="600" height="600"
@@ -1915,7 +1877,7 @@
                                          }">
                                 @endif
 
-                                {{-- الصورة الثانية (تعكس الاتجاه) --}}
+                                
                                 @if ($secondImage)
                                     <img src="{{ asset('storage/'.$secondImage) }}"
                                          alt="{{ $product->name_translated }} (alt)" loading="lazy" width="600" height="600"
@@ -2011,18 +1973,17 @@
                         @endif
                     </div>
                 </div>
-                {{-- ===== /Shop-identical Product Card ===== --}}
+                
             @endforeach
         </div>
     </div>
 </section>
 @endif
 
-{{-- Best Selling Products Section --}}
+
 @if($bestSellingProducts->isNotEmpty())
 <section class="py-12 bg-white relative" dir="rtl">
-    <!-- Removed floating-2 -->
-    <div class="container mx-auto px-4 relative z-10">
+<div class="container mx-auto px-4 relative z-10">
         <div class="flex justify-between items-center mb-6">
             <div class="section-header relative">
                 <h2 class="text-3xl font-bold" style="color: var(--text);">{{ __('home.best_selling') }}</h2>
@@ -2031,7 +1992,7 @@
         </div>
         <div class="products-grid">
             @foreach($bestSellingProducts->take(14) as $product)
-                {{-- ===== Shop-identical Product Card ===== --}}
+                
                 <div class="product-card"
                      x-data="{
                          showAlt:false,
@@ -2091,7 +2052,7 @@
                        @touchend="handleTouchEnd($event, $el)">
 
                         <div class="product-image-container">
-                            {{-- شارة منتهي الكمية + شارة نسبة الخصم --}}
+                            
                             @php
                                 $isAvailable = ($product->stock_qty ?? $product->stock_quantity ?? 0) > 0;
                                 $isOnSale = $product->isOnSale();
@@ -2101,7 +2062,7 @@
                                 $secondImage = optional($product->images->get(1))->image_path;
                             @endphp
 
-                            {{-- منتهي الكمية --}}
+                            
                             @if(!$isAvailable)
                                 <div class="absolute inset-0 bg-black/60 z-10 flex items-center justify-center pointer-events-none">
                                     <span class="text-white font-bold tracking-wider text-sm border border-white/50 rounded-full px-3 py-1">
@@ -2110,14 +2071,14 @@
                                 </div>
                             @endif
 
-                            {{-- شارة نسبة الخصم --}}
+                            
                             @if($isOnSale && $isAvailable && $discountPercentage > 0)
                                 <div class="product-sale-badge">-{{ $discountPercentage }}%</div>
                             @endif
 
-                            {{-- ✅ سلايد بدون أي شريط جانبي --}}
+                            
                             <div class="product-image-slider">
-                                {{-- الصورة الأولى --}}
+                                
                                 @if ($product->firstImage)
                                     <img src="{{ asset('storage/'.$product->firstImage->image_path) }}"
                                          alt="{{ $product->name_translated }}" loading="lazy" width="600" height="600"
@@ -2138,7 +2099,7 @@
                                          }">
                                 @endif
 
-                                {{-- الصورة الثانية (تعكس الاتجاه) --}}
+                                
                                 @if ($secondImage)
                                     <img src="{{ asset('storage/'.$secondImage) }}"
                                          alt="{{ $product->name_translated }} (alt)" loading="lazy" width="600" height="600"
@@ -2233,7 +2194,7 @@
                         @endif
                     </div>
                 </div>
-                {{-- ===== /Shop-identical Product Card ===== --}}
+                
             @endforeach
         </div>
     </div>
@@ -2318,20 +2279,20 @@
 
 @push('styles')
 <style>
-  /* ===== Home Blog (6 posts, 2 per row on mobile, square image) ===== */
+  
   .home-blog .post-card{
     border:1px solid #ebe8e6; border-radius:.75rem; background:#fff;
     overflow:hidden; transition:transform .25s, box-shadow .25s;
   }
   .home-blog .post-card:hover{ transform:translateY(-3px); box-shadow:0 10px 20px rgba(0,0,0,.08); }
   .home-blog .post-image{
-    width:100%; aspect-ratio:1/1; object-fit:cover; display:block; /* صورة مربعة */
+    width:100%; aspect-ratio:1/1; object-fit:cover; display:block; 
   }
   .home-blog .post-body{ padding:.9rem }
   .home-blog .post-title{ font-size:1rem; line-height:1.35; margin:.35rem 0 }
   .home-blog .post-excerpt{ font-size:.875rem }
 
-  /* Dark */
+  
   html.dark .home-blog .post-card{ background:#0f172a; border-color:#1f2937; box-shadow:0 8px 22px rgba(0,0,0,.22) }
   html.dark .home-blog .post-card p, html.dark .home-blog .post-card h3{ color:#e5e7eb }
   html.dark .home-blog .post-card .text-gray-500,
@@ -2340,7 +2301,7 @@
 @endpush
 @push('styles')
 <style>
-  /* Desktop-only shrink for blog cards */
+  
   @media (min-width: 1024px) {
     .home-blog .post-card { border-radius: .6rem; }
     .home-blog .post-body { padding: .65rem; }
@@ -2352,7 +2313,6 @@
 @endpush
 
 @php
-    // اجلب حتى 6 مقالات
     $homePosts = ($homePosts ?? null)
         ?: (isset($posts) && is_iterable($posts) ? collect($posts) : null);
 
@@ -2374,7 +2334,7 @@
         <a href="{{ url('/blog') }}" class="text-sm font-semibold text-[#6d0e16] hover:underline">{{ __('home.view_all_articles') }}</a>
     </div>
 
-    {{-- شبكة: هاتف = عمودين، من md وفوق = 3 أعمدة (إجمالي 6 عناصر) --}}
+    
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
         @foreach ($homePosts as $post)
             <article class="post-card">
@@ -2413,7 +2373,7 @@
 </section>
 @endif
 
-</div> {{-- إغلاق home-scope --}}
+</div> 
 
 @push('scripts')
 <script>
@@ -2433,7 +2393,6 @@
                 this.startAutoSlide();
 
                 this.$el.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
-                // Use passive: false so we can preventDefault horizontal swipes!
                 this.$el.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
                 this.$el.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: true });
 
@@ -2477,8 +2436,6 @@
                 if (!this.isDragging) return; 
                 const dx = Math.abs(this.startX - e.touches[0].clientX);
                 const dy = Math.abs(this.startY - e.touches[0].clientY);
-                
-                // If it's a horizontal movement, prevent native scrolling to allow smooth drag
                 if (dx > dy && e.cancelable) {
                     e.preventDefault();
                 }
@@ -2498,7 +2455,6 @@
             resumeAutoSlide() { this.startAutoSlide(); },
             updateDragPosition() {
                 const diff = this.startX - this.currentX;
-                // Add soft resistance if dragging out of bounds (optional visual feedback)
                 let percentDiff = (diff / this.sliderWidth) * 100;
                 
                 const direction = this.rtl ? 1 : -1;
@@ -2508,7 +2464,6 @@
             },
             handleSwipe() {
                 const diff = this.startX - this.currentX;
-                // Require only 40px drag to trigger slide change
                 const threshold = Math.min(40, this.sliderWidth / 10);
                 
                 let newSlide = this.currentSlide;
@@ -2519,8 +2474,6 @@
                         newSlide = this.currentSlide - 1; 
                     }
                 }
-                
-                // Clamp or Wrap logic
                 if (newSlide >= this.slides) newSlide = 0; // Wrap to start
                 if (newSlide < 0) newSlide = this.slides - 1; // Wrap to end
                 
