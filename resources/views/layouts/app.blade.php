@@ -1199,7 +1199,7 @@ html[dir="rtl"] .glass-indicator {
                 
                 {{-- Left Side: Logo --}}
                 <div class="flex items-center z-10">
-                  <a href="{{ route('homepage') }}" class="flex items-center">
+                  <a href="{{ route('homepage') }}" data-fast-nav="true" class="flex items-center">
                     <img src="{{ asset('sec-logo.png') }}" alt="logo" class="h-9 w-auto object-contain">
                   </a>
                 </div>
@@ -1271,7 +1271,7 @@ html[dir="rtl"] .glass-indicator {
                     <i class="bi bi-moon-fill text-lg" :class="isDark ? 'bi-sun-fill' : 'bi-moon-fill'"></i>
                   </button>
 
-                  <a href="{{ route('wishlist') }}" class="relative w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.wishlist') }}">
+                  <a href="{{ route('wishlist') }}" data-fast-nav="true" class="relative w-9 h-9 inline-flex items-center justify-center hover:bg-white/10 rounded-full" title="{{ __('layout.wishlist') }}">
                     <i class="bi bi-heart text-lg"></i>
                     <span x-show="wishlistCount > 0" x-text="wishlistCount" class="badge" style="display: none;"></span>
                   </a>
@@ -1349,64 +1349,77 @@ html[dir="rtl"] .glass-indicator {
             <nav class="desktop-liquid-nav flex items-center space-x-10 space-x-reverse">
 {{-- ==================== الفئات (يمين) ← البراندات (يسار) | تصميم V4 (معكوس) ==================== --}}
 @php
-    // خريطة: brand => [name, image, categories[]]
-    $brandCategoriesMap = [];
+  // خريطة: brand => [name, image, categories[]]
+  $brandCategoriesMap = [];
+  $localeForHeaderMap = app()->getLocale();
 
-    if (isset($categories) && $categories->isNotEmpty()) {
-        foreach ($categories as $cat) {
-            // IDs للفئة + الأبناء
-            $catIds = collect([$cat->id]);
-            if ($cat->children->isNotEmpty()) {
-                foreach ($cat->children as $child) {
-                    $catIds->push($child->id);
-                    if ($child->children->isNotEmpty()) {
-                        foreach ($child->children as $grand) { $catIds->push($grand->id); }
-                    }
-                }
+  if (isset($categories) && $categories->isNotEmpty()) {
+    $headerMapCacheKey = 'header_brand_categories_map_' . $localeForHeaderMap;
+
+    $brandCategoriesMap = Cache::remember($headerMapCacheKey, now()->addHours(6), function () use ($categories, $localeForHeaderMap) {
+      $map = [];
+
+      foreach ($categories as $cat) {
+        // IDs للفئة + الأبناء
+        $catIds = collect([$cat->id]);
+        if ($cat->children->isNotEmpty()) {
+          foreach ($cat->children as $child) {
+            $catIds->push($child->id);
+            if ($child->children->isNotEmpty()) {
+              foreach ($child->children as $grand) {
+                $catIds->push($grand->id);
+              }
             }
-            $catIds = $catIds->unique()->values();
-
-            // البراندات التي تملك منتجات داخل هذه الفئة/الأبناء
-            $brands = \App\Models\PrimaryCategory::query()
-                ->active()->ordered()->select('id','name_ar','name_en','slug','icon','image')
-                ->whereHas('products', fn($q)=>$q->where('is_active',true)->whereIn('category_id',$catIds))
-                ->get();
-
-            foreach ($brands as $b) {
-                $bImg = $b->image ?: $b->icon;
-                if ($bImg && !Str::startsWith($bImg, ['http','//'])) {
-                    $bImg = asset('storage/'.ltrim($bImg,'/'));
-                }
-
-                if (!isset($brandCategoriesMap[$b->slug])) {
-                    $brandCategoriesMap[$b->slug] = [
-                        'slug' => $b->slug,
-                        'name' => app()->getLocale() === 'en' && !empty($b->name_en) ? $b->name_en : $b->name_ar,
-                        'image'=> $bImg,
-                        'categories' => [],
-                    ];
-                }
-
-                $cImg = !empty($cat->image)
-                    ? (Str::startsWith($cat->image, ['http','//']) ? $cat->image : asset('storage/'.ltrim($cat->image,'/')))
-                    : null;
-
-                $brandCategoriesMap[$b->slug]['categories'][$cat->slug] = [
-                    'slug'  => $cat->slug,
-                    'name'  => app()->getLocale() === 'en' && !empty($cat->name_en) ? $cat->name_en : ($cat->name_ar ?? $cat->name ?? ''),
-                    'image' => $cImg,
-                ];
-            }
+          }
         }
+        $catIds = $catIds->unique()->values();
 
-        // ترتيب أبجدي
-        foreach ($brandCategoriesMap as &$entry) {
-            $entry['categories'] = array_values($entry['categories']);
-            usort($entry['categories'], fn($a,$b)=> strnatcasecmp($a['name'], $b['name']));
+        // البراندات التي تملك منتجات داخل هذه الفئة/الأبناء
+        $brands = \App\Models\PrimaryCategory::query()
+          ->active()
+          ->ordered()
+          ->select('id', 'name_ar', 'name_en', 'slug', 'icon', 'image')
+          ->whereHas('products', fn($q) => $q->where('is_active', true)->whereIn('category_id', $catIds))
+          ->get();
+
+        foreach ($brands as $b) {
+          $bImg = $b->image ?: $b->icon;
+          if ($bImg && !Str::startsWith($bImg, ['http', '//'])) {
+            $bImg = asset('storage/' . ltrim($bImg, '/'));
+          }
+
+          if (!isset($map[$b->slug])) {
+            $map[$b->slug] = [
+              'slug' => $b->slug,
+              'name' => $localeForHeaderMap === 'en' && !empty($b->name_en) ? $b->name_en : $b->name_ar,
+              'image' => $bImg,
+              'categories' => [],
+            ];
+          }
+
+          $cImg = !empty($cat->image)
+            ? (Str::startsWith($cat->image, ['http', '//']) ? $cat->image : asset('storage/' . ltrim($cat->image, '/')))
+            : null;
+
+          $map[$b->slug]['categories'][$cat->slug] = [
+            'slug' => $cat->slug,
+            'name' => $localeForHeaderMap === 'en' && !empty($cat->name_en) ? $cat->name_en : ($cat->name_ar ?? $cat->name ?? ''),
+            'image' => $cImg,
+          ];
         }
-        unset($entry);
-        uasort($brandCategoriesMap, fn($a,$b)=> strnatcasecmp($a['name'], $b['name']));
-    }
+      }
+
+      // ترتيب أبجدي
+      foreach ($map as &$entry) {
+        $entry['categories'] = array_values($entry['categories']);
+        usort($entry['categories'], fn($a, $b) => strnatcasecmp($a['name'], $b['name']));
+      }
+      unset($entry);
+      uasort($map, fn($a, $b) => strnatcasecmp($a['name'], $b['name']));
+
+      return $map;
+    });
+  }
 @endphp
 
 <div class="relative" x-data="brandMenuV4()" x-init="init()"
@@ -2204,6 +2217,13 @@ function brandMenuV4(){
     try { sessionStorage.setItem(STORAGE_KEY, '1'); } catch (e) {}
   }
 
+  function normalizePath(pathname) {
+    if (!pathname) return '/';
+    let path = String(pathname).replace(/\/index\.php\/?/g, '/');
+    if (path.length > 1) path = path.replace(/\/+$/, '');
+    return path || '/';
+  }
+
   function isInternalNavigableLink(link, event) {
     if (!link) return false;
     if (event.defaultPrevented) return false;
@@ -2225,6 +2245,16 @@ function brandMenuV4(){
     }
 
     if (url.origin !== window.location.origin) return false;
+
+    // Ignore same-page and in-page (hash) moves in the same document.
+    const sameDocument = (
+      normalizePath(url.pathname) === normalizePath(window.location.pathname) &&
+      url.search === window.location.search
+    );
+
+    if (sameDocument) {
+      return false;
+    }
 
     // Ignore anchor-only moves in the same document.
     if (
@@ -2273,6 +2303,38 @@ function brandMenuV4(){
   /* =====================================================
      نظام التنقل السريع للفوتر - مع تحميل مسبق
      ===================================================== */
+
+  function normalizePath(pathname) {
+    if (!pathname) return '/';
+    let path = String(pathname).replace(/\/index\.php\/?/g, '/');
+    if (path.length > 1) path = path.replace(/\/+$/, '');
+    return path || '/';
+  }
+
+  function isSamePageUrl(url) {
+    try {
+      const target = new URL(url, window.location.origin);
+      const current = new URL(window.location.href);
+      return (
+        target.origin === current.origin &&
+        normalizePath(target.pathname) === normalizePath(current.pathname) &&
+        target.search === current.search
+      );
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Prevent reloading the exact same page when tapping mobile header/footer nav links.
+  document.addEventListener('click', (event) => {
+    if (window.innerWidth >= 1024) return;
+    const link = event.target.closest('#mobileHeader a[data-fast-nav="true"], .footer-mobile a[data-fast-nav="true"]');
+    if (!link) return;
+    if (isSamePageUrl(link.href)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, true);
 
   const NAV_ITEMS = [
     '{{ route("homepage") }}',
