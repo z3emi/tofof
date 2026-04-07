@@ -54,12 +54,14 @@
     .rich-description p:last-child { margin-bottom: 0; }
     .rich-description ul,
     .rich-description ol {
-        list-style: none;
-        padding-inline-start: 0;
-        margin: 0 0 .75rem;
+        padding-inline-start: 1.5rem !important;
+        margin: 0 0 .75rem !important;
     }
+    .rich-description ul { list-style: disc !important; }
+    .rich-description ol { list-style: decimal !important; }
     .rich-description li {
-        margin: 0 0 .35rem;
+        margin: 0 0 .35rem !important;
+        display: list-item !important;
     }
     .thumb {
         width: 90px;
@@ -410,6 +412,76 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    function normalizeDescriptionLists(rootSelector) {
+        const root = document.querySelector(rootSelector);
+        if (!root || root.querySelector('ul, ol')) {
+            return;
+        }
+
+        const blockElements = Array.from(root.children).filter((el) => el.matches('p, div, li'));
+        if (!blockElements.length) {
+            return;
+        }
+
+        const fragments = [];
+        let listType = null;
+        let listItems = [];
+
+        const flushList = () => {
+            if (!listType || !listItems.length) {
+                listType = null;
+                listItems = [];
+                return;
+            }
+
+            fragments.push(`<${listType}>${listItems.map((item) => `<li>${item}</li>`).join('')}</${listType}>`);
+            listType = null;
+            listItems = [];
+        };
+
+        blockElements.forEach((el) => {
+            const text = (el.textContent || '').trim();
+            const html = (el.innerHTML || '').trim();
+
+            if (!text) {
+                flushList();
+                return;
+            }
+
+            const bulletMatch = text.match(/^[•\-*]\s+(.+)$/u);
+            const numberedMatch = text.match(/^(\d+)[\.)]\s+(.+)$/u);
+
+            if (bulletMatch) {
+                if (listType && listType !== 'ul') {
+                    flushList();
+                }
+                listType = 'ul';
+                listItems.push(html.replace(/^[•\-*]\s+/u, ''));
+                return;
+            }
+
+            if (numberedMatch) {
+                if (listType && listType !== 'ol') {
+                    flushList();
+                }
+                listType = 'ol';
+                listItems.push(html.replace(/^(\d+)[\.)]\s+/u, ''));
+                return;
+            }
+
+            flushList();
+            fragments.push(el.outerHTML || `<p>${html}</p>`);
+        });
+
+        flushList();
+
+        if (fragments.length) {
+            root.innerHTML = fragments.join('');
+        }
+    }
+
+    normalizeDescriptionLists('.rich-description');
+
     const preview = document.getElementById('productImagePreview');
 
     document.querySelectorAll('.product-image-trigger').forEach(function (btn) {

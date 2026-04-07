@@ -609,50 +609,6 @@
 
 <script>
 $(document).ready(function() {
-    function normalizeDescriptionHtml(html) {
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = html || '';
-
-        wrapper.querySelectorAll('ul, ol').forEach((list) => {
-            const paragraphNodes = [];
-
-            Array.from(list.children).forEach((child) => {
-                if (child.tagName && child.tagName.toLowerCase() === 'li') {
-                    const content = child.innerHTML.trim();
-                    if (!content) {
-                        return;
-                    }
-
-                    const p = document.createElement('p');
-                    p.innerHTML = content;
-                    paragraphNodes.push(p);
-                }
-            });
-
-            if (paragraphNodes.length) {
-                list.replaceWith(...paragraphNodes);
-            } else {
-                list.replaceWith(document.createElement('p'));
-            }
-        });
-
-        return wrapper.innerHTML;
-    }
-
-    function attachDescriptionNormalizer(textareaSelector) {
-        const $textarea = $(textareaSelector);
-        const formEl = $textarea.closest('form').get(0);
-        if (!formEl) {
-            return;
-        }
-
-        formEl.addEventListener('submit', function() {
-            const currentHtml = $textarea.summernote('code');
-            const normalizedHtml = normalizeDescriptionHtml(currentHtml);
-            $textarea.summernote('code', normalizedHtml);
-        });
-    }
-
     $('#description_ar').summernote({
         placeholder: 'اكتب وصف المنتج بالعربي...',
         tabsize: 2,
@@ -661,7 +617,7 @@ $(document).ready(function() {
             ['style', ['style']],
             ['font', ['bold', 'underline', 'clear']],
             ['color', ['color']],
-            ['para', ['paragraph']],
+            ['para', ['ul', 'ol', 'paragraph']],
             ['table', ['table']],
             ['insert', ['link', 'picture']],
             ['view', ['fullscreen', 'codeview', 'help']]
@@ -683,7 +639,7 @@ $(document).ready(function() {
             ['style', ['style']],
             ['font', ['bold', 'underline', 'clear']],
             ['color', ['color']],
-            ['para', ['paragraph']],
+            ['para', ['ul', 'ol', 'paragraph']],
             ['table', ['table']],
             ['insert', ['link', 'picture']],
             ['view', ['fullscreen', 'codeview', 'help']]
@@ -697,8 +653,6 @@ $(document).ready(function() {
         }
     });
 
-    attachDescriptionNormalizer('#description_ar');
-    attachDescriptionNormalizer('#description_en');
 });
 </script>
 

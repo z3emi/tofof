@@ -56,17 +56,18 @@
 
     .product-page .product-description-content ul,
     .product-page .product-description-content ol {
-        padding-inline-start: 1.25rem;
-        margin: 0 0 .9rem;
+        padding-inline-start: 1.5rem !important;
+        margin: 0 0 .9rem !important;
     }
     .product-page .product-description-content ul {
-        list-style: disc;
+        list-style: disc !important;
     }
     .product-page .product-description-content ol {
-        list-style: decimal;
+        list-style: decimal !important;
     }
     .product-page .product-description-content li {
-        margin: 0 0 .4rem;
+        margin: 0 0 .4rem !important;
+        display: list-item !important;
     }
 
     /* ===== حدود وخلفيات عامة ===== */
@@ -1069,6 +1070,76 @@
 
     // إرسال التقييم AJAX بدون ريفرش
     document.addEventListener('DOMContentLoaded', function () {
+        function normalizeDescriptionLists(rootSelector) {
+            const root = document.querySelector(rootSelector);
+            if (!root || root.querySelector('ul, ol')) {
+                return;
+            }
+
+            const blockElements = Array.from(root.children).filter((el) => el.matches('p, div, li'));
+            if (!blockElements.length) {
+                return;
+            }
+
+            const fragments = [];
+            let listType = null;
+            let listItems = [];
+
+            const flushList = () => {
+                if (!listType || !listItems.length) {
+                    listType = null;
+                    listItems = [];
+                    return;
+                }
+
+                fragments.push(`<${listType}>${listItems.map((item) => `<li>${item}</li>`).join('')}</${listType}>`);
+                listType = null;
+                listItems = [];
+            };
+
+            blockElements.forEach((el) => {
+                const text = (el.textContent || '').trim();
+                const html = (el.innerHTML || '').trim();
+
+                if (!text) {
+                    flushList();
+                    return;
+                }
+
+                const bulletMatch = text.match(/^[•\-*]\s+(.+)$/u);
+                const numberedMatch = text.match(/^(\d+)[\.)]\s+(.+)$/u);
+
+                if (bulletMatch) {
+                    if (listType && listType !== 'ul') {
+                        flushList();
+                    }
+                    listType = 'ul';
+                    listItems.push(html.replace(/^[•\-*]\s+/u, ''));
+                    return;
+                }
+
+                if (numberedMatch) {
+                    if (listType && listType !== 'ol') {
+                        flushList();
+                    }
+                    listType = 'ol';
+                    listItems.push(html.replace(/^(\d+)[\.)]\s+/u, ''));
+                    return;
+                }
+
+                flushList();
+                fragments.push(el.outerHTML || `<p>${html}</p>`);
+            });
+
+            flushList();
+
+            if (fragments.length) {
+                root.innerHTML = fragments.join('');
+            }
+        }
+
+        normalizeDescriptionLists('.product-description-content');
+
         const form = document.getElementById('review-form');
         const successBox = document.getElementById('review-success');
         const errorsBox  = document.getElementById('review-errors');
