@@ -870,7 +870,14 @@ class ProductController extends Controller
 
     private function applyRequestedImageOrder(Product $product, array $requestedOrder): void
     {
+        Log::info('applyRequestedImageOrder called', [
+            'product_id' => $product->id,
+            'requestedOrder' => $requestedOrder,
+            'requestedOrder_count' => count($requestedOrder),
+        ]);
+
         if (empty($requestedOrder)) {
+            Log::info('applyRequestedImageOrder: requestedOrder is empty, skipping');
             return;
         }
 
@@ -949,18 +956,38 @@ class ProductController extends Controller
 
     private function persistImageOrder(Product $product, array $orderedIds): void
     {
+        Log::info('persistImageOrder called', [
+            'product_id' => $product->id,
+            'orderedIds' => $orderedIds,
+            'count' => count($orderedIds),
+        ]);
+
         if (empty($orderedIds)) {
+            Log::warning('persistImageOrder: orderedIds is empty');
             return;
         }
 
         $order = 1;
         foreach ($orderedIds as $imageId) {
-            ProductImage::query()
+            $updated = ProductImage::query()
                 ->where('product_id', $product->id)
                 ->where('id', (int) $imageId)
                 ->update(['sort_order' => $order]);
+            Log::debug('Updated image sort_order', [
+                'image_id' => $imageId,
+                'sort_order' => $order,
+                'rows_affected' => $updated,
+            ]);
             $order++;
         }
+
+        // Verify the update
+        $saved = ProductImage::query()
+            ->where('product_id', $product->id)
+            ->orderBy('sort_order')
+            ->get(['id', 'sort_order'])
+            ->toArray();
+        Log::info('persistImageOrder: Final state', $saved);
     }
 
     private function isMissingDefaultIdError(Throwable $e): bool

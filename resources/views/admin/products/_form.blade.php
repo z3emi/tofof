@@ -709,7 +709,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const previewContainer = document.getElementById('new-images-preview');
     const gallery = document.getElementById('image-gallery');
     const orderHiddenStore = document.getElementById('image_order_store');
-    const form = imagesInput?.closest('form') || gallery?.closest('form');
+    
+    // Find form - try multiple methods
+    let form = null;
+    if (imagesInput) form = imagesInput.closest('form');
+    if (!form && gallery) form = gallery.closest('form');
+    if (!form) form = document.querySelector('form'); // fallback to first form on page
+    
+    console.log('Form detected:', form ? form.id || form.tagName : 'NOT FOUND');
+    console.log('Gallery detected:', gallery ? 'YES' : 'NOT FOUND');
+    console.log('ImagesInput detected:', imagesInput ? 'YES' : 'NOT FOUND');
 
     function getOrderedImageIds() {
         if (!gallery) return [];
@@ -719,21 +728,33 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function syncImageOrderInputs() {
-        if (!form) return;
-
-        form.querySelectorAll('input[data-image-order="1"]').forEach((el) => el.remove());
-        if (orderHiddenStore) {
-            orderHiddenStore.remove();
+        if (!form) {
+            console.warn('syncImageOrderInputs: form not found');
+            return;
         }
 
-        getOrderedImageIds().forEach((id) => {
+        // Remove old inputs
+        const oldInputs = form.querySelectorAll('input[data-image-order="1"]');
+        oldInputs.forEach((el) => el.remove());
+        
+        // Get ordered IDs
+        const orderedIds = getOrderedImageIds();
+        console.log('syncImageOrderInputs: orderedIds =', orderedIds);
+
+        // Create new hidden inputs
+        orderedIds.forEach((id) => {
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'image_order[]';
             input.value = String(id);
             input.setAttribute('data-image-order', '1');
             form.appendChild(input);
+            console.log(`Created hidden input: image_order[] = ${id}`);
         });
+
+        // Verify inputs were created
+        const finalInputs = form.querySelectorAll('input[name="image_order[]"]');
+        console.log('Final image_order[] inputs count:', finalInputs.length);
     }
 
     function moveImageItem(item, direction) {
@@ -862,7 +883,22 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (form) {
-        form.addEventListener('submit', syncImageOrderInputs);
+        form.addEventListener('submit', function(e) {
+            console.log('Form submit event triggered - preventing default');
+            e.preventDefault();
+            
+            // Create/update hidden inputs
+            syncImageOrderInputs();
+            
+            // Wait a moment then submit
+            setTimeout(() => {
+                const inputs = Array.from(form.querySelectorAll('input[name="image_order[]"]'));
+                console.log('Final form submission with:', inputs.map(i => `image_order[]=${i.value}`));
+                
+                // Now submit the form programmatically
+                form.submit();
+            }, 10);
+        });
     }
 });
 </script>
