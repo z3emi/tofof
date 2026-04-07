@@ -54,6 +54,16 @@
     .product-page a:hover{ opacity:.9; }
     html.dark .product-page a{ color: var(--brand); }
 
+    .product-page .product-description-content ul,
+    .product-page .product-description-content ol {
+        list-style: none;
+        padding-inline-start: 0;
+        margin: 0 0 .9rem;
+    }
+    .product-page .product-description-content li {
+        margin: 0 0 .4rem;
+    }
+
     /* ===== حدود وخلفيات عامة ===== */
     html.dark .product-page .bg-white,
     html.dark .product-page .border.rounded-lg.p-4,
@@ -666,7 +676,7 @@
                     @endauth
                 </div>
 
-                <div class="prose max-w-none leading-relaxed border-t border-gray-200 pt-8">
+                <div class="prose max-w-none leading-relaxed border-t border-gray-200 pt-8 product-description-content">
                     <h3 class="font-bold text-xl mb-4" style="color:var(--text)">{{ __('product.description') }}</h3>
                     {!! $product->description_translated !!}
                 </div>

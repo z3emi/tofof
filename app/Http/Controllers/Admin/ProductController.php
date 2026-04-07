@@ -123,6 +123,7 @@ class ProductController extends Controller
             'sale_ends_at'   => 'nullable|date|after_or_equal:sale_starts_at',
             'images'         => 'required|array',
             'images.*'       => 'image|mimes:jpeg,png,jpg,gif,svg,webp',
+            'new_images_position' => 'nullable|in:first,middle,last',
 
             // 👇 تدعم الطريقتين: متعدد أو واحدة
             'primary_categories'    => 'nullable|array',
@@ -183,6 +184,8 @@ class ProductController extends Controller
                 }
             }
 
+            $this->reorderProductImages($product);
+
             $this->syncProductOptionsAndCombinations($product, $request);
 
             DB::commit();
@@ -236,6 +239,9 @@ class ProductController extends Controller
             'sale_ends_at'   => 'nullable|date|after_or_equal:sale_starts_at',
             'images'         => 'nullable|array',
             'images.*'       => 'image|mimes:jpeg,png,jpg,gif,svg,webp',
+            'image_order'    => 'nullable|array',
+            'image_order.*'  => 'nullable|integer',
+            'new_images_position' => 'nullable|in:first,middle,last',
 
             // 👇 تدعم الطريقتين: متعدد أو واحدة
             'primary_categories'    => 'nullable|array',
@@ -285,13 +291,25 @@ class ProductController extends Controller
             $pcIds = array_values(array_unique(array_filter(array_map('intval', (array) $pcIds))));
             $product->primaryCategories()->sync($pcIds);
 
+            $this->applyRequestedImageOrder($product, (array) $request->input('image_order', []));
+
             // صور جديدة (إن وُجدت)
+            $newlyAddedImageIds = [];
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $imageFile) {
                     $path = $this->uploadAndConvertImage($imageFile, 'products');
-                    $this->createProductImageWithRepair($product, $path);
+                    $image = $this->createProductImageWithRepair($product, $path);
+                    if ($image) {
+                        $newlyAddedImageIds[] = (int) $image->id;
+                    }
                 }
             }
+
+            if (!empty($newlyAddedImageIds)) {
+                $this->placeNewImages($product, $newlyAddedImageIds, (string) $request->input('new_images_position', 'last'));
+            }
+
+            $this->reorderProductImages($product);
 
             $this->syncProductOptionsAndCombinations($product, $request);
 
@@ -801,10 +819,15 @@ class ProductController extends Controller
         }
     }
 
-    private function createProductImageWithRepair(Product $product, string $path): void
+    private function createProductImageWithRepair(Product $product, string $path): ?ProductImage
     {
+        $nextSortOrder = $this->nextSortOrderForProduct($product);
+
         try {
-            $product->images()->create(['image_path' => $path]);
+            return $product->images()->create([
+                'image_path' => $path,
+                'sort_order' => $nextSortOrder,
+            ]);
         } catch (Throwable $e) {
             if (! $this->isMissingDefaultIdError($e)) {
                 throw $e;
@@ -817,8 +840,9 @@ class ProductController extends Controller
                         'id' => $nextId,
                         'product_id' => (int) $product->id,
                         'image_path' => $path,
+                        'sort_order' => $nextSortOrder,
                     ]);
-                return;
+                return ProductImage::query()->find($nextId);
             }
 
             Log::warning('Product image insert failed with missing default id; attempting schema repair.', [
@@ -828,7 +852,114 @@ class ProductController extends Controller
             ]);
 
             $this->repairProductImagesIdColumn();
-            $product->images()->create(['image_path' => $path]);
+            return $product->images()->create([
+                'image_path' => $path,
+                'sort_order' => $nextSortOrder,
+            ]);
+        }
+    }
+
+    private function nextSortOrderForProduct(Product $product): int
+    {
+        $maxSortOrder = ProductImage::query()
+            ->where('product_id', $product->id)
+            ->max('sort_order');
+
+        return ((int) $maxSortOrder) + 1;
+    }
+
+    private function applyRequestedImageOrder(Product $product, array $requestedOrder): void
+    {
+        if (empty($requestedOrder)) {
+            return;
+        }
+
+        $existingIds = ProductImage::query()
+            ->where('product_id', $product->id)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $existingLookup = array_flip($existingIds);
+
+        $orderedIds = [];
+        foreach ($requestedOrder as $id) {
+            $id = (int) $id;
+            if ($id > 0 && isset($existingLookup[$id])) {
+                $orderedIds[] = $id;
+                unset($existingLookup[$id]);
+            }
+        }
+
+        foreach (array_keys($existingLookup) as $leftId) {
+            $orderedIds[] = (int) $leftId;
+        }
+
+        $this->persistImageOrder($product, $orderedIds);
+    }
+
+    private function placeNewImages(Product $product, array $newImageIds, string $position): void
+    {
+        $newImageIds = array_values(array_unique(array_filter(array_map('intval', $newImageIds), fn ($id) => $id > 0)));
+        if (empty($newImageIds)) {
+            return;
+        }
+
+        $allIds = ProductImage::query()
+            ->where('product_id', $product->id)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $newLookup = array_flip($newImageIds);
+        $existingIds = array_values(array_filter($allIds, fn ($id) => !isset($newLookup[$id])));
+
+        if ($position === 'first') {
+            $finalIds = array_merge($newImageIds, $existingIds);
+        } elseif ($position === 'middle') {
+            $insertAt = (int) floor(count($existingIds) / 2);
+            $finalIds = array_merge(
+                array_slice($existingIds, 0, $insertAt),
+                $newImageIds,
+                array_slice($existingIds, $insertAt)
+            );
+        } else {
+            $finalIds = array_merge($existingIds, $newImageIds);
+        }
+
+        $this->persistImageOrder($product, $finalIds);
+    }
+
+    private function reorderProductImages(Product $product): void
+    {
+        $orderedIds = ProductImage::query()
+            ->where('product_id', $product->id)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $this->persistImageOrder($product, $orderedIds);
+    }
+
+    private function persistImageOrder(Product $product, array $orderedIds): void
+    {
+        if (empty($orderedIds)) {
+            return;
+        }
+
+        $order = 1;
+        foreach ($orderedIds as $imageId) {
+            ProductImage::query()
+                ->where('product_id', $product->id)
+                ->where('id', (int) $imageId)
+                ->update(['sort_order' => $order]);
+            $order++;
         }
     }
 

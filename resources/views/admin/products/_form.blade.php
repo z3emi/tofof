@@ -175,19 +175,42 @@
                     @error('images.*')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
+                @if(isset($product))
+                    <div class="mb-3">
+                        <label for="new_images_position" class="form-label">مكان إدراج الصور الجديدة</label>
+                        <select class="form-select" id="new_images_position" name="new_images_position">
+                            <option value="last" @selected(old('new_images_position', 'last') === 'last')>في النهاية</option>
+                            <option value="middle" @selected(old('new_images_position') === 'middle')>في المنتصف</option>
+                            <option value="first" @selected(old('new_images_position') === 'first')>في البداية</option>
+                        </select>
+                        <small class="text-muted">ينطبق هذا فقط على الصور التي ترفعها الآن.</small>
+                    </div>
+                @endif
+
                 {{-- معاينة الصور الجديدة --}}
                 <div id="new-images-preview" class="d-flex flex-wrap gap-2 mb-3"></div>
 
                 @if(isset($product) && $product->images->isNotEmpty())
                 <div>
-                    <label class="form-label text-muted small mb-1">الصور الحالية</label>
-                    <div class="d-flex flex-wrap gap-2 border rounded p-2" id="image-gallery">
+                    <label class="form-label text-muted small mb-1">الصور الحالية (اسحب أو استخدم الأسهم للترتيب)</label>
+                    <div class="image-gallery-grid border rounded p-2" id="image-gallery">
                         @foreach($product->images as $image)
-                            <div class="position-relative" id="image-container-{{ $image->id }}">
+                            <div class="position-relative image-order-item" id="image-container-{{ $image->id }}" data-image-id="{{ $image->id }}" draggable="true">
                                 <img src="{{ asset('storage/' . $image->image_path) }}"
                                      class="img-thumbnail rounded"
                                      style="width:90px;height:90px;object-fit:cover;"
                                      alt="">
+                                <div class="image-order-actions mt-1 d-flex justify-content-center gap-1">
+                                    <button type="button" class="btn btn-light btn-sm border move-image-right" title="تقديم لليمين">
+                                        <i class="bi bi-arrow-right"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-light btn-sm border move-image-left" title="تأخير لليسار">
+                                        <i class="bi bi-arrow-left"></i>
+                                    </button>
+                                    <span class="btn btn-light btn-sm border image-drag-handle" title="اسحب للترتيب">
+                                        <i class="bi bi-grip-vertical"></i>
+                                    </span>
+                                </div>
                                 <button type="button"
                                         class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 delete-image-btn p-0"
                                         data-image-id="{{ $image->id }}"
@@ -415,6 +438,39 @@
         margin-right: 5px !important;
         margin-left: 0 !important;
     }
+
+    .image-gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+        gap: 12px;
+    }
+
+    .image-order-item {
+        padding: 4px;
+        border-radius: 8px;
+        transition: background-color 0.2s ease;
+    }
+
+    .image-order-item.dragging {
+        opacity: 0.5;
+        background: #f8f9fa;
+    }
+
+    .image-order-item.drag-over {
+        outline: 2px dashed #0d6efd;
+        outline-offset: 2px;
+    }
+
+    .image-order-actions .btn {
+        width: 26px;
+        height: 26px;
+        padding: 0;
+        line-height: 1;
+    }
+
+    .image-drag-handle {
+        cursor: grab;
+    }
 </style>
 @endpush
 
@@ -553,6 +609,50 @@
 
 <script>
 $(document).ready(function() {
+    function normalizeDescriptionHtml(html) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = html || '';
+
+        wrapper.querySelectorAll('ul, ol').forEach((list) => {
+            const paragraphNodes = [];
+
+            Array.from(list.children).forEach((child) => {
+                if (child.tagName && child.tagName.toLowerCase() === 'li') {
+                    const content = child.innerHTML.trim();
+                    if (!content) {
+                        return;
+                    }
+
+                    const p = document.createElement('p');
+                    p.innerHTML = content;
+                    paragraphNodes.push(p);
+                }
+            });
+
+            if (paragraphNodes.length) {
+                list.replaceWith(...paragraphNodes);
+            } else {
+                list.replaceWith(document.createElement('p'));
+            }
+        });
+
+        return wrapper.innerHTML;
+    }
+
+    function attachDescriptionNormalizer(textareaSelector) {
+        const $textarea = $(textareaSelector);
+        const formEl = $textarea.closest('form').get(0);
+        if (!formEl) {
+            return;
+        }
+
+        formEl.addEventListener('submit', function() {
+            const currentHtml = $textarea.summernote('code');
+            const normalizedHtml = normalizeDescriptionHtml(currentHtml);
+            $textarea.summernote('code', normalizedHtml);
+        });
+    }
+
     $('#description_ar').summernote({
         placeholder: 'اكتب وصف المنتج بالعربي...',
         tabsize: 2,
@@ -561,7 +661,7 @@ $(document).ready(function() {
             ['style', ['style']],
             ['font', ['bold', 'underline', 'clear']],
             ['color', ['color']],
-            ['para', ['ul', 'ol', 'paragraph']],
+            ['para', ['paragraph']],
             ['table', ['table']],
             ['insert', ['link', 'picture']],
             ['view', ['fullscreen', 'codeview', 'help']]
@@ -583,7 +683,7 @@ $(document).ready(function() {
             ['style', ['style']],
             ['font', ['bold', 'underline', 'clear']],
             ['color', ['color']],
-            ['para', ['ul', 'ol', 'paragraph']],
+            ['para', ['paragraph']],
             ['table', ['table']],
             ['insert', ['link', 'picture']],
             ['view', ['fullscreen', 'codeview', 'help']]
@@ -596,6 +696,9 @@ $(document).ready(function() {
             }
         }
     });
+
+    attachDescriptionNormalizer('#description_ar');
+    attachDescriptionNormalizer('#description_en');
 });
 </script>
 
@@ -604,6 +707,48 @@ document.addEventListener('DOMContentLoaded', function () {
     // معاينة الصور الجديدة قبل الرفع
     const imagesInput = document.getElementById('images');
     const previewContainer = document.getElementById('new-images-preview');
+    const gallery = document.getElementById('image-gallery');
+    const orderHiddenStore = document.getElementById('image_order_store');
+    const form = imagesInput?.closest('form') || gallery?.closest('form');
+
+    function getOrderedImageIds() {
+        if (!gallery) return [];
+        return Array.from(gallery.querySelectorAll('.image-order-item'))
+            .map((el) => Number(el.dataset.imageId || 0))
+            .filter((id) => id > 0);
+    }
+
+    function syncImageOrderInputs() {
+        if (!form) return;
+
+        form.querySelectorAll('input[data-image-order="1"]').forEach((el) => el.remove());
+        if (orderHiddenStore) {
+            orderHiddenStore.remove();
+        }
+
+        getOrderedImageIds().forEach((id) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'image_order[]';
+            input.value = String(id);
+            input.setAttribute('data-image-order', '1');
+            form.appendChild(input);
+        });
+    }
+
+    function moveImageItem(item, direction) {
+        if (!item || !gallery) return;
+        const sibling = direction === 'right' ? item.previousElementSibling : item.nextElementSibling;
+        if (!sibling) return;
+
+        if (direction === 'right') {
+            gallery.insertBefore(item, sibling);
+        } else {
+            gallery.insertBefore(sibling, item);
+        }
+
+        syncImageOrderInputs();
+    }
 
     if (imagesInput) {
         imagesInput.addEventListener('change', function() {
@@ -626,10 +771,67 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // حذف صورة من معرض المنتج عبر AJAX
-    const gallery = document.getElementById('image-gallery');
+    // ترتيب وحذف صور معرض المنتج
     if (gallery) {
+        let draggedItem = null;
+
+        gallery.querySelectorAll('.image-order-item').forEach((item) => {
+            item.addEventListener('dragstart', function () {
+                draggedItem = item;
+                item.classList.add('dragging');
+            });
+
+            item.addEventListener('dragend', function () {
+                item.classList.remove('dragging');
+                gallery.querySelectorAll('.image-order-item').forEach((el) => el.classList.remove('drag-over'));
+                draggedItem = null;
+            });
+
+            item.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                if (item !== draggedItem) {
+                    item.classList.add('drag-over');
+                }
+            });
+
+            item.addEventListener('dragleave', function () {
+                item.classList.remove('drag-over');
+            });
+
+            item.addEventListener('drop', function (e) {
+                e.preventDefault();
+                item.classList.remove('drag-over');
+                if (!draggedItem || draggedItem === item) return;
+
+                const items = Array.from(gallery.querySelectorAll('.image-order-item'));
+                const draggedIndex = items.indexOf(draggedItem);
+                const targetIndex = items.indexOf(item);
+
+                if (draggedIndex < targetIndex) {
+                    gallery.insertBefore(draggedItem, item.nextSibling);
+                } else {
+                    gallery.insertBefore(draggedItem, item);
+                }
+
+                syncImageOrderInputs();
+            });
+        });
+
         gallery.addEventListener('click', function (e) {
+            const moveRightBtn = e.target.closest('.move-image-right');
+            if (moveRightBtn) {
+                e.preventDefault();
+                moveImageItem(moveRightBtn.closest('.image-order-item'), 'right');
+                return;
+            }
+
+            const moveLeftBtn = e.target.closest('.move-image-left');
+            if (moveLeftBtn) {
+                e.preventDefault();
+                moveImageItem(moveLeftBtn.closest('.image-order-item'), 'left');
+                return;
+            }
+
             const btn = e.target.closest('.delete-image-btn');
             if (!btn) return;
             e.preventDefault();
@@ -646,6 +848,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .then(data => {
                     if (data.success) {
                         document.getElementById('image-container-' + btn.dataset.imageId)?.remove();
+                        syncImageOrderInputs();
                         window.showToast('تم بنجاح', 'تم حذف الصورة بنجاح.');
                     } else {
                         window.showToast('خطأ', data.message || 'فشل حذف الصورة.', 'error');
@@ -654,6 +857,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 .catch(() => window.showToast('خطأ', 'حدث خطأ في الاتصال.', 'error'));
             });
         });
+
+        syncImageOrderInputs();
+    }
+
+    if (form) {
+        form.addEventListener('submit', syncImageOrderInputs);
     }
 });
 </script>

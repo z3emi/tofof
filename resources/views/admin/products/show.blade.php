@@ -53,7 +53,14 @@
     }
     .rich-description p:last-child { margin-bottom: 0; }
     .rich-description ul,
-    .rich-description ol { padding-inline-start: 1.2rem; }
+    .rich-description ol {
+        list-style: none;
+        padding-inline-start: 0;
+        margin: 0 0 .75rem;
+    }
+    .rich-description li {
+        margin: 0 0 .35rem;
+    }
     .thumb {
         width: 90px;
         height: 90px;

@@ -97,7 +97,9 @@ class Product extends Model
     }
         public function images()
     {
-        return $this->hasMany(ProductImage::class);
+        return $this->hasMany(ProductImage::class)
+            ->orderBy('sort_order')
+            ->orderBy('id');
     }
 
         public function options()
@@ -115,7 +117,9 @@ class Product extends Model
      */
     public function firstImage()
     {
-        return $this->hasOne(ProductImage::class)->oldestOfMany();
+        return $this->hasOne(ProductImage::class)
+            ->orderBy('sort_order')
+            ->orderBy('id');
     }
 
     /**
