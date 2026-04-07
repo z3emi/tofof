@@ -296,12 +296,12 @@
                         <div class="d-flex align-items-start gap-2">
                             @php
                                 $reviewDisplayName = $review->fake_name ?: ($review->user?->name ?? 'مستخدم محذوف');
-                                $reviewAvatar = $review->user?->avatar_url ?? asset('storage/avatars/default.png');
+                                $reviewAvatar = $review->user?->avatar_url ?: asset('storage/avatars/default.jpg');
                             @endphp
                             <img src="{{ $reviewAvatar }}"
                                  class="review-avatar"
                                  alt="avatar"
-                                 onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.png') }}';">
+                                 onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.jpg') }}';">
                             <div>
                                 <div class="fw-bold">{{ $reviewDisplayName }}</div>
                                 <div class="small text-muted review-meta-line">

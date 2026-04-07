@@ -2224,12 +2224,12 @@
                     @foreach($topTestimonials as $review)
                         @php
                             $testimonialName = $review->fake_name ?: ($review->user?->name ?: 'عميل متجر توفف');
-                            $testimonialAvatar = $review->user?->avatar_url ?: asset('storage/avatars/default.png');
+                            $testimonialAvatar = $review->user?->avatar_url ?: asset('storage/avatars/default.jpg');
                             $testimonialProduct = $review->product?->name_ar ?: ($review->product?->name_en ?: 'عميل موثوق');
                         @endphp
                         <article class="testimonial-card">
                             <header class="testimonial-card-head">
-                                <img src="{{ $testimonialAvatar }}" alt="{{ $testimonialName }}" class="testimonial-avatar" onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.png') }}';">
+                                <img src="{{ $testimonialAvatar }}" alt="{{ $testimonialName }}" class="testimonial-avatar" onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.jpg') }}';">
                                 <div>
                                     <h3 class="testimonial-name">{{ $testimonialName }}</h3>
                                     <p class="testimonial-role">{{ $testimonialProduct }}</p>
@@ -2251,12 +2251,12 @@
                     @foreach($bottomTestimonials as $review)
                         @php
                             $testimonialName = $review->fake_name ?: ($review->user?->name ?: 'عميل متجر توفف');
-                            $testimonialAvatar = $review->user?->avatar_url ?: asset('storage/avatars/default.png');
+                            $testimonialAvatar = $review->user?->avatar_url ?: asset('storage/avatars/default.jpg');
                             $testimonialProduct = $review->product?->name_ar ?: ($review->product?->name_en ?: 'عميل موثوق');
                         @endphp
                         <article class="testimonial-card">
                             <header class="testimonial-card-head">
-                                <img src="{{ $testimonialAvatar }}" alt="{{ $testimonialName }}" class="testimonial-avatar" onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.png') }}';">
+                                <img src="{{ $testimonialAvatar }}" alt="{{ $testimonialName }}" class="testimonial-avatar" onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.jpg') }}';">
                                 <div>
                                     <h3 class="testimonial-name">{{ $testimonialName }}</h3>
                                     <p class="testimonial-role">{{ $testimonialProduct }}</p>

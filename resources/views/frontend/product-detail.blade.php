@@ -729,7 +729,7 @@
                             <div class="review-card" id="review-card-{{ $r->id }}">
                                 <div class="review-card-head">
                                     <div class="review-user">
-                                        <img src="{{ $r->user?->avatar_url ?? asset('storage/avatars/default.jpg') }}" alt="avatar" class="review-avatar">
+                                        <img src="{{ $r->user?->avatar_url ?: asset('storage/avatars/default.jpg') }}" alt="avatar" class="review-avatar" onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.jpg') }}';">
                                         <div>
                                             <div class="review-user-name">{{ $r->fake_name ?: ($r->user?->name ?? __('product.user')) }}</div>
                                             <div class="review-user-time">{{ $r->created_at->diffForHumans() }}</div>

@@ -292,10 +292,10 @@
                                         <div class="review-user">
                                             @php
                                                 $reviewUser = $review->user;
-                                                $avatar = $reviewUser?->avatar_url ?: asset('storage/avatars/default.png');
+                                                $avatar = $reviewUser?->avatar_url ?: asset('storage/avatars/default.jpg');
                                                 $reviewName = $review->fake_name ?: ($reviewUser?->name ?? 'مستخدم محذوف');
                                             @endphp
-                                            <img src="{{ $avatar }}" alt="{{ $reviewName }}" class="review-avatar" onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.png') }}';">
+                                            <img src="{{ $avatar }}" alt="{{ $reviewName }}" class="review-avatar" onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.jpg') }}';">
                                             <div class="d-flex align-items-center gap-2 flex-wrap">
                                                 <span class="fw-bold">{{ $reviewName }}</span>
                                                 <span class="badge bg-warning text-dark">{{ (int) $review->rating }}/5</span>
