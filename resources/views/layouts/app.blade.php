@@ -1889,13 +1889,13 @@ function brandMenuV4(){
   <div class="container mx-auto px-4 md:px-8">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-12">
       <!-- Logo and Description -->
-      <div class="lg:col-span-4 flex flex-col items-center md:items-start text-center md:text-right">
+      <div class="lg:col-span-4 flex flex-col items-center md:items-start text-center {{ app()->getLocale() === 'ar' ? 'md:text-right' : 'md:text-left' }}">
         <a href="{{ route('homepage') }}" class="inline-block mb-6 hover:opacity-90 transition-opacity">
           <img src="{{ asset('logo-black.png') }}" alt="Tofof Logo" class="w-40 h-auto object-contain dark:hidden">
           <img src="{{ asset('sec-logo.png') }}" alt="Tofof Logo" class="w-40 h-auto object-contain hidden dark:block">
         </a>
         <p class="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed max-w-sm">
-          أفضل الساعات والاكسسوارات الفاخرة التي تناسب جميع الأذواق والمناسبات. تميز بإطلالتك مع طفوف.
+          {{ __('layout.footer_description') }}
         </p>
         <div class="flex items-center gap-3">
           <a href="https://www.facebook.com/p/%D8%B7%D9%81%D9%88%D9%81-%D9%84%D9%84%D8%B3%D8%A7%D8%B9%D8%A7%D8%AA-100091444293851/" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full bg-white dark:bg-gray-900 shadow-sm border border-gray-100 dark:border-gray-800 flex items-center justify-center text-[#6d0e16] dark:text-[#f0b0ad] hover:bg-[#6d0e16] hover:text-white dark:hover:bg-[#f0b0ad] dark:hover:text-gray-900 transition-all duration-300 hover:-translate-y-1">
@@ -1911,7 +1911,7 @@ function brandMenuV4(){
       </div>
 
       <!-- Quick Links 1 -->
-      <div class="lg:col-span-2 text-center md:text-right">
+      <div class="lg:col-span-2 text-center {{ app()->getLocale() === 'ar' ? 'md:text-right' : 'md:text-left' }}">
         <h3 class="text-lg font-bold text-[#6d0e16] dark:text-[#f0b0ad] mb-6 relative inline-block pb-2">
           {{ __('layout.about_tofof') }}
           <span class="absolute bottom-0 right-0 w-1/2 h-0.5 bg-[#6d0e16] dark:bg-[#f0b0ad] rounded-full"></span>
@@ -1924,7 +1924,7 @@ function brandMenuV4(){
       </div>
 
       <!-- Quick Links 2 -->
-      <div class="lg:col-span-3 text-center md:text-right">
+      <div class="lg:col-span-3 text-center {{ app()->getLocale() === 'ar' ? 'md:text-right' : 'md:text-left' }}">
         <h3 class="text-lg font-bold text-[#6d0e16] dark:text-[#f0b0ad] mb-6 relative inline-block pb-2">
           {{ __('layout.our_services') }}
           <span class="absolute bottom-0 right-0 w-1/2 h-0.5 bg-[#6d0e16] dark:bg-[#f0b0ad] rounded-full"></span>
@@ -1939,7 +1939,7 @@ function brandMenuV4(){
       </div>
 
       <!-- Quick Links 3 -->
-      <div class="lg:col-span-3 text-center md:text-right">
+      <div class="lg:col-span-3 text-center {{ app()->getLocale() === 'ar' ? 'md:text-right' : 'md:text-left' }}">
         <h3 class="text-lg font-bold text-[#6d0e16] dark:text-[#f0b0ad] mb-6 relative inline-block pb-2">
           {{ __('layout.support') }}
           <span class="absolute bottom-0 right-0 w-1/2 h-0.5 bg-[#6d0e16] dark:bg-[#f0b0ad] rounded-full"></span>
@@ -1996,7 +1996,7 @@ function brandMenuV4(){
             <polygon points="3,1.5 12,12 21.5,12" fill="#FFC107"/>
             <polygon points="12,12 21.5,12 3,22.5" fill="#F44336"/>
           </svg>
-          <div class="text-right flex flex-col justify-center leading-none">
+          <div class="{{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }} flex flex-col justify-center leading-none">
             <span class="mini text-[10px] text-gray-300">{{ __('layout.available_on') }}</span>
             <span class="label text-sm font-bold">Google Play</span>
           </div>
@@ -2005,7 +2005,7 @@ function brandMenuV4(){
         <!-- App Store -->
         <button type="button" class="pwa-install-btn flex items-center gap-2 bg-black hover:bg-gray-900 border border-gray-800 text-white px-3 py-1.5 rounded-lg transition shadow-md" aria-label="تثبيت التطبيق على ايفون">
           <i class="bi bi-apple text-xl"></i>
-          <div class="text-right flex flex-col justify-center leading-none">
+          <div class="{{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }} flex flex-col justify-center leading-none">
             <span class="mini text-[10px] text-gray-300">{{ __('layout.available_on') }}</span>
             <span class="label text-sm font-bold">App Store</span>
           </div>
@@ -2014,7 +2014,7 @@ function brandMenuV4(){
         <!-- Windows -->
         <button type="button" class="pwa-install-btn flex items-center gap-2 bg-black hover:bg-gray-900 border border-gray-800 text-white px-3 py-1.5 rounded-lg transition shadow-md" aria-label="تثبيت التطبيق على ويندوز">
           <i class="bi bi-windows text-[#00a4ef] text-xl"></i>
-          <div class="text-right flex flex-col justify-center leading-none">
+          <div class="{{ app()->getLocale() === 'ar' ? 'text-right' : 'text-left' }} flex flex-col justify-center leading-none">
             <span class="mini text-[10px] text-gray-300">{{ __('layout.available_for') }}</span>
             <span class="label text-sm font-bold">Windows</span>
           </div>

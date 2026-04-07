@@ -56,9 +56,14 @@
 
     .product-page .product-description-content ul,
     .product-page .product-description-content ol {
-        list-style: none;
-        padding-inline-start: 0;
+        padding-inline-start: 1.25rem;
         margin: 0 0 .9rem;
+    }
+    .product-page .product-description-content ul {
+        list-style: disc;
+    }
+    .product-page .product-description-content ol {
+        list-style: decimal;
     }
     .product-page .product-description-content li {
         margin: 0 0 .4rem;

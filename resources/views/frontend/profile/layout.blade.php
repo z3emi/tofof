@@ -177,9 +177,11 @@
                         </div>
                         <button type="button"
                                 onclick="copyMobileReferralCode(event)"
+                                data-copy-text="{{ __('profile.copy') }}"
+                                data-copied-text="{{ __('profile.code_copied_short') }}"
                                 class="shrink-0 inline-flex items-center gap-1.5 bg-[{{ $brand }}] hover:bg-[{{ $brandDark }}] text-white font-bold text-xs px-3 py-2 rounded-xl transition-all active:scale-95">
                             <i class="bi bi-clipboard"></i>
-                            نسخ
+                            <span class="copy-label">{{ __('profile.copy') }}</span>
                         </button>
                     </div>
                 </div>
@@ -234,46 +236,106 @@
                 </form>
             </div>
 
-            {{-- ===== روابط معلومات طفوف مودرن ===== --}}
-            <div class="space-y-3">
-                <div class="flex items-center gap-2 px-2">
-                    <div class="w-1 h-4 bg-[{{ $brand }}] rounded-full"></div>
-                    <h4 class="font-black text-slate-400 text-sm tracking-tight uppercase">حول طفوف</h4>
+            <div class="grid grid-cols-1 gap-6">
+                <div class="bg-gradient-to-br from-slate-50 to-white border border-slate-100 rounded-3xl p-6 shadow-sm">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-11 h-11 rounded-2xl bg-[{{ $brand }}]/10 text-[{{ $brand }}] flex items-center justify-center text-xl">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-black text-slate-800 text-lg">{{ __('profile.rights_policies_title') }}</h3>
+                            <p class="text-sm text-slate-500">{{ __('profile.rights_policies_subtitle') }}</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 text-sm font-bold">
+                        <a href="{{ route('about.us') }}" class="flex items-center justify-between gap-3 rounded-2xl bg-white border border-slate-100 px-4 py-3 text-slate-700 hover:text-[{{ $brand }}] hover:border-[{{ $brand }}]/20 transition-all" data-fast-nav="true">
+                            <span class="flex items-center gap-3"><i class="bi bi-people text-[{{ $brand }}]"></i> {{ __('profile.about_us') }}</span>
+                            <i class="bi bi-chevron-left text-slate-300"></i>
+                        </a>
+                        <a href="{{ route('faq') }}" class="flex items-center justify-between gap-3 rounded-2xl bg-white border border-slate-100 px-4 py-3 text-slate-700 hover:text-[{{ $brand }}] hover:border-[{{ $brand }}]/20 transition-all" data-fast-nav="true">
+                            <span class="flex items-center gap-3"><i class="bi bi-question-circle text-[{{ $brand }}]"></i> {{ __('profile.faq') }}</span>
+                            <i class="bi bi-chevron-left text-slate-300"></i>
+                        </a>
+                        <a href="{{ route('privacy.policy') }}" class="flex items-center justify-between gap-3 rounded-2xl bg-white border border-slate-100 px-4 py-3 text-slate-700 hover:text-[{{ $brand }}] hover:border-[{{ $brand }}]/20 transition-all">
+                            <span class="flex items-center gap-3"><i class="bi bi-lock text-[{{ $brand }}]"></i> {{ __('profile.privacy_policy') }}</span>
+                            <i class="bi bi-chevron-left text-slate-300"></i>
+                        </a>
+                        <a href="{{ route('return.policy') }}" class="flex items-center justify-between gap-3 rounded-2xl bg-white border border-slate-100 px-4 py-3 text-slate-700 hover:text-[{{ $brand }}] hover:border-[{{ $brand }}]/20 transition-all">
+                            <span class="flex items-center gap-3"><i class="bi bi-arrow-left-right text-[{{ $brand }}]"></i> {{ __('profile.return_policy') }}</span>
+                            <i class="bi bi-chevron-left text-slate-300"></i>
+                        </a>
+                        <a href="{{ Route::has('payment.delivery') ? route('payment.delivery') : url('/payment-delivery') }}" class="flex items-center justify-between gap-3 rounded-2xl bg-white border border-slate-100 px-4 py-3 text-slate-700 hover:text-[{{ $brand }}] hover:border-[{{ $brand }}]/20 transition-all">
+                            <span class="flex items-center gap-3"><i class="bi bi-truck text-[{{ $brand }}]"></i> {{ __('profile.payment_delivery') }}</span>
+                            <i class="bi bi-chevron-left text-slate-300"></i>
+                        </a>
+                        <a href="{{ route('page.contact-us') }}" class="flex items-center justify-between gap-3 rounded-2xl bg-white border border-slate-100 px-4 py-3 text-slate-700 hover:text-[{{ $brand }}] hover:border-[{{ $brand }}]/20 transition-all">
+                            <span class="flex items-center gap-3"><i class="bi bi-headset text-[{{ $brand }}]"></i> {{ __('profile.contact_support') }}</span>
+                            <i class="bi bi-chevron-left text-slate-300"></i>
+                        </a>
+                        @if (Route::has('terms'))
+                            <a href="{{ route('terms') }}" class="flex items-center justify-between gap-3 rounded-2xl bg-white border border-slate-100 px-4 py-3 text-slate-700 hover:text-[{{ $brand }}] hover:border-[{{ $brand }}]/20 transition-all">
+                                <span class="flex items-center gap-3"><i class="bi bi-journal-text text-[{{ $brand }}]"></i> {{ __('profile.terms_conditions') }}</span>
+                                <i class="bi bi-chevron-left text-slate-300"></i>
+                            </a>
+                        @endif
+                    </div>
                 </div>
-                
-                <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-50 overflow-hidden">
-                    <a href="{{ route('about.us') }}" class="mobile-nav-item border-b border-slate-50" data-fast-nav="true">
-                        <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-people"></i></div>
-                        <div class="flex-1 font-bold text-slate-700 px-1">من نحن</div>
-                        <i class="bi bi-chevron-left text-slate-200"></i>
-                    </a>
 
-                    <a href="{{ route('privacy.policy') }}" class="mobile-nav-item border-b border-slate-50" data-fast-nav="true">
-                        <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-shield-check"></i></div>
-                        <div class="flex-1 font-bold text-slate-700 px-1">سياسة الخصوصية</div>
-                        <i class="bi bi-chevron-left text-slate-200"></i>
-                    </a>
+                <div class="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-11 h-11 rounded-2xl bg-[{{ $brand }}]/10 text-[{{ $brand }}] flex items-center justify-center text-xl">
+                            <i class="bi bi-credit-card-2-front"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-black text-slate-800 text-lg">{{ __('profile.payment_methods_title') }}</h3>
+                            <p class="text-sm text-slate-500">{{ __('profile.payment_methods_subtitle') }}</p>
+                        </div>
+                    </div>
 
-                    <a href="{{ Route::has('payment.delivery') ? route('payment.delivery') : url('/payment-delivery') }}" class="mobile-nav-item border-b border-slate-50" data-fast-nav="true">
-                        <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-truck"></i></div>
-                        <div class="flex-1 font-bold text-slate-700 px-1">طرق الدفع والتوصيل</div>
-                        <i class="bi bi-chevron-left text-slate-200"></i>
-                    </a>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center p-2">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Visa_Inc._logo_%282021%E2%80%93present%29.svg" alt="Visa" class="h-full object-contain">
+                        </div>
+                        <div class="h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center p-2">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/200px-Mastercard-logo.svg.png" alt="Mastercard" class="h-full object-contain">
+                        </div>
+                        <div class="h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center p-2">
+                            <img src="https://zaincash.com/static/media/ZainCashLogo.fea8cf3bb90421f45dd384d6afc6fe3b.svg" alt="Zain Cash" class="h-full object-contain">
+                        </div>
+                        <div class="h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center p-2">
+                            <img src="https://qi.iq/images/logo.svg?1=1" alt="Qi Card" class="h-full object-contain">
+                        </div>
+                    </div>
+                </div>
 
-                    <a href="{{ route('faq') }}" class="mobile-nav-item border-b border-slate-50" data-fast-nav="true">
-                        <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-question-circle"></i></div>
-                        <div class="flex-1 font-bold text-slate-700 px-1">الأسئلة الشائعة</div>
-                        <i class="bi bi-chevron-left text-slate-200"></i>
-                    </a>
+                <div class="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-11 h-11 rounded-2xl bg-[{{ $brand }}]/10 text-[{{ $brand }}] flex items-center justify-center text-xl">
+                            <i class="bi bi-share"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-black text-slate-800 text-lg">{{ __('profile.social_title') }}</h3>
+                            <p class="text-sm text-slate-500">{{ __('profile.social_subtitle') }}</p>
+                        </div>
+                    </div>
 
-                    <a href="{{ route('return.policy') }}" class="mobile-nav-item" data-fast-nav="true">
-                        <div class="icon bg-slate-50 text-[{{ $brand }}]"><i class="bi bi-arrow-left-right"></i></div>
-                        <div class="flex-1 font-bold text-slate-700 px-1">سياسة الاستبدال / الارجاع</div>
-                        <i class="bi bi-chevron-left text-slate-200"></i>
-                    </a>
+                    <div class="flex flex-wrap gap-3">
+                        <a href="https://www.facebook.com/p/%D8%B7%D9%81%D9%88%D9%81-%D9%84%D9%84%D8%B3%D8%A7%D8%B9%D8%A7%D8%AA-100091444293851/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3 text-slate-700 font-bold hover:bg-[#6d0e16] hover:text-white hover:border-[#6d0e16] transition-all">
+                            <i class="bi bi-facebook"></i>
+                            {{ __('profile.facebook') }}
+                        </a>
+                        <a href="https://www.instagram.com/tofof_watches" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3 text-slate-700 font-bold hover:bg-[#6d0e16] hover:text-white hover:border-[#6d0e16] transition-all">
+                            <i class="bi bi-instagram"></i>
+                            {{ __('profile.instagram') }}
+                        </a>
+                        <a href="https://wa.me/9647744969024" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3 text-slate-700 font-bold hover:bg-[#6d0e16] hover:text-white hover:border-[#6d0e16] transition-all">
+                            <i class="bi bi-whatsapp"></i>
+                            {{ __('profile.whatsapp') }}
+                        </a>
+                    </div>
                 </div>
             </div>
-            {{-- ===== /روابط معلومات طفوف ===== --}}
 
         </section>
         @endif
@@ -416,14 +478,16 @@
         navigator.clipboard.writeText(text).then(() => {
             const btn = event.currentTarget;
             const icon = btn.querySelector('i');
-            const label = btn.lastChild;
+            const label = btn.querySelector('.copy-label');
+            const copyText = btn.dataset.copyText || 'Copy';
+            const copiedText = btn.dataset.copiedText || 'Copied';
 
             if (icon) {
                 icon.classList.remove('bi-clipboard');
                 icon.classList.add('bi-check-lg');
             }
-            if (label && label.nodeType === Node.TEXT_NODE) {
-                label.textContent = ' تم';
+            if (label) {
+                label.textContent = copiedText;
             }
 
             setTimeout(() => {
@@ -431,8 +495,8 @@
                     icon.classList.remove('bi-check-lg');
                     icon.classList.add('bi-clipboard');
                 }
-                if (label && label.nodeType === Node.TEXT_NODE) {
-                    label.textContent = ' نسخ';
+                if (label) {
+                    label.textContent = copyText;
                 }
             }, 1400);
         });
