@@ -113,6 +113,10 @@ class ProfileController extends Controller
                     $q->where('users.id', $user->id);
                 });
             })
+            ->whereDoesntHave('usages', function ($query) use ($user) {
+                // استبعاد الأكواد التي استخدمها المستخدم بالفعل
+                $query->where('user_id', $user->id);
+            })
             ->latest()
             ->get();
 

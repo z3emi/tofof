@@ -731,7 +731,7 @@
                                     <div class="review-user">
                                         <img src="{{ $r->user?->avatar_url ?? asset('storage/avatars/default.jpg') }}" alt="avatar" class="review-avatar">
                                         <div>
-                                            <div class="review-user-name">{{ $r->user?->name ?? __('product.user') }}</div>
+                                            <div class="review-user-name">{{ $r->fake_name ?: ($r->user?->name ?? __('product.user')) }}</div>
                                             <div class="review-user-time">{{ $r->created_at->diffForHumans() }}</div>
                                         </div>
                                     </div>

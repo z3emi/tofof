@@ -193,8 +193,9 @@
                         <div class="modal-body">
                             <div class="row g-2 align-items-end">
                                 <div class="col-md-4">
-                                    <label class="form-label mb-1">الاسم الوهمي</label>
-                                    <input type="text" name="fake_name" class="form-control" value="{{ old('fake_name') }}" placeholder="مثال: عميل سعيد" required>
+                                    <label class="form-label mb-1">اسم العرض (اختياري)</label>
+                                    <input type="text" name="fake_name" class="form-control" value="{{ old('fake_name') }}" placeholder="مثال: عميل سعيد">
+                                    <small class="text-muted">لن يتم إنشاء مستخدم جديد من هذا الحقل.</small>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label mb-1">المنتج</label>
@@ -293,12 +294,16 @@
                 <div class="review-item {{ !empty($review->show_on_homepage) ? 'is-featured' : '' }}">
                     <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                         <div class="d-flex align-items-start gap-2">
-                            <img src="{{ $review->user?->avatar_url ?? asset('storage/avatars/default.png') }}"
+                            @php
+                                $reviewDisplayName = $review->fake_name ?: ($review->user?->name ?? 'مستخدم محذوف');
+                                $reviewAvatar = $review->user?->avatar_url ?? asset('storage/avatars/default.png');
+                            @endphp
+                            <img src="{{ $reviewAvatar }}"
                                  class="review-avatar"
                                  alt="avatar"
                                  onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.png') }}';">
                             <div>
-                                <div class="fw-bold">{{ $review->user?->name ?? 'مستخدم محذوف' }}</div>
+                                <div class="fw-bold">{{ $reviewDisplayName }}</div>
                                 <div class="small text-muted review-meta-line">
                                     المنتج: <a href="{{ route('admin.products.show', $review->product_id) }}">{{ $review->product?->name_ar ?: ($review->product?->name_en ?: ('#' . $review->product_id)) }}</a>
                                     <span>•</span>

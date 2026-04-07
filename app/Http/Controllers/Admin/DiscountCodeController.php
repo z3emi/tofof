@@ -311,7 +311,7 @@ class DiscountCodeController extends Controller
             'code' => 'required|string|unique:discount_codes,code',
             'type' => 'required|in:fixed,percentage,free_shipping',
             'value' => 'nullable|numeric|min:0|max:99999999.99|required_if:type,fixed,percentage',
-            'max_discount_amount' => 'nullable|numeric|min:0|max:99999999.99|required_if:type,percentage',
+            'max_discount_amount' => 'nullable|numeric|min:0|max:99999999.99',
             'max_uses' => 'nullable|integer|min:1',
             'max_uses_per_user' => 'nullable|integer|min:1',
             'expires_at' => 'nullable|date',

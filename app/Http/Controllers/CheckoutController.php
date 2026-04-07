@@ -183,6 +183,9 @@ class CheckoutController extends Controller
                     'order_id'         => $order->id,
                     'user_id'          => $user->id,
                 ]);
+
+                // حذف الإشعار المتعلق بالكود المستخدم
+                $this->deleteDiscountCodeNotification($user->id, $discountCodeId);
             }
 
             $totalCost = 0;
@@ -449,5 +452,15 @@ class CheckoutController extends Controller
         }
 
         return $normalized;
+    }
+
+    private function deleteDiscountCodeNotification(int $userId, int $discountCodeId): void
+    {
+        // حذف الإشعار من جدول notifications
+        DB::table('notifications')
+            ->where('notifiable_id', $userId)
+            ->where('notifiable_type', 'App\\Models\\User')
+            ->where(DB::raw("JSON_EXTRACT(data, '$.discount_code_id')"), '=', $discountCodeId)
+            ->delete();
     }
 }

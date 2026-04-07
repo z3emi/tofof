@@ -2223,7 +2223,7 @@
                 <div class="testimonials-track testimonials-track-to-right">
                     @foreach($topTestimonials as $review)
                         @php
-                            $testimonialName = $review->user?->name ?: 'عميل متجر توفف';
+                            $testimonialName = $review->fake_name ?: ($review->user?->name ?: 'عميل متجر توفف');
                             $testimonialAvatar = $review->user?->avatar_url ?: asset('storage/avatars/default.png');
                             $testimonialProduct = $review->product?->name_ar ?: ($review->product?->name_en ?: 'عميل موثوق');
                         @endphp
@@ -2250,7 +2250,7 @@
                 <div class="testimonials-track testimonials-track-to-right">
                     @foreach($bottomTestimonials as $review)
                         @php
-                            $testimonialName = $review->user?->name ?: 'عميل متجر توفف';
+                            $testimonialName = $review->fake_name ?: ($review->user?->name ?: 'عميل متجر توفف');
                             $testimonialAvatar = $review->user?->avatar_url ?: asset('storage/avatars/default.png');
                             $testimonialProduct = $review->product?->name_ar ?: ($review->product?->name_en ?: 'عميل موثوق');
                         @endphp

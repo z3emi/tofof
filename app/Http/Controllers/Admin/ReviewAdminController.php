@@ -5,13 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductReview;
-use App\Models\User;
-use App\Support\RepairsPrimaryKeyAutoIncrement;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class ReviewAdminController extends Controller
 {
@@ -39,6 +34,7 @@ class ReviewAdminController extends Controller
             $search = trim((string) $request->input('q'));
             $query->where(function ($q) use ($search) {
                 $q->where('comment', 'like', "%{$search}%")
+                    ->orWhere('fake_name', 'like', "%{$search}%")
                     ->orWhereHas('user', function ($u) use ($search) {
                         $u->where('name', 'like', "%{$search}%");
                     })
@@ -81,21 +77,20 @@ class ReviewAdminController extends Controller
             'show_on_homepage' => ['nullable', 'boolean'],
         ]);
 
-        $user = $this->createSyntheticReviewer((string) $validated['fake_name']);
-
         $status = (string) ($validated['status'] ?? 'approved');
         $showOnHomepage = (bool) ($validated['show_on_homepage'] ?? false);
 
         ProductReview::create([
             'product_id' => (int) $validated['product_id'],
-            'user_id' => (int) $user->id,
+            'user_id' => null,
+            'fake_name' => trim((string) $validated['fake_name']),
             'rating' => (int) $validated['rating'],
             'comment' => trim((string) $validated['comment']),
             'status' => $status,
             'show_on_homepage' => $showOnHomepage && $status === 'approved',
         ]);
 
-        return back()->with('success', 'تم إنشاء التعليق الوهمي بنجاح.');
+        return back()->with('success', 'تم حفظ التعليق بدون إنشاء أي مستخدم جديد.');
     }
 
     // حذف أي تعليق/تقييم من الأدمن
@@ -218,40 +213,4 @@ class ReviewAdminController extends Controller
         }
     }
 
-    private function createSyntheticReviewer(string $name): User
-    {
-        $safeName = trim($name) !== '' ? trim($name) : 'عميل';
-
-        $phone = $this->generateUniquePhoneNumber();
-
-        $payload = [
-            'name' => $safeName,
-            'email' => null,
-            'phone_number' => $phone,
-            'type' => 'user',
-            'phone_verified_at' => now(),
-            'password' => Hash::make(Str::random(32)),
-        ];
-
-        try {
-            return User::create($payload);
-        } catch (QueryException $exception) {
-            if (! RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($exception, 'users')) {
-                throw $exception;
-            }
-
-            RepairsPrimaryKeyAutoIncrement::ensure('users');
-
-            return User::create($payload);
-        }
-    }
-
-    private function generateUniquePhoneNumber(): string
-    {
-        do {
-            $phone = '79' . str_pad((string) random_int(1, 99999999), 8, '0', STR_PAD_LEFT);
-        } while (User::withTrashed()->where('phone_number', $phone)->exists());
-
-        return $phone;
-    }
 }
