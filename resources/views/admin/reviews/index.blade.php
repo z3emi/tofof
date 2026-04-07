@@ -8,44 +8,96 @@
     .reviews-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%); padding: 2.2rem 2.6rem; color: #fff; }
     .stats-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .85rem; }
     .stat-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: .85rem; }
-    .review-item { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; padding: .9rem; }
+    .table-container { border-radius: 15px; border: 1px solid #f1f5f9; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+    .search-input { border-radius: 12px; border: 1px solid #e2e8f0; padding: 0.8rem 1.2rem; background: #fafbff; }
+    .review-item {
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+        padding: 1rem;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+    }
+    .review-item.is-featured {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+    }
     .review-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #e2e8f0; }
+    .review-meta-line { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+    .review-comment-box {
+        margin-top: .55rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #ffffff;
+        padding: .5rem .65rem;
+        line-height: 1.6;
+        font-size: .9rem;
+        color: #0f172a;
+        display: block !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+    }
+    .review-comment-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: .5rem;
+    }
+    .review-comment-text {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+    .review-comment-box > .review-comment-row > .review-comment-text {
+        margin: 0 !important;
+        padding: 0 !important;
+        min-height: 0 !important;
+        line-height: 1.55;
+        white-space: normal;
+        word-break: break-word;
+    }
+    .review-comment-actions {
+        flex: 0 0 auto;
+        margin: 0;
+        text-align: left;
+        min-width: 58px;
+    }
+    .reply-toggle-btn {
+        padding: .2rem .55rem;
+        font-size: .78rem;
+        border-radius: 8px;
+        line-height: 1.25;
+    }
+    .review-reply-box {
+        margin-top: .75rem;
+        border-radius: 12px;
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        padding: .75rem .85rem;
+    }
+    .admin-reply-form {
+        margin-top: .55rem;
+        border: 1px solid #dbeafe;
+        border-radius: 10px;
+        background: #f8fbff;
+        padding: .55rem;
+    }
+    .admin-reply-form .form-control {
+        border-radius: 8px;
+        min-height: 68px;
+        font-size: .9rem;
+        resize: vertical;
+    }
+    .admin-reply-form .btn {
+        padding: .25rem .65rem;
+        font-size: .8rem;
+        border-radius: 8px;
+    }
+    .review-actions { border-top: 1px dashed #e2e8f0; padding-top: .75rem; margin-top: .8rem; }
     .flags-wrap { display: flex; gap: .35rem; flex-wrap: wrap; }
-    .filter-card { border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
-    .old-filter-btn {
-        width: 118px;
-        min-height: 52px;
-        border-radius: 14px;
-        background: #850b15;
-        border-color: #850b15;
-        color: #fff;
-        display: inline-flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        gap: .45rem;
-        font-weight: 700;
-        line-height: 1;
-        padding: 0 14px;
-    }
-    .old-filter-btn:hover,
-    .old-filter-btn:focus {
-        background: #6d0e16;
-        border-color: #6d0e16;
-        color: #fff;
-    }
-    .old-filter-btn i {
-        font-size: 1.05rem;
-    }
-    .reviews-search-actions .btn {
-        min-height: 52px;
-        border-radius: 14px;
-    }
+
     @media (max-width: 992px) {
         .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .reviews-header { padding: 1.4rem 1rem; }
-        .old-filter-btn { width: 108px; min-height: 48px; border-radius: 12px; }
-        .reviews-search-actions .btn { min-height: 48px; border-radius: 12px; }
     }
 </style>
 @endpush
@@ -56,6 +108,12 @@
         <div>
             <h2 class="mb-2 fw-bold text-white"><i class="bi bi-chat-left-text me-2"></i> إدارة تعليقات المنتجات</h2>
             <p class="mb-0 opacity-75 small">فلترة ومراجعة التعليقات قبل النشر مع إجراءات الموافقة أو الرفض أو الحذف.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <div class="col-toggle-place"></div>
+            <button type="button" class="btn btn-light px-4 fw-bold text-brand d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#fakeReviewModal">
+                <i class="bi bi-plus-circle me-1"></i> إضافة تعليق وهمي
+            </button>
         </div>
     </div>
 
@@ -91,47 +149,36 @@
             </div>
         </div>
 
-        <div class="filter-card p-3 mb-4">
-            @php
-                $hasActiveFilters = request()->filled('q') || request()->filled('status') || request()->filled('homepage');
-            @endphp
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-                <h6 class="mb-0 fw-bold"><i class="bi bi-magic me-1"></i> إضافة تعليق وهمي</h6>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#fakeReviewModal">
-                    <i class="bi bi-plus-circle me-1"></i> إضافة تعليق وهمي
+        @php
+            $hasActiveFilters = request()->filled('q') || request()->filled('status') || request()->filled('homepage');
+        @endphp
+        <form method="GET" action="{{ route('admin.reviews.index') }}" class="row g-3 mb-4 p-4 bg-light rounded-4 border align-items-end">
+            <input type="hidden" name="homepage" value="{{ request('homepage') }}">
+            <div class="col-md-6">
+                <label class="small fw-bold text-muted mb-2">بحث سريع</label>
+                <input type="text" name="q" class="form-control search-input" placeholder="اسم المستخدم، نص التعليق، أو اسم المنتج..." value="{{ request('q') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="small fw-bold text-muted mb-2">الحالة</label>
+                <select name="status" class="form-select search-input" onchange="this.form.submit()">
+                    <option value="">كل الحالات</option>
+                    <option value="approved" @selected(request('status') === 'approved')>منشور</option>
+                    <option value="pending" @selected(request('status') === 'pending')>معلّق</option>
+                    <option value="rejected" @selected(request('status') === 'rejected')>مرفوض</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn text-white px-4 py-3 fw-bold flex-grow-1" style="background:var(--primary-dark); border-radius:12px">بحث</button>
+                <button type="button" class="btn btn-outline-dark d-flex align-items-center justify-content-center" style="width:58px; height:58px; border-radius:12px" data-bs-toggle="modal" data-bs-target="#reviewFilterModal" title="فلاتر إضافية">
+                    <i class="bi bi-funnel fs-4"></i>
                 </button>
+                @if($hasActiveFilters)
+                    <a href="{{ route('admin.reviews.index') }}" class="btn btn-outline-secondary d-flex align-items-center justify-content-center" style="width:58px; height:58px; border-radius:12px" title="تصفير">
+                        <i class="bi bi-arrow-counterclockwise fs-4"></i>
+                    </a>
+                @endif
             </div>
-
-            <hr>
-
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <div>
-                    <h6 class="mb-1 fw-bold"><i class="bi bi-funnel me-1"></i> فلترة التعليقات</h6>
-                    @if($hasActiveFilters)
-                        <div class="small text-muted">يوجد فلتر مفعّل حالياً</div>
-                    @endif
-                </div>
-            </div>
-
-            <form method="GET" action="{{ route('admin.reviews.index') }}" class="row g-2 align-items-end mt-2">
-                <input type="hidden" name="status" value="{{ request('status') }}">
-                <input type="hidden" name="homepage" value="{{ request('homepage') }}">
-                <div class="col-md-8">
-                    <label class="form-label mb-1">بحث</label>
-                    <input type="text" name="q" class="form-control" value="{{ request('q') }}" placeholder="اسم المستخدم أو نص التعليق أو اسم المنتج">
-                </div>
-                <div class="col-md-4 d-flex gap-2 reviews-search-actions">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i> بحث</button>
-                    <button type="button" class="btn old-filter-btn" data-bs-toggle="modal" data-bs-target="#reviewFilterModal">
-                        <i class="bi bi-funnel"></i>
-                        <span>فلترة</span>
-                    </button>
-                    @if($hasActiveFilters)
-                        <a href="{{ route('admin.reviews.index') }}" class="btn btn-outline-secondary">إعادة ضبط</a>
-                    @endif
-                </div>
-            </form>
-        </div>
+        </form>
 
         <div class="modal fade" id="fakeReviewModal" tabindex="-1" aria-labelledby="fakeReviewModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -243,7 +290,7 @@
 
         <div class="d-flex flex-column gap-3">
             @forelse($reviews as $review)
-                <div class="review-item">
+                <div class="review-item {{ !empty($review->show_on_homepage) ? 'is-featured' : '' }}">
                     <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                         <div class="d-flex align-items-start gap-2">
                             <img src="{{ $review->user?->avatar_url ?? asset('storage/avatars/default.png') }}"
@@ -252,10 +299,11 @@
                                  onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.png') }}';">
                             <div>
                                 <div class="fw-bold">{{ $review->user?->name ?? 'مستخدم محذوف' }}</div>
-                                <div class="small text-muted">
+                                <div class="small text-muted review-meta-line">
                                     المنتج: <a href="{{ route('admin.products.show', $review->product_id) }}">{{ $review->product?->name_ar ?: ($review->product?->name_en ?: ('#' . $review->product_id)) }}</a>
+                                    <span>•</span>
+                                    <span>{{ optional($review->created_at)->format('Y-m-d H:i') }}</span>
                                 </div>
-                                <div class="small text-muted">{{ optional($review->created_at)->format('Y-m-d H:i') }}</div>
                             </div>
                         </div>
 
@@ -276,7 +324,25 @@
                         </div>
                     </div>
 
-                    <div class="mt-2" style="white-space:pre-line;">{{ $review->comment ?: 'لا يوجد نص تعليق.' }}</div>
+                    @php
+                        $commentText = trim((string) ($review->comment ?: 'لا يوجد نص تعليق.'));
+                        $commentText = preg_replace('/(\r\n|\r|\n){2,}/', "\n", $commentText);
+                    @endphp
+                    <div class="review-comment-box">
+                        <div class="review-comment-row">
+                            <div class="review-comment-text">{!! nl2br(e($commentText)) !!}</div>
+                            <div class="review-comment-actions">
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-primary reply-toggle-btn"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#reply-form-{{ $review->id }}"
+                                        aria-expanded="false"
+                                        aria-controls="reply-form-{{ $review->id }}">
+                                    <i class="bi bi-reply-fill me-1"></i> رد
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
                     @if(!empty($review->moderation_flags) && is_array($review->moderation_flags))
                         <div class="flags-wrap mt-2">
@@ -290,13 +356,27 @@
                     @endif
 
                     @if(!empty($review->admin_reply))
-                        <div class="mt-2 p-2 rounded border" style="background:#eef6ff; border-color:#bfdbfe !important;">
-                            <div class="small fw-bold text-primary mb-1">رد الأدمن</div>
+                        <div class="review-reply-box">
+                            <div class="small fw-bold text-primary mb-1"><i class="bi bi-reply-fill me-1"></i> رد الأدمن</div>
                             <div style="white-space: pre-line;">{{ $review->admin_reply }}</div>
                         </div>
                     @endif
 
-                    <div class="mt-3 d-flex flex-wrap gap-2">
+                    <div class="collapse" id="reply-form-{{ $review->id }}">
+                        <form method="POST" action="{{ route('admin.products.reviews.reply', ['product' => $review->product_id, 'review' => $review->id]) }}" class="admin-reply-form">
+                            @csrf
+                            <label class="form-label fw-bold small mb-2">رد الأدمن</label>
+                            <textarea name="admin_reply" class="form-control" placeholder="اكتب رد الأدمن هنا...">{{ old('admin_reply', $review->admin_reply) }}</textarea>
+                            <div class="d-flex justify-content-end mt-2">
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-send me-1"></i>
+                                    {{ !empty($review->admin_reply) ? 'تحديث رد الأدمن' : 'حفظ رد الأدمن' }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="review-actions d-flex flex-wrap gap-2">
                         <form method="POST" action="{{ route('admin.reviews.updateStatus', $review->id) }}">
                             @csrf
                             @method('PATCH')

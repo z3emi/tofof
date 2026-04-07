@@ -25,7 +25,7 @@ $flatItems = flatten_pri_cats($roots->sortBy('sort_order'));
     .form-card-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%); padding: 2.5rem 3rem; color: white; border-radius: 0 !important; }
     .table-container { border-radius: 15px; border: 1px solid #f1f5f9; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
     .search-input { border-radius: 12px; border: 1px solid #e2e8f0; padding: 0.8rem 1.2rem; background: #fafbff; }
-    .cat-img { width:42px; height:42px; border-radius:10px; object-fit:cover; border:1px solid #eee; background:#fff; margin-right: 12px; }
+    .cat-img { width:42px; height:42px; border-radius:50%; object-fit:cover; border:1px solid #eee; background:#fff; margin-inline-end: 6px; }
     #primary_categories_table tbody tr { transition: background-color .18s ease; }
     #primary_categories_table tbody tr.row-moved { animation: slideInUp .4s ease-out; }
     @keyframes slideInUp {

@@ -2513,6 +2513,7 @@
             let lastTs = 0;
             let offset = 0;
             let resizeTimeout = null;
+            let tempPauseTimeout = null;
 
             const getSpeed = () => (window.innerWidth <= 768 ? 34 : 46) * speedMultiplier; // px / second
             const getGap = () => {
@@ -2580,6 +2581,19 @@
 
             const isPaused = () => isPausedByHover || marquee.classList.contains('is-paused');
 
+            const pauseTemporarily = (duration = 2000) => {
+                marquee.classList.add('is-paused');
+
+                if (tempPauseTimeout) {
+                    clearTimeout(tempPauseTimeout);
+                }
+
+                tempPauseTimeout = setTimeout(() => {
+                    marquee.classList.remove('is-paused');
+                    tempPauseTimeout = null;
+                }, duration);
+            };
+
             const recycleForLeft = () => {
                 let threshold = getForwardStep();
                 while (threshold > 0 && -offset >= threshold) {
@@ -2642,13 +2656,13 @@
             });
 
             marquee.addEventListener('click', () => {
-                marquee.classList.toggle('is-paused');
+                pauseTemporarily(2000);
             });
 
             marquee.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
-                    marquee.classList.toggle('is-paused');
+                    pauseTemporarily(2000);
                 }
             });
 
@@ -2664,6 +2678,10 @@
             rafId = window.requestAnimationFrame(animate);
 
             marquee.addEventListener('remove', () => {
+                if (tempPauseTimeout) {
+                    clearTimeout(tempPauseTimeout);
+                    tempPauseTimeout = null;
+                }
                 if (rafId) {
                     cancelAnimationFrame(rafId);
                 }
