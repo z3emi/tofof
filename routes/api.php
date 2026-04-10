@@ -8,14 +8,25 @@ use App\Http\Controllers\Api\PinLoginController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\StoreController;
 use Illuminate\Support\Facades\Route;
 
 Route::match(['get', 'post'], '/login', PinLoginController::class);
 Route::post('/employee/login', [AuthController::class, 'login']);
 
+Route::prefix('store')->group(function () {
+    Route::get('/sliders', [StoreController::class, 'sliders']);
+    Route::get('/ui-content', [StoreController::class, 'uiContent']);
+    Route::get('/sections', [StoreController::class, 'sections']);
+    Route::get('/categories', [StoreController::class, 'categories']);
+    Route::get('/products', [StoreController::class, 'products']);
+    Route::get('/discount-codes', [StoreController::class, 'discountCodes']);
+});
+
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('/employee/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'me']);
+    Route::get('/store/notifications', [StoreController::class, 'notifications']);
 
     Route::middleware(\App\Http\Middleware\CheckPermission::class)->group(function () {
         Route::get('/orders', [OrdersController::class, 'index'])->name('orders.index');
