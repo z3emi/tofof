@@ -15,10 +15,11 @@ use NotificationChannels\WebPush\HasPushSubscriptions;
 use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Concerns\InteractsWithSanctumApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles, LogsActivity, SoftDeletes, HasPushSubscriptions;
+    use HasFactory, Notifiable, HasRoles, LogsActivity, SoftDeletes, HasPushSubscriptions, InteractsWithSanctumApiTokens;
 
     /**
      * The attributes that are mass assignable.

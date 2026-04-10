@@ -7,6 +7,11 @@
 
 التطبيق سيكون مرتبط بموقع Tofof الحالي وبواجهات API الموجودة فعليا داخل المشروع.
 
+نطاق التنفيذ:
+- التطبيق مخصص للعميل فقط (Customer App).
+- لا يوجد أي جزء خاص بالموظفين داخل هذا التطبيق.
+- التنفيذ المطلوب جاهز Production من البداية.
+
 ---
 
 ## 2) أفضل خيار تقني
@@ -36,42 +41,32 @@
 
 ## 4) مسارات API المتاحة للتطبيق
 
-### A) مسارات المتجر العامة (بدون تسجيل دخول)
-- GET /store/sliders
-  - Query اختياري: locale=en
-- GET /store/ui-content
-- GET /store/sections
-- GET /store/categories
-  - Query اختياري: primary_category_id
-- GET /store/products
-  - Query اختياري:
-    - q
-    - category_id
-    - section_id
-    - on_sale=true|false
-    - sort=latest|price_asc|price_desc|top_rated
-    - per_page (1..60)
-- GET /store/discount-codes
+التطبيق سيكون متجراً كاملاً يحتوي على جميع المسارات (بدون الحاجة لتوثيق، ومسارات تحتاج توثيق العميل فقط).
 
-### B) مسارات تتطلب توكن Sanctum
-- GET /store/notifications
-- GET /user
-- POST /employee/logout
+### A) مسارات التصفح (العامة)
+- `GET /store/sliders?locale=en`
+- `GET /store/ui-content`
+- `GET /store/sections`
+- `GET /store/categories`
+- `GET /store/products` (يدعم الفلاتر: category_id, section_id, sort, q)
+- `GET /store/discount-codes`
 
-### C) تسجيل الدخول للموظف
-- POST /login
-  - Body:
-    - pin
+### B) مسارات حساب العميل والمصادقة (Auth API)
+- `POST /auth/register` (تسجيل حساب جديد)
+- `POST /auth/login` (إرجاع Bearer Token)
+- `POST /auth/logout` 
+- `GET /auth/me` 
 
-يرجع:
-- token
-- token_type
-- employee object
+### C) مسارات العمليات والحساب (تحتاج Bearer Token للعميل)
+- **السلة:** `GET /cart` ، `POST /cart` ، `PATCH /cart/{key}` ، `DELETE /cart/{key}` ، `POST /cart/discount`
+- **الدفع وإتمام الطلب:** `GET /checkout` ، `POST /checkout`
+- **الطلبات:** `GET /profile/orders` ، `GET /profile/orders/{id}`
+- **الملف الشخصي والمحفظة:** `GET /profile` ، `PATCH /profile` ، `GET /profile/wallet` ، `GET /profile/addresses`
+- **المفضلة:** `GET /wishlist` ، `POST /wishlist/{productId}/toggle`
 
-مهم:
-- بعد تسجيل الدخول خزّن التوكن محليا بشكل آمن.
-- أرسل التوكن في جميع الطلبات المحمية:
-  - Authorization: Bearer YOUR_TOKEN
+ممنوع في هذا التطبيق:
+- مسارات الموظفين والإدارة (`/employee/login`, `/employee/logout`)
+- أي Endpoint مخصص فقط للـ dashboard.
 
 ---
 
@@ -79,27 +74,22 @@
 
 ### Home Screen
 - Sliders من /store/sliders
-  - hero
-  - promo_primary
-  - promo_secondary
-- Top bar content من /store/ui-content
-  - top_window
-- Popup content من /store/ui-content
-  - popup_notification
+- Top bar و Popup من /store/ui-content
 - الأقسام من /store/sections
-- منتجات مقترحة من /store/products
+- منتجات عرض من /store/products
 
-### Products Screen
-- /store/products مع الفلاتر والبحث والpagination
+### Products & Categories Screens
+- /store/products لعرض المنتجات مع بناء واجهة تفاعلية للفلاتر الجانبية (Filters Sidebar/BottomSheet).
+- /store/categories لاستعراض الأقسام الكلية.
 
-### Categories Screen
-- /store/categories
+### Cart & Checkout
+- واجهة السلة مربوطة بـ `/cart` (تحديث السعر ديناميكياً مع أي تعديل للكمية).
+- شاشة Checkout لعنوان الشحن والدفع.
 
-### Discount Codes Screen
-- /store/discount-codes
-
-### Notifications Screen (بعد تسجيل الدخول)
-- /store/notifications
+### Profile & Account 
+- شاشة حساب شخصي متكاملة (تصميم احترافي).
+- محفظة العميل من `/profile/wallet` مع عرض المعاملات.
+- تتبع الطلبات `/profile/orders`.
 
 ---
 
@@ -143,8 +133,6 @@ lib/
   - products/
   - categories/
   - discounts/
-  - notifications/
-  - auth/
 - shared/
   - widgets/
   - models/
@@ -154,9 +142,8 @@ lib/
 ## 9) إعدادات الشبكة والأمان
 - فعّل timeout للطلبات.
 - اعمل retry منطقي للطلبات العامة.
-- خزّن التوكن في secure storage.
-- لا تخزن التوكن في shared preferences كنص عادي.
-- في كل request محمي، أضف Bearer token.
+- لا تستخدم أي PIN أو Token موظف في التطبيق.
+- لا تضع أي Secrets داخل الكود.
 
 ---
 
@@ -178,7 +165,6 @@ lib/
 - flutter_riverpod أو bloc (state management)
 - go_router (navigation)
 - freezed + json_serializable (models)
-- flutter_secure_storage (token)
 - intl (localization)
 
 ### 10.4 أوامر تشغيل
@@ -236,10 +222,8 @@ lib/
 2. بناء طبقة API عامة
 3. بناء Home (sliders + ui-content)
 4. بناء المنتجات والفلاتر
-5. بناء تسجيل الدخول + التوكن
-6. بناء الإشعارات المحمية
-7. اختبار شامل
-8. تجهيز نسخ release Android/iOS
+5. اختبار شامل
+6. تجهيز نسخ release Android/iOS
 
 ---
 
@@ -276,8 +260,7 @@ lib/
   - تحقق من firewall
   - تحقق من أن Apache يعمل
 - إذا ظهرت 401:
-  - تحقق من إرسال Bearer token
-  - تحقق من صلاحية التوكن
+  - تحقق من endpoint المستخدم (قد يكون endpoint خارج نطاق تطبيق العميل)
 - إذا الصور لا تظهر:
   - تحقق من روابط storage
   - تحقق من أن image_url صالح من API
@@ -298,7 +281,7 @@ lib/
 ## 17) ملفات مرجعية داخل الباكند
 - routes/api.php
 - app/Http/Controllers/Api/StoreController.php
-- app/Http/Controllers/Api/PinLoginController.php
-- app/Services/Auth/PinAuthenticationService.php
+
+هذا الدليل خاص بتطبيق العميل فقط ولا يتضمن أي تكامل مع تسجيل دخول الموظفين.
 
 هذا الملف يكفي كبداية تنفيذ كاملة لبناء التطبيق على Android وiOS من مشروع Tofof الحالي.

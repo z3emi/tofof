@@ -1,132 +1,107 @@
 # Tofof Mobile App Master Prompt
 
-استخدم هذا البرومت كما هو لبناء تطبيق موبايل كامل لمتجر Tofof مرتبط بالـ API الحالية.
+استخدم هذا البرومت كما هو لبناء تطبيق موبايل كامل ومتكامل لمتجر Tofof مرتبط بالـ API الحالية.
 
 ---
 
 ## Prompt
 
-أنت مهندس تطبيقات موبايل Senior. المطلوب منك بناء تطبيق موبايل إنتاجي كامل لمتجر Tofof يدعم Android وiOS من نفس الكود باستخدام Flutter.
+أنت مهندس تطبيقات موبايل Senior وخبير في تصميم واجهات المستخدم (UI/UX). المطلوب منك بناء تطبيق موبايل إنتاجي كامل لمتجر Tofof يدعم Android وiOS من نفس الكود باستخدام Flutter. 
+
+نطاق المشروع:
+- هذا التطبيق مخصص للعميل (Customer App) ليكون **متجراً متكاملاً** وليس مجرد تطبيق لعرض المنتجات.
+- واجهات التطبيق يجب أن تكون **في غاية الجمال وبمستوى تطبيقات المتاجر العالمية المتميزة** (Premium Design)، مع حركات انتقالية (Animations) سلسة، وتصميم يجذب العميل ويحفزه على الشراء.
+- المطلوب تنفيذ جاهز Production من البداية وليس MVP تجريبي.
 
 ### 1) الهدف
-ابنِ تطبيق متجر موبايل متكامل مرتبط بالباكند الحالي للموقع:
+ابنِ تطبيق متجر موبايل متداخل ومتصل تماماً مع الباكند، ويشمل جميع العمليات (التصفح، الفلاتر، السلة، الدفع، الحساب الشخصي، المحفظة، المفضلة).
 - Domain: https://tofofstore.com
 - API Base URL: https://tofofstore.com/api
 
 شرط إلزامي:
-- ممنوع استخدام Localhost أو أي Local URL في الكود أو الإعدادات أو الأمثلة.
-- استخدم فقط https://tofofstore.com/api في جميع أجزاء المشروع.
+- ممنوع استخدام Localhost أو أي Local URL في الكود. جميع المسارات يجب أن تتصل بـ https://tofofstore.com/api.
 
 ### 2) Stack المطلوبة
 - Flutter (آخر إصدار مستقر)
-- State Management: Riverpod (أو BLoC إذا اخترته مع التزام كامل)
-- Networking: Dio
+- State Management: Riverpod (أو BLoC)
+- Networking: Dio (مع Interceptors لإضافة الـ Token الخاص بالعميل)
 - Routing: go_router
-- Secure Token Storage: flutter_secure_storage
 - i18n: intl
+- التخزين المحلي: flutter_secure_storage (لحفظ الـ Bearer Token) و shared_preferences.
 
-### 3) شرط مهم جدا: الهوية البصرية والألوان
-طبّق نفس هوية الموقع. لا تستخدم ألوان عشوائية.
-
-الألوان الأساسية:
-- Primary: #6D0E16
+### 3) الهوية البصرية والألوان والتصميم (UI/UX)
+التطبيق يجب أن يعكس فخامة متجر Tofof:
+- Primary: #6D0E16 (الأحمر العنابي الساحر)
 - Text Dark: #34282C
-- Accent Gold: #D59E06
+- Accent Gold: #D59E06 (الذهبي الفاخر)
 - White: #FFFFFF
 
 قواعد تصميم إلزامية:
-- الزر الأساسي: خلفية #6D0E16 ونص أبيض.
-- العناصر الثانوية: #34282C.
-- الخلفيات: #FFFFFF.
-- تصميم احترافي نظيف مناسب للتطبيقات التجارية.
-- دعم Dark Mode مع الحفاظ على نفس هوية الألوان.
+- تصميم البطاقات (Cards) والمنتجات يجب أن يكون حديثاً مع تظليل خفيف (Soft Drop Shadows) وزوايا دائرية (Rounded Corners).
+- الزر الأساسي (Primary Button): خلفية #6D0E16 ونص أبيض.
+- عند الدخول على (تفاصيل المنتج): يجب أن تكون الشاشة مبهرة تعرض الصور المميزة للمنتج بوضوح مع خيارات الإضافة للسلة والمفضلة أسفل الشاشة (Bottom Sticky Bar).
+-دعم الـ Dark Mode ضروري مع الحفاظ على تناسق الهوية.
 
 ### 4) اللغات والاتجاه
-- العربية (RTL) افتراضي.
-- الإنجليزية (LTR).
-- التطبيق يبدّل الاتجاه تلقائيا حسب اللغة.
-- عند جلب السلايدر استخدم locale=en إذا اللغة إنجليزية.
+- العربية (RTL) أساسي وافتراضي.
+- الإنجليزية (LTR) كخيار بديل.
 
-### 5) API المطلوب ربطها
+### 5) API المطلوب ربطها بالكامل للعميل
+التطبيق يجب أن يكون متجراً كاملاً شاملاً كل من:
 
-#### Public Endpoints
-- GET /store/sliders?locale=en (اختياري)
-- GET /store/ui-content
-- GET /store/sections
-- GET /store/categories
-- GET /store/products
-- GET /store/discount-codes
+#### أ. مسارات التصفح الأساسية (بدون توثيق)
+- `GET /store/sliders?locale=en`
+- `GET /store/ui-content`
+- `GET /store/sections`
+- `GET /store/categories`
+- `GET /store/products` (مع الفلاتر: category_id, section_id, sort, q)
+- `GET /store/discount-codes`
 
-#### Auth/Protected Endpoints
-- POST /login (body: pin)
-- GET /store/notifications (Bearer token)
-- GET /user (Bearer token)
-- POST /employee/logout (Bearer token)
+#### ب. مسارات حساب العميل والمصادقة (Auth Routes)
+- `POST /auth/register` (تسجيل حساب جديد)
+- `POST /auth/login` (تسجيل الدخول وإرجاع Bearer Token)
+- `POST /auth/logout` (تسجيل الخروج)
+- `GET /auth/me` (جلب بيانات المستخدم الحالي)
 
-### 6) شاشات التطبيق المطلوبة
-- Splash
-- Onboarding
-- Home
-  - Sliders (hero + promo_primary + promo_secondary)
-  - Top Window من /store/ui-content
-  - Popup Notification من /store/ui-content
-  - Sections
-  - منتجات من /store/products
-- Products List + Search + Filters + Pagination
-- Product Details
-- Categories
-- Discount Codes
-- Notifications (بعد تسجيل الدخول)
-- Settings (اللغة + الثيم)
-- Login (PIN)
+#### جـ. مسارات العمليات (تحتاج Bearer Token)
+**السلة والدفع:**
+- `GET /cart` ، `POST /cart` ، `PATCH /cart/{key}` ، `DELETE /cart/{key}`
+- `POST /cart/discount` ، `DELETE /cart/discount`
+- `GET /checkout` ، `POST /checkout` (لإتمام الطلب)
+
+**الحساب الشخصي والمحفظة والطلبات:**
+- `GET /profile` ، `PATCH /profile`
+- `GET /profile/orders` (متابعة طلباتي)، `GET /profile/orders/{id}`
+- `GET /profile/wallet` (عرض رصيد المحفظة العمليات)
+- `GET /profile/addresses` (كذلك POST, PATCH, DELETE للعناوين)
+- `GET /profile/notifications` (إشعارات العميل)
+
+**المفضلة:**
+- `GET /wishlist` ، `POST /wishlist/{productId}/toggle`
+
+*(ممنوع قطعاً استخدام مسارات تخص الـ employee)*
+
+### 6) شاشات التطبيق الأساسية
+- **Splash & Onboarding**
+- **Auth Flow:** Login, Register
+- **Main Navigation (Bottom Bar):** Home, Categories, Cart, Account
+- **Home:** Sliders, Sections, New Arrivals
+- **Categories:** عند الدخول للقسم تظهر منتجاته الخاصة فقط مع الفلاتر.
+- **Product Details:** صور، الوصف، السعر، إضافة للسلة والمفضلة.
+- **Cart & Checkout:** تفاصيل السلة، الخصومات، عناوين الشحن وإتمام الطلب بسلاسة.
+- **Account (Profile):** قائمة فخمة تحتوي على (طلباتي، العناوين، المحفظة المالية الخاصة بالعميل، الإعدادات، تسجيل الخروج).
+- **Orders Tracking:** تتبع حالات الطلب بتصميم Timeline واضح.
 
 ### 7) متطلبات هندسية
-- Clean Architecture (Data / Domain / Presentation)
-- فصل واضح بين API layer وUI
-- Models + JSON parsing منظم
-- Error handling شامل (Network, Timeout, 401, 500)
-- Loading/Empty/Error states محترفة
-- Caching خفيف لشاشة Home
-- Logging مناسب في debug mode
+- **Clean Architecture** وتقسيم المشروع إلى (Data, Domain, Presentation).
+- **Authentication Flow:** معالجة الـ 401 Unauthorized وإعادة توجيه المستخدم لشاشة تسجيل الدخول بطريقة ذكية.
+- State Management محترفة لإدارة السلة والـ Wishlist ديناميكياً لتحديث الـ UI فوراً.
 
-### 8) الأمان
-- خزّن التوكن فقط في flutter_secure_storage
-- أضف Authorization: Bearer TOKEN لكل Endpoint محمي
-- عند 401 نفّذ logout تلقائي وارجع لصفحة الدخول
+### 8) مخرجاتك المطلوبة
+أريد منك تسليم الآتي كـ Production Code:
+- هيكل المشروع كامل مع إعدادات الشبكة Interceptors لإرفاق توكن العميل.
+- State Management للسلة والمستخدم.
+- نماذج الواجهات (Screen Widgets) للمنتجات والسلة والبروفايل.
+- طريقة تشغيل التطبيق.
 
-### 9) مخرجاتك المطلوبة (إلزامي)
-أريد منك تسليم كل شيء بشكل عملي وليس شرح نظري فقط:
-- هيكل المشروع الكامل
-- جميع الملفات الأساسية مع كودها
-- Theme system كامل بالألوان المحددة
-- API service + interceptors
-- نماذج Data Models لكل Endpoint أساسي
-- ViewModels/Controllers للشاشات
-- Widgets قابلة لإعادة الاستخدام
-- أوامر تشغيل المشروع
-- أوامر بناء Android APK + AAB
-- أوامر بناء iOS
-- طريقة تغيير Base URL بسهولة
-
-### 10) جودة التنفيذ
-- الكود clean وقابل للصيانة
-- لا يوجد hardcode غير ضروري
-- مهيأ للتوسع لاحقا
-- UX سريع وسلس على الأجهزة المتوسطة
-- لا يوجد أي مرجع Local أو localhost أو 127.0.0.1 نهائيا
-
-### 11) تنسيق التسليم
-ابدأ بالتالي:
-1. Project Structure
-2. Dependencies
-3. Core Config (theme, api, localization)
-4. Feature by Feature Implementation
-5. Run & Build Instructions
-6. Next Improvements
-
-لا تختصر. أريد تنفيذ كامل بجودة Production-ready.
-
----
-
-## ملاحظة
-إذا احتجت افتراضات غير مذكورة، افترض أفضل ممارسة مناسبة لتطبيق متجر احترافي.
+لا تختصر. أريد تطبيق متجر حقيقي متكامل مكمل بكل تفاصيل حساب العميل والمحفظة والطلبات.
