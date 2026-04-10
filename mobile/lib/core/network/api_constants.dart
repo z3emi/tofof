@@ -1,0 +1,24 @@
+class ApiConstants {
+  static const String baseUrl = 'https://tofofstore.com/api';
+
+  // Auth
+  static const String register = '/auth/register';
+  static const String login = '/auth/login';
+  static const String logout = '/auth/logout';
+  static const String me = '/auth/me';
+
+  // Store
+  static const String sliders = '/store/sliders';
+  static const String uiContent = '/store/ui-content';
+  static const String sections = '/store/sections';
+  static const String categories = '/store/categories';
+  static const String products = '/store/products';
+  static const String discountCodes = '/store/discount-codes';
+
+  // Profile & Features
+  static const String profile = '/profile';
+  static const String cart = '/cart';
+  static const String checkout = '/checkout';
+  static const String orders = '/profile/orders';
+  static const String wishlist = '/wishlist';
+}

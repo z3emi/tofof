@@ -271,6 +271,74 @@ class StoreController extends Controller
         ], Response::HTTP_OK);
     }
 
+    public function product($identifier): JsonResponse
+    {
+        $product = Product::query()
+            ->where('is_active', true)
+            ->with(['images', 'category', 'reviews', 'reviews.user:id,name,avatar'])
+            ->withCount('reviews')
+            ->where(function (Builder $query) use ($identifier) {
+                $query->where('id', $identifier)
+                      ->orWhere('slug', $identifier);
+            })
+            ->first();
+
+        if (!$product) {
+            return response()->json([
+                'success' => false,
+                'message' => __('المنتج غير موجود.'),
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $data = [
+            'id' => $product->id,
+            'name_ar' => $product->name_ar,
+            'name_en' => $product->name_en,
+            'name' => $product->name_translated,
+            'description_ar' => $product->description_ar,
+            'description_en' => $product->description_en,
+            'description' => $product->description_translated,
+            'sku' => $product->sku,
+            'price' => (float) $product->price,
+            'sale_price' => $product->sale_price !== null ? (float) $product->sale_price : null,
+            'current_price' => (float) $product->current_price,
+            'is_on_sale' => $product->isOnSale(),
+            'stock_quantity' => (int) $product->stock_quantity,
+            'is_active' => (bool) $product->is_active,
+            'average_rating' => (float) $product->average_rating,
+            'reviews_count' => (int) $product->reviews_count,
+            'category' => $product->category ? [
+                'id' => $product->category->id,
+                'name_ar' => $product->category->name_ar,
+                'name_en' => $product->category->name_en,
+                'slug' => $product->category->slug,
+            ] : null,
+            'images' => $product->images->map(fn($img) => [
+                'id' => $img->id,
+                'url' => asset('storage/' . ltrim($img->image_path, '/')),
+                'is_primary' => (bool)$img->is_primary,
+            ])->values(),
+            'reviews' => $product->reviews->map(fn($review) => [
+                'id' => $review->id,
+                'user' => [
+                    'id' => $review->user?->id,
+                    'name' => $review->user?->name,
+                    'avatar' => $review->user?->avatar ? asset('storage/' . ltrim($review->user->avatar, '/')) : null,
+                ],
+                'rating' => (float) $review->rating,
+                'comment' => $review->comment,
+                'created_at' => optional($review->created_at)->toIso8601String(),
+            ])->values(),
+            'created_at' => optional($product->created_at)?->toIso8601String(),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'message' => __('تم جلب بيانات المنتج بنجاح.'),
+            'data' => $data,
+        ], Response::HTTP_OK);
+    }
+
     public function discountCodes(Request $request): JsonResponse
     {
         $user = $request->user();

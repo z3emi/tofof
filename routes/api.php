@@ -35,8 +35,10 @@ Route::prefix('store')->group(function () {
     Route::get('/sections', [StoreController::class, 'sections']);
     Route::get('/categories', [StoreController::class, 'categories']);
     Route::get('/products', [StoreController::class, 'products']);
+    Route::get('/products/{product}', [StoreController::class, 'product']);
     Route::get('/discount-codes', [StoreController::class, 'discountCodes']);
 });
+
 
 // Customer Mobile App - Authenticated Routes
 Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
