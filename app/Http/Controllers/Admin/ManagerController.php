@@ -36,6 +36,7 @@ class ManagerController extends Controller
     public function index(Request $request)
     {
         $currentManager = $request->user();
+        $isSuperAdmin = $currentManager?->isSuperAdmin() ?? false;
         $protectedPhone = (string) config('admin.super_admin_phone', 'admin');
         $canViewContactDetails = $currentManager?->can('view-manager-contact') ?? false;
 
@@ -61,8 +62,14 @@ class ManagerController extends Controller
             }
             $query->whereIn('id', $visibleIds);
             $query->where('phone_number', '!=', $protectedPhone);
-        } elseif (!$currentManager->isSuperAdmin()) {
+        } elseif (!$isSuperAdmin) {
             $query->where('phone_number', '!=', $protectedPhone);
+        }
+
+        if (!$isSuperAdmin) {
+            $query->whereDoesntHave('roles', function ($roleQuery) {
+                $roleQuery->whereRaw("LOWER(REPLACE(name, ' ', '-')) = ?", ['super-admin']);
+            });
         }
 
         if ($request->filled('manager_id')) {
@@ -103,6 +110,11 @@ class ManagerController extends Controller
         if (!$canViewAllStaff) {
             $managerQuery->whereIn('id', $currentManager->teamMemberIds());
         }
+        if (!$isSuperAdmin) {
+            $managerQuery->whereDoesntHave('roles', function ($roleQuery) {
+                $roleQuery->whereRaw("LOWER(REPLACE(name, ' ', '-')) = ?", ['super-admin']);
+            });
+        }
         $availableManagers = $managerQuery->pluck('name', 'id');
 
         $hierarchyQuery = Manager::query()
@@ -114,8 +126,14 @@ class ManagerController extends Controller
         if (!$canViewAllStaff) {
             $hierarchyQuery->whereIn('id', $currentManager->teamMemberIds());
             $hierarchyQuery->where('phone_number', '!=', $protectedPhone);
-        } elseif (!$currentManager->isSuperAdmin()) {
+        } elseif (!$isSuperAdmin) {
             $hierarchyQuery->where('phone_number', '!=', $protectedPhone);
+        }
+
+        if (!$isSuperAdmin) {
+            $hierarchyQuery->whereDoesntHave('roles', function ($roleQuery) {
+                $roleQuery->whereRaw("LOWER(REPLACE(name, ' ', '-')) = ?", ['super-admin']);
+            });
         }
 
         $managerHierarchy = $this->buildManagerHierarchy($hierarchyQuery->get());
@@ -162,12 +180,21 @@ class ManagerController extends Controller
 
     public function create()
     {
+        $currentManager = Auth::guard('admin')->user();
+        $isSuperAdmin = $currentManager?->isSuperAdmin() ?? false;
         $roles = $this->assignableRoles();
         $protectedPhone = (string) config('admin.super_admin_phone', 'admin');
-        $managers = Manager::query()
+        $managersQuery = Manager::query()
             ->where('phone_number', '!=', $protectedPhone)
-            ->orderBy('name')
-            ->get();
+            ->orderBy('name');
+
+        if (!$isSuperAdmin) {
+            $managersQuery->whereDoesntHave('roles', function ($roleQuery) {
+                $roleQuery->whereRaw("LOWER(REPLACE(name, ' ', '-')) = ?", ['super-admin']);
+            });
+        }
+
+        $managers = $managersQuery->get();
         $governorates = $this->iraqiGovernorates();
 
         return view('admin.managers.create', compact('roles', 'managers', 'governorates'));
@@ -217,11 +244,12 @@ class ManagerController extends Controller
     public function edit(Manager $manager)
     {
         $currentManager = Auth::guard('admin')->user();
+        $isSuperAdmin = $currentManager?->isSuperAdmin() ?? false;
         if ($manager->isProtectedSuperAdmin() && $currentManager?->id !== $manager->id) {
             abort(403, 'لا يمكنك تعديل حساب السوبر أدمن.');
         }
 
-        if ($manager->isSuperAdmin() && (!$currentManager || !$currentManager->isSuperAdmin())) {
+        if ($manager->isSuperAdmin() && !$isSuperAdmin) {
             abort(403, 'لا يمكنك تعديل حساب السوبر أدمن.');
         }
 
@@ -238,11 +266,18 @@ class ManagerController extends Controller
 
         $roles = $this->assignableRoles();
         $protectedPhone = (string) config('admin.super_admin_phone', 'admin');
-        $managers = Manager::query()
+        $managersQuery = Manager::query()
             ->where('id', '!=', $manager->id)
             ->where('phone_number', '!=', $protectedPhone)
-            ->orderBy('name')
-            ->get();
+            ->orderBy('name');
+
+        if (!$isSuperAdmin) {
+            $managersQuery->whereDoesntHave('roles', function ($roleQuery) {
+                $roleQuery->whereRaw("LOWER(REPLACE(name, ' ', '-')) = ?", ['super-admin']);
+            });
+        }
+
+        $managers = $managersQuery->get();
         $governorates = $this->iraqiGovernorates();
         $selectedGovernorates = $manager->assignedGovernorates();
 
@@ -481,10 +516,17 @@ class ManagerController extends Controller
     public function trash(Request $request)
     {
         $currentManager = Auth::guard('admin')->user();
+        $isSuperAdmin = $currentManager?->isSuperAdmin() ?? false;
         $canViewContactDetails = $currentManager?->can('view-manager-contact') ?? false;
 
         $query = Manager::onlyTrashed()
             ->with(['roles', 'manager']);
+
+        if (!$isSuperAdmin) {
+            $query->whereDoesntHave('roles', function ($roleQuery) {
+                $roleQuery->whereRaw("LOWER(REPLACE(name, ' ', '-')) = ?", ['super-admin']);
+            });
+        }
 
         if ($request->filled('search')) {
             $searchTerm = $request->search;
@@ -617,7 +659,7 @@ class ManagerController extends Controller
         $query = Role::query()->where('guard_name', 'admin')->orderBy('name');
 
         if (!Auth::guard('admin')->user()?->isSuperAdmin()) {
-            $query->where('name', '!=', 'Super-Admin');
+            $query->whereRaw("LOWER(REPLACE(name, ' ', '-')) != ?", ['super-admin']);
         }
 
         return $query->withCount('permissions')->get();
