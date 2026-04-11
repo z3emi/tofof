@@ -15,6 +15,7 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'customer_id',
+        'source',
         'governorate',
         'city',
         'address_details',
@@ -96,6 +97,26 @@ class Order extends Model
     public function wasCreatedManually(): bool
     {
         return ! $this->wasPlacedByCustomer();
+    }
+
+    public function isWebsiteOrder(): bool
+    {
+        return strtolower((string) $this->source) === 'website';
+    }
+
+    public function isMobileOrder(): bool
+    {
+        return strtolower((string) $this->source) === 'mobile';
+    }
+
+    public function sourceLabel(): string
+    {
+        return match (strtolower((string) $this->source)) {
+            'website' => 'الموقع',
+            'mobile' => 'التطبيق',
+            'admin' => 'الإدارة',
+            default => $this->source ?: 'غير محدد',
+        };
     }
 
 }

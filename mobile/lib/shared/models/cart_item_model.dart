@@ -20,15 +20,21 @@ class CartItemModel {
   });
 
   factory CartItemModel.fromJson(Map<String, dynamic> json) {
+    final selectedOptions = json['selected_options'];
+
     return CartItemModel(
       selectionKey: json['selection_key'] as String? ?? json['product_id'].toString(),
       productId: json['product_id'] as int,
       name: json['name'] as String? ?? 'منتج',
-      imageUrl: json['image_url'] as String? ?? '',
+      imageUrl: (json['image'] as String?) ?? (json['image_url'] as String?) ?? '',
       price: (json['price'] as num).toDouble(),
       quantity: json['quantity'] as int,
       total: (json['total'] as num).toDouble(),
-      selectedOptions: (json['selected_options'] as Map<String, dynamic>?) ?? {},
+      selectedOptions: selectedOptions is Map<String, dynamic>
+          ? selectedOptions
+          : selectedOptions is List
+              ? <String, dynamic>{}
+              : {},
     );
   }
 }

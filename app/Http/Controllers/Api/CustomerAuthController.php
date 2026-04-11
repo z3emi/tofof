@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\WalletTransaction;
 use App\Support\RepairsPrimaryKeyAutoIncrement;
 use App\Traits\SendsWhatsAppOtp;
 use Carbon\Carbon;
@@ -77,7 +78,7 @@ class CustomerAuthController extends Controller
                 'message' => 'تم إنشاء الحساب بنجاح',
                 'data' => [
                     'otp_required' => false,
-                    'user' => $user->only(['id', 'name', 'email', 'phone_number', 'avatar']),
+                    'user' => $this->buildUserPayload($user),
                     'token' => $token,
                 ]
             ], 201);
@@ -161,7 +162,7 @@ class CustomerAuthController extends Controller
                 'message' => 'تم الدخول بنجاح',
                 'data' => [
                     'otp_required' => false,
-                    'user' => $user->only(['id', 'name', 'email', 'phone_number', 'avatar', 'wallet_balance']),
+                    'user' => $this->buildUserPayload($user),
                     'token' => $token,
                 ]
             ], 200);
@@ -284,7 +285,7 @@ class CustomerAuthController extends Controller
                 'message' => 'تم تسجيل الدخول بنجاح.',
                 'data' => [
                     'otp_required' => false,
-                    'user' => $user->only(['id', 'name', 'email', 'phone_number', 'avatar', 'wallet_balance', 'phone_verified_at', 'referral_code']),
+                    'user' => $this->buildUserPayload($user),
                     'token' => $token,
                 ],
             ]);
@@ -432,10 +433,7 @@ class CustomerAuthController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'user' => $user->only([
-                    'id', 'name', 'email', 'phone_number', 'avatar',
-                    'phone_verified_at', 'wallet_balance', 'referral_code'
-                ]),
+                'user' => $this->buildUserPayload($user),
             ]
         ], 200);
     }
@@ -561,5 +559,46 @@ class CustomerAuthController extends Controller
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+    }
+
+    private function buildUserPayload(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone_number' => $user->phone_number,
+            'avatar' => $user->avatar,
+            'phone_verified_at' => $user->phone_verified_at,
+            'wallet_balance' => $this->resolveWalletBalance($user),
+            'referral_code' => $user->referral_code,
+        ];
+    }
+
+    private function resolveWalletBalance(User $user): float
+    {
+        $latestBalance = WalletTransaction::where('user_id', $user->id)
+            ->whereNotNull('balance_after')
+            ->latest('id')
+            ->value('balance_after');
+
+        if ($latestBalance !== null) {
+            return (float) $latestBalance;
+        }
+
+        $credits = (float) WalletTransaction::where('user_id', $user->id)
+            ->where('type', 'credit')
+            ->sum('amount');
+
+        $debits = (float) WalletTransaction::where('user_id', $user->id)
+            ->where('type', 'debit')
+            ->sum('amount');
+
+        $computed = $credits - $debits;
+        if ($computed > 0 || ($credits > 0 || $debits > 0)) {
+            return $computed;
+        }
+
+        return (float) ($user->wallet_balance ?? 0);
     }
 }

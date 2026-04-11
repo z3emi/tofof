@@ -17,6 +17,7 @@ use App\Notifications\AdminOrderStatusUpdated;
 use App\Notifications\ReferralBonusReceived;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Models\Setting;
 use App\Models\DiscountCode;
 use App\Support\RepairsPrimaryKeyAutoIncrement;
@@ -260,8 +261,7 @@ class OrderController extends Controller
             
             $finalTotal = ($subtotal - $discountAmount) + $shippingCost;
             $isGift = $request->boolean('is_gift');
-
-            $order = $this->createOrderWithRepair([
+            $orderAttributes = [
                 'user_id' => $user->id,
                 'customer_id' => $customer->id,
                 'governorate' => $addressPayload['governorate'],
@@ -279,7 +279,13 @@ class OrderController extends Controller
                 'discount_amount' => $discountAmount,
                 'discount_code_id' => $discountCodeId,
                 'status' => 'processing',
-            ]);
+            ];
+
+            if (Schema::hasColumn('orders', 'source')) {
+                $orderAttributes['source'] = 'admin';
+            }
+
+            $order = $this->createOrderWithRepair($orderAttributes);
             
             // بناء عناصر الطلب
             $orderItemsData = [];

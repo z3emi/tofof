@@ -105,7 +105,7 @@ class OrdersController extends Controller
                 'price' => (float) $item->price,
                 'total' => (float) ($item->price * $item->quantity),
                 'cost' => (float) $item->cost,
-                'option_selections' => json_decode($item->option_selections),
+                'option_selections' => $item->normalizedOptionSelections(),
             ]);
 
             $statusTimeline = $this->getStatusTimeline($order);

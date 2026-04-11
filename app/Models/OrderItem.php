@@ -43,4 +43,41 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Order::class);
     }
+
+    public function normalizedOptionSelections(): array
+    {
+        $value = $this->getRawOriginal('option_selections');
+
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_object($value)) {
+            return (array) $value;
+        }
+
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                if (is_array($decoded)) {
+                    return $decoded;
+                }
+
+                if ($decoded === null) {
+                    return [];
+                }
+
+                return ['value' => $decoded];
+            }
+
+            return ['value' => $value];
+        }
+
+        return (array) $value;
+    }
 }

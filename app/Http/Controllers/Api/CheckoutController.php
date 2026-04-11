@@ -3,16 +3,21 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Address;
+use App\Models\Customer;
 use App\Models\DiscountCodeUsage;
+use App\Models\User;
 use App\Services\InventoryService;
 use App\Services\DiscountService;
 use App\Support\RepairsPrimaryKeyAutoIncrement;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class CheckoutController extends Controller
 {
@@ -31,18 +36,19 @@ class CheckoutController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $cart = session('cart', []);
+        $cartItems = CartItem::where('user_id', $user->id)->with('product.images')->get();
 
-        if (empty($cart)) {
+        if ($cartItems->isEmpty()) {
             return response()->json([
                 'success' => false,
                 'message' => 'العربة فارغة',
             ], 422);
         }
 
-        $items = $this->normalizeCart($cart);
+        $items = $this->normalizeCartItems($cartItems);
         $subtotal = collect($items)->sum('total');
-        $discount = session('discount_value', 0);
+        $discountState = $this->getDiscountState($user->id);
+        $discount = (float) ($discountState['discount_value'] ?? 0);
         $shipping = 0;
         $total = $subtotal - $discount + $shipping;
 
@@ -58,6 +64,7 @@ class CheckoutController extends Controller
                 'shipping' => (float) $shipping,
                 'total' => (float) $total,
                 'wallet_balance' => (float) $user->wallet_balance,
+                'discount_code' => $discountState['discount_code'] ?? null,
                 'addresses' => $addresses->map(fn($addr) => [
                     'id' => $addr->id,
                     'governorate' => $addr->governorate,
@@ -90,13 +97,29 @@ class CheckoutController extends Controller
                 'is_gift' => 'boolean',
                 'gift_recipient_name' => 'required_if:is_gift,true|string',
                 'gift_recipient_phone' => 'required_if:is_gift,true|string',
+                'gift_recipient_address_details' => 'nullable|string|max:255',
                 'gift_message' => 'nullable|string|max:500',
             ]);
 
             $user = $request->user();
-            $cart = session('cart', []);
+            $cartItems = CartItem::where('user_id', $user->id)->with('product.images')->get();
+            $customer = Customer::firstOrCreate(
+                ['phone_number' => $user->phone_number],
+                [
+                    'user_id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'governorate' => $user->governorate,
+                    'city' => $user->city,
+                    'address_details' => $user->address,
+                ]
+            );
 
-            if (empty($cart)) {
+            if (! $customer->user_id) {
+                $customer->update(['user_id' => $user->id]);
+            }
+
+            if ($cartItems->isEmpty()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'العربة فارغة',
@@ -115,76 +138,68 @@ class CheckoutController extends Controller
                 ], 404);
             }
 
-            $items = $this->normalizeCart($cart);
+            $items = $this->normalizeCartItems($cartItems);
             $subtotal = collect($items)->sum('total');
-            $discountAmount = session('discount_value', 0);
+            $discountState = $this->getDiscountState($user->id);
+            $discountAmount = (float) ($discountState['discount_value'] ?? 0);
+            $discountCodeId = $discountState['discount_code_id'] ?? null;
             $shippingCost = 0;
             $totalAmount = $subtotal - $discountAmount + $shippingCost;
-
             // Begin transaction
             return DB::transaction(function () use (
                 $user,
+                $customer,
                 $address,
-                $cart,
                 $items,
                 $validated,
-                $subtotal,
                 $discountAmount,
+                $discountCodeId,
                 $shippingCost,
                 $totalAmount
             ) {
                 // Verify stock for all items
                 foreach ($items as $item) {
                     $product = \App\Models\Product::find($item['product_id']);
+                    if (! $product) {
+                        throw new \Exception('أحد المنتجات لم يعد متاحاً. يرجى تحديث السلة والمحاولة مرة أخرى.');
+                    }
+
                     if ($item['quantity'] > $product->stock_quantity) {
                         throw new \Exception('الكمية المطلوبة غير متوفرة لـ ' . $item['name']);
                     }
                 }
 
+                $orderAttributes = [
+                    'user_id' => $user->id,
+                    'customer_id' => $customer->id,
+                    'governorate' => $address->governorate,
+                    'city' => $address->city,
+                    'address_details' => $address->address_details,
+                    'nearest_landmark' => $address->nearest_landmark ?: '',
+                    'total_amount' => $totalAmount,
+                    'shipping_cost' => $shippingCost,
+                    'discount_amount' => $discountAmount,
+                    'discount_code_id' => $discountCodeId,
+                    'payment_method' => $validated['payment_method'],
+                    'payment_status' => 'pending',
+                    'is_gift' => $validated['is_gift'] ?? false,
+                    'gift_recipient_name' => $validated['gift_recipient_name'] ?? null,
+                    'gift_recipient_phone' => $validated['gift_recipient_phone'] ?? null,
+                    'gift_recipient_address_details' => $validated['gift_recipient_address_details'] ?? null,
+                    'gift_message' => $validated['gift_message'] ?? null,
+                    'status' => 'pending',
+                ];
+
+                if (Schema::hasColumn('orders', 'source')) {
+                    $orderAttributes['source'] = 'mobile';
+                }
+
                 try {
-                    // Create order
-                    $order = Order::create([
-                        'user_id' => $user->id,
-                        'customer_id' => $user->id,
-                        'governorate' => $address->governorate,
-                        'city' => $address->city,
-                        'address_details' => $address->address_details,
-                        'nearest_landmark' => $address->nearest_landmark,
-                        'total_amount' => $totalAmount,
-                        'shipping_cost' => $shippingCost,
-                        'discount_amount' => $discountAmount,
-                        'discount_code_id' => session('discount_code_id'),
-                        'payment_method' => $validated['payment_method'],
-                        'payment_status' => 'pending',
-                        'is_gift' => $validated['is_gift'] ?? false,
-                        'gift_recipient_name' => $validated['gift_recipient_name'] ?? null,
-                        'gift_recipient_phone' => $validated['gift_recipient_phone'] ?? null,
-                        'gift_recipient_address_details' => $validated['gift_recipient_address_details'] ?? null,
-                        'gift_message' => $validated['gift_message'] ?? null,
-                        'status' => 'pending',
-                    ]);
+                    $order = Order::create($orderAttributes);
                 } catch (\Exception $e) {
-                    if (RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($e)) {
+                    if (RepairsPrimaryKeyAutoIncrement::isMissingAutoIncrementError($e, 'orders')) {
                         RepairsPrimaryKeyAutoIncrement::ensure('orders');
-                        $order = Order::create([
-                            'user_id' => $user->id,
-                            'customer_id' => $user->id,
-                            'governorate' => $address->governorate,
-                            'city' => $address->city,
-                            'address_details' => $address->address_details,
-                            'nearest_landmark' => $address->nearest_landmark,
-                            'total_amount' => $totalAmount,
-                            'shipping_cost' => $shippingCost,
-                            'discount_amount' => $discountAmount,
-                            'discount_code_id' => session('discount_code_id'),
-                            'payment_method' => $validated['payment_method'],
-                            'payment_status' => 'pending',
-                            'is_gift' => $validated['is_gift'] ?? false,
-                            'gift_recipient_name' => $validated['gift_recipient_name'] ?? null,
-                            'gift_recipient_phone' => $validated['gift_recipient_phone'] ?? null,
-                            'gift_message' => $validated['gift_message'] ?? null,
-                            'status' => 'pending',
-                        ]);
+                        $order = Order::create($orderAttributes);
                     } else {
                         throw $e;
                     }
@@ -209,12 +224,11 @@ class CheckoutController extends Controller
                 }
 
                 // Record discount code usage
-                if (session('discount_code_id')) {
+                if ($discountCodeId) {
                     DiscountCodeUsage::create([
-                        'discount_code_id' => session('discount_code_id'),
+                        'discount_code_id' => $discountCodeId,
                         'user_id' => $user->id,
                         'order_id' => $order->id,
-                        'used_value' => $discountAmount,
                     ]);
                 }
 
@@ -246,8 +260,9 @@ class CheckoutController extends Controller
                 // Send notifications
                 $this->sendOrderNotifications($order, $user);
 
-                // Clear session cart
-                session()->forget(['cart', 'discount_code', 'discount_value', 'discount_code_id']);
+                // Clear persisted cart and discount state
+                CartItem::where('user_id', $user->id)->delete();
+                $this->clearDiscountState($user->id);
 
                 return response()->json([
                     'success' => true,
@@ -268,7 +283,7 @@ class CheckoutController extends Controller
                 'message' => 'خطأ في البيانات المدخلة',
                 'errors' => $e->errors()
             ], 422);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -279,26 +294,26 @@ class CheckoutController extends Controller
     /**
      * Normalize cart items
      */
-    private function normalizeCart(array $cart)
+    private function normalizeCartItems($cartItems)
     {
         $items = [];
 
-        foreach ($cart as $item) {
-            $product = \App\Models\Product::find($item['product_id']);
+        foreach ($cartItems as $cartItem) {
+            $product = $cartItem->product;
 
             if (!$product) {
                 continue;
             }
 
-            $itemTotal = $product->getCurrentPrice() * $item['quantity'];
+            $itemTotal = $product->current_price * $cartItem->quantity;
 
             $items[] = [
                 'product_id' => $product->id,
                 'name' => $product->name_translated,
-                'price' => (float) $product->getCurrentPrice(),
-                'quantity' => $item['quantity'],
+                'price' => (float) $product->current_price,
+                'quantity' => $cartItem->quantity,
                 'total' => (float) $itemTotal,
-                'selected_options' => $item['selected_options'] ?? [],
+                'selected_options' => $cartItem->selected_options ?? [],
             ];
         }
 
@@ -311,7 +326,7 @@ class CheckoutController extends Controller
     private function sendOrderNotifications($order, $user)
     {
         // Send notification to admin managers
-        $managers = \App\Models\Manager::where('active', true)
+        $managers = \App\Models\Manager::whereNull('banned_at')
             ->whereHas('roles', function ($query) {
                 $query->whereIn('name', ['admin', 'manager']);
             })
@@ -321,5 +336,20 @@ class CheckoutController extends Controller
             // You can add notification logic here
             // Example: $manager->notify(new OrderCreatedNotification($order));
         }
+    }
+
+    private function discountStateCacheKey(int $userId): string
+    {
+        return 'cart_discount:' . $userId;
+    }
+
+    private function getDiscountState(int $userId): array
+    {
+        return Cache::get($this->discountStateCacheKey($userId), []);
+    }
+
+    private function clearDiscountState(int $userId): void
+    {
+        Cache::forget($this->discountStateCacheKey($userId));
     }
 }

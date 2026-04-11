@@ -43,6 +43,7 @@ dependencies:
   google_fonts: ^6.3.2
   cached_network_image: ^3.4.1
   flutter_svg: ^2.2.3
+  flutter_html: ^3.0.0
   json_annotation: ^4.9.0
   freezed_annotation: ^3.1.0
   skeletonizer: ^2.1.3

@@ -7,7 +7,6 @@ use App\Models\CartItem;
 use App\Models\Product;
 use App\Services\DiscountService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 
 class CartController extends Controller
@@ -25,7 +24,6 @@ class CartController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $discountState = $this->getDiscountState($user->id);
         
         $cartItems = CartItem::where('user_id', $user->id)
             ->with('product.images')
@@ -47,7 +45,7 @@ class CartController extends Controller
 
         $items = $this->normalizeCartItems($cartItems);
         $subtotal = collect($items)->sum('total');
-        $discount = (float) ($discountState['discount_value'] ?? 0);
+        $discount = session('discount_value', 0);
         $shipping = 0;
 
         return response()->json([
@@ -59,7 +57,7 @@ class CartController extends Controller
                 'shipping' => (float) $shipping,
                 'total' => (float) ($subtotal - $discount + $shipping),
                 'count' => $cartItems->count(),
-                'discount_code' => $discountState['discount_code'] ?? null,
+                'discount_code' => session('discount_code'),
             ]
         ]);
     }
@@ -246,29 +244,25 @@ class CartController extends Controller
             $items = $this->normalizeCartItems($cartItems);
             $subtotal = collect($items)->sum('total');
 
-            $discountResult = $this->discountService->apply(
+            $discount = $this->discountService->apply(
                 $validated['code'],
                 $subtotal,
-                $items
+                $items,
+                $user
             );
 
-            $discountAmount = (float) ($discountResult['discount_amount'] ?? 0);
-            $discountCodeId = $discountResult['discount_code_id'] ?? null;
-
-            $this->putDiscountState($user->id, [
+            session([
                 'discount_code' => $validated['code'],
-                'discount_value' => $discountAmount,
-                'discount_code_id' => $discountCodeId,
-                'targeting_text' => $discountResult['targeting_text'] ?? null,
+                'discount_value' => $discount,
+                'discount_code_id' => $discount ? $this->getDiscountCodeId($validated['code']) : null,
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'تم تطبيق الكود بنجاح',
                 'data' => [
-                    'discount' => $discountAmount,
-                    'total' => (float) ($subtotal - $discountAmount),
-                    'discount_code' => $validated['code'],
+                    'discount' => (float) $discount,
+                    'total' => (float) ($subtotal - $discount),
                 ]
             ]);
         } catch (\Exception $e) {
@@ -284,9 +278,9 @@ class CartController extends Controller
      */
     public function removeDiscount(Request $request)
     {
-        $user = $request->user();
-        $this->clearDiscountState($user->id);
+        session()->forget(['discount_code', 'discount_value', 'discount_code_id']);
 
+        $user = $request->user();
         $cartItems = CartItem::where('user_id', $user->id)
             ->with('product.images')
             ->get();
@@ -309,7 +303,7 @@ class CartController extends Controller
     {
         $user = $request->user();
         CartItem::where('user_id', $user->id)->delete();
-        $this->clearDiscountState($user->id);
+        session()->forget(['discount_code', 'discount_value', 'discount_code_id']);
 
         return response()->json([
             'success' => true,
@@ -365,25 +359,5 @@ class CartController extends Controller
     private function getDiscountCodeId($code)
     {
         return \App\Models\DiscountCode::where('code', $code)->value('id');
-    }
-
-    private function discountStateCacheKey(int $userId): string
-    {
-        return 'cart_discount:' . $userId;
-    }
-
-    private function getDiscountState(int $userId): array
-    {
-        return Cache::get($this->discountStateCacheKey($userId), []);
-    }
-
-    private function putDiscountState(int $userId, array $state): void
-    {
-        Cache::put($this->discountStateCacheKey($userId), $state, now()->addDay());
-    }
-
-    private function clearDiscountState(int $userId): void
-    {
-        Cache::forget($this->discountStateCacheKey($userId));
     }
 }

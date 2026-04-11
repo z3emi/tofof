@@ -60,7 +60,15 @@ class UserModel {
     if (value is double) return value;
     if (value is int) return value.toDouble();
     if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value);
+    if (value is String) {
+      final normalized = value
+          .trim()
+          .replaceAll(',', '')
+          .replaceAll('،', '')
+          .replaceAll(RegExp(r'[^0-9.-]'), '');
+      if (normalized.isEmpty) return null;
+      return double.tryParse(normalized);
+    }
     return null;
   }
 }

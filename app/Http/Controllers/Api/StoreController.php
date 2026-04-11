@@ -278,8 +278,7 @@ class StoreController extends Controller
             ->with(['images', 'category', 'reviews', 'reviews.user:id,name,avatar'])
             ->withCount('reviews')
             ->where(function (Builder $query) use ($identifier) {
-                $query->where('id', $identifier)
-                      ->orWhere('slug', $identifier);
+                $query->where('id', $identifier);
             })
             ->first();
 

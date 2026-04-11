@@ -56,24 +56,44 @@ class CartNotifier extends Notifier<CartState> {
 
   CartRepository get _repo => ref.read(cartRepositoryProvider);
 
+  void _applyItemsSnapshot(List<CartItemModel> items) {
+    final subtotal = items.fold<double>(0.0, (sum, item) => sum + item.total);
+    final discount = state.discount;
+    state = state.copyWith(
+      items: items,
+      subtotal: subtotal,
+      total: subtotal - discount,
+      count: items.length,
+      isLoading: false,
+    );
+  }
+
+  List<CartItemModel> _extractItems(Map<String, dynamic> response) {
+    final data = response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
+    final rawItems = (data['items'] as List?) ?? const [];
+    return rawItems
+        .whereType<Map<String, dynamic>>()
+        .map(CartItemModel.fromJson)
+        .toList();
+  }
+
   Future<void> fetchCart() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final res = await _repo.fetchCart();
       if (res['success'] == true && res['data'] != null) {
-        final data = res['data'];
-        final items = (data['items'] as List)
-            .map((e) => CartItemModel.fromJson(e))
+        final data = res['data'] as Map<String, dynamic>;
+        final items = ((data['items'] as List?) ?? [])
+            .map((e) => CartItemModel.fromJson(e as Map<String, dynamic>))
             .toList();
             
-        final summary = data['summary'] ?? {};
         state = state.copyWith(
           items: items,
-          subtotal: (summary['subtotal'] as num?)?.toDouble() ?? 0.0,
-          discount: (summary['discount'] as num?)?.toDouble() ?? 0.0,
-          total: (summary['total'] as num?)?.toDouble() ?? 0.0,
-          count: summary['count'] as int? ?? 0,
-          discountCode: summary['discount_code'],
+          subtotal: (data['subtotal'] as num?)?.toDouble() ?? 0.0,
+          discount: (data['discount'] as num?)?.toDouble() ?? 0.0,
+          total: (data['total'] as num?)?.toDouble() ?? 0.0,
+          count: (data['count'] as num?)?.toInt() ?? 0,
+          discountCode: data['discount_code'] as String?,
           isLoading: false,
         );
       } else {
@@ -87,11 +107,12 @@ class CartNotifier extends Notifier<CartState> {
 
   Future<bool> addToCart(int productId, int quantity, [Map<String, dynamic>? options]) async {
     try {
-      await _repo.addToCart(productId, quantity, options);
-      await fetchCart();
+      state = state.copyWith(isLoading: true, clearError: true);
+      final res = await _repo.addToCart(productId, quantity, options);
+      _applyItemsSnapshot(_extractItems(res));
       return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }
   }
@@ -99,8 +120,8 @@ class CartNotifier extends Notifier<CartState> {
   Future<void> updateQuantity(String key, int quantity) async {
     if (quantity < 1) return;
     try {
-      await _repo.updateQuantity(key, quantity);
-      await fetchCart();
+      final res = await _repo.updateQuantity(key, quantity);
+      _applyItemsSnapshot(_extractItems(res));
     } catch (e) {
       state = state.copyWith(error: e.toString());
     }
@@ -108,8 +129,8 @@ class CartNotifier extends Notifier<CartState> {
 
   Future<void> removeItem(String key) async {
     try {
-      await _repo.removeFromCart(key);
-      await fetchCart();
+      final res = await _repo.removeFromCart(key);
+      _applyItemsSnapshot(_extractItems(res));
     } catch (e) {
       state = state.copyWith(error: e.toString());
     }

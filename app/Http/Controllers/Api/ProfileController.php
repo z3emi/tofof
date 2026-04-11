@@ -252,30 +252,31 @@ class ProfileController extends Controller
 
 			$order = Order::where('id', $orderId)
 				->where('user_id', $user->id)
-				->with('items.product', 'discountCode')
-				->first();
+			->with('items.product.images', 'discountCode')
+			->first();
 
-			if (!$order) {
-				return response()->json([
-					'success' => false,
-					'message' => 'الطلب غير موجود',
-				], 404);
-			}
+		if (!$order) {
+			return response()->json([
+				'success' => false,
+				'message' => 'الطلب غير موجود',
+			], 404);
+		}
 
-			$walletAmount = WalletTransaction::where('order_id', $order->id)
-				->where('type', 'debit')
-				->sum('amount');
+		$walletAmount = WalletTransaction::where('order_id', $order->id)
+			->where('type', 'debit')
+			->sum('amount');
 
-			$items = $order->items->map(fn ($item) => [
-				'id' => $item->id,
-				'product_id' => $item->product_id,
-				'product_name' => optional($item->product)->name_translated ?? 'منتج محذوف',
-				'quantity' => $item->quantity,
-				'price' => (float) $item->price,
-				'total' => (float) ($item->price * $item->quantity),
-				'cost' => $item->cost,
-				'option_selections' => json_decode($item->option_selections),
-			]);
+		$items = $order->items->map(fn ($item) => [
+			'id' => $item->id,
+			'product_id' => $item->product_id,
+			'product_name' => optional($item->product)->name_translated ?? 'منتج محذوف',
+			'image' => $this->resolveProductImageUrl(optional($item->product)->images->first()?->image_path),
+			'quantity' => $item->quantity,
+			'price' => (float) $item->price,
+			'total' => (float) ($item->price * $item->quantity),
+			'cost' => $item->cost,
+			'option_selections' => $item->normalizedOptionSelections(),
+		]);
 
 			return response()->json([
 				'success' => true,
@@ -520,18 +521,41 @@ class ProfileController extends Controller
 					$query->whereNull('expires_at')
 						->orWhere('expires_at', '>', now());
 				})
-				->with('products', 'categories')
+				->with(['products:id,name_ar,name_en', 'categories:id,name_ar,name_en'])
 				->paginate(20);
 
-			$items = $discounts->getCollection()->map(fn ($discount) => [
-				'id' => $discount->id,
-				'code' => $discount->code,
-				'type' => $discount->type,
-				'value' => (float) $discount->value,
-				'max_discount_amount' => $discount->max_discount_amount ? (float) $discount->max_discount_amount : null,
-				'expires_at' => $discount->expires_at,
-				'description' => $discount->description,
-			]);
+			$items = $discounts->getCollection()->map(function ($discount) {
+				$products = $discount->products->map(fn ($product) => [
+					'id' => $product->id,
+					'name' => $product->name_translated ?? $product->name,
+				])->values();
+
+				$categories = $discount->categories->map(fn ($category) => [
+					'id' => $category->id,
+					'name' => $category->name_translated ?? $category->name,
+				])->values();
+
+				$scope = 'all';
+				if ($products->isNotEmpty()) {
+					$scope = 'products';
+				} elseif ($categories->isNotEmpty()) {
+					$scope = 'categories';
+				}
+
+				return [
+					'id' => $discount->id,
+					'code' => $discount->code,
+					'type' => $discount->type,
+					'value' => (float) $discount->value,
+					'max_discount_amount' => $discount->max_discount_amount ? (float) $discount->max_discount_amount : null,
+					'expires_at' => $discount->expires_at,
+					'is_expired' => $discount->isExpired(),
+					'scope' => $scope,
+					'products' => $products,
+					'categories' => $categories,
+					'description' => $discount->description,
+				];
+			});
 
 			return response()->json([
 				'success' => true,
@@ -585,6 +609,19 @@ class ProfileController extends Controller
 				'message' => $e->getMessage(),
 			], 422);
 		}
+	}
+
+	private function resolveProductImageUrl(?string $imagePath): ?string
+	{
+		if (!$imagePath) {
+			return null;
+		}
+
+		if (filter_var($imagePath, FILTER_VALIDATE_URL)) {
+			return $imagePath;
+		}
+
+		return asset('storage/' . ltrim($imagePath, '/'));
 	}
 }
 

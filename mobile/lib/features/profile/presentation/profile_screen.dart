@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:flutter/services.dart';
 
 import '../../auth/providers/auth_provider.dart';
 
@@ -183,20 +184,11 @@ class ProfileScreen extends ConsumerWidget {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Wrap(
-              spacing: 12,
-              runSpacing: 12,
+            child: Column(
               children: [
-                _InfoCard(
-                  icon: Icons.account_balance_wallet_outlined,
-                  title: 'المحفظة',
-                  value: '${user.walletBalance} د.ع',
-                ),
-                _InfoCard(
-                  icon: Icons.card_giftcard_outlined,
-                  title: 'كود الدعوة',
-                  value: user.referralCode ?? 'غير متوفر',
-                ),
+                _WalletHighlightCard(balanceText: '${_formatAmount(user.walletBalance)} د.ع'),
+                const SizedBox(height: 12),
+                _ReferralCodeCard(referralCode: user.referralCode),
               ],
             ),
           ),
@@ -245,6 +237,14 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
+  static String _formatAmount(double amount) {
+    final normalized = amount.toStringAsFixed(2);
+    final parts = normalized.split('.');
+    final whole = parts[0];
+    final withSeparators = whole.replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (m) => ',');
+    return '$withSeparators.${parts[1]}';
+  }
+
   static Widget _buildProfileOption(IconData icon, String title, VoidCallback? onTap, {Color? color}) {
     return ListTile(
       leading: Icon(icon, color: color ?? const Color(0xFF6D0E16)),
@@ -283,31 +283,128 @@ class _ProfileAvatar extends StatelessWidget {
   }
 }
 
-class _InfoCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String value;
+class _WalletHighlightCard extends StatelessWidget {
+  final String balanceText;
 
-  const _InfoCard({required this.icon, required this.title, required this.value});
+  const _WalletHighlightCard({required this.balanceText});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 170,
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0E6D58), Color(0xFF139A78), Color(0xFF0F7D62)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0E6D58).withValues(alpha: 0.18),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.22),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.account_balance_wallet_outlined, color: Colors.white),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('رصيد المحفظة', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                Text(balanceText, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 22)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReferralCodeCard extends StatelessWidget {
+  final String? referralCode;
+
+  const _ReferralCodeCard({required this.referralCode});
+
+  @override
+  Widget build(BuildContext context) {
+    final code = referralCode?.trim();
+    final hasCode = code != null && code.isNotEmpty;
+
+    return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: const Color(0xFFFDF5E8),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.12)),
+        border: Border.all(color: const Color(0xFFE4CF9B)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: const Color(0xFF6D0E16)),
+          const Row(
+            children: [
+              Icon(Icons.card_giftcard_outlined, color: Color(0xFF8B5E00)),
+              SizedBox(width: 8),
+              Text('كود الدعوة', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF6B4700))),
+            ],
+          ),
           const SizedBox(height: 10),
-          Text(title, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-          const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE4CF9B)),
+                  ),
+                  child: Text(
+                    hasCode ? code : 'غير متوفر',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: hasCode ? 1.0 : 0,
+                      color: hasCode ? const Color(0xFF2F2F2F) : Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              FilledButton.icon(
+                onPressed: hasCode
+                    ? () async {
+                        await Clipboard.setData(ClipboardData(text: code));
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('تم نسخ كود الدعوة')),
+                        );
+                      }
+                    : null,
+                icon: const Icon(Icons.copy_outlined, size: 18),
+                label: const Text('نسخ'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B5E00),
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );

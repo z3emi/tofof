@@ -39,6 +39,7 @@ Route::prefix('store')->group(function () {
     Route::get('/sections', [StoreController::class, 'sections']);
     Route::get('/categories', [StoreController::class, 'categories']);
     Route::get('/products', [StoreController::class, 'products']);
+    Route::get('/products/{identifier}', [StoreController::class, 'product']);
     Route::get('/discount-codes', [StoreController::class, 'discountCodes']);
 });
 

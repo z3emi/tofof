@@ -25,36 +25,48 @@ class CartRepository {
     }
   }
 
-  Future<void> addToCart(int productId, int quantity, [Map<String, dynamic>? options]) async {
+  Future<Map<String, dynamic>> addToCart(int productId, int quantity, [Map<String, dynamic>? options]) async {
     try {
-      await _dio.post(
-        '${ApiConstants.cart}/add',
+      final response = await _dio.post(
+        ApiConstants.cart,
         data: {
           'product_id': productId,
           'quantity': quantity,
           if (options != null) 'selected_options': options,
         },
       );
+      return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
+      if (e.response?.statusCode == 429) {
+        throw 'تم تجاوز الحد المسموح للطلبات، حاول بعد قليل';
+      }
       throw e.response?.data['message'] ?? 'فشل إضافة المنتج للسلة';
     }
   }
 
-  Future<void> updateQuantity(String selectionKey, int quantity) async {
+  Future<Map<String, dynamic>> updateQuantity(String selectionKey, int quantity) async {
     try {
-      await _dio.put(
-        '${ApiConstants.cart}/update/$selectionKey',
+      final response = await _dio.patch(
+        '${ApiConstants.cart}/$selectionKey',
         data: {'quantity': quantity},
       );
+      return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
+      if (e.response?.statusCode == 429) {
+        throw 'تم تجاوز الحد المسموح للطلبات، حاول بعد قليل';
+      }
       throw e.response?.data['message'] ?? 'فشل تعديل الكمية';
     }
   }
 
-  Future<void> removeFromCart(String selectionKey) async {
+  Future<Map<String, dynamic>> removeFromCart(String selectionKey) async {
     try {
-      await _dio.delete('${ApiConstants.cart}/remove/$selectionKey');
+      final response = await _dio.delete('${ApiConstants.cart}/$selectionKey');
+      return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
+      if (e.response?.statusCode == 429) {
+        throw 'تم تجاوز الحد المسموح للطلبات، حاول بعد قليل';
+      }
       throw e.response?.data['message'] ?? 'فشل إزالة المنتج';
     }
   }
@@ -71,5 +83,28 @@ class CartRepository {
     try {
       await _dio.delete('${ApiConstants.cart}/discount');
     } catch (_) {}
+  }
+
+  Future<Map<String, dynamic>> placeOrder({
+    required int addressId,
+    required String paymentMethod,
+    double useWalletAmount = 0,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.checkout,
+        data: {
+          'address_id': addressId,
+          'payment_method': paymentMethod,
+          'use_wallet_amount': useWalletAmount,
+        },
+      );
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 429) {
+        throw 'تم تجاوز الحد المسموح للطلبات، حاول بعد قليل';
+      }
+      throw e.response?.data['message'] ?? 'فشل إرسال الطلب';
+    }
   }
 }

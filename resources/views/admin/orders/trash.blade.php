@@ -77,12 +77,22 @@
                     <tbody>
                         @forelse($trashedOrders as $order)
                             <tr>
+                                @php $displayCustomer = $order->customer ?? $order->user; @endphp
                                 <td>
                                     <input type="checkbox" name="selected_ids[]" value="{{ $order->id }}" class="form-check-input row-checkbox">
                                 </td>
                                 <td class="fw-bold">#{{ $order->id }}</td>
-                                <td class="text-start fw-bold text-dark">{{ $order->customer->name ?? '-' }}</td>
-                                <td><span class="text-muted small">{{ $order->customer->phone_number ?? '-' }}</span></td>
+                                <td class="text-start fw-bold text-dark">
+                                    <div class="d-inline-flex align-items-center gap-2 flex-wrap">
+                                        <span>{{ $displayCustomer->name ?? '-' }}</span>
+                                        @if($order->isWebsiteOrder())
+                                            <span class="badge bg-primary p-1 d-inline-flex align-items-center justify-content-center" style="width: 22px; height: 22px;" title="طلب موقع" aria-label="طلب موقع">
+                                                <i class="bi bi-globe2"></i>
+                                            </span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td><span class="text-muted small">{{ $displayCustomer->phone_number ?? '-' }}</span></td>
                                 <td><div class="fw-bold text-brand">{{ number_format($order->total_amount, 0) }} د.ع</div></td>
                                 <td><div class="text-muted small">{{ $order->deleted_at->format('Y-m-d H:i') }}</div></td>
                                 <td>

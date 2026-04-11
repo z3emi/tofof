@@ -133,9 +133,14 @@
             {{-- 2) معلومات العميل --}}
             <div class="panel">
                 <div class="panel-header">
-                    <div class="header-text">
+                    <div class="header-text d-flex align-items-center gap-2">
                         <i class="bi bi-person-circle"></i>
                         <span>معلومات المستخدم</span>
+                        @if($order->isWebsiteOrder())
+                            <span class="badge bg-primary p-1 d-inline-flex align-items-center justify-content-center" style="width: 22px; height: 22px;" title="طلب موقع" aria-label="طلب موقع">
+                                <i class="bi bi-globe2"></i>
+                            </span>
+                        @endif
                     </div>
                     @if($order->user_id)
                     <a href="{{ route('admin.users.show', $order->user_id) }}" class="btn btn-sm btn-outline-secondary">
@@ -143,8 +148,9 @@
                     </a>
                     @endif
                 </div>
-                <p class="mb-1"><strong>الاسم:</strong> {{ $order->customer->name ?? 'مستخدم محذوف' }}</p>
-                <p><strong>الهاتف:</strong> <a href="tel:{{ $order->customer->phone_number ?? '' }}">{{ $order->customer->phone_number ?? 'N/A' }}</a></p>
+                @php $displayCustomer = $order->customer ?? $order->user; @endphp
+                <p class="mb-1"><strong>الاسم:</strong> {{ $displayCustomer->name ?? 'مستخدم محذوف' }}</p>
+                <p><strong>الهاتف:</strong> <a href="tel:{{ $displayCustomer->phone_number ?? '' }}">{{ $displayCustomer->phone_number ?? 'N/A' }}</a></p>
                 <hr class="my-2">
                 @if($order->is_gift)
                     <p class="mb-1"><strong>عنوان التوصيل المعتمد:</strong> {{ $order->gift_recipient_address_details ?: $addressDetails ?: 'غير محدد' }}</p>
@@ -296,9 +302,10 @@
                                                 <span class="mx-1">|</span>
                                                 ID: {{ optional($item->product)->id ?: '—' }}
                                             </div>
-                                            @if(!empty($item->option_selections))
+                                            @php $optionSelections = $item->normalizedOptionSelections(); @endphp
+                                            @if(!empty($optionSelections))
                                                 <div class="small text-muted mt-1">
-                                                    @foreach($item->option_selections as $label => $value)
+                                                    @foreach($optionSelections as $label => $value)
                                                         <div>{{ $label }}: {{ is_array($value) ? implode(', ', $value) : $value }}</div>
                                                     @endforeach
                                                 </div>

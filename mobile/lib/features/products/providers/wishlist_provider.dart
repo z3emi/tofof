@@ -1,39 +1,56 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../auth/data/auth_repository.dart';
 
 class WishlistNotifier extends Notifier<Set<int>> {
-  static const _wishlistKey = 'wishlist_product_ids';
-
   @override
   Set<int> build() {
-    _load();
+    _loadFromApi();
     return <int>{};
   }
 
-  Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getStringList(_wishlistKey) ?? const [];
-    state = raw.map(int.tryParse).whereType<int>().toSet();
+  Future<void> _loadFromApi() async {
+    try {
+      final response = await ref.read(authRepositoryProvider).fetchFavorites();
+      final data = response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
+      final items = (data['items'] as List?) ?? const [];
+
+      state = items
+          .whereType<Map<String, dynamic>>()
+          .map((item) => item['id'])
+          .whereType<num>()
+          .map((id) => id.toInt())
+          .toSet();
+    } catch (_) {
+      // Keep empty set for unauthenticated/failed state.
+    }
   }
 
   bool isInWishlist(int productId) => state.contains(productId);
 
   Future<bool> toggle(int productId) async {
-    final updated = {...state};
-    final added = !updated.contains(productId);
+    final previous = {...state};
+    final added = !previous.contains(productId);
 
+    final optimistic = {...previous};
     if (added) {
-      updated.add(productId);
+      optimistic.add(productId);
     } else {
-      updated.remove(productId);
+      optimistic.remove(productId);
     }
+    state = optimistic;
 
-    state = updated;
+    try {
+      await ref.read(authRepositoryProvider).toggleFavorite(productId);
+      return added;
+    } catch (_) {
+      state = previous;
+      rethrow;
+    }
+  }
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_wishlistKey, updated.map((id) => id.toString()).toList());
-
-    return added;
+  Future<void> reload() async {
+    await _loadFromApi();
   }
 }
 

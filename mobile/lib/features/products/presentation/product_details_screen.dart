@@ -1,5 +1,8 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -41,11 +44,18 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                 IconButton(
                   icon: Icon(inWishlist ? Icons.favorite : Icons.favorite_border, color: inWishlist ? Colors.red : null),
                   onPressed: () async {
-                    final added = await ref.read(wishlistProvider.notifier).toggle(widget.productId);
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(added ? 'تمت الإضافة للمفضلة' : 'تمت الإزالة من المفضلة')),
-                    );
+                    try {
+                      final added = await ref.read(wishlistProvider.notifier).toggle(widget.productId);
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(added ? 'تمت الإضافة للمفضلة' : 'تمت الإزالة من المفضلة')),
+                      );
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(e.toString())),
+                      );
+                    }
                   },
                 ),
               ],
@@ -86,7 +96,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
-                          '${product.currentPrice.toStringAsFixed(0)} د.ع',
+                          '${product.currentPrice.toStringAsFixed(2)} د.ع',
                           style: const TextStyle(
                             fontSize: 26,
                             color: Color(0xFF6D0E16),
@@ -95,7 +105,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                         ),
                         if (product.isOnSale)
                           Text(
-                            '${product.price.toStringAsFixed(0)} د.ع',
+                            '${product.price.toStringAsFixed(2)} د.ع',
                             style: const TextStyle(
                               fontSize: 18,
                               color: Colors.grey,
@@ -107,9 +117,27 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                     const SizedBox(height: 24),
                     const Text('وصف المنتج', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
-                    Text(
-                      product.description?.trim().isNotEmpty == true ? product.description! : 'لا يوجد وصف متاح.',
-                      style: const TextStyle(fontSize: 14, height: 1.6),
+                    Directionality(
+                      textDirection: ui.TextDirection.rtl,
+                      child: Html(
+                        data: product.description?.trim().isNotEmpty == true ? product.description! : '<p>لا يوجد وصف متاح.</p>',
+                        style: {
+                          'body': Style(
+                            fontSize: FontSize(14),
+                            lineHeight: const LineHeight(1.7),
+                            margin: Margins.zero,
+                            padding: HtmlPaddings.zero,
+                            color: Colors.black87,
+                          ),
+                          'p': Style(margin: Margins.only(bottom: 10)),
+                          'blockquote': Style(
+                            margin: Margins.symmetric(vertical: 10),
+                            padding: HtmlPaddings.all(12),
+                            backgroundColor: const Color(0xFFF8F5F6),
+                            border: Border(left: BorderSide(color: Color(0xFF6D0E16), width: 4)),
+                          ),
+                        },
+                      ),
                     ),
                     const SizedBox(height: 24),
                     const Text('التعليقات والتقييمات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),

@@ -124,8 +124,10 @@
                 $finalTotal = ($subtotal - $discountAmount) + $shippingCost;
 
                 $isGift = (bool) $order->is_gift;
-                $customerName = $order->customer->name ?? 'مستخدم محذوف';
-                $customerPhone = $order->customer->phone_number ?? 'N/A';
+                $isWebsiteOrder = $order->isWebsiteOrder();
+                $displayCustomer = $order->customer ?? $order->user;
+                $customerName = $displayCustomer->name ?? 'مستخدم محذوف';
+                $customerPhone = $displayCustomer->phone_number ?? 'N/A';
                 $standardAddress = trim(implode('، ', array_filter([$order->governorate, $order->city, $order->nearest_landmark])));
 
                 $invoiceRecipientName = $isGift
@@ -207,15 +209,22 @@
                                     @endif
 
                                     <div>
-                                        <div>{{ $product->name_ar ?? 'منتج محذوف' }}</div>
-                                        @if(!empty($item->option_selections))
+                                        <div class="d-flex align-items-center gap-1 flex-wrap">
+                                            <span>{{ $product->name_ar ?? 'منتج محذوف' }}</span>
+                                            @if($isWebsiteOrder)
+                                                <span class="badge bg-primary" style="font-size: 10px;">موقع</span>
+                                            @endif
+                                        </div>
+                                        @php $optionSelections = $item->normalizedOptionSelections(); @endphp
+                                        @if(!empty($optionSelections))
                                             <div class="small text-muted mt-1">
-                                                @foreach($item->option_selections as $label => $value)
+                                                @foreach($optionSelections as $label => $value)
                                                     <div>{{ $label }}: {{ is_array($value) ? implode(', ', $value) : $value }}</div>
                                                 @endforeach
                                             </div>
                                         @endif
                                     </div>
+                                            $websiteBadge = $isWebsiteOrder ? '<span class="badge bg-primary ms-2" style="font-size: 10px;">موقع</span>' : '';
                                 </div>
                             </td>
                             <td class="text-center">{{ optional($item->product)->sku ?: '—' }}</td>
@@ -223,7 +232,7 @@
                             <td class="text-center">{{ $item->quantity }}</td>
                             <td class="text-end">{{ number_format($item->price * $item->quantity, 0) }} د.ع</td>
                         </tr>
-                        @endforeach
+                                                <h2>فاتورة {!! $websiteBadge !!}</h2>
                     </tbody>
                 </table>
 

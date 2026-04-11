@@ -81,11 +81,11 @@ class AuthNotifier extends Notifier<AuthState> {
       }
 
       final token = data['token'] as String;
-      final userJson = data['user'] as Map<String, dynamic>;
 
       await _tokenStorage.saveToken(token);
+      final freshUser = await _repository.fetchMe();
       state = state.copyWith(
-        user: UserModel.fromJson(userJson),
+        user: freshUser,
         isLoading: false,
         clearOtpState: true,
       );
@@ -127,11 +127,11 @@ class AuthNotifier extends Notifier<AuthState> {
       }
 
       final token = data['token'] as String;
-      final userJson = data['user'] as Map<String, dynamic>;
 
       await _tokenStorage.saveToken(token);
+      final freshUser = await _repository.fetchMe();
       state = state.copyWith(
-        user: UserModel.fromJson(userJson),
+        user: freshUser,
         isLoading: false,
         clearOtpState: true,
       );
@@ -159,10 +159,9 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       final response = await _repository.verifyOtp(phoneNumber: phoneNumber, otp: otp);
       final token = response['data']['token'] as String;
-      final userJson = response['data']['user'] as Map<String, dynamic>;
 
       await _tokenStorage.saveToken(token);
-      final user = UserModel.fromJson(userJson);
+      final user = await _repository.fetchMe();
 
       state = state.copyWith(user: user, isLoading: false, clearOtpState: true);
       return true;
@@ -262,6 +261,15 @@ class AuthNotifier extends Notifier<AuthState> {
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
       return false;
+    }
+  }
+
+  Future<void> refreshMe() async {
+    try {
+      final user = await _repository.fetchMe();
+      state = state.copyWith(user: user, clearError: true);
+    } catch (_) {
+      // Keep current state if refresh fails.
     }
   }
 

@@ -224,15 +224,101 @@ class AuthRepository {
     }
   }
 
-  Future<Map<String, dynamic>> fetchFavorites() async {
+  Future<Map<String, dynamic>> fetchFavorites({int page = 1}) async {
     try {
       final response = await _dio.get(
         ApiConstants.wishlist,
+        queryParameters: {'page': page},
         options: Options(headers: await _authHeaders()),
       );
       return response.data;
     } on DioException catch (e) {
       throw e.response?.data['message'] ?? 'فشل جلب المفضلة';
+    }
+  }
+
+  Future<Map<String, dynamic>> toggleFavorite(int productId) async {
+    try {
+      final response = await _dio.post(
+        '${ApiConstants.wishlist}/$productId/toggle',
+        options: Options(headers: await _authHeaders()),
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'تعذر تحديث المفضلة';
+    }
+  }
+
+  Future<Map<String, dynamic>> createAddress({
+    required String governorate,
+    required String city,
+    required String addressDetails,
+    String? nearestLandmark,
+    double? latitude,
+    double? longitude,
+    bool isDefault = false,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '${ApiConstants.profile}/addresses',
+        data: {
+          'governorate': governorate,
+          'city': city,
+          'address_details': addressDetails,
+          if (nearestLandmark != null && nearestLandmark.trim().isNotEmpty) 'nearest_landmark': nearestLandmark.trim(),
+          if (latitude != null) 'latitude': latitude,
+          if (longitude != null) 'longitude': longitude,
+          'is_default': isDefault,
+        },
+        options: Options(headers: await _authHeaders()),
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'تعذر إضافة العنوان';
+    }
+  }
+
+  Future<Map<String, dynamic>> updateAddress({
+    required int addressId,
+    String? governorate,
+    String? city,
+    String? addressDetails,
+    String? nearestLandmark,
+    double? latitude,
+    double? longitude,
+    bool? isDefault,
+  }) async {
+    try {
+      final data = <String, dynamic>{
+        if (governorate != null && governorate.trim().isNotEmpty) 'governorate': governorate.trim(),
+        if (city != null && city.trim().isNotEmpty) 'city': city.trim(),
+        if (addressDetails != null && addressDetails.trim().isNotEmpty) 'address_details': addressDetails.trim(),
+        if (nearestLandmark != null) 'nearest_landmark': nearestLandmark.trim(),
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
+        if (isDefault != null) 'is_default': isDefault,
+      };
+
+      final response = await _dio.patch(
+        '${ApiConstants.profile}/addresses/$addressId',
+        data: data,
+        options: Options(headers: await _authHeaders()),
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'تعذر تعديل العنوان';
+    }
+  }
+
+  Future<Map<String, dynamic>> deleteAddress(int addressId) async {
+    try {
+      final response = await _dio.delete(
+        '${ApiConstants.profile}/addresses/$addressId',
+        options: Options(headers: await _authHeaders()),
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'تعذر حذف العنوان';
     }
   }
 

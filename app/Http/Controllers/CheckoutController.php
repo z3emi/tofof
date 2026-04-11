@@ -156,8 +156,7 @@ class CheckoutController extends Controller
             $shippingAddressDetails = $isGift
                 ? trim((string) $request->gift_recipient_address_details)
                 : ($address->address_details ?? '');
-
-            $order = $this->createOrderWithRepair([
+            $orderAttributes = [
                 'user_id'          => $user->id,
                 'customer_id'      => $customer->id,
                 'total_amount'     => $finalTotal,
@@ -175,7 +174,13 @@ class CheckoutController extends Controller
                 'gift_recipient_address_details' => $isGift ? $request->gift_recipient_address_details : null,
                 'gift_message' => $isGift ? $request->gift_message : null,
                 'payment_method'   => $request->payment_method,
-            ]);
+            ];
+
+            if (Schema::hasColumn('orders', 'source')) {
+                $orderAttributes['source'] = 'website';
+            }
+
+            $order = $this->createOrderWithRepair($orderAttributes);
 
             if ($discountCodeId) {
                 $this->createDiscountCodeUsageWithRepair([

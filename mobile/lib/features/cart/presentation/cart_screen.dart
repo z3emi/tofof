@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import '../providers/cart_provider.dart';
@@ -117,7 +119,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                       children: [
                         Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         const SizedBox(height: 8),
-                        Text('${item.price} د.ع', style: const TextStyle(color: Color(0xFF6D0E16))),
+                        Text(_formatPrice(item.price), style: const TextStyle(color: Color(0xFF6D0E16), fontWeight: FontWeight.w700)),
                         const SizedBox(height: 8),
                         Row(
                           children: [
@@ -197,20 +199,20 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               children: [
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   const Text('المجموع الفرعي'),
-                  Text('${cartState.subtotal} د.ع'),
+                  Text(_formatPrice(cartState.subtotal)),
                 ]),
                 if (cartState.discount > 0) ...[
                   const SizedBox(height: 8),
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                     const Text('الخصم', style: TextStyle(color: Colors.green)),
-                    Text('-${cartState.discount} د.ع', style: const TextStyle(color: Colors.green)),
+                    Text('-${_formatPrice(cartState.discount)}', style: const TextStyle(color: Colors.green)),
                   ]),
                 ],
                 const Divider(height: 24),
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                   const Text('الإجمالي الكلي', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   Text(
-                    '${cartState.total} د.ع',
+                    _formatPrice(cartState.total),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF6D0E16)),
                   ),
                 ]),
@@ -218,7 +220,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: isDummy ? null : () {},
+                    onPressed: isDummy ? null : () => context.push('/checkout'),
                     child: const Text('إتمام الطلب'),
                   ),
                 )
@@ -229,6 +231,10 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       ],
     );
   }
+}
+
+String _formatPrice(num value) {
+  return '${NumberFormat('#,##0.00').format(value)} د.ع';
 }
 
 class _FakeCartState {

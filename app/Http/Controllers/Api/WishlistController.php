@@ -16,21 +16,31 @@ class WishlistController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        
+
         $favorites = $user->favorites()
-            ->with('product')
+            ->with('product.images')
+            ->latest()
             ->paginate(20);
 
-        $items = $favorites->map(fn($fav) => $this->formatProduct($fav->product, true));
+        $items = $favorites->getCollection()
+            ->map(function ($fav) {
+                if (! $fav->product) {
+                    return null;
+                }
+
+                return $this->formatProduct($fav->product, true);
+            })
+            ->filter()
+            ->values();
 
         return response()->json([
             'success' => true,
             'data' => [
                 'items' => $items,
                 'total' => $favorites->total(),
-                'current_page' => $favorites->current_page(),
-                'per_page' => $favorites->per_page(),
-                'last_page' => $favorites->last_page(),
+                'current_page' => $favorites->currentPage(),
+                'per_page' => $favorites->perPage(),
+                'last_page' => $favorites->lastPage(),
             ]
         ]);
     }
@@ -221,18 +231,20 @@ class WishlistController extends Controller
      */
     private function formatProduct($product, $isFavorited = false)
     {
+        $imagePath = $product->images->first()?->image_path;
+
         return [
             'id' => $product->id,
             'name' => $product->name_translated,
             'description' => $product->description_translated,
             'price' => (float) $product->price,
             'sale_price' => $product->sale_price ? (float) $product->sale_price : null,
-            'current_price' => (float) $product->getCurrentPrice(),
+            'current_price' => (float) $product->current_price,
             'is_on_sale' => $product->isOnSale(),
             'stock_quantity' => $product->stock_quantity,
-            'rating' => (float) ($product->getAverageRating() ?? 0),
-            'reviews_count' => $product->getReviewsCount(),
-            'image' => $product->images->first()?->image_path,
+            'rating' => (float) ($product->average_rating ?? 0),
+            'reviews_count' => $product->reviews_count,
+            'image' => $imagePath ? asset('storage/' . ltrim($imagePath, '/')) : null,
             'is_favorited' => $isFavorited,
         ];
     }

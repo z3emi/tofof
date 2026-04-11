@@ -121,14 +121,20 @@ $governorates = ['بغداد', 'نينوى', 'البصرة', 'صلاح الدي�
                             <td class="fw-bold">#{{ $order->id }}</td>
                             <td class="text-start">
                                 @php
-                                    $customerAvatar = optional(optional($order->customer)->user)->avatar_url ?: asset('storage/avatars/default.jpg');
+                                    $displayCustomer = $order->customer ?? $order->user;
+                                    $customerAvatar = optional(optional($displayCustomer)->user)->avatar_url ?: ($displayCustomer->avatar_url ?? asset('storage/avatars/default.jpg'));
                                 @endphp
                                 <div class="d-inline-flex align-items-center gap-2 fw-bold text-dark" style="direction: rtl;">
                                     <img src="{{ $customerAvatar }}"
-                                         alt="{{ $order->customer->name ?? 'مستخدم' }}"
+                                         alt="{{ $displayCustomer->name ?? 'مستخدم' }}"
                                          class="customer-avatar"
                                          onerror="this.onerror=null;this.src='{{ asset('storage/avatars/default.jpg') }}';">
-                                    <span>{{ $order->customer->name ?? 'مستخدم محذوف' }}</span>
+                                    <span>{{ $displayCustomer->name ?? 'مستخدم محذوف' }}</span>
+                                    @if($order->isWebsiteOrder())
+                                        <span class="badge bg-primary p-1 d-inline-flex align-items-center justify-content-center" style="width: 22px; height: 22px;" title="طلب موقع" aria-label="طلب موقع">
+                                            <i class="bi bi-globe2"></i>
+                                        </span>
+                                    @endif
                                     @if($order->is_gift)
                                         <span class="badge bg-danger p-1 d-inline-flex align-items-center justify-content-center" style="width: 22px; height: 22px;" title="هدية" aria-label="هدية">
                                             <i class="bi bi-gift-fill"></i>
@@ -136,7 +142,7 @@ $governorates = ['بغداد', 'نينوى', 'البصرة', 'صلاح الدي�
                                     @endif
                                 </div>
                             </td>
-                            <td><span class="text-muted small">{{ $order->customer->phone_number ?? '-' }}</span></td>
+                            <td><span class="text-muted small">{{ $displayCustomer->phone_number ?? '-' }}</span></td>
                             <td><div class="fw-bold text-brand">{{ number_format($order->total_amount, 0) }} د.ع</div></td>
                             <td>
                                 <span class="status-badge bg-{{ $order->status }} shadow-sm">
