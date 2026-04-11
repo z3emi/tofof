@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Traits\SendsWhatsAppOtp;
+use Carbon\Carbon;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Address;
@@ -14,6 +16,8 @@ use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
+    use SendsWhatsAppOtp;
+
     /**
      * Get user profile
      */
@@ -47,7 +51,6 @@ class ProfileController extends Controller
                 'name' => 'sometimes|string|max:255',
                 'email' => 'sometimes|email|unique:users,email,' . $request->user()->id,
                 'phone_number' => 'sometimes|string|unique:users,phone_number,' . $request->user()->id,
-                'password' => 'sometimes|string|min:8|confirmed',
                 'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:5120',
             ]);
 
@@ -61,11 +64,6 @@ class ProfileController extends Controller
                 $validated['avatar'] = $request->file('avatar')->store('avatars', 'public');
             }
 
-            // Handle password update
-            if (isset($validated['password'])) {
-                $validated['password'] = Hash::make($validated['password']);
-            }
-
             $user->update($validated);
 
             return response()->json([
@@ -77,6 +75,8 @@ class ProfileController extends Controller
                     'email' => $user->email,
                     'phone_number' => $user->phone_number,
                     'avatar' => $user->avatar,
+                    'wallet_balance' => (float) $user->wallet_balance,
+                    'referral_code' => $user->referral_code,
                 ]
             ]);
         } catch (ValidationException $e) {
@@ -90,6 +90,104 @@ class ProfileController extends Controller
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 422);
+        }
+    }
+
+    /**
+     * Send OTP to the current user's phone for password change confirmation.
+     */
+    public function sendPasswordChangeOtp(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            if (is_null($user->phone_verified_at)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'رقم الهاتف غير مفعل.',
+                ], 422);
+            }
+
+            $otp = random_int(100000, 999999);
+
+            $user->forceFill([
+                'whatsapp_otp' => (string) $otp,
+                'whatsapp_otp_expires_at' => Carbon::now()->addMinutes(10),
+            ])->save();
+
+            $this->sendOtpViaWhatsApp($user->phone_number, $otp);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم إرسال رمز التحقق إلى رقم هاتف الحساب عبر واتساب.',
+                'data' => [
+                    'phone_number' => $user->phone_number,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'تعذر إرسال رمز التحقق حاليًا.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Change password with old password + OTP confirmation.
+     */
+    public function changePassword(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'old_password' => 'required|string',
+                'otp' => 'required|digits:6',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
+
+            $user = $request->user();
+
+            if (!Hash::check($validated['old_password'], $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'كلمة المرور القديمة غير صحيحة.',
+                ], 422);
+            }
+
+            if (!$user->whatsapp_otp || !$user->whatsapp_otp_expires_at) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لا يوجد رمز تحقق صالح. أعد طلب الرمز.',
+                ], 422);
+            }
+
+            if ($user->whatsapp_otp !== $validated['otp'] || Carbon::now()->greaterThan($user->whatsapp_otp_expires_at)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'رمز التحقق غير صحيح أو منتهي الصلاحية.',
+                ], 422);
+            }
+
+            $user->forceFill([
+                'password' => Hash::make($validated['password']),
+                'whatsapp_otp' => null,
+                'whatsapp_otp_expires_at' => null,
+            ])->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تغيير كلمة المرور بنجاح.',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'خطأ في البيانات المدخلة',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'تعذر تغيير كلمة المرور حاليًا.',
+            ], 500);
         }
     }
 
@@ -118,7 +216,7 @@ class ProfileController extends Controller
 
             $orders = $query->paginate($perPage);
 
-            $items = $orders->map(fn($order) => [
+            $items = $orders->getCollection()->map(fn($order) => [
                 'id' => $order->id,
                 'total_amount' => (float) $order->total_amount,
                 'discount_amount' => (float) $order->discount_amount,
@@ -456,7 +554,7 @@ class ProfileController extends Controller
                 ->with('products', 'categories')
                 ->paginate(20);
 
-            $items = $discounts->map(fn($discount) => [
+            $items = $discounts->getCollection()->map(fn($discount) => [
                 'id' => $discount->id,
                 'code' => $discount->code,
                 'type' => $discount->type,

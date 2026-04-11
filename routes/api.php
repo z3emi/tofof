@@ -22,6 +22,8 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [CustomerAuthController::class, 'login']);
     Route::post('/request-otp', [CustomerAuthController::class, 'requestOtp']);
     Route::post('/verify-otp', [CustomerAuthController::class, 'verifyOtp']);
+    Route::post('/password-reset/request-otp', [CustomerAuthController::class, 'requestPasswordResetOtp']);
+    Route::post('/password-reset/confirm', [CustomerAuthController::class, 'resetPassword']);
     Route::post('/logout', [CustomerAuthController::class, 'logout'])->middleware('auth:sanctum');
     Route::get('/me', [CustomerAuthController::class, 'me'])->middleware('auth:sanctum');
 });
@@ -46,6 +48,8 @@ Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
     Route::prefix('profile')->group(function () {
         Route::get('/', [ProfileController::class, 'show']);
         Route::patch('/', [ProfileController::class, 'update']);
+        Route::post('/password/send-otp', [ProfileController::class, 'sendPasswordChangeOtp']);
+        Route::post('/password/change', [ProfileController::class, 'changePassword']);
         Route::get('/orders', [ProfileController::class, 'orders']);
         Route::get('/orders/{orderId}', [ProfileController::class, 'showOrder']);
         Route::get('/addresses', [ProfileController::class, 'addresses']);

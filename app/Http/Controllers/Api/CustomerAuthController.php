@@ -304,6 +304,125 @@ class CustomerAuthController extends Controller
     }
 
     /**
+     * Request a WhatsApp OTP for password reset.
+     */
+    public function requestPasswordResetOtp(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'phone_number' => 'required|string|max:32',
+            ]);
+
+            $phoneNumber = $this->normalizePhoneNumber($validated['phone_number']);
+            $user = $this->findUserByPhoneInput($phoneNumber);
+
+            if (! $user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لا يوجد حساب بهذا الرقم.',
+                ], 404);
+            }
+
+            if (is_null($user->phone_verified_at)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'هذا الحساب غير مفعل بعد.',
+                ], 422);
+            }
+
+            $otp = random_int(100000, 999999);
+
+            $user->forceFill([
+                'whatsapp_otp' => (string) $otp,
+                'whatsapp_otp_expires_at' => Carbon::now()->addMinutes(10),
+            ])->save();
+
+            $this->sendOtpViaWhatsApp($user->phone_number, $otp);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم إرسال رمز إعادة تعيين كلمة المرور عبر واتساب.',
+                'data' => [
+                    'phone_number' => $user->phone_number,
+                ],
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'خطأ في البيانات المدخلة',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'تعذر إرسال رمز إعادة التعيين حاليًا.',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+
+    /**
+     * Reset password using the WhatsApp OTP.
+     */
+    public function resetPassword(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'phone_number' => 'required|string|max:32',
+                'otp' => 'required|digits:6',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
+
+            $phoneNumber = $this->normalizePhoneNumber($validated['phone_number']);
+            $user = $this->findUserByPhoneInput($phoneNumber);
+
+            if (! $user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'هذا الرقم غير مسجل.',
+                ], 404);
+            }
+
+            if (! $user->whatsapp_otp || ! $user->whatsapp_otp_expires_at) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لا يوجد رمز صالح لإعادة التعيين. أعد طلب الرمز.',
+                ], 422);
+            }
+
+            if ($user->whatsapp_otp !== $validated['otp'] || Carbon::now()->greaterThan($user->whatsapp_otp_expires_at)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'رمز التحقق غير صحيح أو انتهت صلاحيته.',
+                ], 422);
+            }
+
+            $user->forceFill([
+                'password' => bcrypt($validated['password']),
+                'whatsapp_otp' => null,
+                'whatsapp_otp_expires_at' => null,
+            ])->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تغيير كلمة المرور بنجاح. يمكنك تسجيل الدخول الآن.',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'خطأ في البيانات المدخلة',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'تعذر إعادة تعيين كلمة المرور حاليًا.',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+
+    /**
      * Get current authenticated user
      */
     public function me(Request $request)

@@ -16,18 +16,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  final _otpCtrl = TextEditingController();
 
   AuthCountry _selectedCountry = authCountries.first;
   bool _showPassword = false;
-  bool _otpStep = false;
-  String? _pendingPhone;
 
   @override
   void dispose() {
     _phoneCtrl.dispose();
     _passwordCtrl.dispose();
-    _otpCtrl.dispose();
     super.dispose();
   }
 
@@ -91,13 +87,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final state = ref.read(authProvider);
     if (success && state.otpRequired) {
-      setState(() {
-        _otpStep = true;
-        _pendingPhone = state.pendingPhone ?? _fullPhone();
-      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('الحساب يحتاج تأكيد واتساب. تم إرسال رمز OTP.')),
       );
+      context.push('/verify-otp', extra: {
+        'phoneNumber': state.pendingPhone ?? _fullPhone(),
+        'purpose': 'login',
+      });
       return;
     }
 
@@ -109,53 +105,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(state.error ?? 'فشل تسجيل الدخول')),
     );
-  }
-
-  Future<void> _verifyOtp() async {
-    final otp = _otpCtrl.text.trim();
-    if (otp.length != 6 || _pendingPhone == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('أدخل رمز OTP صحيح من 6 أرقام')),
-      );
-      return;
-    }
-
-    final success = await ref.read(authProvider.notifier).verifyOtp(
-          phoneNumber: _pendingPhone!,
-          otp: otp,
-        );
-
-    if (!mounted) return;
-
-    if (success) {
-      context.go('/');
-      return;
-    }
-
-    final error = ref.read(authProvider).error;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error ?? 'فشل تأكيد الرمز')),
-    );
-  }
-
-  Future<void> _resendOtp() async {
-    final phone = _pendingPhone;
-    if (phone == null) return;
-
-    final messenger = ScaffoldMessenger.of(context);
-    final success = await ref.read(authProvider.notifier).resendOtp(
-          phoneNumber: phone,
-          purpose: 'login',
-        );
-
-    if (!mounted) return;
-
-    if (success) {
-      messenger.showSnackBar(const SnackBar(content: Text('تمت إعادة إرسال رمز OTP')));
-    } else {
-      final error = ref.read(authProvider).error;
-      messenger.showSnackBar(SnackBar(content: Text(error ?? 'تعذر إعادة الإرسال')));
-    }
   }
 
   @override
@@ -239,34 +188,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   validator: (v) => (v == null || v.isEmpty) ? 'مطلوب إدخال كلمة المرور' : null,
                 ),
-                if (_otpStep) ...[
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _otpCtrl,
-                    keyboardType: TextInputType.number,
-                    maxLength: 6,
-                    decoration: const InputDecoration(
-                      labelText: 'رمز OTP من واتساب',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ],
                 const SizedBox(height: 22),
                 ElevatedButton(
-                  onPressed: authState.isLoading ? null : (_otpStep ? _verifyOtp : _submitLogin),
+                  onPressed: authState.isLoading ? null : _submitLogin,
                   child: authState.isLoading
                       ? const SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : Text(_otpStep ? 'تأكيد الرمز' : 'دخول'),
+                      : const Text('دخول'),
                 ),
-                if (_otpStep) ...[
-                  const SizedBox(height: 8),
-                  TextButton(onPressed: authState.isLoading ? null : _resendOtp, child: const Text('إعادة إرسال OTP')),
-                ],
                 const SizedBox(height: 8),
+                TextButton(
+                  onPressed: authState.isLoading ? null : () => context.push('/reset-password'),
+                  child: const Text('نسيت كلمة المرور؟'),
+                ),
+                const SizedBox(height: 2),
                 TextButton(
                   onPressed: () => context.push('/register'),
                   child: const Text('إنشاء حساب جديد'),

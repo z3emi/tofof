@@ -9,6 +9,8 @@ class ApiConstants {
   static const String login = '/auth/login';
   static const String requestOtp = '/auth/request-otp';
   static const String verifyOtp = '/auth/verify-otp';
+  static const String requestPasswordResetOtp = '/auth/password-reset/request-otp';
+  static const String resetPassword = '/auth/password-reset/confirm';
   static const String logout = '/auth/logout';
   static const String me = '/auth/me';
 
@@ -22,6 +24,11 @@ class ApiConstants {
 
   // Profile & Features
   static const String profile = '/profile';
+  static const String profileUpdate = '/profile';
+  static const String profilePasswordSendOtp = '/profile/password/send-otp';
+  static const String profilePasswordChange = '/profile/password/change';
+  static const String profileOrders = '/profile/orders';
+  static const String profileDiscounts = '/profile/discounts';
   static const String cart = '/cart';
   static const String checkout = '/checkout';
   static const String orders = '/profile/orders';

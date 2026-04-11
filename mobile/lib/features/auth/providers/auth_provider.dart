@@ -172,6 +172,99 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  Future<bool> requestPasswordResetOtp({required String phoneNumber}) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _repository.requestPasswordResetOtp(phoneNumber: phoneNumber);
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> resetPassword({
+    required String phoneNumber,
+    required String otp,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _repository.resetPassword(
+        phoneNumber: phoneNumber,
+        otp: otp,
+        password: password,
+        passwordConfirmation: passwordConfirmation,
+      );
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> updateProfile({
+    String? name,
+    String? email,
+    String? phoneNumber,
+    String? password,
+    String? passwordConfirmation,
+  }) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final user = await _repository.updateProfile(
+        name: name,
+        email: email,
+        phoneNumber: phoneNumber,
+        password: password,
+        passwordConfirmation: passwordConfirmation,
+      );
+
+      state = state.copyWith(user: user, isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> sendProfilePasswordOtp() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _repository.sendProfilePasswordOtp();
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> changeProfilePassword({
+    required String oldPassword,
+    required String otp,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _repository.changeProfilePassword(
+        oldPassword: oldPassword,
+        otp: otp,
+        password: password,
+        passwordConfirmation: passwordConfirmation,
+      );
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     state = state.copyWith(isLoading: true);
     await _repository.logout();

@@ -21,19 +21,17 @@ class ProfileScreen extends ConsumerWidget {
       final skeletonBody = Skeletonizer(
         enabled: true,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 120),
           children: const [
-            ListTile(
-              leading: CircleAvatar(radius: 25),
-              title: Text('اسم المستخدم'),
-              subtitle: Text('email@example.com'),
-            ),
-            SizedBox(height: 12),
-            Card(child: SizedBox(height: 80)),
+            Card(child: SizedBox(height: 180)),
+            SizedBox(height: 14),
+            Card(child: SizedBox(height: 88)),
             SizedBox(height: 12),
             ListTile(leading: Icon(Icons.shopping_bag_outlined), title: Text('طلباتي')),
+            ListTile(leading: Icon(Icons.discount_outlined), title: Text('أكواد الخصم')),
             ListTile(leading: Icon(Icons.favorite_border), title: Text('المفضلة')),
-            ListTile(leading: Icon(Icons.settings_outlined), title: Text('الإعدادات')),
+            ListTile(leading: Icon(Icons.location_on_outlined), title: Text('عناويني')),
+            ListTile(leading: Icon(Icons.settings_outlined), title: Text('إعدادات التطبيق')),
           ],
         ),
       );
@@ -50,56 +48,71 @@ class ProfileScreen extends ConsumerWidget {
 
     if (user == null) {
       final guestBody = ListView(
-        padding: const EdgeInsets.fromLTRB(16, 24, 16, 120),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 120),
         children: [
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(24),
               gradient: const LinearGradient(
-                colors: [Color(0xFF6D0E16), Color(0xFF901B24)],
+                colors: [Color(0xFF6D0E16), Color(0xFF9B1B24), Color(0xFF571017)],
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF6D0E16).withValues(alpha: 0.18),
+                  blurRadius: 24,
+                  offset: const Offset(0, 12),
+                ),
+              ],
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const CircleAvatar(radius: 34, backgroundColor: Colors.white, child: Icon(Icons.person, size: 34, color: Color(0xFF6D0E16))),
-                const SizedBox(height: 12),
-                const Text('مرحبًا بك في طفوف', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
+                const CircleAvatar(
+                  radius: 38,
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.person_outline_rounded, size: 38, color: Color(0xFF6D0E16)),
+                ),
+                const SizedBox(height: 14),
+                const Text('مرحبًا بك في طفوف', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 22)),
                 const SizedBox(height: 8),
-                const Text('سجّل دخولك للوصول إلى الطلبات والمفضلة والعناوين.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white70)),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => context.push('/register'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.white),
-                        ),
-                        child: const Text('تسجيل'),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => context.push('/login'),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF6D0E16)),
-                        child: const Text('تسجيل دخول'),
-                      ),
-                    ),
-                  ],
-                )
+                const Text('سجل دخولك حتى تظهر طلباتك، أكواد الخصم، المفضلة، العناوين، والمحفظة.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white70, height: 1.5)),
+                const SizedBox(height: 18),
+                ElevatedButton(
+                  onPressed: () => context.push('/login'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF6D0E16)),
+                  child: const Text('تسجيل دخول'),
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton(
+                  onPressed: () => context.push('/register'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white),
+                  ),
+                  child: const Text('إنشاء حساب جديد'),
+                ),
+                const SizedBox(height: 6),
+                TextButton(
+                  onPressed: () => context.push('/reset-password'),
+                  style: TextButton.styleFrom(foregroundColor: Colors.white70),
+                  child: const Text('نسيت كلمة المرور؟'),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 18),
-          _buildProfileOption(Icons.shopping_bag_outlined, 'طلباتي', null),
-          _buildProfileOption(Icons.favorite_border, 'المفضلة', null),
-          _buildProfileOption(Icons.location_on_outlined, 'عناويني', null),
-          _buildProfileOption(Icons.settings_outlined, 'إعدادات التطبيق', () => context.push('/settings')),
+          const SizedBox(height: 14),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.settings_outlined),
+              title: const Text('إعدادات التطبيق'),
+              subtitle: const Text('الإشعارات والوضع الليلي واللغة'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () => context.push('/settings'),
+            ),
+          ),
         ],
       );
 
@@ -116,34 +129,48 @@ class ProfileScreen extends ConsumerWidget {
     final userBody = SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 120),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            margin: const EdgeInsets.all(16),
+            margin: const EdgeInsets.fromLTRB(16, 18, 16, 12),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(26),
               gradient: const LinearGradient(
-                colors: [Color(0xFF6D0E16), Color(0xFF8F1A24)],
+                colors: [Color(0xFF6D0E16), Color(0xFF8F1A24), Color(0xFF531018)],
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF6D0E16).withValues(alpha: 0.18),
+                  blurRadius: 28,
+                  offset: const Offset(0, 14),
+                ),
+              ],
             ),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 35,
-                  backgroundColor: Colors.white,
-                  backgroundImage: user.avatar != null ? NetworkImage(user.avatar!) : null,
-                  child: user.avatar == null ? const Icon(Icons.person, size: 40, color: Colors.grey) : null,
-                ),
+                _ProfileAvatar(avatarPath: user.avatar),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(user.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(user.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
+                          ),
+                          IconButton(
+                            onPressed: () => context.push('/profile/edit'),
+                            icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                            tooltip: 'تعديل',
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 4),
-                      Text(user.phoneNumber, style: const TextStyle(color: Colors.white70)),
+                      Text(user.phoneNumber, style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
                       if (user.email.isNotEmpty) ...[
                         const SizedBox(height: 2),
                         Text(user.email, style: const TextStyle(color: Colors.white54, fontSize: 12)),
@@ -155,44 +182,45 @@ class ProfileScreen extends ConsumerWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Row(
-                  children: [
-                    const Icon(Icons.account_balance_wallet, color: Color(0xFFD59E06), size: 40),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('رصيد المحفظة', style: TextStyle(color: Colors.grey)),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${user.walletBalance} د.ع',
-                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF6D0E16)),
-                        ),
-                      ],
-                    ),
-                  ],
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _InfoCard(
+                  icon: Icons.account_balance_wallet_outlined,
+                  title: 'المحفظة',
+                  value: '${user.walletBalance} د.ع',
                 ),
-              ),
+                _InfoCard(
+                  icon: Icons.card_giftcard_outlined,
+                  title: 'كود الدعوة',
+                  value: user.referralCode ?? 'غير متوفر',
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          _buildProfileOption(Icons.shopping_bag_outlined, 'متابعة الطلبات', () {}),
-          _buildProfileOption(Icons.favorite_border, 'قائمة الرغبات (المفضلة)', () {}),
-          _buildProfileOption(Icons.location_on_outlined, 'عناوين الشحن المحفوظة', () {}),
-          _buildProfileOption(Icons.settings_outlined, 'إعدادات التطبيق', () => context.push('/settings')),
-          const Divider(),
-          _buildProfileOption(Icons.support_agent, 'الدعم الفني والشكاوى', () {}),
-          _buildProfileOption(
-            Icons.logout,
-            'تسجيل الخروج',
-            () => ref.read(authProvider.notifier).logout(),
-            color: Colors.red,
+          const SizedBox(height: 14),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Card(
+              child: Column(
+                children: [
+                  _buildProfileOption(Icons.shopping_bag_outlined, 'طلباتي', () => context.push('/profile/orders')),
+                  _buildProfileOption(Icons.discount_outlined, 'أكواد الخصم', () => context.push('/profile/discounts')),
+                  _buildProfileOption(Icons.favorite_border, 'المفضلة', () => context.push('/profile/favorites')),
+                  _buildProfileOption(Icons.location_on_outlined, 'عناويني', () => context.push('/profile/addresses')),
+                  _buildProfileOption(Icons.settings_outlined, 'إعدادات التطبيق', () => context.push('/settings')),
+                  _buildProfileOption(Icons.support_agent, 'الدعم الفني والشكاوى', () {}),
+                  _buildProfileOption(
+                    Icons.logout,
+                    'تسجيل الخروج',
+                    () => ref.read(authProvider.notifier).logout(),
+                    color: Colors.red,
+                  ),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: 16),
         ],
@@ -223,6 +251,65 @@ class ProfileScreen extends ConsumerWidget {
       title: Text(title, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
       trailing: color == null ? const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey) : null,
       onTap: onTap,
+    );
+  }
+}
+
+class _ProfileAvatar extends StatelessWidget {
+  final String? avatarPath;
+
+  const _ProfileAvatar({required this.avatarPath});
+
+  @override
+  Widget build(BuildContext context) {
+    final value = avatarPath?.trim();
+    final isDefault = value == null || value.isEmpty || value.toLowerCase().contains('default.png') || value.toLowerCase().contains('default.jpg');
+
+    return CircleAvatar(
+      radius: 38,
+      backgroundColor: Colors.white,
+      child: isDefault
+          ? const Icon(Icons.person, size: 40, color: Colors.grey)
+          : ClipOval(
+              child: Image.network(
+                value.startsWith('http') ? value : 'https://www.tofofstore.com/storage/$value',
+                width: 76,
+                height: 76,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 40, color: Colors.grey),
+              ),
+            ),
+    );
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+
+  const _InfoCard({required this.icon, required this.title, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 170,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: const Color(0xFF6D0E16)),
+          const SizedBox(height: 10),
+          Text(title, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+          const SizedBox(height: 4),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+        ],
+      ),
     );
   }
 }
