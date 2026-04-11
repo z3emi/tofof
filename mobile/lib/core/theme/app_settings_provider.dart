@@ -72,6 +72,7 @@ class AppSettingsNotifier extends Notifier<AppSettingsState> {
   }
 }
 
-final appSettingsProvider = NotifierProvider<AppSettingsNotifier, AppSettingsState>(() {
-  return AppSettingsNotifier();
-});
+final appSettingsProvider =
+    NotifierProvider<AppSettingsNotifier, AppSettingsState>(() {
+      return AppSettingsNotifier();
+    });

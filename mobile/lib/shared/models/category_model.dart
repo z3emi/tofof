@@ -22,7 +22,8 @@ class CategoryModel {
       slug: json['slug'] as String?,
       imageUrl: json['image_url'] as String?,
       productsCount: json['products_count'] as int? ?? 0,
-      children: (json['children'] as List<dynamic>?)
+      children:
+          (json['children'] as List<dynamic>?)
               ?.map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],

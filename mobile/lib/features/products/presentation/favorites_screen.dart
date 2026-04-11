@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -52,8 +52,14 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
               );
             }
 
-            final data = snapshot.data?['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
-            final items = (data['items'] as List?)?.whereType<Map<String, dynamic>>().toList() ?? <Map<String, dynamic>>[];
+            final data =
+                snapshot.data?['data'] as Map<String, dynamic>? ??
+                <String, dynamic>{};
+            final items =
+                (data['items'] as List?)
+                    ?.whereType<Map<String, dynamic>>()
+                    .toList() ??
+                <Map<String, dynamic>>[];
 
             if (items.isEmpty) {
               return ListView(
@@ -80,14 +86,18 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
                 final productId = (item['id'] as num?)?.toInt();
                 final image = item['image']?.toString();
                 final name = item['name']?.toString() ?? 'منتج';
-                final currentPrice = (item['current_price'] as num?)?.toDouble() ?? 0;
+                final currentPrice =
+                    (item['current_price'] as num?)?.toDouble() ?? 0;
                 final salePrice = (item['sale_price'] as num?)?.toDouble();
-                final price = (item['price'] as num?)?.toDouble() ?? currentPrice;
+                final price =
+                    (item['price'] as num?)?.toDouble() ?? currentPrice;
                 final onSale = item['is_on_sale'] == true;
 
                 return InkWell(
                   borderRadius: BorderRadius.circular(18),
-                  onTap: productId != null ? () => context.push('/product/$productId') : null,
+                  onTap: productId != null
+                      ? () => context.push('/product/$productId')
+                      : null,
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -96,7 +106,9 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
                       border: Border.all(color: const Color(0xFFE9D8DB)),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF6D0E16).withValues(alpha: 0.06),
+                          color: const Color(
+                            0xFF6D0E16,
+                          ).withValues(alpha: 0.06),
                           blurRadius: 14,
                           offset: const Offset(0, 8),
                         ),
@@ -107,7 +119,9 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(
-                            (image != null && image.isNotEmpty) ? image : 'https://placehold.co/120x120',
+                            (image != null && image.isNotEmpty)
+                                ? image
+                                : 'https://placehold.co/120x120',
                             width: 82,
                             height: 82,
                             fit: BoxFit.cover,
@@ -124,12 +138,31 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
+                              Text(
+                                name,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                               const SizedBox(height: 8),
-                              Text(_formatPrice(currentPrice), style: const TextStyle(color: Color(0xFF6D0E16), fontWeight: FontWeight.w800)),
+                              Text(
+                                _formatPrice(currentPrice),
+                                style: const TextStyle(
+                                  color: Color(0xFF6D0E16),
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                               if (onSale) ...[
                                 const SizedBox(height: 2),
-                                Text(_formatPrice(salePrice ?? price), style: const TextStyle(decoration: TextDecoration.lineThrough, color: Colors.grey)),
+                                Text(
+                                  _formatPrice(salePrice ?? price),
+                                  style: const TextStyle(
+                                    decoration: TextDecoration.lineThrough,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                               ],
                             ],
                           ),
@@ -140,11 +173,17 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
                               ? null
                               : () async {
                                   try {
-                                    await ref.read(wishlistProvider.notifier).toggle(productId);
+                                    await ref
+                                        .read(wishlistProvider.notifier)
+                                        .toggle(productId);
                                     await _refresh();
                                   } catch (e) {
                                     if (!mounted) return;
-                                    ScaffoldMessenger.of(this.context).showSnackBar(SnackBar(content: Text(e.toString())));
+                                    ScaffoldMessenger.of(
+                                      this.context,
+                                    ).showSnackBar(
+                                      SnackBar(content: Text(e.toString())),
+                                    );
                                   }
                                 },
                         ),

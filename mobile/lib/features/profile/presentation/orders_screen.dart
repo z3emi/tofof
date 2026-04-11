@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -49,14 +49,22 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
             }
 
             final data = snapshot.data?['data'] as Map<String, dynamic>? ?? {};
-            final orders = (data['orders'] as List?)?.whereType<Map<String, dynamic>>().toList() ?? <Map<String, dynamic>>[];
+            final orders =
+                (data['orders'] as List?)
+                    ?.whereType<Map<String, dynamic>>()
+                    .toList() ??
+                <Map<String, dynamic>>[];
 
             if (orders.isEmpty) {
               return ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: const [
                   SizedBox(height: 160),
-                  Icon(Icons.shopping_bag_outlined, size: 64, color: Colors.grey),
+                  Icon(
+                    Icons.shopping_bag_outlined,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
                   SizedBox(height: 10),
                   Center(child: Text('لا توجد طلبات حتى الآن')),
                 ],
@@ -73,13 +81,16 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                 final orderId = (order['id'] as num?)?.toInt();
                 final createdAt = _formatDate(order['created_at']);
                 final status = order['status']?.toString() ?? 'pending';
-                final paymentMethod = order['payment_method']?.toString() ?? '-';
+                final paymentMethod =
+                    order['payment_method']?.toString() ?? '-';
                 final total = (order['total_amount'] as num?)?.toDouble() ?? 0;
                 final itemsCount = (order['items_count'] as num?)?.toInt() ?? 0;
 
                 return InkWell(
                   borderRadius: BorderRadius.circular(18),
-                  onTap: orderId == null ? null : () => _showOrderDetails(orderId),
+                  onTap: orderId == null
+                      ? null
+                      : () => _showOrderDetails(orderId),
                   child: Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
@@ -88,7 +99,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                       border: Border.all(color: const Color(0xFFEADFE1)),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF6D0E16).withValues(alpha: 0.05),
+                          color: const Color(
+                            0xFF6D0E16,
+                          ).withValues(alpha: 0.05),
                           blurRadius: 16,
                           offset: const Offset(0, 8),
                         ),
@@ -100,7 +113,13 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                         Row(
                           children: [
                             Expanded(
-                              child: Text('طلب #${order['id']}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                              child: Text(
+                                'طلب #${order['id']}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 16,
+                                ),
+                              ),
                             ),
                             _statusChip(status),
                           ],
@@ -124,7 +143,13 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                         const SizedBox(height: 10),
                         const Align(
                           alignment: Alignment.centerLeft,
-                          child: Text('عرض التفاصيل', style: TextStyle(color: Color(0xFF6D0E16), fontWeight: FontWeight.w700)),
+                          child: Text(
+                            'عرض التفاصيل',
+                            style: TextStyle(
+                              color: Color(0xFF6D0E16),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -146,12 +171,18 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
     );
 
     try {
-      final response = await ref.read(authRepositoryProvider).fetchOrderDetails(orderId);
+      final response = await ref
+          .read(authRepositoryProvider)
+          .fetchOrderDetails(orderId);
       if (!mounted) return;
       Navigator.of(context).pop();
 
       final data = response['data'] as Map<String, dynamic>? ?? {};
-      final items = (data['items'] as List?)?.whereType<Map<String, dynamic>>().toList() ?? <Map<String, dynamic>>[];
+      final items =
+          (data['items'] as List?)
+              ?.whereType<Map<String, dynamic>>()
+              .toList() ??
+          <Map<String, dynamic>>[];
 
       if (!mounted) return;
       showModalBottomSheet<void>(
@@ -169,31 +200,68 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                 controller: controller,
                 padding: const EdgeInsets.all(16),
                 children: [
-                  Text('تفاصيل الطلب #${data['id']}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                  Text(
+                    'تفاصيل الطلب #${data['id']}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(child: _infoTile('الحالة', _statusText(data['status']?.toString() ?? 'pending'))),
+                      Expanded(
+                        child: _infoTile(
+                          'الحالة',
+                          _statusText(data['status']?.toString() ?? 'pending'),
+                        ),
+                      ),
                       const SizedBox(width: 10),
-                      Expanded(child: _infoTile('الدفع', data['payment_method']?.toString() ?? '-')),
+                      Expanded(
+                        child: _infoTile(
+                          'الدفع',
+                          data['payment_method']?.toString() ?? '-',
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      Expanded(child: _infoTile('الإجمالي', _formatPrice((data['total_amount'] as num?)?.toDouble() ?? 0))),
+                      Expanded(
+                        child: _infoTile(
+                          'الإجمالي',
+                          _formatPrice(
+                            (data['total_amount'] as num?)?.toDouble() ?? 0,
+                          ),
+                        ),
+                      ),
                       const SizedBox(width: 10),
-                      Expanded(child: _infoTile('مدفوع من المحفظة', _formatPrice((data['wallet_paid'] as num?)?.toDouble() ?? 0))),
+                      Expanded(
+                        child: _infoTile(
+                          'مدفوع من المحفظة',
+                          _formatPrice(
+                            (data['wallet_paid'] as num?)?.toDouble() ?? 0,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 10),
-                  _infoTile('العنوان', '${data['governorate'] ?? ''} - ${data['city'] ?? ''}\n${data['address_details'] ?? ''}'),
-                  if ((data['nearest_landmark']?.toString().trim().isNotEmpty ?? false)) ...[
+                  _infoTile(
+                    'العنوان',
+                    '${data['governorate'] ?? ''} - ${data['city'] ?? ''}\n${data['address_details'] ?? ''}',
+                  ),
+                  if ((data['nearest_landmark']?.toString().trim().isNotEmpty ??
+                      false)) ...[
                     const SizedBox(height: 10),
                     _infoTile('أقرب نقطة', data['nearest_landmark'].toString()),
                   ],
                   const SizedBox(height: 14),
-                  const Text('المنتجات', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                  const Text(
+                    'المنتجات',
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                  ),
                   const SizedBox(height: 8),
                   ...items.map((item) {
                     final qty = (item['quantity'] as num?)?.toInt() ?? 0;
@@ -213,7 +281,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: Image.network(
-                              (image != null && image.isNotEmpty) ? image : 'https://placehold.co/80x80',
+                              (image != null && image.isNotEmpty)
+                                  ? image
+                                  : 'https://placehold.co/80x80',
                               width: 70,
                               height: 70,
                               fit: BoxFit.cover,
@@ -230,12 +300,29 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(item['product_name']?.toString() ?? 'منتج', style: const TextStyle(fontWeight: FontWeight.w800)),
+                                Text(
+                                  item['product_name']?.toString() ?? 'منتج',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
                                 const SizedBox(height: 4),
-                                Text('الكمية: $qty', style: const TextStyle(fontSize: 13)),
-                                Text('سعر القطعة: ${_formatPrice(price)}', style: const TextStyle(fontSize: 13)),
+                                Text(
+                                  'الكمية: $qty',
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                                Text(
+                                  'سعر القطعة: ${_formatPrice(price)}',
+                                  style: const TextStyle(fontSize: 13),
+                                ),
                                 const SizedBox(height: 2),
-                                Text('الإجمالي: ${_formatPrice(total)}', style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF6D0E16))),
+                                Text(
+                                  'الإجمالي: ${_formatPrice(total)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF6D0E16),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -252,7 +339,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
     } catch (e) {
       if (!mounted) return;
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
@@ -264,7 +353,13 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
         color: (map['color'] as Color).withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
       ),
-      child: Text(map['text'] as String, style: TextStyle(color: map['color'] as Color, fontWeight: FontWeight.w700)),
+      child: Text(
+        map['text'] as String,
+        style: TextStyle(
+          color: map['color'] as Color,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 
@@ -279,9 +374,17 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+            Text(
+              title,
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+            ),
             const SizedBox(height: 2),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w700), maxLines: 2, overflow: TextOverflow.ellipsis),
+            Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),
@@ -299,7 +402,10 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+          Text(
+            title,
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+          ),
           const SizedBox(height: 4),
           Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
         ],
@@ -314,9 +420,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
     return DateFormat('yyyy/MM/dd - HH:mm').format(parsed);
   }
 
-	String _formatPrice(num value) {
-		return '${NumberFormat('#,##0.00').format(value)} د.ع';
-	}
+  String _formatPrice(num value) {
+    return '${NumberFormat('#,##0.00').format(value)} د.ع';
+  }
 
   Map<String, Object> _statusStyle(String status) {
     switch (status) {

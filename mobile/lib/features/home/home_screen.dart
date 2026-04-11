@@ -6,12 +6,8 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tofof Store'),
-      ),
-      body: const Center(
-        child: Text('مرحباً بك في متجر Tofof'),
-      ),
+      appBar: AppBar(title: const Text('Tofof Store')),
+      body: const Center(child: Text('مرحباً بك في متجر Tofof')),
     );
   }
 }

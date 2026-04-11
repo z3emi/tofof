@@ -24,10 +24,7 @@ class AuthRepository {
       throw 'انتهت جلسة الدخول، يرجى تسجيل الدخول مرة أخرى';
     }
 
-    return {
-      'Authorization': 'Bearer $token',
-      'Accept': 'application/json',
-    };
+    return {'Authorization': 'Bearer $token', 'Accept': 'application/json'};
   }
 
   Future<Map<String, dynamic>> login({
@@ -37,14 +34,12 @@ class AuthRepository {
     try {
       final response = await _dio.post(
         ApiConstants.login,
-        data: {
-          'phone_number': phoneNumber,
-          'password': password,
-        },
+        data: {'phone_number': phoneNumber, 'password': password},
       );
       return response.data;
     } on DioException catch (e) {
-      throw e.response?.data['message'] ?? 'حدث خطأ غير متوقع أثناء تسجيل الدخول';
+      throw e.response?.data['message'] ??
+          'حدث خطأ غير متوقع أثناء تسجيل الدخول';
     }
   }
 
@@ -63,7 +58,8 @@ class AuthRepository {
           'phone_number': phoneNumber,
           'password': password,
           'password_confirmation': passwordConfirmation,
-          if (referralCode != null && referralCode.trim().isNotEmpty) 'referral_code': referralCode.trim(),
+          if (referralCode != null && referralCode.trim().isNotEmpty)
+            'referral_code': referralCode.trim(),
         },
       );
       return response.data;
@@ -79,14 +75,12 @@ class AuthRepository {
     try {
       final response = await _dio.post(
         ApiConstants.requestOtp,
-        data: {
-          'phone_number': phoneNumber,
-          'purpose': purpose,
-        },
+        data: {'phone_number': phoneNumber, 'purpose': purpose},
       );
       return response.data;
     } on DioException catch (e) {
-      throw e.response?.data['message'] ?? 'حدث خطأ غير متوقع أثناء إرسال رمز التحقق';
+      throw e.response?.data['message'] ??
+          'حدث خطأ غير متوقع أثناء إرسال رمز التحقق';
     }
   }
 
@@ -97,10 +91,7 @@ class AuthRepository {
     try {
       final response = await _dio.post(
         ApiConstants.verifyOtp,
-        data: {
-          'phone_number': phoneNumber,
-          'otp': otp,
-        },
+        data: {'phone_number': phoneNumber, 'otp': otp},
       );
       return response.data;
     } on DioException catch (e) {
@@ -114,13 +105,12 @@ class AuthRepository {
     try {
       final response = await _dio.post(
         ApiConstants.requestPasswordResetOtp,
-        data: {
-          'phone_number': phoneNumber,
-        },
+        data: {'phone_number': phoneNumber},
       );
       return response.data;
     } on DioException catch (e) {
-      throw e.response?.data['message'] ?? 'حدث خطأ غير متوقع أثناء طلب إعادة التعيين';
+      throw e.response?.data['message'] ??
+          'حدث خطأ غير متوقع أثناء طلب إعادة التعيين';
     }
   }
 
@@ -159,7 +149,8 @@ class AuthRepository {
         if (email != null) 'email': email.trim(),
         if (phoneNumber != null) 'phone_number': phoneNumber.trim(),
         if (password != null && password.isNotEmpty) 'password': password,
-        if (passwordConfirmation != null && passwordConfirmation.isNotEmpty) 'password_confirmation': passwordConfirmation,
+        if (passwordConfirmation != null && passwordConfirmation.isNotEmpty)
+          'password_confirmation': passwordConfirmation,
       };
 
       final response = await _dio.patch(
@@ -265,7 +256,8 @@ class AuthRepository {
           'governorate': governorate,
           'city': city,
           'address_details': addressDetails,
-          if (nearestLandmark != null && nearestLandmark.trim().isNotEmpty) 'nearest_landmark': nearestLandmark.trim(),
+          if (nearestLandmark != null && nearestLandmark.trim().isNotEmpty)
+            'nearest_landmark': nearestLandmark.trim(),
           if (latitude != null) 'latitude': latitude,
           if (longitude != null) 'longitude': longitude,
           'is_default': isDefault,
@@ -290,9 +282,11 @@ class AuthRepository {
   }) async {
     try {
       final data = <String, dynamic>{
-        if (governorate != null && governorate.trim().isNotEmpty) 'governorate': governorate.trim(),
+        if (governorate != null && governorate.trim().isNotEmpty)
+          'governorate': governorate.trim(),
         if (city != null && city.trim().isNotEmpty) 'city': city.trim(),
-        if (addressDetails != null && addressDetails.trim().isNotEmpty) 'address_details': addressDetails.trim(),
+        if (addressDetails != null && addressDetails.trim().isNotEmpty)
+          'address_details': addressDetails.trim(),
         if (nearestLandmark != null) 'nearest_landmark': nearestLandmark.trim(),
         if (latitude != null) 'latitude': latitude,
         if (longitude != null) 'longitude': longitude,

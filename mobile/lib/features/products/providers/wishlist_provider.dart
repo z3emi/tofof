@@ -12,7 +12,8 @@ class WishlistNotifier extends Notifier<Set<int>> {
   Future<void> _loadFromApi() async {
     try {
       final response = await ref.read(authRepositoryProvider).fetchFavorites();
-      final data = response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
+      final data =
+          response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
       final items = (data['items'] as List?) ?? const [];
 
       state = items

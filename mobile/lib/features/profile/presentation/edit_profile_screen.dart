@@ -50,7 +50,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final success = await ref.read(authProvider.notifier).updateProfile(
+    final success = await ref
+        .read(authProvider.notifier)
+        .updateProfile(
           name: _nameCtrl.text.trim(),
           email: _emailCtrl.text.trim(),
           phoneNumber: _phoneCtrl.text.trim(),
@@ -67,7 +69,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ref.read(authProvider).error ?? 'تعذر تحديث الملف الشخصي')),
+      SnackBar(
+        content: Text(
+          ref.read(authProvider).error ?? 'تعذر تحديث الملف الشخصي',
+        ),
+      ),
     );
   }
 
@@ -80,19 +86,27 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       return;
     }
 
-    final success = await ref.read(authProvider.notifier).sendProfilePasswordOtp();
+    final success = await ref
+        .read(authProvider.notifier)
+        .sendProfilePasswordOtp();
     if (!mounted) return;
 
     if (success) {
       setState(() => _otpSent = true);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تم إرسال رمز التحقق إلى واتساب: ${_phoneCtrl.text.trim()}')),
+        SnackBar(
+          content: Text(
+            'تم إرسال رمز التحقق إلى واتساب: ${_phoneCtrl.text.trim()}',
+          ),
+        ),
       );
       return;
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ref.read(authProvider).error ?? 'تعذر إرسال رمز التحقق')),
+      SnackBar(
+        content: Text(ref.read(authProvider).error ?? 'تعذر إرسال رمز التحقق'),
+      ),
     );
   }
 
@@ -103,22 +117,24 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final confirmPassword = _passwordConfirmCtrl.text.trim();
 
     if (oldPassword.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('أدخل كلمة المرور الحالية')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('أدخل كلمة المرور الحالية')));
       return;
     }
 
     if (otp.length != 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('أدخل رمز OTP من 6 أرقام')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('أدخل رمز OTP من 6 أرقام')));
       return;
     }
 
     if (newPassword.length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('كلمة المرور الجديدة يجب أن تكون 8 أحرف أو أكثر')),
+        const SnackBar(
+          content: Text('كلمة المرور الجديدة يجب أن تكون 8 أحرف أو أكثر'),
+        ),
       );
       return;
     }
@@ -130,7 +146,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       return;
     }
 
-    final success = await ref.read(authProvider.notifier).changeProfilePassword(
+    final success = await ref
+        .read(authProvider.notifier)
+        .changeProfilePassword(
           oldPassword: oldPassword,
           otp: otp,
           password: newPassword,
@@ -152,7 +170,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ref.read(authProvider).error ?? 'تعذر تغيير كلمة المرور')),
+      SnackBar(
+        content: Text(ref.read(authProvider).error ?? 'تعذر تغيير كلمة المرور'),
+      ),
     );
   }
 
@@ -178,14 +198,26 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.15)),
+                    border: Border.all(
+                      color: Theme.of(
+                        context,
+                      ).dividerColor.withValues(alpha: 0.15),
+                    ),
                   ),
                   child: Form(
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const CircleAvatar(radius: 38, backgroundColor: Color(0xFF6D0E16), child: Icon(Icons.person, color: Colors.white, size: 40)),
+                        const CircleAvatar(
+                          radius: 38,
+                          backgroundColor: Color(0xFF6D0E16),
+                          child: Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: 40,
+                          ),
+                        ),
                         const SizedBox(height: 18),
                         TextFormField(
                           controller: _nameCtrl,
@@ -193,7 +225,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             labelText: 'الاسم الكامل',
                             border: OutlineInputBorder(),
                           ),
-                          validator: (value) => (value == null || value.trim().isEmpty) ? 'مطلوب إدخال الاسم' : null,
+                          validator: (value) =>
+                              (value == null || value.trim().isEmpty)
+                              ? 'مطلوب إدخال الاسم'
+                              : null,
                         ),
                         const SizedBox(height: 14),
                         TextFormField(
@@ -213,16 +248,28 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             labelText: 'رقم الهاتف (للتأكيد عبر واتساب)',
                             border: OutlineInputBorder(),
                           ),
-                          validator: (value) => (value == null || value.trim().isEmpty) ? 'مطلوب إدخال رقم الهاتف' : null,
+                          validator: (value) =>
+                              (value == null || value.trim().isEmpty)
+                              ? 'مطلوب إدخال رقم الهاتف'
+                              : null,
                         ),
                         const SizedBox(height: 20),
                         const Divider(),
                         const SizedBox(height: 10),
-                        const Text('استعادة/تغيير كلمة المرور', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                        const Text(
+                          'استعادة/تغيير كلمة المرور',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
                         const SizedBox(height: 8),
                         Text(
                           'لأمان الحساب: أدخل كلمة المرور الحالية، ثم اطلب رمز OTP وسيتم إرساله إلى نفس رقم الهاتف المسجل على واتساب.',
-                          style: TextStyle(color: Colors.grey.shade700, height: 1.5),
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            height: 1.5,
+                          ),
                         ),
                         const SizedBox(height: 14),
                         TextFormField(
@@ -232,8 +279,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             labelText: 'كلمة المرور الحالية',
                             border: const OutlineInputBorder(),
                             suffixIcon: IconButton(
-                              onPressed: () => setState(() => _showOldPassword = !_showOldPassword),
-                              icon: Icon(_showOldPassword ? Icons.visibility_off : Icons.visibility),
+                              onPressed: () => setState(
+                                () => _showOldPassword = !_showOldPassword,
+                              ),
+                              icon: Icon(
+                                _showOldPassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
                             ),
                           ),
                         ),
@@ -245,8 +298,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             labelText: 'كلمة المرور الجديدة',
                             border: const OutlineInputBorder(),
                             suffixIcon: IconButton(
-                              onPressed: () => setState(() => _showPassword = !_showPassword),
-                              icon: Icon(_showPassword ? Icons.visibility_off : Icons.visibility),
+                              onPressed: () => setState(
+                                () => _showPassword = !_showPassword,
+                              ),
+                              icon: Icon(
+                                _showPassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
                             ),
                           ),
                         ),
@@ -258,8 +317,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             labelText: 'تأكيد كلمة المرور الجديدة',
                             border: const OutlineInputBorder(),
                             suffixIcon: IconButton(
-                              onPressed: () => setState(() => _showConfirmPassword = !_showConfirmPassword),
-                              icon: Icon(_showConfirmPassword ? Icons.visibility_off : Icons.visibility),
+                              onPressed: () => setState(
+                                () => _showConfirmPassword =
+                                    !_showConfirmPassword,
+                              ),
+                              icon: Icon(
+                                _showConfirmPassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
                             ),
                           ),
                         ),
@@ -276,13 +342,21 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           ),
                         const SizedBox(height: 8),
                         OutlinedButton.icon(
-                          onPressed: authState.isLoading ? null : _sendOtpForPasswordChange,
+                          onPressed: authState.isLoading
+                              ? null
+                              : _sendOtpForPasswordChange,
                           icon: const Icon(Icons.mark_chat_unread_outlined),
-                          label: Text(_otpSent ? 'إعادة إرسال رمز التحقق' : 'إرسال رمز التحقق إلى واتساب'),
+                          label: Text(
+                            _otpSent
+                                ? 'إعادة إرسال رمز التحقق'
+                                : 'إرسال رمز التحقق إلى واتساب',
+                          ),
                         ),
                         const SizedBox(height: 8),
                         ElevatedButton(
-                          onPressed: authState.isLoading || !_otpSent ? null : _changePassword,
+                          onPressed: authState.isLoading || !_otpSent
+                              ? null
+                              : _changePassword,
                           child: const Text('تغيير كلمة المرور'),
                         ),
                         const SizedBox(height: 20),
@@ -292,7 +366,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               ? const SizedBox(
                                   width: 20,
                                   height: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
                                 )
                               : const Text('حفظ بيانات الملف الشخصي'),
                         ),

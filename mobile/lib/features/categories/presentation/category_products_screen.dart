@@ -32,16 +32,23 @@ class CategoryProductsScreen extends ConsumerWidget {
               onTap: () => context.push('/product/${p.id}'),
               child: Card(
                 elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Expanded(
                       child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
                         child: p.imageUrl != null
                             ? Image.network(p.imageUrl!, fit: BoxFit.cover)
-                            : Container(color: Colors.grey[200], child: const Icon(Icons.image, size: 50)),
+                            : Container(
+                                color: Colors.grey[200],
+                                child: const Icon(Icons.image, size: 50),
+                              ),
                       ),
                     ),
                     Padding(
@@ -49,9 +56,20 @@ class CategoryProductsScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            p.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                           const SizedBox(height: 4),
-                          Text('${p.currentPrice} د.ع', style: const TextStyle(color: Color(0xFF6D0E16), fontWeight: FontWeight.bold)),
+                          Text(
+                            '${p.currentPrice} د.ع',
+                            style: const TextStyle(
+                              color: Color(0xFF6D0E16),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                     ),

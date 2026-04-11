@@ -54,10 +54,9 @@ class _AuthOtpScreenState extends ConsumerState<AuthOtpScreen> {
   Future<void> _verify() async {
     if (!_formKey.currentState!.validate() || _phoneNumber == null) return;
 
-    final success = await ref.read(authProvider.notifier).verifyOtp(
-          phoneNumber: _phoneNumber!,
-          otp: _otpCtrl.text.trim(),
-        );
+    final success = await ref
+        .read(authProvider.notifier)
+        .verifyOtp(phoneNumber: _phoneNumber!, otp: _otpCtrl.text.trim());
 
     if (!mounted) return;
 
@@ -67,23 +66,28 @@ class _AuthOtpScreenState extends ConsumerState<AuthOtpScreen> {
     }
 
     final error = ref.read(authProvider).error;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error ?? 'فشل تأكيد الرمز')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(error ?? 'فشل تأكيد الرمز')));
   }
 
   Future<void> _resend() async {
     if (_phoneNumber == null) return;
 
-    final success = await ref.read(authProvider.notifier).resendOtp(
-          phoneNumber: _phoneNumber!,
-          purpose: _purpose,
-        );
+    final success = await ref
+        .read(authProvider.notifier)
+        .resendOtp(phoneNumber: _phoneNumber!, purpose: _purpose);
 
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(success ? 'تمت إعادة إرسال الرمز' : (ref.read(authProvider).error ?? 'تعذر إعادة الإرسال'))),
+      SnackBar(
+        content: Text(
+          success
+              ? 'تمت إعادة إرسال الرمز'
+              : (ref.read(authProvider).error ?? 'تعذر إعادة الإرسال'),
+        ),
+      ),
     );
   }
 
@@ -102,19 +106,28 @@ class _AuthOtpScreenState extends ConsumerState<AuthOtpScreen> {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.15)),
+              border: Border.all(
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.15),
+              ),
             ),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.verified_outlined, size: 80, color: Color(0xFF6D0E16)),
+                  const Icon(
+                    Icons.verified_outlined,
+                    size: 80,
+                    color: Color(0xFF6D0E16),
+                  ),
                   const SizedBox(height: 18),
                   Text(
                     _title,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -125,7 +138,10 @@ class _AuthOtpScreenState extends ConsumerState<AuthOtpScreen> {
                   const SizedBox(height: 18),
                   if (_phoneNumber != null)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(14),
@@ -162,7 +178,10 @@ class _AuthOtpScreenState extends ConsumerState<AuthOtpScreen> {
                         ? const SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           )
                         : const Text('تأكيد'),
                   ),

@@ -58,7 +58,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               itemBuilder: (context, index) {
                 final country = authCountries[index];
                 return ListTile(
-                  leading: Text(country.flagEmoji, style: const TextStyle(fontSize: 22)),
+                  leading: Text(
+                    country.flagEmoji,
+                    style: const TextStyle(fontSize: 22),
+                  ),
                   title: Text(country.nameAr),
                   trailing: Text(country.dialCode),
                   onTap: () => Navigator.of(context).pop(country),
@@ -78,7 +81,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submitLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final success = await ref.read(authProvider.notifier).loginWithPhone(
+    final success = await ref
+        .read(authProvider.notifier)
+        .loginWithPhone(
           phoneNumber: _fullPhone(),
           password: _passwordCtrl.text,
         );
@@ -88,12 +93,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final state = ref.read(authProvider);
     if (success && state.otpRequired) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الحساب يحتاج تأكيد واتساب. تم إرسال رمز OTP.')),
+        const SnackBar(
+          content: Text('الحساب يحتاج تأكيد واتساب. تم إرسال رمز OTP.'),
+        ),
       );
-      context.push('/verify-otp', extra: {
-        'phoneNumber': state.pendingPhone ?? _fullPhone(),
-        'purpose': 'login',
-      });
+      context.push(
+        '/verify-otp',
+        extra: {
+          'phoneNumber': state.pendingPhone ?? _fullPhone(),
+          'purpose': 'login',
+        },
+      );
       return;
     }
 
@@ -102,9 +112,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(state.error ?? 'فشل تسجيل الدخول')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(state.error ?? 'فشل تسجيل الدخول')));
   }
 
   @override
@@ -121,7 +131,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.login_rounded, size: 80, color: Color(0xFF6D0E16)),
+                const Icon(
+                  Icons.login_rounded,
+                  size: 80,
+                  color: Color(0xFF6D0E16),
+                ),
                 const SizedBox(height: 20),
                 const Text(
                   'سجل الدخول بنفس طريقة الموقع: رقم الهاتف + الدولة + كلمة المرور.',
@@ -129,7 +143,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   style: TextStyle(height: 1.5),
                 ),
                 const SizedBox(height: 20),
-                const Text('رقم الهاتف', style: TextStyle(fontWeight: FontWeight.w700)),
+                const Text(
+                  'رقم الهاتف',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -137,7 +154,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       onTap: _pickCountry,
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 14,
+                        ),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey.shade400),
                           borderRadius: BorderRadius.circular(12),
@@ -146,9 +166,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           children: [
                             Text(_selectedCountry.flagEmoji),
                             const SizedBox(width: 6),
-                            Text(_selectedCountry.dialCode, textDirection: TextDirection.ltr),
+                            Text(
+                              _selectedCountry.dialCode,
+                              textDirection: TextDirection.ltr,
+                            ),
                             const SizedBox(width: 4),
-                            const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+                            const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 18,
+                            ),
                           ],
                         ),
                       ),
@@ -160,12 +186,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         keyboardType: TextInputType.phone,
                         decoration: InputDecoration(
                           border: const OutlineInputBorder(),
-                          hintText: _selectedCountry.dialCode == '+964' ? '7712345678' : 'Phone number',
+                          hintText: _selectedCountry.dialCode == '+964'
+                              ? '7712345678'
+                              : 'Phone number',
                         ),
                         validator: (v) {
                           final value = _normalizeLocalPhone(v ?? '');
                           if (value.isEmpty) return 'مطلوب إدخال رقم الهاتف';
-                          if (_selectedCountry.dialCode == '+964' && value.length != 10) {
+                          if (_selectedCountry.dialCode == '+964' &&
+                              value.length != 10) {
                             return 'رقم العراق يجب أن يكون 10 أرقام';
                           }
                           return null;
@@ -182,11 +211,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     labelText: 'كلمة المرور',
                     border: const OutlineInputBorder(),
                     suffixIcon: IconButton(
-                      onPressed: () => setState(() => _showPassword = !_showPassword),
-                      icon: Icon(_showPassword ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () =>
+                          setState(() => _showPassword = !_showPassword),
+                      icon: Icon(
+                        _showPassword ? Icons.visibility_off : Icons.visibility,
+                      ),
                     ),
                   ),
-                  validator: (v) => (v == null || v.isEmpty) ? 'مطلوب إدخال كلمة المرور' : null,
+                  validator: (v) => (v == null || v.isEmpty)
+                      ? 'مطلوب إدخال كلمة المرور'
+                      : null,
                 ),
                 const SizedBox(height: 22),
                 ElevatedButton(
@@ -195,13 +229,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Text('دخول'),
                 ),
                 const SizedBox(height: 8),
                 TextButton(
-                  onPressed: authState.isLoading ? null : () => context.push('/reset-password'),
+                  onPressed: authState.isLoading
+                      ? null
+                      : () => context.push('/reset-password'),
                   child: const Text('نسيت كلمة المرور؟'),
                 ),
                 const SizedBox(height: 2),

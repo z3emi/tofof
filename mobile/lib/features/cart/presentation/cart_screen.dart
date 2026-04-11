@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
@@ -36,197 +37,598 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   Widget build(BuildContext context) {
     final cartState = ref.watch(cartProvider);
 
+    final body = RefreshIndicator(
+      color: const Color(0xFF6D0E16),
+      onRefresh: () async => ref.read(cartProvider.notifier).fetchCart(),
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: _buildCartHero(cartState),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+              child: _buildCartItems(cartState),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+              child: _buildCouponPanel(cartState),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 110),
+              child: _buildSummaryPanel(context, cartState),
+            ),
+          ),
+        ],
+      ),
+    );
+
     if (cartState.isLoading && cartState.items.isEmpty) {
-      final skeletonBody = Skeletonizer(
-        enabled: true,
-        child: _buildCartContent(
-          _FakeCartState(),
-          isDummy: true,
-        ),
-      );
-
-      if (!widget.showAppBar) {
-        return skeletonBody;
-      }
-
-      return Scaffold(
-        appBar: AppBar(title: const Text('السلة')),
-        body: skeletonBody,
-      );
+      return widget.showAppBar
+          ? Scaffold(
+              appBar: _header(cartState),
+              body: Skeletonizer(enabled: true, child: body),
+            )
+          : Skeletonizer(enabled: true, child: body);
     }
 
     if (cartState.items.isEmpty) {
-      final emptyBody = const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.remove_shopping_cart, size: 80, color: Colors.grey),
-            SizedBox(height: 16),
-            Text('سلة المشتريات فارغة', style: TextStyle(fontSize: 18)),
-          ],
+      final empty = _buildEmptyState(context);
+      return widget.showAppBar
+          ? Scaffold(appBar: _header(cartState), body: empty)
+          : empty;
+    }
+
+    return widget.showAppBar
+        ? Scaffold(appBar: _header(cartState), body: body)
+        : body;
+  }
+
+  PreferredSizeWidget _header(CartState cartState) {
+    return AppBar(
+      toolbarHeight: 72,
+      backgroundColor: Colors.white.withValues(alpha: 0.86),
+      elevation: 0,
+      centerTitle: true,
+      iconTheme: const IconThemeData(color: Color(0xFF6D0E16)),
+      title: Text(
+        cartState.count > 0 ? 'السلة (${cartState.count})' : 'السلة',
+        style: GoogleFonts.notoSerif(
+          color: const Color(0xFF6D0E16),
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
         ),
-      );
-
-      if (!widget.showAppBar) {
-        return emptyBody;
-      }
-
-      return Scaffold(
-        appBar: AppBar(title: const Text('السلة')),
-        body: emptyBody,
-      );
-    }
-
-    final body = _buildCartContent(cartState);
-
-    if (!widget.showAppBar) {
-      return body;
-    }
-
-    return Scaffold(
-      appBar: AppBar(title: Text('السلة (${cartState.count})')),
-      body: body,
+      ),
     );
   }
 
-  Widget _buildCartContent(dynamic cartState, {bool isDummy = false}) {
-    return Column(
-      children: [
-        Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: cartState.items.length,
-            separatorBuilder: (_, __) => const Divider(),
-            itemBuilder: (context, index) {
-              final item = cartState.items[index];
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      item.imageUrl.isNotEmpty ? item.imageUrl : 'https://placehold.co/100',
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (c, e, s) => Container(width: 80, height: 80, color: Colors.grey[300], child: const Icon(Icons.image)),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        const SizedBox(height: 8),
-                        Text(_formatPrice(item.price), style: const TextStyle(color: Color(0xFF6D0E16), fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            IconButton(
-                              constraints: const BoxConstraints(),
-                              padding: EdgeInsets.zero,
-                              icon: const Icon(Icons.remove_circle_outline),
-                              onPressed: isDummy
-                                  ? null
-                                  : item.quantity > 1
-                                      ? () => ref.read(cartProvider.notifier).updateQuantity(item.selectionKey, item.quantity - 1)
-                                      : null,
-                            ),
-                            const SizedBox(width: 8),
-                            Text('${item.quantity}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              constraints: const BoxConstraints(),
-                              padding: EdgeInsets.zero,
-                              icon: const Icon(Icons.add_circle_outline),
-                              onPressed: isDummy ? null : () => ref.read(cartProvider.notifier).updateQuantity(item.selectionKey, item.quantity + 1),
-                            ),
-                            const Spacer(),
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline, color: Colors.red),
-                              onPressed: isDummy ? null : () => ref.read(cartProvider.notifier).removeItem(item.selectionKey),
-                            )
-                          ],
-                        )
-                      ],
-                    ),
-                  )
-                ],
-              );
-            },
-          ),
+  Widget _buildCartHero(CartState cartState) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF4A0008), Color(0xFF6D0E16)],
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
         ),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _couponCtrl,
-                  enabled: !isDummy,
-                  decoration: const InputDecoration(
-                    hintText: 'أدخل كود الخصم',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 28,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: const Icon(Icons.shopping_bag_outlined, color: Colors.white),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'عربة التسوق',
+                  style: GoogleFonts.notoSerif(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: isDummy
-                    ? null
-                    : () {
-                        if (_couponCtrl.text.isNotEmpty) {
-                          ref.read(cartProvider.notifier).applyDiscount(_couponCtrl.text);
-                        }
-                      },
-                child: const Text('تطبيق'),
-              )
-            ],
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
-          ),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              children: [
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  const Text('المجموع الفرعي'),
-                  Text(_formatPrice(cartState.subtotal)),
-                ]),
-                if (cartState.discount > 0) ...[
-                  const SizedBox(height: 8),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    const Text('الخصم', style: TextStyle(color: Colors.green)),
-                    Text('-${_formatPrice(cartState.discount)}', style: const TextStyle(color: Colors.green)),
-                  ]),
-                ],
-                const Divider(height: 24),
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  const Text('الإجمالي الكلي', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                  Text(
-                    _formatPrice(cartState.total),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF6D0E16)),
+                const SizedBox(height: 6),
+                Text(
+                  cartState.items.isEmpty
+                      ? 'لا توجد منتجات في سلتك'
+                      : 'منتجات مختارة بعناية، جاهزة لإتمام الطلب.',
+                  style: GoogleFonts.manrope(
+                    color: Colors.white70,
+                    fontSize: 12,
                   ),
-                ]),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: isDummy ? null : () => context.push('/checkout'),
-                    child: const Text('إتمام الطلب'),
-                  ),
-                )
+                ),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCartItems(CartState cartState) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'المنتجات',
+              style: GoogleFonts.notoSerif(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF6D0E16),
+              ),
+            ),
+            const Spacer(),
+            Text(
+              'عرض الكل',
+              style: GoogleFonts.manrope(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: const Color(0xFFD59E06),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        ...cartState.items.map(
+          (item) => _CartItemCard(
+            item: item,
+            onDecrease: item.quantity > 1
+                ? () => ref
+                      .read(cartProvider.notifier)
+                      .updateQuantity(item.selectionKey, item.quantity - 1)
+                : null,
+            onIncrease: () => ref
+                .read(cartProvider.notifier)
+                .updateQuantity(item.selectionKey, item.quantity + 1),
+            onDelete: () =>
+                ref.read(cartProvider.notifier).removeItem(item.selectionKey),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCouponPanel(CartState cartState) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _couponCtrl,
+              enabled: !cartState.isLoading,
+              decoration: InputDecoration(
+                hintText: 'أدخل كود الخصم',
+                filled: true,
+                fillColor: const Color(0xFFF5F2F1),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFD59E06),
+                    width: 1,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          FilledButton(
+            onPressed: cartState.isLoading
+                ? null
+                : () {
+                    if (_couponCtrl.text.trim().isNotEmpty) {
+                      ref
+                          .read(cartProvider.notifier)
+                          .applyDiscount(_couponCtrl.text.trim());
+                    }
+                  },
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF6D0E16),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: Text(
+              'تطبيق',
+              style: GoogleFonts.manrope(fontWeight: FontWeight.w800),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryPanel(BuildContext context, CartState cartState) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEFEFE),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _SummaryRow(
+            label: 'المجموع الفرعي',
+            value: _formatPrice(cartState.subtotal),
+          ),
+          if (cartState.discount > 0) ...[
+            const SizedBox(height: 10),
+            _SummaryRow(
+              label: 'الخصم',
+              value: '-${_formatPrice(cartState.discount)}',
+              valueColor: const Color(0xFF0E7A5E),
+            ),
+          ],
+          const SizedBox(height: 14),
+          Container(height: 1, color: const Color(0xFFEDE8E7)),
+          const SizedBox(height: 14),
+          _SummaryRow(
+            label: 'الإجمالي الكلي',
+            value: _formatPrice(cartState.total),
+            labelStyle: GoogleFonts.notoSerif(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: const Color(0xFF1A1C1C),
+            ),
+            valueStyle: GoogleFonts.manrope(
+              fontWeight: FontWeight.w800,
+              fontSize: 18,
+              color: const Color(0xFF6D0E16),
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: () => context.push('/checkout'),
+              icon: const Icon(Icons.arrow_back),
+              label: Text(
+                'إتمام الطلب',
+                style: GoogleFonts.manrope(fontWeight: FontWeight.w800),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF6D0E16),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 84,
+                height: 84,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6D0E16).withValues(alpha: 0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.remove_shopping_cart_outlined,
+                  size: 38,
+                  color: Color(0xFF6D0E16),
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                'سلة المشتريات فارغة',
+                style: GoogleFonts.notoSerif(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF6D0E16),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'أضف بعض المنتجات الفاخرة إلى السلة للمتابعة إلى إتمام الطلب.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  fontSize: 13,
+                  height: 1.6,
+                  color: Colors.black54,
+                ),
+              ),
+              const SizedBox(height: 18),
+              FilledButton(
+                onPressed: () => context.go('/'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF6D0E16),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 22,
+                    vertical: 14,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: Text(
+                  'العودة للرئيسية',
+                  style: GoogleFonts.manrope(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CartItemCard extends StatelessWidget {
+  final dynamic item;
+  final VoidCallback? onDecrease;
+  final VoidCallback onIncrease;
+  final VoidCallback onDelete;
+
+  const _CartItemCard({
+    required this.item,
+    required this.onDecrease,
+    required this.onIncrease,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: Image.network(
+              item.imageUrl.isNotEmpty
+                  ? item.imageUrl
+                  : 'https://placehold.co/160x160',
+              width: 88,
+              height: 88,
+              fit: BoxFit.cover,
+              errorBuilder: (c, e, s) => Container(
+                width: 88,
+                height: 88,
+                color: const Color(0xFFF4F0EF),
+                child: const Icon(Icons.image, color: Colors.grey),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.name,
+                        style: GoogleFonts.notoSerif(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1A1C1C),
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: onDelete,
+                      child: Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: const Color(
+                            0xFF6D0E16,
+                          ).withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.delete_outline,
+                          size: 18,
+                          color: Color(0xFF6D0E16),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _formatPrice(item.price),
+                  style: GoogleFonts.manrope(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFFD59E06),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    _QuantityButton(icon: Icons.remove, onTap: onDecrease),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        '${item.quantity}',
+                        style: GoogleFonts.manrope(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    _QuantityButton(icon: Icons.add, onTap: onIncrease),
+                    const Spacer(),
+                    Text(
+                      _formatPrice(item.total),
+                      style: GoogleFonts.manrope(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF6D0E16),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuantityButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const _QuantityButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F2F1),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Icon(icon, size: 18, color: const Color(0xFF6D0E16)),
+      ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final TextStyle? labelStyle;
+  final TextStyle? valueStyle;
+  final Color? valueColor;
+
+  const _SummaryRow({
+    required this.label,
+    required this.value,
+    this.labelStyle,
+    this.valueStyle,
+    this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style:
+                labelStyle ??
+                GoogleFonts.manrope(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+          ),
+        ),
+        Text(
+          value,
+          style:
+              valueStyle ??
+              GoogleFonts.manrope(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: valueColor ?? const Color(0xFF1A1C1C),
+              ),
         ),
       ],
     );
@@ -235,22 +637,4 @@ class _CartScreenState extends ConsumerState<CartScreen> {
 
 String _formatPrice(num value) {
   return '${NumberFormat('#,##0.00').format(value)} د.ع';
-}
-
-class _FakeCartState {
-  final items = [
-    _FakeCartItem(),
-    _FakeCartItem(),
-  ];
-  final double subtotal = 50000;
-  final double discount = 5000;
-  final double total = 45000;
-}
-
-class _FakeCartItem {
-  final String imageUrl = 'https://placehold.co/100';
-  final String name = 'منتج فاخر';
-  final double price = 25000;
-  final int quantity = 1;
-  final String selectionKey = 'dummy';
 }

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/data/auth_repository.dart';
@@ -56,7 +56,11 @@ class _AddressesScreenState extends ConsumerState<AddressesScreen> {
             }
 
             final data = snapshot.data?['data'] as Map<String, dynamic>? ?? {};
-            final addresses = (data['addresses'] as List?)?.whereType<Map<String, dynamic>>().toList() ?? <Map<String, dynamic>>[];
+            final addresses =
+                (data['addresses'] as List?)
+                    ?.whereType<Map<String, dynamic>>()
+                    .toList() ??
+                <Map<String, dynamic>>[];
 
             if (addresses.isEmpty) {
               return ListView(
@@ -64,7 +68,11 @@ class _AddressesScreenState extends ConsumerState<AddressesScreen> {
                 padding: const EdgeInsets.all(20),
                 children: const [
                   SizedBox(height: 140),
-                  Icon(Icons.location_off_outlined, size: 64, color: Colors.grey),
+                  Icon(
+                    Icons.location_off_outlined,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
                   SizedBox(height: 10),
                   Center(child: Text('لا توجد عناوين محفوظة')),
                   SizedBox(height: 6),
@@ -88,7 +96,11 @@ class _AddressesScreenState extends ConsumerState<AddressesScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: isDefault ? const Color(0xFF6D0E16) : const Color(0xFFE9E0E2)),
+                    border: Border.all(
+                      color: isDefault
+                          ? const Color(0xFF6D0E16)
+                          : const Color(0xFFE9E0E2),
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFF6D0E16).withValues(alpha: 0.05),
@@ -102,51 +114,92 @@ class _AddressesScreenState extends ConsumerState<AddressesScreen> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.location_on_outlined, color: isDefault ? const Color(0xFF6D0E16) : Colors.grey.shade700),
+                          Icon(
+                            Icons.location_on_outlined,
+                            color: isDefault
+                                ? const Color(0xFF6D0E16)
+                                : Colors.grey.shade700,
+                          ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
                               '${address['governorate'] ?? ''} - ${address['city'] ?? ''}',
-                              style: const TextStyle(fontWeight: FontWeight.w800),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ),
                           if (isDefault)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF6D0E16).withValues(alpha: 0.12),
+                                color: const Color(
+                                  0xFF6D0E16,
+                                ).withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(999),
                               ),
-                              child: const Text('افتراضي', style: TextStyle(color: Color(0xFF6D0E16), fontWeight: FontWeight.w700, fontSize: 12)),
+                              child: const Text(
+                                'افتراضي',
+                                style: TextStyle(
+                                  color: Color(0xFF6D0E16),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Text(address['address_details']?.toString() ?? ''),
-                      if ((address['nearest_landmark']?.toString().trim().isNotEmpty ?? false)) ...[
+                      if ((address['nearest_landmark']
+                              ?.toString()
+                              .trim()
+                              .isNotEmpty ??
+                          false)) ...[
                         const SizedBox(height: 4),
-                        Text('أقرب نقطة: ${address['nearest_landmark']}', style: TextStyle(color: Colors.grey.shade700)),
+                        Text(
+                          'أقرب نقطة: ${address['nearest_landmark']}',
+                          style: TextStyle(color: Colors.grey.shade700),
+                        ),
                       ],
-                      if (address['latitude'] != null || address['longitude'] != null) ...[
+                      if (address['latitude'] != null ||
+                          address['longitude'] != null) ...[
                         const SizedBox(height: 4),
                         Text(
                           'إحداثيات: ${address['latitude'] ?? '-'} , ${address['longitude'] ?? '-'}',
-                          style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                       const SizedBox(height: 10),
                       Row(
                         children: [
                           TextButton.icon(
-                            onPressed: addressId == null ? null : () => _openAddressForm(initial: address),
+                            onPressed: addressId == null
+                                ? null
+                                : () => _openAddressForm(initial: address),
                             icon: const Icon(Icons.edit_outlined, size: 18),
                             label: const Text('تعديل'),
                           ),
                           const SizedBox(width: 8),
                           TextButton.icon(
-                            onPressed: addressId == null ? null : () => _deleteAddress(addressId),
-                            icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
-                            label: const Text('حذف', style: TextStyle(color: Colors.red)),
+                            onPressed: addressId == null
+                                ? null
+                                : () => _deleteAddress(addressId),
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              size: 18,
+                              color: Colors.red,
+                            ),
+                            label: const Text(
+                              'حذف',
+                              style: TextStyle(color: Colors.red),
+                            ),
                           ),
                         ],
                       ),
@@ -168,8 +221,14 @@ class _AddressesScreenState extends ConsumerState<AddressesScreen> {
         title: const Text('حذف العنوان'),
         content: const Text('هل أنت متأكد من حذف هذا العنوان؟'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('إلغاء'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('حذف'),
+          ),
         ],
       ),
     );
@@ -179,21 +238,37 @@ class _AddressesScreenState extends ConsumerState<AddressesScreen> {
     try {
       await ref.read(authRepositoryProvider).deleteAddress(addressId);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حذف العنوان')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('تم حذف العنوان')));
       await _refresh();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
   Future<void> _openAddressForm({Map<String, dynamic>? initial}) async {
-    final governorateCtrl = TextEditingController(text: initial?['governorate']?.toString() ?? '');
-    final cityCtrl = TextEditingController(text: initial?['city']?.toString() ?? '');
-    final detailsCtrl = TextEditingController(text: initial?['address_details']?.toString() ?? '');
-    final landmarkCtrl = TextEditingController(text: initial?['nearest_landmark']?.toString() ?? '');
-    final latCtrl = TextEditingController(text: initial?['latitude']?.toString() ?? '');
-    final lngCtrl = TextEditingController(text: initial?['longitude']?.toString() ?? '');
+    final governorateCtrl = TextEditingController(
+      text: initial?['governorate']?.toString() ?? '',
+    );
+    final cityCtrl = TextEditingController(
+      text: initial?['city']?.toString() ?? '',
+    );
+    final detailsCtrl = TextEditingController(
+      text: initial?['address_details']?.toString() ?? '',
+    );
+    final landmarkCtrl = TextEditingController(
+      text: initial?['nearest_landmark']?.toString() ?? '',
+    );
+    final latCtrl = TextEditingController(
+      text: initial?['latitude']?.toString() ?? '',
+    );
+    final lngCtrl = TextEditingController(
+      text: initial?['longitude']?.toString() ?? '',
+    );
     var isDefault = initial?['is_default'] == true;
 
     await showModalBottomSheet<void>(
@@ -202,7 +277,9 @@ class _AddressesScreenState extends ConsumerState<AddressesScreen> {
       showDragHandle: true,
       builder: (context) {
         return Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
           child: StatefulBuilder(
             builder: (context, setModalState) {
               return SingleChildScrollView(
@@ -210,27 +287,70 @@ class _AddressesScreenState extends ConsumerState<AddressesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(initial == null ? 'إضافة عنوان جديد' : 'تعديل العنوان', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                    Text(
+                      initial == null ? 'إضافة عنوان جديد' : 'تعديل العنوان',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                     const SizedBox(height: 12),
-                    TextField(controller: governorateCtrl, decoration: const InputDecoration(labelText: 'المحافظة')),
+                    TextField(
+                      controller: governorateCtrl,
+                      decoration: const InputDecoration(labelText: 'المحافظة'),
+                    ),
                     const SizedBox(height: 10),
-                    TextField(controller: cityCtrl, decoration: const InputDecoration(labelText: 'المدينة')),
+                    TextField(
+                      controller: cityCtrl,
+                      decoration: const InputDecoration(labelText: 'المدينة'),
+                    ),
                     const SizedBox(height: 10),
-                    TextField(controller: detailsCtrl, decoration: const InputDecoration(labelText: 'تفاصيل العنوان')),
+                    TextField(
+                      controller: detailsCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'تفاصيل العنوان',
+                      ),
+                    ),
                     const SizedBox(height: 10),
-                    TextField(controller: landmarkCtrl, decoration: const InputDecoration(labelText: 'أقرب نقطة دالة (اختياري)')),
+                    TextField(
+                      controller: landmarkCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'أقرب نقطة دالة (اختياري)',
+                      ),
+                    ),
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        Expanded(child: TextField(controller: latCtrl, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'خط العرض'))),
+                        Expanded(
+                          child: TextField(
+                            controller: latCtrl,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: const InputDecoration(
+                              labelText: 'خط العرض',
+                            ),
+                          ),
+                        ),
                         const SizedBox(width: 10),
-                        Expanded(child: TextField(controller: lngCtrl, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'خط الطول'))),
+                        Expanded(
+                          child: TextField(
+                            controller: lngCtrl,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: const InputDecoration(
+                              labelText: 'خط الطول',
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 10),
                     SwitchListTile(
                       value: isDefault,
-                      onChanged: (value) => setModalState(() => isDefault = value),
+                      onChanged: (value) =>
+                          setModalState(() => isDefault = value),
                       title: const Text('اجعله العنوان الافتراضي'),
                       contentPadding: EdgeInsets.zero,
                     ),
@@ -239,14 +359,22 @@ class _AddressesScreenState extends ConsumerState<AddressesScreen> {
                       width: double.infinity,
                       child: FilledButton(
                         onPressed: () async {
-                          if (governorateCtrl.text.trim().isEmpty || cityCtrl.text.trim().isEmpty || detailsCtrl.text.trim().isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('املأ الحقول المطلوبة')));
+                          if (governorateCtrl.text.trim().isEmpty ||
+                              cityCtrl.text.trim().isEmpty ||
+                              detailsCtrl.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('املأ الحقول المطلوبة'),
+                              ),
+                            );
                             return;
                           }
 
                           try {
                             if (initial == null) {
-                              await ref.read(authRepositoryProvider).createAddress(
+                              await ref
+                                  .read(authRepositoryProvider)
+                                  .createAddress(
                                     governorate: governorateCtrl.text.trim(),
                                     city: cityCtrl.text.trim(),
                                     addressDetails: detailsCtrl.text.trim(),
@@ -256,11 +384,14 @@ class _AddressesScreenState extends ConsumerState<AddressesScreen> {
                                     isDefault: isDefault,
                                   );
                             } else {
-                              final addressId = (initial['id'] as num?)?.toInt();
+                              final addressId = (initial['id'] as num?)
+                                  ?.toInt();
                               if (addressId == null) {
                                 throw 'عنوان غير صالح';
                               }
-                              await ref.read(authRepositoryProvider).updateAddress(
+                              await ref
+                                  .read(authRepositoryProvider)
+                                  .updateAddress(
                                     addressId: addressId,
                                     governorate: governorateCtrl.text.trim(),
                                     city: cityCtrl.text.trim(),
@@ -275,15 +406,25 @@ class _AddressesScreenState extends ConsumerState<AddressesScreen> {
                             if (!mounted) return;
                             Navigator.of(this.context).pop();
                             ScaffoldMessenger.of(this.context).showSnackBar(
-                              SnackBar(content: Text(initial == null ? 'تمت إضافة العنوان' : 'تم تعديل العنوان')),
+                              SnackBar(
+                                content: Text(
+                                  initial == null
+                                      ? 'تمت إضافة العنوان'
+                                      : 'تم تعديل العنوان',
+                                ),
+                              ),
                             );
                             await _refresh();
                           } catch (e) {
                             if (!mounted) return;
-                            ScaffoldMessenger.of(this.context).showSnackBar(SnackBar(content: Text(e.toString())));
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              SnackBar(content: Text(e.toString())),
+                            );
                           }
                         },
-                        child: Text(initial == null ? 'إضافة العنوان' : 'حفظ التعديلات'),
+                        child: Text(
+                          initial == null ? 'إضافة العنوان' : 'حفظ التعديلات',
+                        ),
                       ),
                     ),
                   ],

@@ -63,11 +63,18 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  Future<bool> loginWithPhone({required String phoneNumber, required String password}) async {
+  Future<bool> loginWithPhone({
+    required String phoneNumber,
+    required String password,
+  }) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final response = await _repository.login(phoneNumber: phoneNumber, password: password);
-      final data = response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
+      final response = await _repository.login(
+        phoneNumber: phoneNumber,
+        password: password,
+      );
+      final data =
+          response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
       final otpRequired = data['otp_required'] == true;
 
       if (otpRequired) {
@@ -91,7 +98,11 @@ class AuthNotifier extends Notifier<AuthState> {
       );
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString(), clearOtpState: true);
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+        clearOtpState: true,
+      );
       return false;
     }
   }
@@ -113,7 +124,8 @@ class AuthNotifier extends Notifier<AuthState> {
         referralCode: referralCode,
       );
 
-      final data = response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
+      final data =
+          response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
       final otpRequired = data['otp_required'] == true;
 
       if (otpRequired) {
@@ -137,12 +149,19 @@ class AuthNotifier extends Notifier<AuthState> {
       );
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString(), clearOtpState: true);
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+        clearOtpState: true,
+      );
       return false;
     }
   }
 
-  Future<bool> resendOtp({required String phoneNumber, required String purpose}) async {
+  Future<bool> resendOtp({
+    required String phoneNumber,
+    required String purpose,
+  }) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       await _repository.requestOtp(phoneNumber: phoneNumber, purpose: purpose);
@@ -154,10 +173,16 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  Future<bool> verifyOtp({required String phoneNumber, required String otp}) async {
+  Future<bool> verifyOtp({
+    required String phoneNumber,
+    required String otp,
+  }) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final response = await _repository.verifyOtp(phoneNumber: phoneNumber, otp: otp);
+      final response = await _repository.verifyOtp(
+        phoneNumber: phoneNumber,
+        otp: otp,
+      );
       final token = response['data']['token'] as String;
 
       await _tokenStorage.saveToken(token);

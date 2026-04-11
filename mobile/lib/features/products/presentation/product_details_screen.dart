@@ -17,7 +17,8 @@ class ProductDetailsScreen extends ConsumerStatefulWidget {
   const ProductDetailsScreen({super.key, required this.productId});
 
   @override
-  ConsumerState<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
+  ConsumerState<ProductDetailsScreen> createState() =>
+      _ProductDetailsScreenState();
 }
 
 class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
@@ -43,19 +44,30 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
               ),
               actions: [
                 IconButton(
-                  icon: Icon(inWishlist ? Icons.favorite : Icons.favorite_border, color: inWishlist ? Colors.red : null),
+                  icon: Icon(
+                    inWishlist ? Icons.favorite : Icons.favorite_border,
+                    color: inWishlist ? Colors.red : null,
+                  ),
                   onPressed: () async {
                     try {
-                      final added = await ref.read(wishlistProvider.notifier).toggle(widget.productId);
+                      final added = await ref
+                          .read(wishlistProvider.notifier)
+                          .toggle(widget.productId);
                       if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(added ? 'تمت الإضافة للمفضلة' : 'تمت الإزالة من المفضلة')),
+                        SnackBar(
+                          content: Text(
+                            added
+                                ? 'تمت الإضافة للمفضلة'
+                                : 'تمت الإزالة من المفضلة',
+                          ),
+                        ),
                       );
                     } catch (e) {
                       if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(e.toString())),
-                      );
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text(e.toString())));
                     }
                   },
                 ),
@@ -67,24 +79,40 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(product.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    Text(
+                      product.name,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
                         const Icon(Icons.star, color: Colors.orange, size: 20),
                         const SizedBox(width: 4),
-                        Text('${product.averageRating.toStringAsFixed(1)} (${product.reviewsCount} تقييم)', style: const TextStyle(color: Colors.grey)),
+                        Text(
+                          '${product.averageRating.toStringAsFixed(1)} (${product.reviewsCount} تقييم)',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
                         const Spacer(),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: product.stockQuantity > 0 ? Colors.green.withValues(alpha: 0.12) : Colors.red.withValues(alpha: 0.12),
+                            color: product.stockQuantity > 0
+                                ? Colors.green.withValues(alpha: 0.12)
+                                : Colors.red.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(30),
                           ),
                           child: Text(
                             product.stockQuantity > 0 ? 'متوفر' : 'غير متوفر',
                             style: TextStyle(
-                              color: product.stockQuantity > 0 ? Colors.green : Colors.red,
+                              color: product.stockQuantity > 0
+                                  ? Colors.green
+                                  : Colors.red,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -117,7 +145,13 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                     ),
                     const SizedBox(height: 24),
                     if (product.options.isNotEmpty) ...[
-                      const Text('خيارات المنتج', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const Text(
+                        'خيارات المنتج',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 10),
                       ...product.options.map((option) {
                         final selected = _selectedOptionValues[option.id];
@@ -128,8 +162,12 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                option.isRequired ? '${option.name} *' : option.name,
-                                style: const TextStyle(fontWeight: FontWeight.w700),
+                                option.isRequired
+                                    ? '${option.name} *'
+                                    : option.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                               const SizedBox(height: 8),
                               Wrap(
@@ -142,7 +180,8 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                                     selected: isSelected,
                                     onSelected: (_) {
                                       setState(() {
-                                        _selectedOptionValues[option.id] = value;
+                                        _selectedOptionValues[option.id] =
+                                            value;
                                       });
                                     },
                                   );
@@ -154,12 +193,20 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                       }),
                       const SizedBox(height: 12),
                     ],
-                    const Text('وصف المنتج', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'وصف المنتج',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Directionality(
                       textDirection: ui.TextDirection.rtl,
                       child: Html(
-                        data: product.description?.trim().isNotEmpty == true ? product.description! : '<p>لا يوجد وصف متاح.</p>',
+                        data: product.description?.trim().isNotEmpty == true
+                            ? product.description!
+                            : '<p>لا يوجد وصف متاح.</p>',
                         style: {
                           'body': Style(
                             fontSize: FontSize(14),
@@ -173,13 +220,24 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                             margin: Margins.symmetric(vertical: 10),
                             padding: HtmlPaddings.all(12),
                             backgroundColor: const Color(0xFFF8F5F6),
-                            border: Border(left: BorderSide(color: Color(0xFF6D0E16), width: 4)),
+                            border: Border(
+                              left: BorderSide(
+                                color: Color(0xFF6D0E16),
+                                width: 4,
+                              ),
+                            ),
                           ),
                         },
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Text('التعليقات والتقييمات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'التعليقات والتقييمات',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 10),
                     ..._buildReviews(product),
                     const SizedBox(height: 120),
@@ -189,17 +247,18 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
             ),
           ],
         ),
-        loading: () => Skeletonizer(
-          enabled: true,
-          child: _buildSkeletonPage(),
-        ),
+        loading: () => Skeletonizer(enabled: true, child: _buildSkeletonPage()),
         error: (e, s) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.wifi_off_rounded, size: 56, color: Color(0xFF6D0E16)),
+                const Icon(
+                  Icons.wifi_off_rounded,
+                  size: 56,
+                  color: Color(0xFF6D0E16),
+                ),
                 const SizedBox(height: 12),
                 const Text(
                   'تعذر تحميل المنتج الآن',
@@ -213,7 +272,8 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                 ),
                 const SizedBox(height: 16),
                 OutlinedButton(
-                  onPressed: () => ref.invalidate(productDetailsProvider(widget.productId)),
+                  onPressed: () =>
+                      ref.invalidate(productDetailsProvider(widget.productId)),
                   child: const Text('إعادة المحاولة'),
                 ),
               ],
@@ -227,7 +287,11 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -5),
+                  ),
                 ],
               ),
               child: Row(
@@ -245,7 +309,13 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                             if (_quantity > 1) _quantity--;
                           }),
                         ),
-                        Text('$_quantity', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text(
+                          '$_quantity',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         IconButton(
                           icon: const Icon(Icons.add),
                           onPressed: () => setState(() => _quantity++),
@@ -262,13 +332,18 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
 
                         final missingRequired = product.options
                             .where((option) => option.isRequired)
-                            .where((option) => !_selectedOptionValues.containsKey(option.id))
+                            .where(
+                              (option) =>
+                                  !_selectedOptionValues.containsKey(option.id),
+                            )
                             .toList();
 
                         if (missingRequired.isNotEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('يرجى اختيار: ${missingRequired.map((e) => e.name).join('، ')}'),
+                              content: Text(
+                                'يرجى اختيار: ${missingRequired.map((e) => e.name).join('، ')}',
+                              ),
                               backgroundColor: Colors.orange,
                             ),
                           );
@@ -283,7 +358,9 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                           }
                         }
 
-                        final success = await ref.read(cartProvider.notifier).addToCart(
+                        final success = await ref
+                            .read(cartProvider.notifier)
+                            .addToCart(
                               widget.productId,
                               _quantity,
                               selectedOptions.isEmpty ? null : selectedOptions,
@@ -291,14 +368,20 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(success ? 'تمت الإضافة للسلة بنجاح' : 'تعذر إضافة المنتج'),
-                            backgroundColor: success ? Colors.green : Colors.red,
+                            content: Text(
+                              success
+                                  ? 'تمت الإضافة للسلة بنجاح'
+                                  : 'تعذر إضافة المنتج',
+                            ),
+                            backgroundColor: success
+                                ? Colors.green
+                                : Colors.red,
                           ),
                         );
                       },
                       child: const Text('أضف إلى السلة'),
                     ),
-                  )
+                  ),
                 ],
               ),
             )
@@ -313,7 +396,10 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     }.toList();
 
     if (images.isEmpty) {
-      return Container(color: Colors.grey[200], child: const Icon(Icons.image, size: 80));
+      return Container(
+        color: Colors.grey[200],
+        child: const Icon(Icons.image, size: 80),
+      );
     }
 
     final current = images[_galleryIndex.clamp(0, images.length - 1)];
@@ -324,7 +410,10 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
         Image.network(
           current,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[200], child: const Icon(Icons.broken_image, size: 80)),
+          errorBuilder: (context, error, stackTrace) => Container(
+            color: Colors.grey[200],
+            child: const Icon(Icons.broken_image, size: 80),
+          ),
         ),
         if (images.length > 1)
           Positioned(
@@ -348,7 +437,10 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                       width: 62,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: active ? Colors.white : Colors.white70, width: active ? 2 : 1),
+                        border: Border.all(
+                          color: active ? Colors.white : Colors.white70,
+                          width: active ? 2 : 1,
+                        ),
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(9),
@@ -359,7 +451,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                 },
               ),
             ),
-          )
+          ),
       ],
     );
   }
@@ -387,15 +479,23 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
           color: Theme.of(context).colorScheme.surface,
-            border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Expanded(child: Text(review.author, style: const TextStyle(fontWeight: FontWeight.bold))),
-                Text(_formatReviewDate(review.createdAt), style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                Expanded(
+                  child: Text(
+                    review.author,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Text(
+                  _formatReviewDate(review.createdAt),
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
               ],
             ),
             const SizedBox(height: 6),
@@ -403,7 +503,9 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
               children: List.generate(
                 5,
                 (index) => Icon(
-                  index < review.rating.round() ? Icons.star : Icons.star_border,
+                  index < review.rating.round()
+                      ? Icons.star
+                      : Icons.star_border,
                   color: Colors.orange,
                   size: 17,
                 ),
@@ -412,7 +514,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
             if (review.comment.trim().isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(review.comment, style: const TextStyle(height: 1.5)),
-            ]
+            ],
           ],
         ),
       );
@@ -441,9 +543,17 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                 const SizedBox(height: 24),
                 Container(height: 22, width: 110, color: Colors.white),
                 const SizedBox(height: 8),
-                Container(height: 14, width: double.infinity, color: Colors.white),
+                Container(
+                  height: 14,
+                  width: double.infinity,
+                  color: Colors.white,
+                ),
                 const SizedBox(height: 6),
-                Container(height: 14, width: double.infinity, color: Colors.white),
+                Container(
+                  height: 14,
+                  width: double.infinity,
+                  color: Colors.white,
+                ),
                 const SizedBox(height: 30),
                 Container(height: 22, width: 130, color: Colors.white),
                 const SizedBox(height: 8),
@@ -452,7 +562,10 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                   (_) => Container(
                     margin: const EdgeInsets.only(bottom: 10),
                     height: 94,
-                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: Colors.white),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 120),

@@ -28,11 +28,26 @@ class ProfileScreen extends ConsumerWidget {
             SizedBox(height: 14),
             Card(child: SizedBox(height: 88)),
             SizedBox(height: 12),
-            ListTile(leading: Icon(Icons.shopping_bag_outlined), title: Text('طلباتي')),
-            ListTile(leading: Icon(Icons.discount_outlined), title: Text('أكواد الخصم')),
-            ListTile(leading: Icon(Icons.favorite_border), title: Text('المفضلة')),
-            ListTile(leading: Icon(Icons.location_on_outlined), title: Text('عناويني')),
-            ListTile(leading: Icon(Icons.settings_outlined), title: Text('إعدادات التطبيق')),
+            ListTile(
+              leading: Icon(Icons.shopping_bag_outlined),
+              title: Text('طلباتي'),
+            ),
+            ListTile(
+              leading: Icon(Icons.discount_outlined),
+              title: Text('أكواد الخصم'),
+            ),
+            ListTile(
+              leading: Icon(Icons.favorite_border),
+              title: Text('المفضلة'),
+            ),
+            ListTile(
+              leading: Icon(Icons.location_on_outlined),
+              title: Text('عناويني'),
+            ),
+            ListTile(
+              leading: Icon(Icons.settings_outlined),
+              title: Text('إعدادات التطبيق'),
+            ),
           ],
         ),
       );
@@ -56,7 +71,11 @@ class ProfileScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               gradient: const LinearGradient(
-                colors: [Color(0xFF6D0E16), Color(0xFF9B1B24), Color(0xFF571017)],
+                colors: [
+                  Color(0xFF6D0E16),
+                  Color(0xFF9B1B24),
+                  Color(0xFF571017),
+                ],
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
               ),
@@ -74,16 +93,35 @@ class ProfileScreen extends ConsumerWidget {
                 const CircleAvatar(
                   radius: 38,
                   backgroundColor: Colors.white,
-                  child: Icon(Icons.person_outline_rounded, size: 38, color: Color(0xFF6D0E16)),
+                  child: Icon(
+                    Icons.person_outline_rounded,
+                    size: 38,
+                    color: Color(0xFF6D0E16),
+                  ),
                 ),
                 const SizedBox(height: 14),
-                const Text('مرحبًا بك في طفوف', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 22)),
+                const Text(
+                  'مرحبًا بك في طفوف',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 22,
+                  ),
+                ),
                 const SizedBox(height: 8),
-                const Text('سجل دخولك حتى تظهر طلباتك، أكواد الخصم، المفضلة، العناوين، والمحفظة.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white70, height: 1.5)),
+                const Text(
+                  'سجل دخولك حتى تظهر طلباتك، أكواد الخصم، المفضلة، العناوين، والمحفظة.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white70, height: 1.5),
+                ),
                 const SizedBox(height: 18),
                 ElevatedButton(
                   onPressed: () => context.push('/login'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF6D0E16)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF6D0E16),
+                  ),
                   child: const Text('تسجيل دخول'),
                 ),
                 const SizedBox(height: 10),
@@ -138,7 +176,11 @@ class ProfileScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(26),
               gradient: const LinearGradient(
-                colors: [Color(0xFF6D0E16), Color(0xFF8F1A24), Color(0xFF531018)],
+                colors: [
+                  Color(0xFF6D0E16),
+                  Color(0xFF8F1A24),
+                  Color(0xFF531018),
+                ],
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
               ),
@@ -161,24 +203,46 @@ class ProfileScreen extends ConsumerWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: Text(user.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
+                            child: Text(
+                              user.name,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                           IconButton(
                             onPressed: () => context.push('/profile/edit'),
-                            icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                            icon: const Icon(
+                              Icons.edit_outlined,
+                              color: Colors.white,
+                            ),
                             tooltip: 'تعديل',
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(user.phoneNumber, style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+                      Text(
+                        user.phoneNumber,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       if (user.email.isNotEmpty) ...[
                         const SizedBox(height: 2),
-                        Text(user.email, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                        Text(
+                          user.email,
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -186,7 +250,9 @@ class ProfileScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               children: [
-                _WalletHighlightCard(balanceText: '${_formatAmount(user.walletBalance)} د.ع'),
+                _WalletHighlightCard(
+                  balanceText: '${_formatAmount(user.walletBalance)} د.ع',
+                ),
                 const SizedBox(height: 12),
                 _ReferralCodeCard(referralCode: user.referralCode),
               ],
@@ -198,12 +264,36 @@ class ProfileScreen extends ConsumerWidget {
             child: Card(
               child: Column(
                 children: [
-                  _buildProfileOption(Icons.shopping_bag_outlined, 'طلباتي', () => context.push('/profile/orders')),
-                  _buildProfileOption(Icons.discount_outlined, 'أكواد الخصم', () => context.push('/profile/discounts')),
-                  _buildProfileOption(Icons.favorite_border, 'المفضلة', () => context.push('/profile/favorites')),
-                  _buildProfileOption(Icons.location_on_outlined, 'عناويني', () => context.push('/profile/addresses')),
-                  _buildProfileOption(Icons.settings_outlined, 'إعدادات التطبيق', () => context.push('/settings')),
-                  _buildProfileOption(Icons.support_agent, 'الدعم الفني والشكاوى', () {}),
+                  _buildProfileOption(
+                    Icons.shopping_bag_outlined,
+                    'طلباتي',
+                    () => context.push('/profile/orders'),
+                  ),
+                  _buildProfileOption(
+                    Icons.discount_outlined,
+                    'أكواد الخصم',
+                    () => context.push('/profile/discounts'),
+                  ),
+                  _buildProfileOption(
+                    Icons.favorite_border,
+                    'المفضلة',
+                    () => context.push('/profile/favorites'),
+                  ),
+                  _buildProfileOption(
+                    Icons.location_on_outlined,
+                    'عناويني',
+                    () => context.push('/profile/addresses'),
+                  ),
+                  _buildProfileOption(
+                    Icons.settings_outlined,
+                    'إعدادات التطبيق',
+                    () => context.push('/settings'),
+                  ),
+                  _buildProfileOption(
+                    Icons.support_agent,
+                    'الدعم الفني والشكاوى',
+                    () {},
+                  ),
                   _buildProfileOption(
                     Icons.logout,
                     'تسجيل الخروج',
@@ -241,15 +331,28 @@ class ProfileScreen extends ConsumerWidget {
     final normalized = amount.toStringAsFixed(2);
     final parts = normalized.split('.');
     final whole = parts[0];
-    final withSeparators = whole.replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (m) => ',');
+    final withSeparators = whole.replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (m) => ',',
+    );
     return '$withSeparators.${parts[1]}';
   }
 
-  static Widget _buildProfileOption(IconData icon, String title, VoidCallback? onTap, {Color? color}) {
+  static Widget _buildProfileOption(
+    IconData icon,
+    String title,
+    VoidCallback? onTap, {
+    Color? color,
+  }) {
     return ListTile(
       leading: Icon(icon, color: color ?? const Color(0xFF6D0E16)),
-      title: Text(title, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
-      trailing: color == null ? const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey) : null,
+      title: Text(
+        title,
+        style: TextStyle(color: color, fontWeight: FontWeight.w600),
+      ),
+      trailing: color == null
+          ? const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey)
+          : null,
       onTap: onTap,
     );
   }
@@ -263,7 +366,11 @@ class _ProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final value = avatarPath?.trim();
-    final isDefault = value == null || value.isEmpty || value.toLowerCase().contains('default.png') || value.toLowerCase().contains('default.jpg');
+    final isDefault =
+        value == null ||
+        value.isEmpty ||
+        value.toLowerCase().contains('default.png') ||
+        value.toLowerCase().contains('default.jpg');
 
     return CircleAvatar(
       radius: 38,
@@ -272,11 +379,14 @@ class _ProfileAvatar extends StatelessWidget {
           ? const Icon(Icons.person, size: 40, color: Colors.grey)
           : ClipOval(
               child: Image.network(
-                value.startsWith('http') ? value : 'https://www.tofofstore.com/storage/$value',
+                value.startsWith('http')
+                    ? value
+                    : 'https://www.tofofstore.com/storage/$value',
                 width: 76,
                 height: 76,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(Icons.person, size: 40, color: Colors.grey),
+                errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.person, size: 40, color: Colors.grey),
               ),
             ),
     );
@@ -317,16 +427,32 @@ class _WalletHighlightCard extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.22),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.account_balance_wallet_outlined, color: Colors.white),
+            child: const Icon(
+              Icons.account_balance_wallet_outlined,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('رصيد المحفظة', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+                const Text(
+                  'رصيد المحفظة',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(balanceText, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 22)),
+                Text(
+                  balanceText,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 22,
+                  ),
+                ),
               ],
             ),
           ),
@@ -361,7 +487,13 @@ class _ReferralCodeCard extends StatelessWidget {
             children: [
               Icon(Icons.card_giftcard_outlined, color: Color(0xFF8B5E00)),
               SizedBox(width: 8),
-              Text('كود الدعوة', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF6B4700))),
+              Text(
+                'كود الدعوة',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF6B4700),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -369,7 +501,10 @@ class _ReferralCodeCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
@@ -380,7 +515,9 @@ class _ReferralCodeCard extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
                       letterSpacing: hasCode ? 1.0 : 0,
-                      color: hasCode ? const Color(0xFF2F2F2F) : Colors.grey.shade600,
+                      color: hasCode
+                          ? const Color(0xFF2F2F2F)
+                          : Colors.grey.shade600,
                     ),
                   ),
                 ),

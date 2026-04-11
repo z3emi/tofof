@@ -18,10 +18,22 @@ final categoriesProvider = FutureProvider<List<CategoryModel>>((ref) async {
 
 final homeProductsProvider = FutureProvider<List<ProductModel>>((ref) async {
   // Fetch latest products for the homepage
-  final result = await ref.watch(storeRepositoryProvider).fetchProducts(perPage: 10);
+  final result = await ref
+      .watch(storeRepositoryProvider)
+      .fetchProducts(perPage: 10);
   return result['items'] as List<ProductModel>;
 });
 
-final productDetailsProvider = FutureProvider.family<ProductModel, int>((ref, id) async {
+final storeProductsProvider = FutureProvider<List<ProductModel>>((ref) async {
+  final result = await ref
+      .watch(storeRepositoryProvider)
+      .fetchProducts(perPage: 24, sort: 'latest');
+  return result['items'] as List<ProductModel>;
+});
+
+final productDetailsProvider = FutureProvider.family<ProductModel, int>((
+  ref,
+  id,
+) async {
   return ref.watch(storeRepositoryProvider).fetchProduct(id);
 });

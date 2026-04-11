@@ -24,7 +24,9 @@ class SettingsScreen extends ConsumerWidget {
                   subtitle: const Text('تفعيل أو إيقاف إشعارات التطبيق'),
                   secondary: const Icon(Icons.notifications_active_outlined),
                   onChanged: (value) {
-                    ref.read(appSettingsProvider.notifier).setNotificationsEnabled(value);
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .setNotificationsEnabled(value);
                   },
                 ),
                 const Divider(height: 0),
@@ -56,7 +58,9 @@ class SettingsScreen extends ConsumerWidget {
                     selected: {settings.themeMode},
                     onSelectionChanged: (selection) {
                       if (selection.isNotEmpty) {
-                        ref.read(appSettingsProvider.notifier).setThemeMode(selection.first);
+                        ref
+                            .read(appSettingsProvider.notifier)
+                            .setThemeMode(selection.first);
                       }
                     },
                   ),

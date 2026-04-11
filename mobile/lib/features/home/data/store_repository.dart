@@ -40,21 +40,26 @@ class StoreRepository {
     String? sort,
     String? query,
   }) async {
-    final Map<String, dynamic> queryParams = {'page': page, 'per_page': perPage};
+    final Map<String, dynamic> queryParams = {
+      'page': page,
+      'per_page': perPage,
+    };
     if (categoryId != null) queryParams['category_id'] = categoryId;
     if (sectionId != null) queryParams['section_id'] = sectionId;
     if (sort != null) queryParams['sort'] = sort;
     if (query != null && query.isNotEmpty) queryParams['q'] = query;
 
-    final response = await _dio.get(ApiConstants.products, queryParameters: queryParams);
-    
-    final items = (response.data['data'] as List).map((e) => ProductModel.fromJson(e)).toList();
+    final response = await _dio.get(
+      ApiConstants.products,
+      queryParameters: queryParams,
+    );
+
+    final items = (response.data['data'] as List)
+        .map((e) => ProductModel.fromJson(e))
+        .toList();
     final meta = response.data['meta'];
-    
-    return {
-      'items': items,
-      'meta': meta,
-    };
+
+    return {'items': items, 'meta': meta};
   }
 
   Future<ProductModel> fetchProduct(int id) async {

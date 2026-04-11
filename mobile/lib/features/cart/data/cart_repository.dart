@@ -25,7 +25,11 @@ class CartRepository {
     }
   }
 
-  Future<Map<String, dynamic>> addToCart(int productId, int quantity, [Map<String, dynamic>? options]) async {
+  Future<Map<String, dynamic>> addToCart(
+    int productId,
+    int quantity, [
+    Map<String, dynamic>? options,
+  ]) async {
     try {
       final response = await _dio.post(
         ApiConstants.cart,
@@ -44,7 +48,10 @@ class CartRepository {
     }
   }
 
-  Future<Map<String, dynamic>> updateQuantity(String selectionKey, int quantity) async {
+  Future<Map<String, dynamic>> updateQuantity(
+    String selectionKey,
+    int quantity,
+  ) async {
     try {
       final response = await _dio.patch(
         '${ApiConstants.cart}/$selectionKey',
