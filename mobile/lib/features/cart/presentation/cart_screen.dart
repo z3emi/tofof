@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
+import '../../../core/theme/app_dimensions.dart';
 import '../providers/cart_provider.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
@@ -45,25 +46,45 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.screenPadding,
+                AppDimensions.screenPadding,
+                AppDimensions.screenPadding,
+                0,
+              ),
               child: _buildCartHero(cartState),
             ),
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.screenPadding,
+                20,
+                AppDimensions.screenPadding,
+                0,
+              ),
               child: _buildCartItems(cartState),
             ),
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.screenPadding,
+                AppDimensions.sectionGap,
+                AppDimensions.screenPadding,
+                0,
+              ),
               child: _buildCouponPanel(cartState),
             ),
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 18, 16, 110),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.screenPadding,
+                AppDimensions.sectionGap,
+                AppDimensions.screenPadding,
+                AppDimensions.bottomSafeGap - 10,
+              ),
               child: _buildSummaryPanel(context, cartState),
             ),
           ),
@@ -94,7 +115,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
 
   PreferredSizeWidget _header(CartState cartState) {
     return AppBar(
-      toolbarHeight: 72,
+      toolbarHeight: AppDimensions.appBarHeight,
       backgroundColor: Colors.white.withValues(alpha: 0.86),
       elevation: 0,
       centerTitle: true,
@@ -114,7 +135,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(AppDimensions.heroRadius),
         gradient: const LinearGradient(
           colors: [Color(0xFF4A0008), Color(0xFF6D0E16)],
           begin: Alignment.topRight,
@@ -135,7 +156,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
             height: 54,
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(AppDimensions.innerRadius),
             ),
             child: const Icon(Icons.shopping_bag_outlined, color: Colors.white),
           ),

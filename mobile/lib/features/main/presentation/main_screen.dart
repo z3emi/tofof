@@ -36,9 +36,11 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     final cartCount = ref.watch(cartProvider.select((state) => state.count));
 
     return Scaffold(
-      extendBody: true,
+      // ✦ extendBody removed — nav bar is now inside the Stack
+      //   so BackdropFilter blurs body content on Android correctly.
       body: Stack(
         children: [
+          // ── Page content ────────────────────────────────────────────────
           Positioned.fill(
             child: AnimatedPadding(
               duration: const Duration(milliseconds: 220),
@@ -47,6 +49,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
               child: IndexedStack(index: _currentIndex, children: _pages),
             ),
           ),
+
+          // ── Top header bar ───────────────────────────────────────────────
           Positioned(
             top: 0,
             right: 0,
@@ -108,18 +112,25 @@ class _MainScreenState extends ConsumerState<MainScreen> {
               ),
             ),
           ),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
-          child: _LiquidGlassNavBar(
-            currentIndex: _currentIndex,
-            cartCount: cartCount,
-            onTap: (i) => setState(() => _currentIndex = i),
+
+          // ── Liquid Glass bottom nav — inside Stack for Android blur ──────
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
+                child: _LiquidGlassNavBar(
+                  currentIndex: _currentIndex,
+                  cartCount: cartCount,
+                  onTap: (i) => setState(() => _currentIndex = i),
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

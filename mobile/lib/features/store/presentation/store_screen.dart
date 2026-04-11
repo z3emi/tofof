@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
+import '../../../core/theme/app_dimensions.dart';
 import '../../../shared/models/product_model.dart';
 import '../../home/providers/store_provider.dart';
 
@@ -32,13 +33,23 @@ class StoreScreen extends ConsumerWidget {
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.screenPadding,
+                AppDimensions.screenPadding,
+                AppDimensions.screenPadding,
+                0,
+              ),
               child: _IntroPanel(),
             ),
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.screenPadding,
+                AppDimensions.sectionGap,
+                AppDimensions.screenPadding,
+                0,
+              ),
               child: _SectionHeader(
                 title: 'تصفّح سريع',
                 actionLabel: 'كل الأقسام',
@@ -47,7 +58,12 @@ class StoreScreen extends ConsumerWidget {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.screenPadding,
+                AppDimensions.itemGap,
+                AppDimensions.screenPadding,
+                0,
+              ),
               child: categoriesAsync.when(
                 data: (categories) => _CategoryRail(categories),
                 loading: () => Skeletonizer(
@@ -63,13 +79,23 @@ class StoreScreen extends ConsumerWidget {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 22, 16, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.screenPadding,
+                22,
+                AppDimensions.screenPadding,
+                0,
+              ),
               child: _SectionHeader(title: 'المنتجات', actionLabel: 'عرض الكل'),
             ),
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.screenPadding,
+                14,
+                AppDimensions.screenPadding,
+                0,
+              ),
               child: productsAsync.when(
                 data: (products) => _ProductGrid(products),
                 loading: () => Skeletonizer(
@@ -81,7 +107,9 @@ class StoreScreen extends ConsumerWidget {
               ),
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 120)),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: AppDimensions.bottomSafeGap),
+          ),
         ],
       ),
     );
@@ -92,7 +120,7 @@ class StoreScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(72),
+        preferredSize: const Size.fromHeight(AppDimensions.appBarHeight),
         child: _StoreHeader(onBack: () => context.pop(), onSearch: () {}),
       ),
       body: body,
@@ -176,7 +204,7 @@ class _HeaderIconButton extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppDimensions.chipRadius),
         child: Container(
           width: 44,
           height: 44,
@@ -194,7 +222,7 @@ class _IntroPanel extends StatelessWidget {
     return Container(
       height: 176,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(AppDimensions.heroRadius),
         gradient: const LinearGradient(
           colors: [Color(0xFF4A0008), Color(0xFF6D0E16), Color(0xFF8D1821)],
           begin: Alignment.topRight,
@@ -229,7 +257,7 @@ class _IntroPanel extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(AppDimensions.chipRadius),
               ),
               child: Text(
                 'المتجر',
@@ -296,7 +324,7 @@ class _MiniPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(AppDimensions.chipRadius),
       ),
       child: Text(
         label,
@@ -365,13 +393,13 @@ class _CategoryRail extends StatelessWidget {
             onTap: isDummy
                 ? null
                 : () => context.push('/category/${category.id}'),
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(AppDimensions.cardRadius),
             child: Container(
               width: 132,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(22),
+                borderRadius: BorderRadius.circular(AppDimensions.cardRadius),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.05),
@@ -387,11 +415,15 @@ class _CategoryRail extends StatelessWidget {
                     height: 46,
                     decoration: BoxDecoration(
                       color: const Color(0xFF6D0E16).withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.innerRadius,
+                      ),
                     ),
                     child: imageUrl != null && imageUrl.toString().isNotEmpty
                         ? ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(
+                              AppDimensions.innerRadius,
+                            ),
                             child: Image.network(
                               imageUrl.toString(),
                               fit: BoxFit.cover,
@@ -482,11 +514,11 @@ class _ProductCard extends StatelessWidget {
 
     return InkWell(
       onTap: () => context.push('/product/${product.id}'),
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(AppDimensions.cardRadius),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppDimensions.cardRadius),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -502,7 +534,7 @@ class _ProductCard extends StatelessWidget {
               aspectRatio: 1,
               child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24),
+                  top: Radius.circular(AppDimensions.cardRadius),
                 ),
                 child: Stack(
                   fit: StackFit.expand,
@@ -527,7 +559,9 @@ class _ProductCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.88),
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.chipRadius,
+                          ),
                         ),
                         child: Text(
                           product.isOnSale ? 'عرض' : 'جديد',
@@ -649,7 +683,7 @@ class _ErrorTile extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(AppDimensions.cardRadius),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),

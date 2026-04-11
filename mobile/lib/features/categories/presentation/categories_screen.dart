@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
+import '../../../core/theme/app_dimensions.dart';
 import '../../home/providers/store_provider.dart';
 import '../../../shared/models/category_model.dart';
 
@@ -26,19 +27,34 @@ class CategoriesScreen extends ConsumerWidget {
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.screenPadding,
+                AppDimensions.screenPadding,
+                AppDimensions.screenPadding,
+                0,
+              ),
               child: _IntroPanel(),
             ),
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.screenPadding,
+                20,
+                AppDimensions.screenPadding,
+                0,
+              ),
               child: _SectionHeader(title: 'الفئات', actionLabel: 'عرض الكل'),
             ),
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppDimensions.screenPadding,
+                14,
+                AppDimensions.screenPadding,
+                0,
+              ),
               child: categoriesAsync.when(
                 data: (categories) => _CategoriesGrid(categories),
                 loading: () => Skeletonizer(
@@ -51,7 +67,9 @@ class CategoriesScreen extends ConsumerWidget {
               ),
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 120)),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: AppDimensions.bottomSafeGap),
+          ),
         ],
       ),
     );
@@ -60,7 +78,7 @@ class CategoriesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(72),
+        preferredSize: const Size.fromHeight(AppDimensions.appBarHeight),
         child: _StoreHeader(onBack: () => context.pop(), onSearch: () {}),
       ),
       body: body,
@@ -118,7 +136,7 @@ class _IntroPanel extends StatelessWidget {
     return Container(
       height: 168,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(AppDimensions.heroRadius),
         gradient: const LinearGradient(
           colors: [Color(0xFF4A0008), Color(0xFF6D0E16)],
           begin: Alignment.topRight,
@@ -141,7 +159,7 @@ class _IntroPanel extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(AppDimensions.chipRadius),
               ),
               child: Text(
                 'الأقسام',
@@ -269,11 +287,11 @@ class _CategoryCard extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(AppDimensions.cardRadius),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppDimensions.cardRadius),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -295,11 +313,15 @@ class _CategoryCard extends StatelessWidget {
                     height: 48,
                     decoration: BoxDecoration(
                       color: const Color(0xFF6D0E16).withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.innerRadius,
+                      ),
                     ),
                     child: imageUrl != null
                         ? ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(
+                              AppDimensions.innerRadius,
+                            ),
                             child: Image.network(
                               imageUrl,
                               fit: BoxFit.cover,
@@ -372,7 +394,7 @@ class _ErrorTile extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppDimensions.cardRadius),
       ),
       child: Text(
         message,
