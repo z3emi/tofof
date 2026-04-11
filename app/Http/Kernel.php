@@ -74,6 +74,7 @@ class Kernel extends HttpKernel
         'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         'setlocale' => \App\Http\Middleware\SetLocale::class,
         'log.admin.activity' => \App\Http\Middleware\LogAdminActivity::class,
+        'mobile.token' => \App\Http\Middleware\AuthenticateMobileToken::class,
     ];
         protected function schedule(Schedule $schedule): void
     {

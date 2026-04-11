@@ -3,17 +3,32 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_constants.dart';
 import '../../../core/network/dio_client.dart';
+import '../../../core/storage/secure_storage.dart';
 import '../../../shared/models/user_model.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final dio = ref.watch(dioProvider);
-  return AuthRepository(dio);
+  final tokenStorage = ref.watch(tokenStorageProvider);
+  return AuthRepository(dio, tokenStorage);
 });
 
 class AuthRepository {
   final Dio _dio;
+  final TokenStorage _tokenStorage;
 
-  AuthRepository(this._dio);
+  AuthRepository(this._dio, this._tokenStorage);
+
+  Future<Map<String, String>> _authHeaders() async {
+    final token = await _tokenStorage.getToken();
+    if (token == null || token.trim().isEmpty) {
+      throw 'انتهت جلسة الدخول، يرجى تسجيل الدخول مرة أخرى';
+    }
+
+    return {
+      'Authorization': 'Bearer $token',
+      'Accept': 'application/json',
+    };
+  }
 
   Future<Map<String, dynamic>> login({
     required String phoneNumber,
@@ -150,6 +165,7 @@ class AuthRepository {
       final response = await _dio.patch(
         ApiConstants.profileUpdate,
         data: payload,
+        options: Options(headers: await _authHeaders()),
       );
 
       return UserModel.fromJson(response.data['data']);
@@ -163,6 +179,7 @@ class AuthRepository {
       final response = await _dio.get(
         ApiConstants.profileOrders,
         queryParameters: {'page': page},
+        options: Options(headers: await _authHeaders()),
       );
       return response.data;
     } on DioException catch (e) {
@@ -175,6 +192,7 @@ class AuthRepository {
       final response = await _dio.get(
         ApiConstants.profileDiscounts,
         queryParameters: {'page': page},
+        options: Options(headers: await _authHeaders()),
       );
       return response.data;
     } on DioException catch (e) {
@@ -184,7 +202,10 @@ class AuthRepository {
 
   Future<Map<String, dynamic>> fetchOrderDetails(int orderId) async {
     try {
-      final response = await _dio.get('${ApiConstants.profileOrders}/$orderId');
+      final response = await _dio.get(
+        '${ApiConstants.profileOrders}/$orderId',
+        options: Options(headers: await _authHeaders()),
+      );
       return response.data;
     } on DioException catch (e) {
       throw e.response?.data['message'] ?? 'فشل جلب تفاصيل الطلب';
@@ -193,7 +214,10 @@ class AuthRepository {
 
   Future<Map<String, dynamic>> fetchAddresses() async {
     try {
-      final response = await _dio.get('${ApiConstants.profile}/addresses');
+      final response = await _dio.get(
+        '${ApiConstants.profile}/addresses',
+        options: Options(headers: await _authHeaders()),
+      );
       return response.data;
     } on DioException catch (e) {
       throw e.response?.data['message'] ?? 'فشل جلب العناوين';
@@ -202,7 +226,10 @@ class AuthRepository {
 
   Future<Map<String, dynamic>> fetchFavorites() async {
     try {
-      final response = await _dio.get(ApiConstants.wishlist);
+      final response = await _dio.get(
+        ApiConstants.wishlist,
+        options: Options(headers: await _authHeaders()),
+      );
       return response.data;
     } on DioException catch (e) {
       throw e.response?.data['message'] ?? 'فشل جلب المفضلة';
@@ -211,7 +238,10 @@ class AuthRepository {
 
   Future<Map<String, dynamic>> sendProfilePasswordOtp() async {
     try {
-      final response = await _dio.post(ApiConstants.profilePasswordSendOtp);
+      final response = await _dio.post(
+        ApiConstants.profilePasswordSendOtp,
+        options: Options(headers: await _authHeaders()),
+      );
       return response.data;
     } on DioException catch (e) {
       throw e.response?.data['message'] ?? 'تعذر إرسال رمز التحقق';
@@ -233,6 +263,7 @@ class AuthRepository {
           'password': password,
           'password_confirmation': passwordConfirmation,
         },
+        options: Options(headers: await _authHeaders()),
       );
       return response.data;
     } on DioException catch (e) {
@@ -242,7 +273,10 @@ class AuthRepository {
 
   Future<UserModel> fetchMe() async {
     try {
-      final response = await _dio.get(ApiConstants.me);
+      final response = await _dio.get(
+        ApiConstants.me,
+        options: Options(headers: await _authHeaders()),
+      );
       return UserModel.fromJson(response.data['data']['user']);
     } on DioException catch (e) {
       throw e.response?.data['message'] ?? 'فشل جلب بيانات المستخدم';
@@ -251,7 +285,10 @@ class AuthRepository {
 
   Future<void> logout() async {
     try {
-      await _dio.post(ApiConstants.logout);
+      await _dio.post(
+        ApiConstants.logout,
+        options: Options(headers: await _authHeaders()),
+      );
     } catch (_) {
       // Ignore errors on logout
     }

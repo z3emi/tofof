@@ -509,6 +509,16 @@ class CustomerAuthController extends Controller
 
     private function issueAccessToken(User $user, string $name, array $abilities = ['*']): string
     {
+        // Prefer native Sanctum token creation to guarantee compatibility with auth:sanctum.
+        try {
+            $token = $user->createToken($name, $abilities);
+            if (!empty($token->plainTextToken)) {
+                return $token->plainTextToken;
+            }
+        } catch (Throwable $exception) {
+            // Fall back to manual insertion logic below for legacy schema edge cases.
+        }
+
         if (! Schema::hasTable('personal_access_tokens')) {
             Schema::create('personal_access_tokens', function ($table) {
                 $table->id();

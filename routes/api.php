@@ -24,8 +24,8 @@ Route::prefix('auth')->group(function () {
     Route::post('/verify-otp', [CustomerAuthController::class, 'verifyOtp']);
     Route::post('/password-reset/request-otp', [CustomerAuthController::class, 'requestPasswordResetOtp']);
     Route::post('/password-reset/confirm', [CustomerAuthController::class, 'resetPassword']);
-    Route::post('/logout', [CustomerAuthController::class, 'logout'])->middleware('auth:sanctum');
-    Route::get('/me', [CustomerAuthController::class, 'me'])->middleware('auth:sanctum');
+    Route::post('/logout', [CustomerAuthController::class, 'logout'])->middleware(\App\Http\Middleware\AuthenticateMobileToken::class);
+    Route::get('/me', [CustomerAuthController::class, 'me'])->middleware(\App\Http\Middleware\AuthenticateMobileToken::class);
 });
 
 // Employee/Admin Authentication
@@ -43,7 +43,7 @@ Route::prefix('store')->group(function () {
 });
 
 // Customer Mobile App - Authenticated Routes
-Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+Route::middleware([\App\Http\Middleware\AuthenticateMobileToken::class, 'throttle:60,1'])->group(function () {
     // Profile Management
     Route::prefix('profile')->group(function () {
         Route::get('/', [ProfileController::class, 'show']);
