@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../home/providers/store_provider.dart';
-import '../../../shared/models/product_model.dart';
 import 'package:go_router/go_router.dart';
 
 class CategoryProductsScreen extends ConsumerWidget {

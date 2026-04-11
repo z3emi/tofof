@@ -23,11 +23,7 @@ class CartController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
-        }
-        $cacheKey = 'cart_user_' . $user->id;
-        $cart = cache($cacheKey, []);
+        $cart = session('cart', []);
         
         if (empty($cart)) {
             return response()->json([
@@ -45,7 +41,7 @@ class CartController extends Controller
 
         $items = $this->normalizeCart($cart);
         $subtotal = collect($items)->sum('total');
-        $discount = (float) cache('cart_discount_val_user_' . $user->id, 0);
+        $discount = session('discount_value', 0);
         $shipping = 0;
 
         return response()->json([
@@ -57,7 +53,7 @@ class CartController extends Controller
                 'shipping' => (float) $shipping,
                 'total' => (float) ($subtotal - $discount + $shipping),
                 'count' => count($items),
-                'discount_code' => cache('cart_discount_code_user_' . $user->id),
+                'discount_code' => session('discount_code'),
             ]
         ]);
     }
@@ -90,9 +86,7 @@ class CartController extends Controller
                 ], 422);
             }
 
-            $user = $request->user();
-            $cacheKey = 'cart_user_' . $user->id;
-            $cart = cache($cacheKey, []);
+            $cart = session('cart', []);
             $selectionKey = $this->generateSelectionKey($validated['product_id'], $validated['selected_options'] ?? []);
             
             if (isset($cart[$selectionKey])) {
@@ -106,7 +100,7 @@ class CartController extends Controller
                 ];
             }
 
-            cache([$cacheKey => $cart], now()->addDays(7));
+            session(['cart' => $cart]);
 
             $items = $this->normalizeCart($cart);
 
@@ -137,9 +131,7 @@ class CartController extends Controller
                 'quantity' => 'required|integer|min:1',
             ]);
 
-            $user = $request->user();
-            $cacheKey = 'cart_user_' . $user->id;
-            $cart = cache($cacheKey, []);
+            $cart = session('cart', []);
 
             if (!isset($cart[$selectionKey])) {
                 return response()->json([
@@ -158,7 +150,7 @@ class CartController extends Controller
             }
 
             $cart[$selectionKey]['quantity'] = $validated['quantity'];
-            cache([$cacheKey => $cart], now()->addDays(7));
+            session(['cart' => $cart]);
 
             $items = $this->normalizeCart($cart);
 
@@ -184,9 +176,7 @@ class CartController extends Controller
      */
     public function destroy($selectionKey)
     {
-        $user = request()->user();
-        $cacheKey = 'cart_user_' . $user->id;
-        $cart = cache($cacheKey, []);
+        $cart = session('cart', []);
 
         if (!isset($cart[$selectionKey])) {
             return response()->json([
@@ -196,7 +186,7 @@ class CartController extends Controller
         }
 
         unset($cart[$selectionKey]);
-        cache([$cacheKey => $cart], now()->addDays(7));
+        session(['cart' => $cart]);
 
         $items = $this->normalizeCart($cart);
 
@@ -221,9 +211,7 @@ class CartController extends Controller
             ]);
 
             $user = $request->user();
-            $user = $request->user();
-            $cacheKey = 'cart_user_' . $user->id;
-            $cart = cache($cacheKey, []);
+            $cart = session('cart', []);
 
             if (empty($cart)) {
                 return response()->json([
@@ -242,11 +230,11 @@ class CartController extends Controller
                 $user
             );
 
-            cache([
-                'cart_discount_code_user_' . $user->id => $validated['code'],
-                'cart_discount_val_user_' . $user->id => $discount,
-                'cart_discount_id_user_' . $user->id => $discount ? $this->getDiscountCodeId($validated['code']) : null,
-            ], now()->addDays(7));
+            session([
+                'discount_code' => $validated['code'],
+                'discount_value' => $discount,
+                'discount_code_id' => $discount ? $this->getDiscountCodeId($validated['code']) : null,
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -269,12 +257,9 @@ class CartController extends Controller
      */
     public function removeDiscount()
     {
-        $user = request()->user();
-        cache()->forget('cart_discount_code_user_' . $user->id);
-        cache()->forget('cart_discount_val_user_' . $user->id);
-        cache()->forget('cart_discount_id_user_' . $user->id);
+        session()->forget(['discount_code', 'discount_value', 'discount_code_id']);
 
-        $cart = cache('cart_user_' . $user->id, []);
+        $cart = session('cart', []);
         $items = $this->normalizeCart($cart);
         $subtotal = collect($items)->sum('total');
 
@@ -292,11 +277,7 @@ class CartController extends Controller
      */
     public function clear()
     {
-        $user = request()->user();
-        cache()->forget('cart_user_' . $user->id);
-        cache()->forget('cart_discount_code_user_' . $user->id);
-        cache()->forget('cart_discount_val_user_' . $user->id);
-        cache()->forget('cart_discount_id_user_' . $user->id);
+        session()->forget(['cart', 'discount_code', 'discount_value', 'discount_code_id']);
 
         return response()->json([
             'success' => true,

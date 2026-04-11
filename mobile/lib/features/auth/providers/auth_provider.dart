@@ -7,19 +7,32 @@ class AuthState {
   final UserModel? user;
   final bool isLoading;
   final String? error;
+  final bool otpRequired;
+  final String? pendingPhone;
 
-  AuthState({this.user, this.isLoading = false, this.error});
+  AuthState({
+    this.user,
+    this.isLoading = false,
+    this.error,
+    this.otpRequired = false,
+    this.pendingPhone,
+  });
 
   AuthState copyWith({
     UserModel? user,
     bool? isLoading,
     String? error,
+    bool? otpRequired,
+    String? pendingPhone,
     bool clearError = false,
+    bool clearOtpState = false,
   }) {
     return AuthState(
       user: user ?? this.user,
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
+      otpRequired: clearOtpState ? false : (otpRequired ?? this.otpRequired),
+      pendingPhone: clearOtpState ? null : (pendingPhone ?? this.pendingPhone),
     );
   }
 
@@ -50,17 +63,90 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  Future<bool> login(String email, String password) async {
+  Future<bool> loginWithPhone({required String phoneNumber, required String password}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final response = await _repository.login(email, password);
-      final token = response['data']['token'] as String;
-      final userJson = response['data']['user'] as Map<String, dynamic>;
-      
+      final response = await _repository.login(phoneNumber: phoneNumber, password: password);
+      final data = response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
+      final otpRequired = data['otp_required'] == true;
+
+      if (otpRequired) {
+        final pendingPhone = (data['phone_number'] as String?) ?? phoneNumber;
+        state = state.copyWith(
+          isLoading: false,
+          otpRequired: true,
+          pendingPhone: pendingPhone,
+        );
+        return true;
+      }
+
+      final token = data['token'] as String;
+      final userJson = data['user'] as Map<String, dynamic>;
+
       await _tokenStorage.saveToken(token);
-      final user = UserModel.fromJson(userJson);
-      
-      state = state.copyWith(user: user, isLoading: false);
+      state = state.copyWith(
+        user: UserModel.fromJson(userJson),
+        isLoading: false,
+        clearOtpState: true,
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString(), clearOtpState: true);
+      return false;
+    }
+  }
+
+  Future<bool> registerWithPhone({
+    required String name,
+    required String phoneNumber,
+    required String password,
+    required String passwordConfirmation,
+    String? referralCode,
+  }) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final response = await _repository.register(
+        name: name,
+        phoneNumber: phoneNumber,
+        password: password,
+        passwordConfirmation: passwordConfirmation,
+        referralCode: referralCode,
+      );
+
+      final data = response['data'] as Map<String, dynamic>? ?? <String, dynamic>{};
+      final otpRequired = data['otp_required'] == true;
+
+      if (otpRequired) {
+        final pendingPhone = (data['phone_number'] as String?) ?? phoneNumber;
+        state = state.copyWith(
+          isLoading: false,
+          otpRequired: true,
+          pendingPhone: pendingPhone,
+        );
+        return true;
+      }
+
+      final token = data['token'] as String;
+      final userJson = data['user'] as Map<String, dynamic>;
+
+      await _tokenStorage.saveToken(token);
+      state = state.copyWith(
+        user: UserModel.fromJson(userJson),
+        isLoading: false,
+        clearOtpState: true,
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString(), clearOtpState: true);
+      return false;
+    }
+  }
+
+  Future<bool> resendOtp({required String phoneNumber, required String purpose}) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      await _repository.requestOtp(phoneNumber: phoneNumber, purpose: purpose);
+      state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -68,17 +154,17 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  Future<bool> register(Map<String, dynamic> data) async {
+  Future<bool> verifyOtp({required String phoneNumber, required String otp}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final response = await _repository.register(data);
+      final response = await _repository.verifyOtp(phoneNumber: phoneNumber, otp: otp);
       final token = response['data']['token'] as String;
       final userJson = response['data']['user'] as Map<String, dynamic>;
 
       await _tokenStorage.saveToken(token);
       final user = UserModel.fromJson(userJson);
 
-      state = state.copyWith(user: user, isLoading: false);
+      state = state.copyWith(user: user, isLoading: false, clearOtpState: true);
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());

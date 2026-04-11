@@ -1,9 +1,14 @@
 class ApiConstants {
-  static const String baseUrl = 'https://tofofstore.com/api';
+  static const String baseUrl = String.fromEnvironment(
+    'TOFOF_API_BASE_URL',
+    defaultValue: 'https://www.tofofstore.com/api',
+  );
 
   // Auth
   static const String register = '/auth/register';
   static const String login = '/auth/login';
+  static const String requestOtp = '/auth/request-otp';
+  static const String verifyOtp = '/auth/verify-otp';
   static const String logout = '/auth/logout';
   static const String me = '/auth/me';
 

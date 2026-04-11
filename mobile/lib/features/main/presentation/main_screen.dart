@@ -1,130 +1,195 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../home/presentation/home_view.dart';
+import '../../categories/presentation/categories_screen.dart';
 
-import '../../cart/providers/cart_provider.dart';
+import '../../cart/presentation/cart_screen.dart';
+import '../../profile/presentation/profile_screen.dart';
 
-class MainScreen extends ConsumerStatefulWidget {
-  final Widget child;
-  const MainScreen({super.key, required this.child});
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
 
   @override
-  ConsumerState<MainScreen> createState() => _MainScreenState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends ConsumerState<MainScreen> {
-  int _calculateSelectedIndex(BuildContext context) {
-    final location = GoRouterState.of(context).uri.toString();
-    if (location.startsWith('/categories')) return 1;
-    if (location.startsWith('/cart')) return 2;
-    if (location.startsWith('/profile') || location.startsWith('/login')) return 3;
-    return 0; // Home defaults to 0
-  }
+class _MainScreenState extends State<MainScreen> {
+  int _currentIndex = 0;
+  static const double _headerHeight = 72;
 
-  void _onItemTapped(int index, BuildContext context) {
-    switch (index) {
-      case 0:
-        context.go('/');
-        break;
-      case 1:
-        context.go('/categories');
-        break;
-      case 2:
-        context.go('/cart');
-        break;
-      case 3:
-        context.go('/profile');
-        break;
-    }
-  }
+  final List<Widget> _pages = [
+    const HomeView.embedded(),
+    const CategoriesScreen.embedded(),
+    const CartScreen.embedded(),
+    const ProfileScreen.embedded(),
+  ];
 
-  PreferredSizeWidget? _buildAppBar(BuildContext context) {
-    final location = GoRouterState.of(context).uri.toString();
-
-    // Hide AppBar completely on Profile/Settings
-    if (location.startsWith('/profile') || location.startsWith('/login') || location.startsWith('/register')) {
-      return null;
-    }
-
-    // Hide AppBar on Product Details, it uses its own SliverAppBar
-    if (location.startsWith('/product/') || location.startsWith('/category/')) {
-      return null;
-    }
-
-    Widget title = Image.asset('assets/images/logo.png', height: 35);
-    if (location.startsWith('/categories')) {
-      title = const Text('الأقسام', style: TextStyle(color: Color(0xFF6D0E16), fontWeight: FontWeight.bold));
-    } else if (location.startsWith('/cart')) {
-      final cartCount = ref.watch(cartProvider).count;
-      title = Text('السلة ($cartCount)', style: const TextStyle(color: Color(0xFF6D0E16), fontWeight: FontWeight.bold));
-    }
-
-    return AppBar(
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.transparent,
-      elevation: 0,
-      centerTitle: true,
-      title: title,
-      actions: [
-        IconButton(onPressed: () {}, icon: const Icon(Icons.search, color: Colors.black54)),
-        IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none, color: Colors.black54)),
-      ],
-    );
-  }
+  bool get _showHeader => _currentIndex != 3;
 
   @override
   Widget build(BuildContext context) {
-    final selectedIndex = _calculateSelectedIndex(context);
-    final location = GoRouterState.of(context).uri.toString();
-    final hideBottomNav = location.startsWith('/login') || location.startsWith('/register') || location.startsWith('/product/') || location.startsWith('/category/');
+    final theme = Theme.of(context);
 
     return Scaffold(
-      extendBody: true, // Crucial for floating/glass menu
-      appBar: _buildAppBar(context),
-      body: widget.child,
-      bottomNavigationBar: hideBottomNav ? null : SafeArea(
-        child: Container(
-          margin: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(30),
-            color: Colors.white.withValues(alpha: 0.8), // Glassmorphism base
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 5),
-              )
-            ],
+      extendBody: true,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: AnimatedPadding(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.only(
+                top: _showHeader ? _headerHeight : 12,
+                bottom: 98,
+              ),
+              child: IndexedStack(
+                index: _currentIndex,
+                children: _pages,
+              ),
+            ),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(30),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Theme(
-                data: ThemeData(
-                  splashColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                ),
-                child: BottomNavigationBar(
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  currentIndex: selectedIndex,
-                  onTap: (index) => _onItemTapped(index, context),
-                  type: BottomNavigationBarType.fixed,
-                  selectedItemColor: const Color(0xFF6D0E16),
-                  unselectedItemColor: Colors.grey.shade600,
-                  showSelectedLabels: true,
-                  showUnselectedLabels: false,
-                  items: const [
-                    BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'الرئيسية'),
-                    BottomNavigationBarItem(icon: Icon(Icons.grid_view_outlined), activeIcon: Icon(Icons.grid_view), label: 'الأقسام'),
-                    BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined), activeIcon: Icon(Icons.shopping_cart), label: 'السلة'),
-                    BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'حسابي'),
-                  ],
+          Positioned(
+            top: 0,
+            right: 0,
+            left: 0,
+            child: AnimatedSlide(
+              duration: const Duration(milliseconds: 220),
+              offset: _showHeader ? Offset.zero : const Offset(0, -1),
+              curve: Curves.easeOut,
+              child: IgnorePointer(
+                ignoring: !_showHeader,
+                child: Container(
+                  height: _headerHeight,
+                  decoration: BoxDecoration(
+                    color: theme.scaffoldBackgroundColor.withValues(alpha: 0.92),
+                    border: Border(bottom: BorderSide(color: theme.dividerColor.withValues(alpha: 0.2))),
+                  ),
+                  child: SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          Image.asset('assets/images/logo.png', height: 32),
+                          const Spacer(),
+                          IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
+                          IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none)),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(22),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              height: 76,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withValues(alpha: 0.75),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _NavItem(
+                    label: 'الرئيسية',
+                    icon: Icons.home_outlined,
+                    activeIcon: Icons.home,
+                    active: _currentIndex == 0,
+                    onTap: () => setState(() => _currentIndex = 0),
+                  ),
+                  _NavItem(
+                    label: 'الأقسام',
+                    icon: Icons.grid_view_outlined,
+                    activeIcon: Icons.grid_view,
+                    active: _currentIndex == 1,
+                    onTap: () => setState(() => _currentIndex = 1),
+                  ),
+                  _NavItem(
+                    label: 'السلة',
+                    icon: Icons.shopping_cart_outlined,
+                    activeIcon: Icons.shopping_cart,
+                    active: _currentIndex == 2,
+                    onTap: () => setState(() => _currentIndex = 2),
+                  ),
+                  _NavItem(
+                    label: 'حسابي',
+                    icon: Icons.person_outline,
+                    activeIcon: Icons.person,
+                    active: _currentIndex == 3,
+                    onTap: () => setState(() => _currentIndex = 3),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final IconData activeIcon;
+  final bool active;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.label,
+    required this.icon,
+    required this.activeIcon,
+    required this.active,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const activeColor = Color(0xFF6D0E16);
+
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+          margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+          decoration: BoxDecoration(
+            color: active ? activeColor.withValues(alpha: 0.12) : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(active ? activeIcon : icon, color: active ? activeColor : Colors.grey[600], size: 22),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: TextStyle(
+                  color: active ? activeColor : Colors.grey[600],
+                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                  fontSize: 12,
+                ),
+              ),
+            ],
           ),
         ),
       ),

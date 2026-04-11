@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'core/router/app_router.dart';
 import 'core/theme/app_colors.dart';
+import 'core/theme/app_settings_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,11 +17,14 @@ class TofofApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final goRouter = ref.watch(appRouterProvider);
+    final settings = ref.watch(appSettingsProvider);
 
     return MaterialApp.router(
       title: 'Tofof Store',
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(),
+      darkTheme: _buildDarkTheme(),
+      themeMode: settings.themeMode,
       routerConfig: goRouter,
     );
   }
@@ -32,7 +36,6 @@ class TofofApp extends ConsumerWidget {
         seedColor: AppColors.primary,
         primary: AppColors.primary,
         secondary: AppColors.accent,
-        background: AppColors.background,
         surface: AppColors.surface,
       ),
       scaffoldBackgroundColor: AppColors.background,
@@ -66,6 +69,30 @@ class TofofApp extends ConsumerWidget {
             fontFamily: 'Cairo',
           ),
         ),
+      ),
+    );
+  }
+
+  ThemeData _buildDarkTheme() {
+    final baseTheme = ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: ColorScheme.fromSeed(
+        brightness: Brightness.dark,
+        seedColor: AppColors.primary,
+        primary: const Color(0xFFB93A45),
+        secondary: AppColors.accent,
+        surface: const Color(0xFF1F1F1F),
+      ),
+      scaffoldBackgroundColor: const Color(0xFF121212),
+    );
+
+    return baseTheme.copyWith(
+      textTheme: GoogleFonts.cairoTextTheme(baseTheme.textTheme),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF121212),
+        elevation: 0,
+        centerTitle: true,
       ),
     );
   }

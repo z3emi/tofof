@@ -15,27 +15,81 @@ class AuthRepository {
 
   AuthRepository(this._dio);
 
-  Future<Map<String, dynamic>> login(String email, String password) async {
+  Future<Map<String, dynamic>> login({
+    required String phoneNumber,
+    required String password,
+  }) async {
     try {
       final response = await _dio.post(
         ApiConstants.login,
-        data: {'email': email, 'password': password},
+        data: {
+          'phone_number': phoneNumber,
+          'password': password,
+        },
       );
       return response.data;
     } on DioException catch (e) {
-      throw e.response?.data['message'] ?? 'حدث خطأ غير متوقع لتسجيل الدخول';
+      throw e.response?.data['message'] ?? 'حدث خطأ غير متوقع أثناء تسجيل الدخول';
     }
   }
 
-  Future<Map<String, dynamic>> register(Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>> register({
+    required String name,
+    required String phoneNumber,
+    required String password,
+    required String passwordConfirmation,
+    String? referralCode,
+  }) async {
     try {
       final response = await _dio.post(
         ApiConstants.register,
-        data: data,
+        data: {
+          'name': name,
+          'phone_number': phoneNumber,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+          if (referralCode != null && referralCode.trim().isNotEmpty) 'referral_code': referralCode.trim(),
+        },
       );
       return response.data;
     } on DioException catch (e) {
-      throw e.response?.data['message'] ?? 'فشل إنشاء الحساب. تأكد من البيانات';
+      throw e.response?.data['message'] ?? 'فشل إنشاء الحساب';
+    }
+  }
+
+  Future<Map<String, dynamic>> requestOtp({
+    required String phoneNumber,
+    required String purpose,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.requestOtp,
+        data: {
+          'phone_number': phoneNumber,
+          'purpose': purpose,
+        },
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'حدث خطأ غير متوقع أثناء إرسال رمز التحقق';
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyOtp({
+    required String phoneNumber,
+    required String otp,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.verifyOtp,
+        data: {
+          'phone_number': phoneNumber,
+          'otp': otp,
+        },
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'فشل التحقق من الرمز';
     }
   }
 

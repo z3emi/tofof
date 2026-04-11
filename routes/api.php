@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
     Route::post('/register', [CustomerAuthController::class, 'register']);
     Route::post('/login', [CustomerAuthController::class, 'login']);
+    Route::post('/request-otp', [CustomerAuthController::class, 'requestOtp']);
+    Route::post('/verify-otp', [CustomerAuthController::class, 'verifyOtp']);
     Route::post('/logout', [CustomerAuthController::class, 'logout'])->middleware('auth:sanctum');
     Route::get('/me', [CustomerAuthController::class, 'me'])->middleware('auth:sanctum');
 });
@@ -35,10 +37,8 @@ Route::prefix('store')->group(function () {
     Route::get('/sections', [StoreController::class, 'sections']);
     Route::get('/categories', [StoreController::class, 'categories']);
     Route::get('/products', [StoreController::class, 'products']);
-    Route::get('/products/{product}', [StoreController::class, 'product']);
     Route::get('/discount-codes', [StoreController::class, 'discountCodes']);
 });
-
 
 // Customer Mobile App - Authenticated Routes
 Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {

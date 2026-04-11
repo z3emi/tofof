@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/auth_provider.dart';
+import 'auth_countries.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -12,32 +13,148 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailCtrl = TextEditingController();
-  final _passwordCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final _phoneCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  final _otpCtrl = TextEditingController();
+
+  AuthCountry _selectedCountry = authCountries.first;
+  bool _showPassword = false;
+  bool _otpStep = false;
+  String? _pendingPhone;
 
   @override
   void dispose() {
-    _emailCtrl.dispose();
+    _phoneCtrl.dispose();
     _passwordCtrl.dispose();
+    _otpCtrl.dispose();
     super.dispose();
   }
 
-  void _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    
-    final success = await ref.read(authProvider.notifier).login(
-      _emailCtrl.text.trim(),
-      _passwordCtrl.text,
+  String _normalizeLocalPhone(String value) {
+    var digits = value.replaceAll(RegExp(r'\D+'), '');
+    if (_selectedCountry.dialCode == '+964' && digits.startsWith('0')) {
+      digits = digits.substring(1);
+    }
+    return digits;
+  }
+
+  String _fullPhone() {
+    return '${_selectedCountry.dialDigits}${_normalizeLocalPhone(_phoneCtrl.text.trim())}';
+  }
+
+  Future<void> _pickCountry() async {
+    final selected = await showModalBottomSheet<AuthCountry>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.7,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (context, controller) {
+            return ListView.separated(
+              controller: controller,
+              itemCount: authCountries.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final country = authCountries[index];
+                return ListTile(
+                  leading: Text(country.flagEmoji, style: const TextStyle(fontSize: 22)),
+                  title: Text(country.nameAr),
+                  trailing: Text(country.dialCode),
+                  onTap: () => Navigator.of(context).pop(country),
+                );
+              },
+            );
+          },
+        );
+      },
     );
 
-    if (success && mounted) {
-      context.go('/');
-    } else if (mounted) {
-      final error = ref.read(authProvider).error;
+    if (selected != null) {
+      setState(() => _selectedCountry = selected);
+    }
+  }
+
+  Future<void> _submitLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final success = await ref.read(authProvider.notifier).loginWithPhone(
+          phoneNumber: _fullPhone(),
+          password: _passwordCtrl.text,
+        );
+
+    if (!mounted) return;
+
+    final state = ref.read(authProvider);
+    if (success && state.otpRequired) {
+      setState(() {
+        _otpStep = true;
+        _pendingPhone = state.pendingPhone ?? _fullPhone();
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error ?? 'فشل تسجيل الدخول')),
+        const SnackBar(content: Text('الحساب يحتاج تأكيد واتساب. تم إرسال رمز OTP.')),
       );
+      return;
+    }
+
+    if (success) {
+      context.go('/');
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(state.error ?? 'فشل تسجيل الدخول')),
+    );
+  }
+
+  Future<void> _verifyOtp() async {
+    final otp = _otpCtrl.text.trim();
+    if (otp.length != 6 || _pendingPhone == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('أدخل رمز OTP صحيح من 6 أرقام')),
+      );
+      return;
+    }
+
+    final success = await ref.read(authProvider.notifier).verifyOtp(
+          phoneNumber: _pendingPhone!,
+          otp: otp,
+        );
+
+    if (!mounted) return;
+
+    if (success) {
+      context.go('/');
+      return;
+    }
+
+    final error = ref.read(authProvider).error;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error ?? 'فشل تأكيد الرمز')),
+    );
+  }
+
+  Future<void> _resendOtp() async {
+    final phone = _pendingPhone;
+    if (phone == null) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final success = await ref.read(authProvider.notifier).resendOtp(
+          phoneNumber: phone,
+          purpose: 'login',
+        );
+
+    if (!mounted) return;
+
+    if (success) {
+      messenger.showSnackBar(const SnackBar(content: Text('تمت إعادة إرسال رمز OTP')));
+    } else {
+      final error = ref.read(authProvider).error;
+      messenger.showSnackBar(SnackBar(content: Text(error ?? 'تعذر إعادة الإرسال')));
     }
   }
 
@@ -55,42 +172,105 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.shopping_bag_rounded, size: 80, color: Color(0xFF6D0E16)),
-                const SizedBox(height: 30),
-                TextFormField(
-                  controller: _emailCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'البريد الإلكتروني',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (v) => v!.isEmpty ? 'مطلوب إدخال البريد' : null,
+                const Icon(Icons.login_rounded, size: 80, color: Color(0xFF6D0E16)),
+                const SizedBox(height: 20),
+                const Text(
+                  'سجل الدخول بنفس طريقة الموقع: رقم الهاتف + الدولة + كلمة المرور.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(height: 1.5),
+                ),
+                const SizedBox(height: 20),
+                const Text('رقم الهاتف', style: TextStyle(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    InkWell(
+                      onTap: _pickCountry,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade400),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(_selectedCountry.flagEmoji),
+                            const SizedBox(width: 6),
+                            Text(_selectedCountry.dialCode, textDirection: TextDirection.ltr),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _phoneCtrl,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
+                          hintText: _selectedCountry.dialCode == '+964' ? '7712345678' : 'Phone number',
+                        ),
+                        validator: (v) {
+                          final value = _normalizeLocalPhone(v ?? '');
+                          if (value.isEmpty) return 'مطلوب إدخال رقم الهاتف';
+                          if (_selectedCountry.dialCode == '+964' && value.length != 10) {
+                            return 'رقم العراق يجب أن يكون 10 أرقام';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordCtrl,
-                  decoration: const InputDecoration(
+                  obscureText: !_showPassword,
+                  decoration: InputDecoration(
                     labelText: 'كلمة المرور',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      onPressed: () => setState(() => _showPassword = !_showPassword),
+                      icon: Icon(_showPassword ? Icons.visibility_off : Icons.visibility),
+                    ),
                   ),
-                  obscureText: true,
-                  validator: (v) => v!.isEmpty ? 'مطلوب إدخال كلمة المرور' : null,
+                  validator: (v) => (v == null || v.isEmpty) ? 'مطلوب إدخال كلمة المرور' : null,
                 ),
-                const SizedBox(height: 24),
+                if (_otpStep) ...[
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _otpCtrl,
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    decoration: const InputDecoration(
+                      labelText: 'رمز OTP من واتساب',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 22),
                 ElevatedButton(
-                  onPressed: authState.isLoading ? null : _submit,
+                  onPressed: authState.isLoading ? null : (_otpStep ? _verifyOtp : _submitLogin),
                   child: authState.isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('دخول'),
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : Text(_otpStep ? 'تأكيد الرمز' : 'دخول'),
                 ),
-                const SizedBox(height: 16),
+                if (_otpStep) ...[
+                  const SizedBox(height: 8),
+                  TextButton(onPressed: authState.isLoading ? null : _resendOtp, child: const Text('إعادة إرسال OTP')),
+                ],
+                const SizedBox(height: 8),
                 TextButton(
-                  onPressed: () {
-                    // Navigate to register. Assuming route exists.
-                    context.push('/register');
-                  },
+                  onPressed: () => context.push('/register'),
                   child: const Text('إنشاء حساب جديد'),
-                )
+                ),
               ],
             ),
           ),

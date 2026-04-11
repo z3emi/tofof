@@ -4,111 +4,96 @@ import 'package:go_router/go_router.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import '../providers/store_provider.dart';
-import '../../../shared/models/product_model.dart';
 
 class HomeView extends ConsumerWidget {
-  const HomeView({super.key});
+  final bool showAppBar;
+
+  const HomeView({super.key, this.showAppBar = true});
+
+  const HomeView.embedded({super.key, this.showAppBar = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final slidersAsync = ref.watch(slidersProvider);
     final productsAsync = ref.watch(homeProductsProvider);
 
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(slidersProvider);
-          ref.invalidate(homeProductsProvider);
-        },
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Sliders Section
-              slidersAsync.when(
-                data: (data) => _buildSliders(data['hero'] ?? []),
-                loading: () => Skeletonizer(child: _buildSliders(const [{'image_url': ''}])),
-                error: (e, s) => const SizedBox(height: 200, child: Center(child: Text('خطأ في جلب العروض'))),
+    final body = RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(slidersProvider);
+        ref.invalidate(homeProductsProvider);
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            slidersAsync.when(
+              data: (data) => _buildSliders(data['hero'] ?? []),
+              loading: () => Skeletonizer(
+                enabled: true,
+                child: _buildSliders(const [
+                  {'image_url': null}
+                ]),
               ),
+              error: (e, s) => const SizedBox(height: 200, child: Center(child: Text('خطأ في جلب العروض'))),
+            ),
 
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text('وصل حديثاً', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text('وصل حديثاً', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
+
+            productsAsync.when(
+              data: (products) => _buildProductsGrid(products),
+              loading: () => Skeletonizer(
+                enabled: true,
+                child: _buildProductsGrid(List.generate(6, (index) => _HomeDummyProduct(index))),
               ),
-
-              // Recent Products Section
-              _buildLatestProducts(productsAsync),
-              const SizedBox(height: 100),
-            ],
-          ),
+              error: (e, s) => Center(child: Text('خطأ: $e')),
+            ),
+            const SizedBox(height: 110),
+          ],
         ),
       ),
     );
-  }
 
-  Widget _buildSliders(List dynamicSlides) {
-    if (dynamicSlides.isEmpty) return const SizedBox();
-    return AspectRatio(
-      aspectRatio: 2.2, // Matches typical wide store sliders
-      child: PageView.builder(
-        itemCount: dynamicSlides.length,
-        itemBuilder: (context, index) {
-          final slide = dynamicSlides[index];
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              image: slide['image_url'] != null && slide['image_url'].toString().isNotEmpty
-                  ? DecorationImage(image: NetworkImage(slide['image_url']), fit: BoxFit.cover)
-                  : null,
-              color: Colors.grey[300],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildLatestProducts(AsyncValue<List<ProductModel>> productsAsync) {
-    final dummyList = List.generate(4, (i) => ProductModel(
-      id: i, 
-      name: 'اسم لمنتج جديد ومميز', 
-      price: 1000, 
-      currentPrice: 1000, 
-      isOnSale: false,
-      stockQuantity: 10, 
-      averageRating: 5, 
-      reviewsCount: 0, 
-      imageUrl: ''
-    ));
-
-    return productsAsync.when(
-      data: (products) => _buildProductGrid(products, false),
-      loading: () => Skeletonizer(child: _buildProductGrid(dummyList, true)),
-      error: (e, s) => Center(child: Text('خطأ: $e')),
-    );
-  }
-
-  Widget _buildProductGrid(List<ProductModel> products, bool isLoading) {
-    if (products.isEmpty && !isLoading) {
-      return const Center(child: Text('لا توجد منتجات حالياً.'));
+    if (!showAppBar) {
+      return body;
     }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Image.asset('assets/images/logo.png', height: 35),
+        actions: [
+          IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
+          IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none)),
+        ],
+      ),
+      body: body,
+    );
+  }
+
+  Widget _buildProductsGrid(List<dynamic> products) {
     return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.7,
+        childAspectRatio: 0.65,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
       ),
       itemCount: products.length,
       itemBuilder: (context, index) {
         final p = products[index];
+        final imageUrl = p is _HomeDummyProduct ? p.imageUrl : p.imageUrl as String?;
+        final name = p is _HomeDummyProduct ? p.name : p.name as String;
+        final price = p is _HomeDummyProduct ? p.currentPrice : p.currentPrice as double;
+        final id = p is _HomeDummyProduct ? p.id : p.id as int;
+
         return GestureDetector(
-          onTap: isLoading ? null : () => context.push('/product/${p.id}'),
+          onTap: p is _HomeDummyProduct ? null : () => context.push('/product/$id'),
           child: Card(
             elevation: 2,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -118,8 +103,8 @@ class HomeView extends ConsumerWidget {
                 Expanded(
                   child: ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                    child: p.imageUrl != null && p.imageUrl!.isNotEmpty
-                        ? Image.network(p.imageUrl!, fit: BoxFit.cover)
+                    child: imageUrl != null
+                        ? Image.network(imageUrl, fit: BoxFit.cover)
                         : Container(color: Colors.grey[200], child: const Icon(Icons.image, size: 50)),
                   ),
                 ),
@@ -128,9 +113,9 @@ class HomeView extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      Text('${p.currentPrice} د.ع', style: const TextStyle(color: Color(0xFF6D0E16), fontWeight: FontWeight.bold)),
+                      Text('${price.toStringAsFixed(0)} د.ع', style: const TextStyle(color: Color(0xFF6D0E16), fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -141,4 +126,39 @@ class HomeView extends ConsumerWidget {
       },
     );
   }
+
+  Widget _buildSliders(List dynamicSlides) {
+    if (dynamicSlides.isEmpty) return const SizedBox();
+    return AspectRatio(
+      aspectRatio: 2.2, // Matches typical wide store sliders (adjust if needed to 16:9 or 3:1)
+      child: PageView.builder(
+        itemCount: dynamicSlides.length,
+        itemBuilder: (context, index) {
+          final slide = dynamicSlides[index];
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              image: slide['image_url'] != null
+                  ? DecorationImage(image: NetworkImage(slide['image_url']), fit: BoxFit.cover)
+                  : null,
+              color: Colors.grey[300],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _HomeDummyProduct {
+  final int id;
+  final String name;
+  final double currentPrice;
+  final String? imageUrl;
+
+  _HomeDummyProduct(this.id)
+      : name = 'منتج تجريبي أنيق',
+        currentPrice = 25000,
+        imageUrl = null;
 }

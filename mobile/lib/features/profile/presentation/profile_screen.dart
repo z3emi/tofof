@@ -1,210 +1,223 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../auth/providers/auth_provider.dart';
 
-class IsDarkMode extends Notifier<bool> {
-  @override
-  bool build() => false;
-  void toggle(bool value) => state = value;
-}
-final isDarkModeProvider = NotifierProvider<IsDarkMode, bool>(() => IsDarkMode());
-
 class ProfileScreen extends ConsumerWidget {
-  const ProfileScreen({super.key});
+  final bool showAppBar;
+
+  const ProfileScreen({super.key, this.showAppBar = true});
+
+  const ProfileScreen.embedded({super.key, this.showAppBar = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
     final user = authState.user;
-    final isDarkMode = ref.watch(isDarkModeProvider);
 
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header Area (Login/Register or User Detail)
-            if (user == null)
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF6D0E16),
-                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
-                ),
-                child: Column(
-                  children: [
-                    const Icon(Icons.account_circle, size: 80, color: Colors.white70),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'أهلاً بك في متجر رفوف',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xFF6D0E16),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            onPressed: () => context.push('/login'),
-                            child: const Text('تسجيل الدخول', style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              side: const BorderSide(color: Colors.white),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            onPressed: () => context.push('/register'),
-                            child: const Text('إنشاء حساب'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              )
-            else
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF6D0E16),
-                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 35,
-                      backgroundColor: Colors.white,
-                      backgroundImage: user.avatar != null && user.avatar!.isNotEmpty ? NetworkImage(user.avatar!) : null,
-                      child: (user.avatar == null || user.avatar!.isEmpty) ? const Icon(Icons.person, size: 40, color: Colors.grey) : null,
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(user.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                          const SizedBox(height: 4),
-                          Text(user.email, style: const TextStyle(color: Colors.white70)),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
-
-            const SizedBox(height: 20),
-
-            // Wallet Card (Only if logged in)
-            if (user != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.account_balance_wallet, color: Color(0xFFD59E06), size: 40),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('رصيد المحفظة', style: TextStyle(color: Colors.grey)),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${user.walletBalance} د.ع',
-                              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF6D0E16)),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-            // General App Settings (Always Visible)
-            _buildSectionHeader('إعدادات التطبيق'),
-            SwitchListTile(
-              secondary: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode, color: const Color(0xFF6D0E16)),
-              title: const Text('الوضع الليلي', style: TextStyle(fontWeight: FontWeight.w600)),
-              value: isDarkMode,
-              activeColor: const Color(0xFF6D0E16),
-              onChanged: (v) {
-                ref.read(isDarkModeProvider.notifier).toggle(v);
-              },
+    if (authState.isLoading && user == null) {
+      final skeletonBody = Skeletonizer(
+        enabled: true,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+          children: const [
+            ListTile(
+              leading: CircleAvatar(radius: 25),
+              title: Text('اسم المستخدم'),
+              subtitle: Text('email@example.com'),
             ),
-            _buildProfileOption(Icons.notifications_active_outlined, 'إعدادات الإشعارات', () {}),
-            _buildProfileOption(Icons.language_outlined, 'لغة التطبيق (العربية)', () {}),
-
-            // Profile Features (Needs Authentication to use but we show them or hide them)
-            if (user != null) ...[
-              const Divider(height: 30),
-              _buildSectionHeader('خدمات الحساب'),
-              _buildProfileOption(Icons.shopping_bag_outlined, 'متابعة الطلبات', () {}),
-              _buildProfileOption(Icons.favorite_border, 'قائمة الرغبات (المفضلة)', () {}),
-              _buildProfileOption(Icons.location_on_outlined, 'عناوين الشحن المحفوظة', () {}),
-            ],
-
-            const Divider(height: 30),
-            _buildSectionHeader('الدعم والسياسات'),
-            _buildProfileOption(Icons.support_agent, 'الدعم الفني والشكاوى', () {}),
-            _buildProfileOption(Icons.info_outline, 'عن التطبيق', () {}),
-            
-            if (user != null) ...[
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    icon: const Icon(Icons.logout),
-                    label: const Text('تسجيل الخروج', style: TextStyle(fontWeight: FontWeight.bold)),
-                    onPressed: () {
-                      ref.read(authProvider.notifier).logout();
-                    },
-                  ),
-                ),
-              ),
-            ],
-            
-            const SizedBox(height: 120), // Padding for liquid bottom navigation bar
+            SizedBox(height: 12),
+            Card(child: SizedBox(height: 80)),
+            SizedBox(height: 12),
+            ListTile(leading: Icon(Icons.shopping_bag_outlined), title: Text('طلباتي')),
+            ListTile(leading: Icon(Icons.favorite_border), title: Text('المفضلة')),
+            ListTile(leading: Icon(Icons.settings_outlined), title: Text('الإعدادات')),
           ],
         ),
+      );
+
+      if (!showAppBar) {
+        return skeletonBody;
+      }
+
+      return Scaffold(
+        appBar: AppBar(title: const Text('حسابي')),
+        body: skeletonBody,
+      );
+    }
+
+    if (user == null) {
+      final guestBody = ListView(
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 120),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF6D0E16), Color(0xFF901B24)],
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+              ),
+            ),
+            child: Column(
+              children: [
+                const CircleAvatar(radius: 34, backgroundColor: Colors.white, child: Icon(Icons.person, size: 34, color: Color(0xFF6D0E16))),
+                const SizedBox(height: 12),
+                const Text('مرحبًا بك في طفوف', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
+                const SizedBox(height: 8),
+                const Text('سجّل دخولك للوصول إلى الطلبات والمفضلة والعناوين.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white70)),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => context.push('/register'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white),
+                        ),
+                        child: const Text('تسجيل'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => context.push('/login'),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF6D0E16)),
+                        child: const Text('تسجيل دخول'),
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          _buildProfileOption(Icons.shopping_bag_outlined, 'طلباتي', null),
+          _buildProfileOption(Icons.favorite_border, 'المفضلة', null),
+          _buildProfileOption(Icons.location_on_outlined, 'عناويني', null),
+          _buildProfileOption(Icons.settings_outlined, 'إعدادات التطبيق', () => context.push('/settings')),
+        ],
+      );
+
+      if (!showAppBar) {
+        return guestBody;
+      }
+
+      return Scaffold(
+        appBar: AppBar(title: const Text('حسابي')),
+        body: guestBody,
+      );
+    }
+
+    final userBody = SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 120),
+      child: Column(
+        children: [
+          Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF6D0E16), Color(0xFF8F1A24)],
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+              ),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 35,
+                  backgroundColor: Colors.white,
+                  backgroundImage: user.avatar != null ? NetworkImage(user.avatar!) : null,
+                  child: user.avatar == null ? const Icon(Icons.person, size: 40, color: Colors.grey) : null,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(user.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                      const SizedBox(height: 4),
+                      Text(user.phoneNumber, style: const TextStyle(color: Colors.white70)),
+                      if (user.email.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(user.email, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                      ],
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  children: [
+                    const Icon(Icons.account_balance_wallet, color: Color(0xFFD59E06), size: 40),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('رصيد المحفظة', style: TextStyle(color: Colors.grey)),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${user.walletBalance} د.ع',
+                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF6D0E16)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          _buildProfileOption(Icons.shopping_bag_outlined, 'متابعة الطلبات', () {}),
+          _buildProfileOption(Icons.favorite_border, 'قائمة الرغبات (المفضلة)', () {}),
+          _buildProfileOption(Icons.location_on_outlined, 'عناوين الشحن المحفوظة', () {}),
+          _buildProfileOption(Icons.settings_outlined, 'إعدادات التطبيق', () => context.push('/settings')),
+          const Divider(),
+          _buildProfileOption(Icons.support_agent, 'الدعم الفني والشكاوى', () {}),
+          _buildProfileOption(
+            Icons.logout,
+            'تسجيل الخروج',
+            () => ref.read(authProvider.notifier).logout(),
+            color: Colors.red,
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
+    );
+
+    if (!showAppBar) {
+      return userBody;
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('حسابي'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => context.push('/settings'),
+          ),
+        ],
+      ),
+      body: userBody,
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Text(
-          title, 
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey.shade600),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileOption(IconData icon, String title, VoidCallback onTap, {Color? color}) {
+  static Widget _buildProfileOption(IconData icon, String title, VoidCallback? onTap, {Color? color}) {
     return ListTile(
       leading: Icon(icon, color: color ?? const Color(0xFF6D0E16)),
       title: Text(title, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
