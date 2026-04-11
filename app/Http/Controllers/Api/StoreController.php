@@ -275,7 +275,7 @@ class StoreController extends Controller
     {
         $product = Product::query()
             ->where('is_active', true)
-            ->with(['images', 'category', 'reviews', 'reviews.user:id,name,avatar'])
+            ->with(['images', 'category', 'reviews', 'reviews.user:id,name,avatar', 'options.values'])
             ->withCount('reviews')
             ->where(function (Builder $query) use ($identifier) {
                 $query->where('id', $identifier);
@@ -317,6 +317,23 @@ class StoreController extends Controller
                 'url' => asset('storage/' . ltrim($img->image_path, '/')),
                 'is_primary' => (bool)$img->is_primary,
             ])->values(),
+            'options' => $product->options->map(function ($option) {
+                return [
+                    'id' => $option->id,
+                    'name' => $option->name_ar ?: $option->name_en,
+                    'name_ar' => $option->name_ar,
+                    'name_en' => $option->name_en,
+                    'is_required' => (bool) $option->is_required,
+                    'values' => $option->values->map(function ($value) {
+                        return [
+                            'id' => $value->id,
+                            'value' => $value->value_ar ?: $value->value_en,
+                            'value_ar' => $value->value_ar,
+                            'value_en' => $value->value_en,
+                        ];
+                    })->values(),
+                ];
+            })->values(),
             'reviews' => $product->reviews->map(fn($review) => [
                 'id' => $review->id,
                 'user' => [

@@ -46,38 +46,53 @@ class OrderItem extends Model
 
     public function normalizedOptionSelections(): array
     {
-        $value = $this->getRawOriginal('option_selections');
+        $normalized = $this->normalizeOptionValue($this->getRawOriginal('option_selections'));
 
-        if ($value === null || $value === '') {
+        if ($normalized === null || $normalized === '') {
             return [];
         }
 
-        if (is_array($value)) {
+        if (is_array($normalized)) {
+            return $normalized;
+        }
+
+        if (is_object($normalized)) {
+            return (array) $normalized;
+        }
+
+        return ['value' => $normalized];
+    }
+
+    private function normalizeOptionValue(mixed $value, int $depth = 0): mixed
+    {
+        if ($depth > 3 || $value === null) {
             return $value;
         }
 
+        if (is_array($value)) {
+            $normalized = [];
+            foreach ($value as $key => $item) {
+                $normalized[$key] = $this->normalizeOptionValue($item, $depth + 1);
+            }
+            return $normalized;
+        }
+
         if (is_object($value)) {
-            return (array) $value;
+            return $this->normalizeOptionValue((array) $value, $depth + 1);
         }
 
         if (is_string($value)) {
-            $decoded = json_decode($value, true);
-
-            if (json_last_error() === JSON_ERROR_NONE) {
-                if (is_array($decoded)) {
-                    return $decoded;
-                }
-
-                if ($decoded === null) {
-                    return [];
-                }
-
-                return ['value' => $decoded];
+            $trimmed = trim($value);
+            if ($trimmed === '') {
+                return '';
             }
 
-            return ['value' => $value];
+            $decoded = json_decode($trimmed, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $this->normalizeOptionValue($decoded, $depth + 1);
+            }
         }
 
-        return (array) $value;
+        return $value;
     }
 }

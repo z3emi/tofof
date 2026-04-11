@@ -23,6 +23,7 @@ class ProductDetailsScreen extends ConsumerStatefulWidget {
 class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
   int _quantity = 1;
   int _galleryIndex = 0;
+  final Map<int, ProductOptionValueModel> _selectedOptionValues = {};
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +116,44 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                       ],
                     ),
                     const SizedBox(height: 24),
+                    if (product.options.isNotEmpty) ...[
+                      const Text('خيارات المنتج', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 10),
+                      ...product.options.map((option) {
+                        final selected = _selectedOptionValues[option.id];
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                option.isRequired ? '${option.name} *' : option.name,
+                                style: const TextStyle(fontWeight: FontWeight.w700),
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: option.values.map((value) {
+                                  final isSelected = selected?.id == value.id;
+                                  return ChoiceChip(
+                                    label: Text(value.value),
+                                    selected: isSelected,
+                                    onSelected: (_) {
+                                      setState(() {
+                                        _selectedOptionValues[option.id] = value;
+                                      });
+                                    },
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 12),
+                    ],
                     const Text('وصف المنتج', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     Directionality(
@@ -218,7 +257,37 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
-                        final success = await ref.read(cartProvider.notifier).addToCart(widget.productId, _quantity);
+                        final product = productAsync.value;
+                        if (product == null) return;
+
+                        final missingRequired = product.options
+                            .where((option) => option.isRequired)
+                            .where((option) => !_selectedOptionValues.containsKey(option.id))
+                            .toList();
+
+                        if (missingRequired.isNotEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('يرجى اختيار: ${missingRequired.map((e) => e.name).join('، ')}'),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+                          return;
+                        }
+
+                        final selectedOptions = <String, dynamic>{};
+                        for (final option in product.options) {
+                          final selected = _selectedOptionValues[option.id];
+                          if (selected != null) {
+                            selectedOptions[option.name] = selected.value;
+                          }
+                        }
+
+                        final success = await ref.read(cartProvider.notifier).addToCart(
+                              widget.productId,
+                              _quantity,
+                              selectedOptions.isEmpty ? null : selectedOptions,
+                            );
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(

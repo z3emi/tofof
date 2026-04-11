@@ -12,6 +12,7 @@ class ProductModel {
   final String? imageUrl;
   final List<String> images;
   final List<ProductReview> reviews;
+  final List<ProductOptionModel> options;
 
   ProductModel({
     required this.id,
@@ -27,6 +28,7 @@ class ProductModel {
     this.imageUrl,
     this.images = const [],
     this.reviews = const [],
+    this.options = const [],
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -51,6 +53,7 @@ class ProductModel {
       imageUrl: primaryImage,
       images: parsedImages,
       reviews: _parseReviews(rawReviews),
+      options: _parseOptions(json['options'] ?? json['product_options']),
     );
   }
 
@@ -81,6 +84,66 @@ class ProductModel {
         .whereType<Map<String, dynamic>>()
         .map(ProductReview.fromJson)
         .toList();
+  }
+
+  static List<ProductOptionModel> _parseOptions(dynamic raw) {
+    if (raw is! List) {
+      return const [];
+    }
+
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map(ProductOptionModel.fromJson)
+        .where((option) => option.values.isNotEmpty)
+        .toList();
+  }
+}
+
+class ProductOptionModel {
+  final int id;
+  final String name;
+  final bool isRequired;
+  final List<ProductOptionValueModel> values;
+
+  ProductOptionModel({
+    required this.id,
+    required this.name,
+    required this.isRequired,
+    required this.values,
+  });
+
+  factory ProductOptionModel.fromJson(Map<String, dynamic> json) {
+    final rawValues = json['values'];
+    final values = rawValues is List
+        ? rawValues
+            .whereType<Map<String, dynamic>>()
+            .map(ProductOptionValueModel.fromJson)
+            .toList()
+        : const <ProductOptionValueModel>[];
+
+    return ProductOptionModel(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      name: (json['name'] ?? json['name_ar'] ?? json['name_en'] ?? '').toString(),
+      isRequired: json['is_required'] == true,
+      values: values,
+    );
+  }
+}
+
+class ProductOptionValueModel {
+  final int id;
+  final String value;
+
+  ProductOptionValueModel({
+    required this.id,
+    required this.value,
+  });
+
+  factory ProductOptionValueModel.fromJson(Map<String, dynamic> json) {
+    return ProductOptionValueModel(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      value: (json['value'] ?? json['value_ar'] ?? json['value_en'] ?? '').toString(),
+    );
   }
 }
 
