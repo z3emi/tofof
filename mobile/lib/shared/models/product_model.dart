@@ -1,7 +1,11 @@
 class ProductModel {
   final int id;
   final String name;
+  final String? nameAr;
+  final String? nameEn;
   final String? description;
+  final String? descriptionAr;
+  final String? descriptionEn;
   final double price;
   final double? salePrice;
   final double currentPrice;
@@ -17,7 +21,11 @@ class ProductModel {
   ProductModel({
     required this.id,
     required this.name,
+    this.nameAr,
+    this.nameEn,
     this.description,
+    this.descriptionAr,
+    this.descriptionEn,
     required this.price,
     this.salePrice,
     required this.currentPrice,
@@ -30,6 +38,40 @@ class ProductModel {
     this.reviews = const [],
     this.options = const [],
   });
+
+  String localizedName(bool isArabic) {
+    final fallback = name.trim();
+    if (isArabic) {
+      final ar = nameAr?.trim();
+      if (ar != null && ar.isNotEmpty) return ar;
+      final en = nameEn?.trim();
+      if (en != null && en.isNotEmpty && fallback.isEmpty) return en;
+      return fallback.isNotEmpty ? fallback : (en ?? '');
+    }
+
+    final en = nameEn?.trim();
+    if (en != null && en.isNotEmpty) return en;
+    final ar = nameAr?.trim();
+    if (ar != null && ar.isNotEmpty && fallback.isEmpty) return ar;
+    return fallback.isNotEmpty ? fallback : (ar ?? '');
+  }
+
+  String? localizedDescription(bool isArabic) {
+    final fallback = description?.trim();
+    if (isArabic) {
+      final ar = descriptionAr?.trim();
+      if (ar != null && ar.isNotEmpty) return ar;
+      final en = descriptionEn?.trim();
+      if (fallback == null || fallback.isEmpty) return en;
+      return fallback;
+    }
+
+    final en = descriptionEn?.trim();
+    if (en != null && en.isNotEmpty) return en;
+    final ar = descriptionAr?.trim();
+    if (fallback == null || fallback.isEmpty) return ar;
+    return fallback;
+  }
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     final galleryRaw =
@@ -45,8 +87,17 @@ class ProductModel {
 
     return ProductModel(
       id: json['id'] as int,
-      name: json['name'] as String? ?? '',
-      description: json['description'] as String?,
+      name: (json['name'] ?? json['name_ar'] ?? json['name_en'] ?? '')
+          .toString(),
+      nameAr: json['name_ar']?.toString(),
+      nameEn: json['name_en']?.toString(),
+      description:
+          (json['description'] ??
+                  json['description_ar'] ??
+                  json['description_en'])
+              ?.toString(),
+      descriptionAr: json['description_ar']?.toString(),
+      descriptionEn: json['description_en']?.toString(),
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       salePrice: (json['sale_price'] as num?)?.toDouble(),
       currentPrice: (json['current_price'] as num?)?.toDouble() ?? 0.0,

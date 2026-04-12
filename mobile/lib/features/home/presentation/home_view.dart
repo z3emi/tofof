@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 import '../../../shared/models/category_model.dart';
+import '../../../shared/models/product_model.dart';
 import '../providers/store_provider.dart';
 
 class HomeView extends ConsumerStatefulWidget {
@@ -115,7 +117,13 @@ class _HomeViewState extends ConsumerState<HomeView> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
               child: productsAsync.when(
-                data: (products) => _OfferGrid(products.take(4).toList()),
+                data: (products) {
+                  final offers = products
+                      .where((product) => product.isOnSale)
+                      .take(4)
+                      .toList();
+                  return _OfferGrid(offers);
+                },
                 loading: () => Skeletonizer(
                   enabled: true,
                   child: _OfferGrid(
@@ -192,15 +200,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
                   onPageChanged: (index) => setState(() => _heroIndex = index),
                   itemBuilder: (context, index) {
                     final slide = heroSlides[index];
+                    final title = (slide['title'] as String?)?.trim();
+                    final subtitle = (slide['subtitle'] as String?)?.trim();
+                    final buttonText = (slide['button_text'] as String?)?.trim();
                     return _HeroCard(
-                      title: (slide['title'] ?? 'فخامة تتجاوز حدود الزمن')
-                          .toString(),
+                      title: (title?.isNotEmpty ?? false) ? title : null,
                       subtitle:
-                          (slide['subtitle'] ??
-                                  'مجموعة مختارة بعناية لأرقى الساعات العالمية.')
-                              .toString(),
-                      buttonText: (slide['button_text'] ?? 'اكتشف المجموعة')
-                          .toString(),
+                          (subtitle?.isNotEmpty ?? false) ? subtitle : null,
+                      buttonText:
+                          (buttonText?.isNotEmpty ?? false) ? buttonText : null,
                       imageUrl: slide['image_url']?.toString(),
                       onTap: () {},
                     );
@@ -338,6 +346,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
             (data['promo_secondary'] as List?)?.cast<Map<String, dynamic>>() ??
             const [];
         final slide = promoSlides.isNotEmpty ? promoSlides.first : null;
+        final title = (slide?['title'] as String?)?.trim();
+        final subtitle = (slide?['subtitle'] as String?)?.trim();
+        final buttonText = (slide?['button_text'] as String?)?.trim();
+        final hasTitle = title != null && title.isNotEmpty;
+        final hasSubtitle = subtitle != null && subtitle.isNotEmpty;
+        final hasButton = buttonText != null && buttonText.isNotEmpty;
 
         return Container(
           height: 178,
@@ -370,41 +384,46 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Text(
-                        (slide?['title'] ?? 'عرض خاص').toString(),
-                        style: GoogleFonts.notoSerif(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        (slide?['subtitle'] ?? 'لفترة محدودة فقط').toString(),
-                        style: GoogleFonts.manrope(
-                          color: Colors.white.withValues(alpha: 0.85),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Text(
-                          (slide?['button_text'] ?? 'اكتشف العرض').toString(),
-                          style: const TextStyle(
-                            color: Color(0xFF6D0E16),
-                            fontWeight: FontWeight.w800,
+                      if (hasTitle)
+                        Text(
+                          title,
+                          style: GoogleFonts.notoSerif(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ),
+                      if (hasSubtitle) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          subtitle,
+                          style: GoogleFonts.manrope(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                      if (hasButton) ...[
+                        const SizedBox(height: 14),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Text(
+                            buttonText,
+                            style: const TextStyle(
+                              color: Color(0xFF6D0E16),
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -463,7 +482,6 @@ class _StoreHeader extends StatelessWidget {
               child: SizedBox(
                 height: 48,
                 child: Row(
-                  textDirection: TextDirection.ltr,
                   children: [
                     _HeaderIconButton(icon: Icons.search, onTap: onSearch),
                     const Spacer(),
@@ -570,9 +588,9 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _HeroCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String buttonText;
+  final String? title;
+  final String? subtitle;
+  final String? buttonText;
   final String? imageUrl;
   final VoidCallback onTap;
 
@@ -586,6 +604,11 @@ class _HeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasTitle = title != null && title!.isNotEmpty;
+    final hasSubtitle = subtitle != null && subtitle!.isNotEmpty;
+    final hasButton = buttonText != null && buttonText!.isNotEmpty;
+    final hasContent = hasTitle || hasSubtitle || hasButton;
+
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -598,65 +621,72 @@ class _HeroCard extends StatelessWidget {
           )
         else
           Container(color: const Color(0xFF8B5E5A)),
-        Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0x1A6D0E16), Color(0xB36D0E16)],
+        if (hasContent) ...[
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0x1A6D0E16), Color(0xB36D0E16)],
+              ),
             ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(22),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.notoSerif(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                subtitle,
-                style: GoogleFonts.manrope(
-                  color: Colors.white.withValues(alpha: 0.86),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w300,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: ElevatedButton.icon(
-                  onPressed: onTap,
-                  icon: const Icon(Icons.arrow_back, size: 16),
-                  label: Text(buttonText),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6D0E16),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    textStyle: GoogleFonts.manrope(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 12,
+          Padding(
+            padding: const EdgeInsets.all(22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (hasTitle)
+                  Text(
+                    title!,
+                    style: GoogleFonts.notoSerif(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-              ),
-            ],
+                if (hasSubtitle) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    subtitle!,
+                    style: GoogleFonts.manrope(
+                      color: Colors.white.withValues(alpha: 0.86),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w300,
+                    ),
+                  ),
+                ],
+                if (hasButton) ...[
+                  const SizedBox(height: 14),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: ElevatedButton.icon(
+                      onPressed: onTap,
+                      icon: const Icon(Icons.arrow_back, size: 16),
+                      label: Text(buttonText!),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6D0E16),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        textStyle: GoogleFonts.manrope(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -755,8 +785,9 @@ class _CategoryCircle extends StatelessWidget {
   IconData _iconForCategory(String name) {
     final lower = name.toLowerCase();
     if (lower.contains('ساع') || lower.contains('watch')) return Icons.watch;
-    if (lower.contains('محفظ') || lower.contains('wallet'))
+    if (lower.contains('محفظ') || lower.contains('wallet')) {
       return Icons.account_balance_wallet;
+    }
     if (lower.contains('عطر') || lower.contains('perfume')) return Icons.spa;
     if (lower.contains('إكس') || lower.contains('access')) return Icons.diamond;
     return Icons.category;
@@ -882,7 +913,7 @@ class _OfferGrid extends StatelessWidget {
         crossAxisCount: 2,
         mainAxisSpacing: 14,
         crossAxisSpacing: 14,
-        childAspectRatio: 0.78,
+        childAspectRatio: 0.62,
       ),
       itemBuilder: (context, index) {
         final product = products[index];
@@ -902,15 +933,14 @@ class _LuxuryProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String name = product is _DummyProduct
-        ? product.name as String
-        : product.name as String;
-    final String? imageUrl = product is _DummyProduct
-        ? product.imageUrl as String?
-        : product.imageUrl as String?;
-    final double price = product is _DummyProduct
-        ? product.currentPrice as double
-        : product.currentPrice as double;
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    final ProductModel? productModel =
+      product is ProductModel ? product as ProductModel : null;
+    final String name = productModel?.localizedName(isArabic) ?? product.name as String;
+    final String? imageUrl = productModel?.imageUrl ?? product.imageUrl as String?;
+    final double currentPrice = productModel?.currentPrice ?? product.currentPrice as double;
+    final double oldPrice = productModel?.price ?? currentPrice;
+    final bool isOnSale = productModel?.isOnSale ?? false;
     final int id = product is _DummyProduct
         ? product.id as int
         : product.id as int;
@@ -1070,13 +1100,27 @@ class _LuxuryProductCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Text(
-                            '${price.toStringAsFixed(0)} د.ع',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              if (isOnSale)
+                                Text(
+                                  '${_formatPrice(oldPrice)} د.ع',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 13,
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                              Text(
+                                '${_formatPrice(currentPrice)} د.ع',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -1146,6 +1190,11 @@ class _LuxuryProductCard extends StatelessWidget {
     }
     return 'تصميم فاخر يجمع الجودة مع الحضور الأنيق.';
   }
+
+  String _formatPrice(double price) {
+    final formatter = NumberFormat('#,##0', 'en_US');
+    return formatter.format(price);
+  }
 }
 
 class _OfferProductCard extends StatelessWidget {
@@ -1155,21 +1204,17 @@ class _OfferProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String name = product is _DummyProduct
-        ? product.name as String
-        : product.name as String;
-    final String? imageUrl = product is _DummyProduct
-        ? product.imageUrl as String?
-        : product.imageUrl as String?;
-    final double price = product is _DummyProduct
-        ? product.currentPrice as double
-        : product.currentPrice as double;
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
+    final ProductModel? productModel =
+      product is ProductModel ? product as ProductModel : null;
+    final String name = productModel?.localizedName(isArabic) ?? product.name as String;
+    final String? imageUrl = productModel?.imageUrl ?? product.imageUrl as String?;
+    final double currentPrice = productModel?.currentPrice ?? product.currentPrice as double;
+    final double oldPrice = productModel?.price ?? currentPrice;
     final int id = product is _DummyProduct
         ? product.id as int
         : product.id as int;
-    final bool isOnSale = product is _DummyProduct
-        ? false
-        : (product.isOnSale as bool? ?? false);
+    final bool isOnSale = productModel?.isOnSale ?? false;
 
     return GestureDetector(
       onTap: product is _DummyProduct
@@ -1184,7 +1229,8 @@ class _OfferProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
+            AspectRatio(
+              aspectRatio: 1,
               child: Stack(
                 children: [
                   Positioned.fill(
@@ -1229,12 +1275,14 @@ class _OfferProductCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     _brandFromName(name),
+                    textAlign: TextAlign.center,
                     style: GoogleFonts.manrope(
                       fontSize: 9,
                       fontWeight: FontWeight.w800,
@@ -1246,43 +1294,37 @@ class _OfferProductCard extends StatelessWidget {
                     name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                     style: GoogleFonts.notoSerif(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    '${price.toStringAsFixed(0)} د.ع',
-                    style: GoogleFonts.manrope(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFFD59E06),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: product is _DummyProduct
-                          ? null
-                          : () => context.push('/product/$id'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6D0E16),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (isOnSale)
+                        Text(
+                          '${_formatPrice(oldPrice)} د.ع',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.manrope(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.grey,
+                            decoration: TextDecoration.lineThrough,
+                          ),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                      child: Text(
-                        'أضف للسلة',
+                      Text(
+                        '${_formatPrice(currentPrice)} د.ع',
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.manrope(
-                          fontSize: 10,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
+                          color: const Color(0xFFD59E06),
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -1300,6 +1342,11 @@ class _OfferProductCard extends StatelessWidget {
     if (lower.contains('gucci') || lower.contains('غوت')) return 'GUCCI';
     if (lower.contains('cartier') || lower.contains('كار')) return 'CARTIER';
     return 'TOFOF';
+  }
+
+  String _formatPrice(double price) {
+    final formatter = NumberFormat('#,##0', 'en_US');
+    return formatter.format(price);
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -9,7 +10,47 @@ import 'core/theme/app_settings_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: TofofApp()));
+  runApp(const ProviderScope(child: AppLifecycleWrapper(child: TofofApp())));
+}
+
+/// Wrapper widget يتعامل مع lifecycle للتطبيق
+class AppLifecycleWrapper extends StatefulWidget {
+  final Widget child;
+
+  const AppLifecycleWrapper({super.key, required this.child});
+
+  @override
+  State<AppLifecycleWrapper> createState() => _AppLifecycleWrapperState();
+}
+
+class _AppLifecycleWrapperState extends State<AppLifecycleWrapper>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+      // تصفير الخصم عند الخروج من التطبيق
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // استدعاء تصفير الخصم بشكل آمن
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
+  }
 }
 
 class TofofApp extends ConsumerWidget {
@@ -26,6 +67,13 @@ class TofofApp extends ConsumerWidget {
       theme: _buildTheme(),
       darkTheme: _buildDarkTheme(),
       themeMode: settings.themeMode,
+      locale: settings.locale,
+      supportedLocales: const [Locale('ar'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       routerConfig: goRouter,
     );
   }
@@ -114,6 +162,7 @@ class TofofApp extends ConsumerWidget {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
+        insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 118),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.innerRadius),
         ),
@@ -141,6 +190,13 @@ class TofofApp extends ConsumerWidget {
         backgroundColor: Color(0xFF121212),
         elevation: 0,
         centerTitle: true,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 118),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimensions.innerRadius),
+        ),
       ),
     );
   }

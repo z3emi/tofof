@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../home/providers/store_provider.dart';
 import 'package:go_router/go_router.dart';
@@ -8,14 +9,24 @@ class CategoryProductsScreen extends ConsumerWidget {
   final int categoryId;
   const CategoryProductsScreen({super.key, required this.categoryId});
 
+  /// Helper function للترجمة
+  String _tr(bool isArabic, String ar, String en) {
+    return isArabic ? ar : en;
+  }
+
+  /// Helper function لتنسيق الأسعار بفواصل الآلاف
+  String _formatPrice(double price) {
+    final formatter = NumberFormat('#,##0', 'en_US');
+    return formatter.format(price.toInt());
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Ideally use a filtered provider like categoryProductsProvider(categoryId)
-    // Here we use the home products as a placeholder until filtering is implemented
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
     final productsAsync = ref.watch(homeProductsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('المنتجات')),
+      appBar: AppBar(title: Text(_tr(isArabic, 'المنتجات', 'Products'))),
       body: productsAsync.when(
         data: (products) => GridView.builder(
           padding: const EdgeInsets.all(16),
@@ -57,19 +68,42 @@ class CategoryProductsScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            p.name,
+                            p.localizedName(isArabic),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            '${p.currentPrice} د.ع',
-                            style: const TextStyle(
-                              color: Color(0xFF6D0E16),
-                              fontWeight: FontWeight.bold,
+                          if (p.isOnSale)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${_formatPrice(p.price)} ${_tr(isArabic, 'د.ع', 'IQD')}',
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${_formatPrice(p.currentPrice)} ${_tr(isArabic, 'د.ع', 'IQD')}',
+                                  style: const TextStyle(
+                                    color: Color(0xFF6D0E16),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            )
+                          else
+                            Text(
+                              '${_formatPrice(p.currentPrice)} ${_tr(isArabic, 'د.ع', 'IQD')}',
+                              style: const TextStyle(
+                                color: Color(0xFF6D0E16),
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ),
@@ -80,7 +114,7 @@ class CategoryProductsScreen extends ConsumerWidget {
           },
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text('خطأ: $e')),
+        error: (e, s) => Center(child: Text('${_tr(Localizations.localeOf(context).languageCode == 'ar', 'خطأ', 'Error')}: $e')),
       ),
     );
   }

@@ -9,6 +9,7 @@ import '../../features/auth/presentation/password_reset_screen.dart';
 import '../../features/products/presentation/product_details_screen.dart';
 import '../../features/categories/presentation/category_products_screen.dart';
 import '../../features/products/presentation/favorites_screen.dart';
+import '../../features/cart/presentation/cart_screen.dart';
 import '../../features/cart/presentation/checkout_screen.dart';
 import '../../features/profile/presentation/edit_profile_screen.dart';
 import '../../features/profile/presentation/orders_screen.dart';
@@ -66,6 +67,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/checkout',
         name: 'checkout',
         builder: (context, state) => const CheckoutScreen(),
+      ),
+      GoRoute(
+        path: '/cart',
+        name: 'cart',
+        builder: (context, state) => const CartScreen(),
       ),
       GoRoute(
         path: '/profile/edit',

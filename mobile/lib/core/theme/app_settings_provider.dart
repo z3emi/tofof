@@ -5,19 +5,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AppSettingsState {
   final ThemeMode themeMode;
   final bool notificationsEnabled;
+  final Locale locale;
 
   const AppSettingsState({
     this.themeMode = ThemeMode.light,
     this.notificationsEnabled = true,
+    this.locale = const Locale('ar'),
   });
 
   AppSettingsState copyWith({
     ThemeMode? themeMode,
     bool? notificationsEnabled,
+    Locale? locale,
   }) {
     return AppSettingsState(
       themeMode: themeMode ?? this.themeMode,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      locale: locale ?? this.locale,
     );
   }
 
@@ -27,6 +31,7 @@ class AppSettingsState {
 class AppSettingsNotifier extends Notifier<AppSettingsState> {
   static const _themeModeKey = 'app_theme_mode';
   static const _notificationsKey = 'app_notifications_enabled';
+  static const _localeKey = 'app_locale';
 
   @override
   AppSettingsState build() {
@@ -39,6 +44,7 @@ class AppSettingsNotifier extends Notifier<AppSettingsState> {
 
     final rawTheme = prefs.getString(_themeModeKey);
     final notifications = prefs.getBool(_notificationsKey);
+    final rawLocale = prefs.getString(_localeKey);
 
     final mode = switch (rawTheme) {
       'dark' => ThemeMode.dark,
@@ -46,9 +52,15 @@ class AppSettingsNotifier extends Notifier<AppSettingsState> {
       _ => ThemeMode.light,
     };
 
+    final locale = switch (rawLocale) {
+      'en' => const Locale('en'),
+      _ => const Locale('ar'),
+    };
+
     state = state.copyWith(
       themeMode: mode,
       notificationsEnabled: notifications ?? true,
+      locale: locale,
     );
   }
 
@@ -69,6 +81,12 @@ class AppSettingsNotifier extends Notifier<AppSettingsState> {
     state = state.copyWith(notificationsEnabled: enabled);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_notificationsKey, enabled);
+  }
+
+  Future<void> setLocale(Locale locale) async {
+    state = state.copyWith(locale: locale);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_localeKey, locale.languageCode);
   }
 }
 

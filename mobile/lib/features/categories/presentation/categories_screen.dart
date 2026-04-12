@@ -17,6 +17,7 @@ class CategoriesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isArabic = Localizations.localeOf(context).languageCode == 'ar';
     final categoriesAsync = ref.watch(categoriesProvider);
 
     final body = RefreshIndicator(
@@ -33,7 +34,7 @@ class CategoriesScreen extends ConsumerWidget {
                 AppDimensions.screenPadding,
                 0,
               ),
-              child: _IntroPanel(),
+              child: _IntroPanel(isArabic: isArabic),
             ),
           ),
           SliverToBoxAdapter(
@@ -44,7 +45,10 @@ class CategoriesScreen extends ConsumerWidget {
                 AppDimensions.screenPadding,
                 0,
               ),
-              child: _SectionHeader(title: 'الفئات', actionLabel: 'عرض الكل'),
+              child: _SectionHeader(
+                title: isArabic ? 'الفئات' : 'Categories',
+                actionLabel: isArabic ? 'عرض الكل' : 'View All',
+              ),
             ),
           ),
           SliverToBoxAdapter(
@@ -56,14 +60,20 @@ class CategoriesScreen extends ConsumerWidget {
                 0,
               ),
               child: categoriesAsync.when(
-                data: (categories) => _CategoriesGrid(categories),
+                data: (categories) =>
+                    _CategoriesGrid(categories, isArabic: isArabic),
                 loading: () => Skeletonizer(
                   enabled: true,
                   child: _CategoriesGrid(
                     List.generate(6, (index) => _DummyCategory(index + 1)),
+                    isArabic: isArabic,
                   ),
                 ),
-                error: (e, s) => const _ErrorTile(message: 'تعذر تحميل الفئات'),
+                error: (e, s) => _ErrorTile(
+                  message: isArabic
+                      ? 'تعذر تحميل الفئات'
+                      : 'Unable to load categories',
+                ),
               ),
             ),
           ),
@@ -131,6 +141,10 @@ class _StoreHeader extends StatelessWidget {
 }
 
 class _IntroPanel extends StatelessWidget {
+  final bool isArabic;
+
+  const _IntroPanel({required this.isArabic});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -162,7 +176,7 @@ class _IntroPanel extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppDimensions.chipRadius),
               ),
               child: Text(
-                'الأقسام',
+                isArabic ? 'الأقسام' : 'Sections',
                 style: GoogleFonts.manrope(
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
@@ -178,7 +192,7 @@ class _IntroPanel extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'اكتشف الفئات',
+                  isArabic ? 'اكتشف الفئات' : 'Discover Categories',
                   style: GoogleFonts.notoSerif(
                     color: Colors.white,
                     fontSize: 24,
@@ -187,7 +201,9 @@ class _IntroPanel extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'مجموعة مختارة بعناية لتسهيل التصفح',
+                  isArabic
+                      ? 'مجموعة مختارة بعناية لتسهيل التصفح'
+                      : 'Carefully curated collections for easier browsing',
                   style: GoogleFonts.manrope(
                     color: Colors.white70,
                     fontSize: 12,
@@ -236,8 +252,9 @@ class _SectionHeader extends StatelessWidget {
 
 class _CategoriesGrid extends StatelessWidget {
   final List<dynamic> categories;
+  final bool isArabic;
 
-  const _CategoriesGrid(this.categories);
+  const _CategoriesGrid(this.categories, {required this.isArabic});
 
   @override
   Widget build(BuildContext context) {
@@ -257,6 +274,7 @@ class _CategoriesGrid extends StatelessWidget {
             : categories[index] as CategoryModel;
         return _CategoryCard(
           category: cat,
+          isArabic: isArabic,
           onTap: cat is CategoryModel
               ? () => context.push('/category/${cat.id}')
               : null,
@@ -268,14 +286,19 @@ class _CategoriesGrid extends StatelessWidget {
 
 class _CategoryCard extends StatelessWidget {
   final dynamic category;
+  final bool isArabic;
   final VoidCallback? onTap;
 
-  const _CategoryCard({required this.category, this.onTap});
+  const _CategoryCard({
+    required this.category,
+    required this.isArabic,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final String name = category is _DummyCategory
-        ? category.name as String
+    final String name = category is CategoryModel
+        ? (category as CategoryModel).localizedName(isArabic)
         : category.name as String;
     final String? imageUrl = category is _DummyCategory
         ? category.imageUrl as String?
@@ -355,7 +378,7 @@ class _CategoryCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$count منتج',
+                    isArabic ? '$count منتج' : '$count products',
                     style: GoogleFonts.manrope(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,

@@ -11,6 +11,9 @@ class CartState {
   final String? discountCode;
   final bool isLoading;
   final String? error;
+  // ذكرة الخصم الأصلي للحساب الذكي
+  final double originalDiscount;
+  final double originalSubtotal;
 
   CartState({
     this.items = const [],
@@ -21,6 +24,8 @@ class CartState {
     this.discountCode,
     this.isLoading = false,
     this.error,
+    this.originalDiscount = 0.0,
+    this.originalSubtotal = 0.0,
   });
 
   CartState copyWith({
@@ -34,6 +39,8 @@ class CartState {
     bool? isLoading,
     String? error,
     bool clearError = false,
+    double? originalDiscount,
+    double? originalSubtotal,
   }) {
     return CartState(
       items: items ?? this.items,
@@ -46,7 +53,20 @@ class CartState {
           : (discountCode ?? this.discountCode),
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
+      originalDiscount: originalDiscount ?? this.originalDiscount,
+      originalSubtotal: originalSubtotal ?? this.originalSubtotal,
     );
+  }
+
+  /// حساب نسبة الخصم (نسبة مئوية)
+  double get discountPercentage {
+    try {
+      if (originalSubtotal <= 0 || originalDiscount <= 0) return 0.0;
+      final percentage = (originalDiscount / originalSubtotal) * 100;
+      return percentage.isNaN || percentage.isInfinite ? 0.0 : percentage;
+    } catch (_) {
+      return 0.0;
+    }
   }
 }
 
@@ -58,16 +78,53 @@ class CartNotifier extends Notifier<CartState> {
 
   CartRepository get _repo => ref.read(cartRepositoryProvider);
 
+  /// إعادة حساب الخصم بناءً على نسبة الخصم الأصلية
+  double _recalculateDiscount(double newSubtotal) {
+    try {
+      if (state.originalSubtotal <= 0 || state.originalDiscount <= 0) {
+        return 0.0;
+      }
+
+      // حساب نسبة الخصم من المجموع الأصلي
+      final discountRatio = state.originalDiscount / state.originalSubtotal;
+      
+      // تطبيق النسبة على المجموع الجديد
+      double newDiscount = (newSubtotal * discountRatio);
+      
+      // التأكد من عدم تجاوز الخصم للمجموع الجديد
+      if (newDiscount > newSubtotal) {
+        newDiscount = newSubtotal;
+      }
+      
+      return newDiscount.isNaN || newDiscount.isInfinite ? 0.0 : newDiscount;
+    } catch (_) {
+      return 0.0;
+    }
+  }
+
   void _applyItemsSnapshot(List<CartItemModel> items) {
-    final subtotal = items.fold<double>(0.0, (sum, item) => sum + item.total);
-    final discount = state.discount;
-    state = state.copyWith(
-      items: items,
-      subtotal: subtotal,
-      total: subtotal - discount,
-      count: items.length,
-      isLoading: false,
-    );
+    try {
+      final subtotal = items.fold<double>(0.0, (sum, item) => sum + item.total);
+      
+      // إعادة حساب الخصم ذكياً
+      final recalculatedDiscount = _recalculateDiscount(subtotal);
+      
+      final newTotal = (subtotal - recalculatedDiscount);
+      
+      state = state.copyWith(
+        items: items,
+        subtotal: subtotal,
+        discount: recalculatedDiscount,
+        total: newTotal,
+        count: items.length,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'خطأ في تحديث السلة: $e',
+      );
+    }
   }
 
   List<CartItemModel> _extractItems(Map<String, dynamic> response) {
@@ -89,15 +146,21 @@ class CartNotifier extends Notifier<CartState> {
         final items = ((data['items'] as List?) ?? [])
             .map((e) => CartItemModel.fromJson(e as Map<String, dynamic>))
             .toList();
+        
+        final fetchedSubtotal = (data['subtotal'] as num?)?.toDouble() ?? 0.0;
+        final fetchedDiscount = (data['discount'] as num?)?.toDouble() ?? 0.0;
 
         state = state.copyWith(
           items: items,
-          subtotal: (data['subtotal'] as num?)?.toDouble() ?? 0.0,
-          discount: (data['discount'] as num?)?.toDouble() ?? 0.0,
+          subtotal: fetchedSubtotal,
+          discount: fetchedDiscount,
           total: (data['total'] as num?)?.toDouble() ?? 0.0,
           count: (data['count'] as num?)?.toInt() ?? 0,
           discountCode: data['discount_code'] as String?,
           isLoading: false,
+          // حفظ معلومات الخصم الأصلية للحساب الذكي
+          originalDiscount: fetchedDiscount,
+          originalSubtotal: fetchedSubtotal,
         );
       } else {
         // Empty cart
@@ -153,6 +216,39 @@ class CartNotifier extends Notifier<CartState> {
       state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }
+  }
+
+  /// حذف الخصم وتصفيره
+  Future<void> removeDiscount() async {
+    try {
+      state = state.copyWith(isLoading: true);
+      await _repo.removeDiscount();
+      
+      // تحديث الحالة بحذف الخصم
+      final newTotal = state.subtotal - 0.0; // جعلها واضحة أن الخصم = 0
+      state = state.copyWith(
+        discount: 0.0,
+        total: newTotal,
+        discountCode: null,
+        originalDiscount: 0.0,
+        originalSubtotal: 0.0,
+        isLoading: false,
+        clearDiscountCode: true,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  /// تصفير الخصم عند الخروج من التطبيق (مسح الذاكرة)
+  void clearDiscountOnAppExit() {
+    state = state.copyWith(
+      discount: 0.0,
+      discountCode: null,
+      originalDiscount: 0.0,
+      originalSubtotal: 0.0,
+      clearDiscountCode: true,
+    );
   }
 }
 

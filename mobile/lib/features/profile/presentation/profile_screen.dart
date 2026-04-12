@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,36 +21,36 @@ class ProfileScreen extends ConsumerWidget {
     final user = authState.user;
 
     if (authState.isLoading && user == null) {
-      final skeletonBody = Skeletonizer(
-        enabled: true,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 120),
-          children: const [
-            Card(child: SizedBox(height: 180)),
-            SizedBox(height: 14),
-            Card(child: SizedBox(height: 88)),
-            SizedBox(height: 12),
-            ListTile(
-              leading: Icon(Icons.shopping_bag_outlined),
-              title: Text('طلباتي'),
-            ),
-            ListTile(
-              leading: Icon(Icons.discount_outlined),
-              title: Text('أكواد الخصم'),
-            ),
-            ListTile(
-              leading: Icon(Icons.favorite_border),
-              title: Text('المفضلة'),
-            ),
-            ListTile(
-              leading: Icon(Icons.location_on_outlined),
-              title: Text('عناويني'),
-            ),
-            ListTile(
-              leading: Icon(Icons.settings_outlined),
-              title: Text('إعدادات التطبيق'),
-            ),
-          ],
+      final skeletonBody = _ProfileLiquidBackground(
+        child: Skeletonizer(
+          enabled: true,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 120),
+            children: const [
+              _GlassCard(child: SizedBox(height: 180)),
+              SizedBox(height: 14),
+              _GlassCard(child: SizedBox(height: 88)),
+              SizedBox(height: 12),
+              _GlassCard(
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.shopping_bag_outlined),
+                      title: Text('طلباتي'),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.discount_outlined),
+                      title: Text('أكواد الخصم'),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.favorite_border),
+                      title: Text('المفضلة'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       );
 
@@ -63,96 +65,95 @@ class ProfileScreen extends ConsumerWidget {
     }
 
     if (user == null) {
-      final guestBody = ListView(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 120),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(22),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF6D0E16),
-                  Color(0xFF9B1B24),
-                  Color(0xFF571017),
-                ],
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
+      final guestBody = _ProfileLiquidBackground(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 120),
+          children: [
+            _GlassCard(
+              child: Container(
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFF6D0E16),
+                      Color(0xFF9B1B24),
+                      Color(0xFF571017),
+                    ],
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const CircleAvatar(
+                      radius: 38,
+                      backgroundColor: Colors.white,
+                      child: Icon(
+                        Icons.person_outline_rounded,
+                        size: 38,
+                        color: Color(0xFF6D0E16),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'مرحبًا بك في طفوف',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 22,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'سجل دخولك حتى تظهر طلباتك، أكواد الخصم، المفضلة، العناوين، والمحفظة.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white70, height: 1.5),
+                    ),
+                    const SizedBox(height: 18),
+                    ElevatedButton(
+                      onPressed: () => context.push('/login'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF6D0E16),
+                      ),
+                      child: const Text('تسجيل دخول'),
+                    ),
+                    const SizedBox(height: 10),
+                    OutlinedButton(
+                      onPressed: () => context.push('/register'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: Colors.white),
+                      ),
+                      child: const Text('إنشاء حساب جديد'),
+                    ),
+                    const SizedBox(height: 6),
+                    TextButton(
+                      onPressed: () => context.push('/reset-password'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                      ),
+                      child: const Text('نسيت كلمة المرور؟'),
+                    ),
+                  ],
+                ),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF6D0E16).withValues(alpha: 0.18),
-                  blurRadius: 24,
-                  offset: const Offset(0, 12),
-                ),
-              ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const CircleAvatar(
-                  radius: 38,
-                  backgroundColor: Colors.white,
-                  child: Icon(
-                    Icons.person_outline_rounded,
-                    size: 38,
-                    color: Color(0xFF6D0E16),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                const Text(
-                  'مرحبًا بك في طفوف',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 22,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'سجل دخولك حتى تظهر طلباتك، أكواد الخصم، المفضلة، العناوين، والمحفظة.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white70, height: 1.5),
-                ),
-                const SizedBox(height: 18),
-                ElevatedButton(
-                  onPressed: () => context.push('/login'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF6D0E16),
-                  ),
-                  child: const Text('تسجيل دخول'),
-                ),
-                const SizedBox(height: 10),
-                OutlinedButton(
-                  onPressed: () => context.push('/register'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.white),
-                  ),
-                  child: const Text('إنشاء حساب جديد'),
-                ),
-                const SizedBox(height: 6),
-                TextButton(
-                  onPressed: () => context.push('/reset-password'),
-                  style: TextButton.styleFrom(foregroundColor: Colors.white70),
-                  child: const Text('نسيت كلمة المرور؟'),
-                ),
-              ],
+            const SizedBox(height: 14),
+            _GlassCard(
+              child: ListTile(
+                leading: const Icon(Icons.settings_outlined),
+                title: const Text('إعدادات التطبيق'),
+                subtitle: const Text('الإشعارات والوضع الليلي واللغة'),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () => context.push('/settings'),
+              ),
             ),
-          ),
-          const SizedBox(height: 14),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: const Text('إعدادات التطبيق'),
-              subtitle: const Text('الإشعارات والوضع الليلي واللغة'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () => context.push('/settings'),
-            ),
-          ),
-        ],
+          ],
+        ),
       );
 
       if (!showAppBar) {
@@ -165,147 +166,145 @@ class ProfileScreen extends ConsumerWidget {
       );
     }
 
-    final userBody = SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 120),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            margin: const EdgeInsets.fromLTRB(16, 18, 16, 12),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(26),
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF6D0E16),
-                  Color(0xFF8F1A24),
-                  Color(0xFF531018),
-                ],
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF6D0E16).withValues(alpha: 0.18),
-                  blurRadius: 28,
-                  offset: const Offset(0, 14),
+    final userBody = _ProfileLiquidBackground(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 120),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _GlassCard(
+              margin: const EdgeInsets.fromLTRB(16, 18, 16, 12),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(26),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFF6D0E16),
+                      Color(0xFF8F1A24),
+                      Color(0xFF531018),
+                    ],
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                  ),
                 ),
-              ],
-            ),
-            child: Row(
-              children: [
-                _ProfileAvatar(avatarPath: user.avatar),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                child: Row(
+                  children: [
+                    _ProfileAvatar(avatarPath: user.avatar),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Text(
-                              user.name,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  user.name,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () => context.push('/profile/edit'),
+                                icon: const Icon(
+                                  Icons.edit_outlined,
+                                  color: Colors.white,
+                                ),
+                                tooltip: 'تعديل',
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            user.phoneNumber,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (user.email.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              user.email,
                               style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
+                                color: Colors.white54,
+                                fontSize: 12,
                               ),
                             ),
-                          ),
-                          IconButton(
-                            onPressed: () => context.push('/profile/edit'),
-                            icon: const Icon(
-                              Icons.edit_outlined,
-                              color: Colors.white,
-                            ),
-                            tooltip: 'تعديل',
-                          ),
+                          ],
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        user.phoneNumber,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      if (user.email.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          user.email,
-                          style: const TextStyle(
-                            color: Colors.white54,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                _WalletHighlightCard(
-                  balanceText: '${_formatAmount(user.walletBalance)} د.ع',
-                ),
-                const SizedBox(height: 12),
-                _ReferralCodeCard(referralCode: user.referralCode),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Card(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: [
-                  _buildProfileOption(
-                    Icons.shopping_bag_outlined,
-                    'طلباتي',
-                    () => context.push('/profile/orders'),
+                  _WalletHighlightCard(
+                    balanceText: '${_formatAmount(user.walletBalance)} د.ع',
                   ),
-                  _buildProfileOption(
-                    Icons.discount_outlined,
-                    'أكواد الخصم',
-                    () => context.push('/profile/discounts'),
-                  ),
-                  _buildProfileOption(
-                    Icons.favorite_border,
-                    'المفضلة',
-                    () => context.push('/profile/favorites'),
-                  ),
-                  _buildProfileOption(
-                    Icons.location_on_outlined,
-                    'عناويني',
-                    () => context.push('/profile/addresses'),
-                  ),
-                  _buildProfileOption(
-                    Icons.settings_outlined,
-                    'إعدادات التطبيق',
-                    () => context.push('/settings'),
-                  ),
-                  _buildProfileOption(
-                    Icons.support_agent,
-                    'الدعم الفني والشكاوى',
-                    () {},
-                  ),
-                  _buildProfileOption(
-                    Icons.logout,
-                    'تسجيل الخروج',
-                    () => ref.read(authProvider.notifier).logout(),
-                    color: Colors.red,
-                  ),
+                  const SizedBox(height: 12),
+                  _ReferralCodeCard(referralCode: user.referralCode),
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-        ],
+            const SizedBox(height: 14),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _GlassCard(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    _buildProfileOption(
+                      Icons.shopping_bag_outlined,
+                      'طلباتي',
+                      () => context.push('/profile/orders'),
+                    ),
+                    _buildProfileOption(
+                      Icons.discount_outlined,
+                      'أكواد الخصم',
+                      () => context.push('/profile/discounts'),
+                    ),
+                    _buildProfileOption(
+                      Icons.favorite_border,
+                      'المفضلة',
+                      () => context.push('/profile/favorites'),
+                    ),
+                    _buildProfileOption(
+                      Icons.location_on_outlined,
+                      'عناويني',
+                      () => context.push('/profile/addresses'),
+                    ),
+                    _buildProfileOption(
+                      Icons.settings_outlined,
+                      'إعدادات التطبيق',
+                      () => context.push('/settings'),
+                    ),
+                    _buildProfileOption(
+                      Icons.support_agent,
+                      'الدعم الفني والشكاوى',
+                      () {},
+                    ),
+                    _buildProfileOption(
+                      Icons.logout,
+                      'تسجيل الخروج',
+                      () => ref.read(authProvider.notifier).logout(),
+                      color: Colors.red,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
 
@@ -400,63 +399,58 @@ class _WalletHighlightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0E6D58), Color(0xFF139A78), Color(0xFF0F7D62)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return _GlassCard(
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF0E6D58), Color(0xFF139A78), Color(0xFF0F7D62)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0E6D58).withValues(alpha: 0.18),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.22),
-              borderRadius: BorderRadius.circular(14),
+        child: Row(
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.22),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(
+                Icons.account_balance_wallet_outlined,
+                color: Colors.white,
+              ),
             ),
-            child: const Icon(
-              Icons.account_balance_wallet_outlined,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'رصيد المحفظة',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w600,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'رصيد المحفظة',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  balanceText,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 22,
+                  const SizedBox(height: 4),
+                  Text(
+                    balanceText,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 22,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -472,77 +466,185 @@ class _ReferralCodeCard extends StatelessWidget {
     final code = referralCode?.trim();
     final hasCode = code != null && code.isNotEmpty;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFDF5E8),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE4CF9B)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.card_giftcard_outlined, color: Color(0xFF8B5E00)),
-              SizedBox(width: 8),
-              Text(
-                'كود الدعوة',
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF6B4700),
+    return _GlassCard(
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFDF5E8),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE4CF9B)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.card_giftcard_outlined, color: Color(0xFF8B5E00)),
+                SizedBox(width: 8),
+                Text(
+                  'كود الدعوة',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF6B4700),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE4CF9B)),
-                  ),
-                  child: Text(
-                    hasCode ? code : 'غير متوفر',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: hasCode ? 1.0 : 0,
-                      color: hasCode
-                          ? const Color(0xFF2F2F2F)
-                          : Colors.grey.shade600,
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE4CF9B)),
+                    ),
+                    child: Text(
+                      hasCode ? code : 'غير متوفر',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: hasCode ? 1.0 : 0,
+                        color: hasCode
+                            ? const Color(0xFF2F2F2F)
+                            : Colors.grey.shade600,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              FilledButton.icon(
-                onPressed: hasCode
-                    ? () async {
-                        await Clipboard.setData(ClipboardData(text: code));
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('تم نسخ كود الدعوة')),
-                        );
-                      }
-                    : null,
-                icon: const Icon(Icons.copy_outlined, size: 18),
-                label: const Text('نسخ'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B5E00),
-                  foregroundColor: Colors.white,
+                const SizedBox(width: 8),
+                FilledButton.icon(
+                  onPressed: hasCode
+                      ? () async {
+                          await Clipboard.setData(ClipboardData(text: code));
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('تم نسخ كود الدعوة')),
+                          );
+                        }
+                      : null,
+                  icon: const Icon(Icons.copy_outlined, size: 18),
+                  label: const Text('نسخ'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF8B5E00),
+                    foregroundColor: Colors.white,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileLiquidBackground extends StatelessWidget {
+  final Widget child;
+
+  const _ProfileLiquidBackground({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFF8F2F1), Color(0xFFFDFCFB)],
+            ),
+          ),
+        ),
+        Positioned(
+          top: -70,
+          right: -40,
+          child: _GlassBlob(
+            size: 220,
+            color: const Color(0xFF6D0E16).withValues(alpha: 0.14),
+          ),
+        ),
+        Positioned(
+          left: -50,
+          top: 250,
+          child: _GlassBlob(
+            size: 180,
+            color: const Color(0xFFD4A25F).withValues(alpha: 0.16),
+          ),
+        ),
+        child,
+      ],
+    );
+  }
+}
+
+class _GlassBlob extends StatelessWidget {
+  final double size;
+  final Color color;
+
+  const _GlassBlob({required this.size, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: ImageFiltered(
+        imageFilter: ImageFilter.blur(sigmaX: 36, sigmaY: 36),
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+      ),
+    );
+  }
+}
+
+class _GlassCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry? margin;
+  final EdgeInsetsGeometry padding;
+
+  const _GlassCard({
+    required this.child,
+    this.margin,
+    this.padding = const EdgeInsets.all(6),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: margin,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6D0E16).withValues(alpha: 0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
           ),
         ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Container(
+            padding: padding,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.58),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.82)),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: child,
+          ),
+        ),
       ),
     );
   }
